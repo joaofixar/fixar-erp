@@ -1,0 +1,10 @@
+---
+description: sistema-legado/ é referência local só de leitura
+alwaysApply: true
+---
+
+# sistema-legado/
+
+`sistema-legado/` é referência local, fora do git, presente na máquina de cada dev. Ler para entender o comportamento atual.
+
+Gravar, renomear, apagar ou formatar qualquer arquivo sob `sistema-legado/` está fora deste repositório. O que o sistema novo herda se reimplementa fora da pasta, citando o arquivo de origem no ticket ou no comentário.

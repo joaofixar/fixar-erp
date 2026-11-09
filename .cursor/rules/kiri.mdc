@@ -1,0 +1,12 @@
+---
+description: Contêineres rodam no Kiri, com os comandos docker e docker compose
+alwaysApply: true
+---
+
+# Contêineres
+
+O runtime de contêiner é o Kiri (https://docs.runkiri.com/how-it-works/), um engine em Rust com a Docker Engine API. Usar `docker`, `docker compose` e `buildx`. Dockerfiles e Compose permanecem no formato usual.
+
+Não introduzir Docker Desktop como engine do projeto. No Windows o engine fica no WSL2, no pipe `npipe:////./pipe/kiri`. No macOS, contexto `kiri`. No Linux, sem VM.
+
+Onde cada host mora: `CODING_STANDARDS.md`.

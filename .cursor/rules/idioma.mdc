@@ -1,0 +1,12 @@
+---
+description: Comentários e documentação do projeto em português
+alwaysApply: true
+---
+
+# Idioma
+
+Comentários, docs, specs, tickets, glossário e ADRs em português.
+
+Tokens que os skills casam ficam em inglês: rótulos (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), as linhas `Status:`, `Type:` e `Blocked by:`, e os títulos `## Comments`, `## Answer` e `## Wayfinding operations`.
+
+Lista fechada: `CODING_STANDARDS.md`.

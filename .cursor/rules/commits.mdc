@@ -1,0 +1,14 @@
+---
+description: Commits seguem Conventional Commits, com descrição em português
+alwaysApply: true
+---
+
+# Commits
+
+Assunto no formato `<tipo>(<escopo>): <imperativo em português>`, sem ponto final. Escopo opcional. Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Corpo só para o porquê. Mudança incompatível leva `!` ou o rodapé `BREAKING CHANGE:`.
+
+```
+feat(estoque): registra a entrada de mercadoria
+```
+
+Exemplos e o formato completo: `CODING_STANDARDS.md`.
