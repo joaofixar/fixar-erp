@@ -1,1 +1,6 @@
 sistema-legado/
+
+# Credenciais locais, inclusive leitura da produção
+.env
+.env.*
+!.env.example
