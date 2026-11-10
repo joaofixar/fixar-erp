@@ -138,6 +138,12 @@ def ajustar_conexao():
         "log de erro de conexão",
     )
     texto = texto.replace(b"mysqli_connect_error($con)", b"mysqli_connect_error()")
+    texto = substituir(
+        texto,
+        b"$con -> options(MYSQLI_OPT_CONNECT_TIMEOUT, 240);",
+        b"$con -> options(MYSQLI_OPT_CONNECT_TIMEOUT, 3);",
+        "falha rápida quando o banco não responde",
+    )
     gravar(caminho, texto)
 
 
@@ -268,6 +274,15 @@ def corrigir_php8(raiz):
             arquivo.write(texto)
 
 
+def garantir_autoload():
+    caminho = os.path.join(COPIA, "bibliotecas", "composer", "vendor", "autoload.php")
+    if os.path.isfile(caminho):
+        return
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    with open(caminho, "w", encoding="utf-8", newline="\n") as arquivo:
+        arquivo.write("<?php\n// Esta cópia não traz a pasta vendor. O framework exige o arquivo.\n")
+
+
 def main():
     if os.path.isdir(os.path.join(COPIA, "sistema")) and os.environ.get("FIXAR_RECRIAR") != "1":
         print("A cópia local já existe. FIXAR_RECRIAR=1 refaz a partir do legado.")
@@ -280,6 +295,9 @@ def main():
     ajustar_funcoes()
     corrigir_php8(COPIA)
     escrever_configuracao()
+    garantir_autoload()
+    for relativa in ("smarty/templates_c", "smarty/cache"):
+        os.makedirs(os.path.join(COPIA, relativa), exist_ok=True)
     print("Cópia pronta em base/html.")
 
 

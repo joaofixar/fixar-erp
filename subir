@@ -11,15 +11,17 @@ case "$(uname -s)" in
 esac
 
 if python -c "import sys" >/dev/null 2>&1; then
-  python bin/preparar-base.py
+  py=python
 elif python3 -c "import sys" >/dev/null 2>&1; then
-  python3 bin/preparar-base.py
+  py=python3
 else
   echo "Falta o Python para preparar a cópia." >&2
   exit 1
 fi
+"$py" bin/preparar-base.py
 if ! docker image inspect fixar-erp-web >/dev/null 2>&1; then
   docker build -t fixar-erp-web ./docker/php
 fi
 docker compose up -d --no-build --wait
+"$py" bin/carregar-estrutura.py
 echo "Base no ar: http://127.0.0.1:8080/login"
