@@ -9,7 +9,11 @@ Orbit: ERPFX-8
 
 **Status:** ready-for-agent
 
-- [ ] Login e abertura de cada tela do ciclo não abrem conexão com a receita, com banco, com e-mail nem com o fornecedor do sistema
-- [ ] O clique de emitir nota não chega à receita
-- [ ] O clique de registrar boleto não chega ao banco
-- [ ] O clique de enviar e-mail não sai da máquina
+- [x] Login e abertura de cada tela do ciclo não abrem conexão com a receita, com banco, com e-mail nem com o fornecedor do sistema
+- [x] O clique de emitir nota não chega à receita
+- [x] O clique de registrar boleto não chega ao banco
+- [x] O clique de enviar e-mail não sai da máquina
+
+## Comments
+
+Concluído em 3b854c7.
