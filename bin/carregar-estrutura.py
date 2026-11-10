@@ -409,6 +409,9 @@ TELAS_DO_CICLO = (
     14,  # Orçamentos
     15,  # Pedidos
     16,  # Notas Fiscais de saída
+    20,  # Expedição
+    21,  # Nota fiscal de entrada
+    110,  # Estoque
     41,  # CFOP
     42,  # NCM
     43,  # ICMS
@@ -417,13 +420,11 @@ TELAS_DO_CICLO = (
 )
 
 
-def garantir_status_do_pedido():
-    # A listagem de orçamento e de pedido chama esta função. O dump da
-    # produção cai para tabelas quando a conta de leitura não exporta rotina.
-    # A tabela é latin1; o retorno precisa da mesma colação, senão o
-    # group_concat da grade de pedido não roda no MariaDB.
-    # Origem: sistema-legado/scripts/sql/T005_Status_Pedido.sql
-    nome = "T005_Status_Pedido"
+def garantir_rotina(nome, marca, retorno):
+    # O dump da produção cai para tabelas quando a conta de leitura não
+    # exporta rotina. A tabela é latin1; o retorno precisa da mesma colação,
+    # senão a grade não roda no MariaDB.
+    # Origem: sistema-legado/scripts/sql/<nome>.sql
     colacao = celula(
         "SELECT COLLATION_NAME FROM information_schema.routines "
         f"WHERE routine_schema='fixar' AND routine_name='{nome}'"
@@ -437,8 +438,6 @@ def garantir_status_do_pedido():
         corpo = arquivo.read().strip()
     if corpo.endswith(b";"):
         corpo = corpo[:-1]
-    marca = b"RETURNS varchar(30)"
-    retorno = b"RETURNS varchar(30) CHARSET latin1 COLLATE latin1_swedish_ci"
     if marca not in corpo:
         sys.exit(f"não achei o retorno de {nome}")
     corpo = corpo.replace(marca, retorno, 1)
@@ -448,6 +447,24 @@ def garantir_status_do_pedido():
     )
     local(sql)
     print(f"Rotina {nome} disponível na base local.")
+
+
+def garantir_status_do_pedido():
+    # A listagem de orçamento e de pedido chama esta função.
+    garantir_rotina(
+        "T005_Status_Pedido",
+        b"RETURNS varchar(30)",
+        b"RETURNS varchar(30) CHARSET latin1 COLLATE latin1_swedish_ci",
+    )
+
+
+def garantir_prazos():
+    # A separação da expedição chama esta função.
+    garantir_rotina(
+        "T005_Prazos",
+        b"RETURNS varchar(255)",
+        b"RETURNS varchar(255) CHARSET latin1 COLLATE latin1_swedish_ci",
+    )
 
 
 def liberar_telas():
@@ -682,6 +699,7 @@ def main():
     else:
         print("O acesso local já está semeado.")
     garantir_status_do_pedido()
+    garantir_prazos()
     liberar_telas()
 
 

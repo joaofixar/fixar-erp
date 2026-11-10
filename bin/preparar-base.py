@@ -218,10 +218,12 @@ def ajustar_menu():
 
 
 def ativar_regras():
-    """Coloca as regras próprias onde o legado carrega a classe ao abrir a tela.
+    """Coloca as regras próprias onde o legado as carrega ao abrir a tela.
 
-    Origem: sistema-legado/outros/personalizacoes/fixar/FIXAR-VEN001.php e FIXAR-VEN002.php.
-    O carregamento procura dados_usuarios/<banco>/personalizacaoConf/<Classe>.PHP-alterarMetodos.php.
+    Origem: sistema-legado/outros/personalizacoes/fixar/FIXAR-VEN001.php,
+    FIXAR-VEN002.php e cad002-grid-historico.php.
+    Classe: dados_usuarios/<banco>/personalizacaoConf/<Classe>.PHP-alterarMetodos.php.
+    Grade: dados_usuarios/<banco>/personalizacaoConf/<caminho-com-tracos>-alterarPrograma.php.
     """
     origem = os.path.join(COPIA, "outros", "personalizacoes", "fixar")
     destino = os.path.join(COPIA, "dados_usuarios", "fixar", "personalizacaoConf")
@@ -235,6 +237,14 @@ def ativar_regras():
         if not os.path.isfile(caminho):
             sys.exit(f"não achei a regra própria {nome}")
         shutil.copy2(caminho, os.path.join(destino, instalado))
+    # Origem: sistema-legado/outros/personalizacoes/fixar/cad002-grid-historico.php
+    historico = os.path.join(origem, "cad002-grid-historico.php")
+    if not os.path.isfile(historico):
+        sys.exit("não achei a regra própria do histórico de produto")
+    shutil.copy2(
+        historico,
+        os.path.join(destino, "cad-cad002-grid-historico-alterarPrograma.php"),
+    )
 
 
 def ajustar_totais():
