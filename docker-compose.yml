@@ -1,0 +1,38 @@
+services:
+  web:
+    image: fixar-erp-web
+    build: ./docker/php
+    ports:
+      - "8080:80"
+    volumes:
+      - ./base/html:/var/www/html
+      - ./docker/php/compatibilidade.php:/usr/local/etc/php/compatibilidade.php:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - interna
+
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: fixar
+      MARIADB_DATABASE: fixar
+      MARIADB_USER: fixar
+      MARIADB_PASSWORD: fixar
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+    networks:
+      - interna
+    volumes:
+      - db-dados:/var/lib/mysql
+
+networks:
+  interna:
+    internal: true
+
+volumes:
+  db-dados:

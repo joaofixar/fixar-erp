@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Sobe a base local: copia o legado, aplica os ajustes do PHP 8.3 e abre o contêiner.
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    export DOCKER_HOST="${DOCKER_HOST:-npipe:////./pipe/kiri}"
+    ;;
+esac
+
+python bin/preparar-base.py
+if ! docker image inspect fixar-erp-web >/dev/null 2>&1; then
+  docker build -t fixar-erp-web ./docker/php
+fi
+docker compose up -d --no-build --wait
+echo "Base no ar: http://127.0.0.1:8080/login"

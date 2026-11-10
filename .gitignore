@@ -4,3 +4,12 @@ sistema-legado/
 .env
 .env.*
 !.env.example
+
+# Cópia que sobe na máquina. Não leva segredo, cache, uso nem outro cliente.
+base/
+
+# Cache, arquivo de uso e o backup que carrega senha, se aparecerem na raiz
+smarty/templates_c/
+dados_usuarios/
+scripts/backup/
+static/css/temas/tema_*_cache.css
