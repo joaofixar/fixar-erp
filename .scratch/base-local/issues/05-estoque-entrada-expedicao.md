@@ -1,4 +1,5 @@
 Status: ready-for-agent
+Orbit: ERPFX-6
 
 # 05: Estoque, entrada e expedição abrem vazios
 

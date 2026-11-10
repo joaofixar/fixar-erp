@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues e specs ficam em markdown sob `.scratch/`. Ver `docs/agents/issue-tracker.md`.
+Issues e specs ficam em markdown sob `.scratch/`. O próximo ticket é o de menor número com critério em aberto. Ao publicar ou concluir um ticket, espelhe a tarefa no Orbit. Ver `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

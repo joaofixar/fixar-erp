@@ -1,4 +1,5 @@
 Status: ready-for-agent
+Orbit: ERPFX-5
 
 # 04: Orçamento, pedido e nota de saída abrem vazios
 
@@ -8,7 +9,11 @@ Status: ready-for-agent
 
 **Status:** ready-for-agent
 
-- [ ] Orçamento abre com grade vazia
-- [ ] Pedido abre com grade vazia
-- [ ] A nota fiscal de saída abre a listagem vazia e não emite nota
-- [ ] As regras próprias de orçamento e de pedido estão ativas na base que roda
+- [x] Orçamento abre com grade vazia
+- [x] Pedido abre com grade vazia
+- [x] A nota fiscal de saída abre a listagem vazia e não emite nota
+- [x] As regras próprias de orçamento e de pedido estão ativas na base que roda
+
+## Comments
+
+Concluído em 3ebbd51.

@@ -1,4 +1,5 @@
 Status: ready-for-agent
+Orbit: ERPFX-2
 
 # 01: A tela de login abre a partir de um clone
 
@@ -8,9 +9,13 @@ Status: ready-for-agent
 
 **Status:** ready-for-agent
 
-- [ ] Um comando sobe o contêiner com PHP 8.3 e o navegador mostra a tela de login
-- [ ] A tela de login abre sem internet e sem consultar o fornecedor do sistema
-- [ ] Nenhuma URL entra como administrador sem senha
-- [ ] O que o git guarda não inclui segredo, mídia pesada, cache, arquivo de uso, pasta de outro cliente nem o script de backup
-- [ ] A sintaxe que o PHP 8.3 se recusa a carregar está corrigida na cópia que roda, e as funções removidas que o legado ainda chama não impedem o login
-- [ ] Aviso de função antiga não derruba a página
+- [x] Um comando sobe o contêiner com PHP 8.3 e o navegador mostra a tela de login
+- [x] A tela de login abre sem internet e sem consultar o fornecedor do sistema
+- [x] Nenhuma URL entra como administrador sem senha
+- [x] O que o git guarda não inclui segredo, mídia pesada, cache, arquivo de uso, pasta de outro cliente nem o script de backup
+- [x] A sintaxe que o PHP 8.3 se recusa a carregar está corrigida na cópia que roda, e as funções removidas que o legado ainda chama não impedem o login
+- [x] Aviso de função antiga não derruba a página
+
+## Comments
+
+Concluído em 6d24544.

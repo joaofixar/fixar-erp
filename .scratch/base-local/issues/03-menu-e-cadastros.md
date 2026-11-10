@@ -1,4 +1,5 @@
 Status: ready-for-agent
+Orbit: ERPFX-4
 
 # 03: O menu do ciclo e os cadastros abrem vazios
 
@@ -8,6 +9,10 @@ Status: ready-for-agent
 
 **Status:** ready-for-agent
 
-- [ ] O menu mostra o cadastro de cliente e fornecedor, produtos, CFOP, NCM, ICMS, usuários e a empresa
-- [ ] Cada uma dessas telas abre com grade vazia, sem erro
-- [ ] O menu não mostra PDV, nota de loja, CRM, e-mail integrado, PCP, SRM, comex, Serasa, SPED, módulo contábil, BI, coletor, loja virtual nem B2B
+- [x] O menu mostra o cadastro de cliente e fornecedor, produtos, CFOP, NCM, ICMS, usuários e a empresa
+- [x] Cada uma dessas telas abre com grade vazia, sem erro
+- [x] O menu não mostra PDV, nota de loja, CRM, e-mail integrado, PCP, SRM, comex, Serasa, SPED, módulo contábil, BI, coletor, loja virtual nem B2B
+
+## Comments
+
+Concluído em 8c148a1.

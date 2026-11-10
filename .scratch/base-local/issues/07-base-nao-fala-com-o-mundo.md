@@ -1,4 +1,5 @@
 Status: ready-for-agent
+Orbit: ERPFX-8
 
 # 07: A base local não fala com o mundo
 
