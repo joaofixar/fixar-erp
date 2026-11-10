@@ -9,7 +9,11 @@ Orbit: ERPFX-6
 
 **Status:** ready-for-agent
 
-- [ ] Estoque abre sem movimento e sem erro
-- [ ] A nota fiscal de entrada abre a listagem vazia e não importa XML
-- [ ] Expedição abre sem movimento
-- [ ] O histórico de produto próprio da Fixar está ativo na base que roda
+- [x] Estoque abre sem movimento e sem erro
+- [x] A nota fiscal de entrada abre a listagem vazia e não importa XML
+- [x] Expedição abre sem movimento
+- [x] O histórico de produto próprio da Fixar está ativo na base que roda
+
+## Comments
+
+Concluído em fe0d7b0.
