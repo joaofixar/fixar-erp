@@ -189,6 +189,7 @@ def ajustar_menu():
         b"etc009ContentContadoresClientes",
         b"etc010ContentUsuariosClientes",
         b"cad058ContentConfGlobal",
+        b"menuId('confCega')",
     )
     if not all(alvo in texto for alvo in alvos):
         sys.exit("não achei os itens fora do ciclo no menu")
@@ -231,20 +232,13 @@ def ativar_regras():
     pares = {
         "FIXAR-VEN001.php": "VEN001.PHP-alterarMetodos.php",
         "FIXAR-VEN002.php": "VEN002.PHP-alterarMetodos.php",
+        "cad002-grid-historico.php": "cad-cad002-grid-historico-alterarPrograma.php",
     }
     for nome, instalado in pares.items():
         caminho = os.path.join(origem, nome)
         if not os.path.isfile(caminho):
             sys.exit(f"não achei a regra própria {nome}")
         shutil.copy2(caminho, os.path.join(destino, instalado))
-    # Origem: sistema-legado/outros/personalizacoes/fixar/cad002-grid-historico.php
-    historico = os.path.join(origem, "cad002-grid-historico.php")
-    if not os.path.isfile(historico):
-        sys.exit("não achei a regra própria do histórico de produto")
-    shutil.copy2(
-        historico,
-        os.path.join(destino, "cad-cad002-grid-historico-alterarPrograma.php"),
-    )
 
 
 def ajustar_totais():

@@ -49,6 +49,9 @@ faltando = [nome for nome in esperados if nome not in visiveis]
 if faltando:
     print("FALTA " + ", ".join(faltando))
     raise SystemExit(1)
+if "Conferência Cega" in visiveis:
+    print("INDEVIDO Conferência Cega")
+    raise SystemExit(1)
 ' "$menu" || reclamar "o menu não mostra estoque, entrada e expedição"
 
 seguir() {
@@ -143,6 +146,9 @@ echo "Abrindo estoque"
 grade "Estoque"
 vazia "Estoque"
 if [ -n "$url_menu" ] && [[ "$url_menu" != *"/est/est003/"* ]]; then
+  reclamar "estoque não abriu a posição de estoque"
+fi
+if [ -n "$url_final" ] && [[ "$url_final" != *"/cad/cad020/grid/cad020lista/"* ]]; then
   reclamar "estoque não abriu a posição de estoque"
 fi
 
