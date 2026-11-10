@@ -80,3 +80,46 @@ if (!function_exists('get_magic_quotes_runtime')) {
         return false;
     }
 }
+
+// A base local não abre conexão com a receita, com banco, com e-mail
+// nem com o fornecedor do sistema. O registro fica em /tmp/fixar-saidas.log.
+function fixar_registrar_saida($destino)
+{
+    $linha = str_replace(array("\r", "\n"), ' ', (string) $destino);
+    @file_put_contents('/tmp/fixar-saidas.log', $linha . "\n", FILE_APPEND);
+}
+
+function fixar_fsockopen_recusado($host, $porta = 0, &$errno = null, &$errstr = null, $tempo = 0)
+{
+    fixar_registrar_saida($host);
+    $errno = 0;
+    $errstr = 'A base local não abre conexão.';
+    return false;
+}
+
+class FixarSemSaida
+{
+    public function stream_open($caminho, $modo, $opcoes, &$aberto)
+    {
+        fixar_registrar_saida($caminho);
+        return false;
+    }
+
+    public function stream_stat()
+    {
+        return false;
+    }
+
+    public function url_stat($caminho, $flags)
+    {
+        fixar_registrar_saida($caminho);
+        return false;
+    }
+}
+
+foreach (array('http', 'https', 'ftp') as $esquema) {
+    if (in_array($esquema, stream_get_wrappers(), true)) {
+        stream_wrapper_unregister($esquema);
+    }
+    stream_wrapper_register($esquema, 'FixarSemSaida');
+}

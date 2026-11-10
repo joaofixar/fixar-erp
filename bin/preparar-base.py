@@ -438,6 +438,125 @@ def corrigir_php8(raiz):
             arquivo.write(texto)
 
 
+def recusar_caso(caminho, caso, frase, codigo=b"false"):
+    """O clique responde na máquina e não segue para o código que falaria com fora.
+
+    codigo é o literal PHP. O botão de remessa trata code == 0 como seguir;
+    false também passa, então esse clique usa '1'.
+    """
+    if isinstance(codigo, str):
+        codigo = codigo.encode()
+    texto = ler(caminho)
+    frase_bytes = frase.encode()
+    achado = re.search(
+        rb"^([ \t]*)case '" + re.escape(caso.encode()) + rb"':[ \t]*\r?\n",
+        texto,
+        re.M,
+    )
+    if not achado:
+        sys.exit(f"não achei o clique {caso}")
+    quebra = b"\r\n" if achado.group(0).endswith(b"\r\n") else b"\n"
+    recuo = achado.group(1)
+    linha_codigo = b"$resposta['code'] = " + codigo + b";"
+    bloco = (
+        achado.group(0)
+        + recuo + b"\t" + linha_codigo + quebra
+        + recuo + b"\t$resposta['data'] = '" + frase_bytes + b"';" + quebra
+        + recuo + b"\tbreak;" + quebra
+    )
+    if bloco in texto:
+        return
+    janela = texto[achado.end() : achado.end() + 220]
+    if frase_bytes in janela:
+        nova, vezes = re.subn(rb"\$resposta\['code'\] = [^;]+;", linha_codigo, janela, count=1)
+        if vezes != 1:
+            sys.exit(f"não achei o código de resposta de {caso}")
+        gravar(caminho, texto[: achado.end()] + nova + texto[achado.end() + 220 :])
+        return
+    gravar(caminho, texto[: achado.start()] + bloco + texto[achado.end() :])
+
+
+def recusar_soquete(caminho):
+    # Origem: o legado abre o soquete aqui. A cópia registra e devolve falso.
+    if not os.path.isfile(caminho):
+        return
+    texto = ler(caminho)
+    if b"fsockopen(" not in texto:
+        return
+    texto = texto.replace(b"@fsockopen(", b"fixar_fsockopen_recusado(")
+    texto = texto.replace(b"fsockopen(", b"fixar_fsockopen_recusado(")
+    gravar(caminho, texto)
+
+
+def isolar_saida():
+    """Impede emitir nota, registrar boleto e enviar e-mail para fora da máquina.
+
+    Origem dos cliques: sistema-legado/prog/ven/ven012/grid_func-ajax.php (txSefaz,
+    ven012EnviarLote, ven012consultaReciboNfe), form_func-ajax.php (enviarEmailNotas),
+    prog/fin/fin001/grid_func-ajax.php (verificaRemessa), FIN001.php (gerarRemessaBancaria)
+    e prog/fin/fin005/grid_func-ajax.php (enviarMultiEmailBoleto*).
+    O soquete de e-mail e o da receita ficam em class.smtp.php, class.pop3.php e
+    class.soap_transport_http.php.
+    """
+    grade_nota = os.path.join(COPIA, "prog", "ven", "ven012", "grid_func-ajax.php")
+    for caso in ("txSefaz", "ven012EnviarLote", "ven012consultaReciboNfe"):
+        recusar_caso(grade_nota, caso, "A base local não emite nota.")
+    recusar_caso(
+        os.path.join(COPIA, "prog", "ven", "ven012", "form_func-ajax.php"),
+        "enviarEmailNotas",
+        "A base local não envia e-mail.",
+    )
+    recusar_caso(
+        os.path.join(COPIA, "prog", "fin", "fin001", "grid_func-ajax.php"),
+        "verificaRemessa",
+        "A base local não registra boleto.",
+        b"'1'",
+    )
+    # Origem: sistema-legado/sistema/index-framework.php. A tela de suporte
+    # apontava o banco para o fornecedor.
+    entrada = os.path.join(COPIA, "sistema", "index-framework.php")
+    texto = ler(entrada)
+    antigo = b"$confUsuario['dbHost'] = '23.23.29.24';"
+    novo = b"$confUsuario['dbHost'] = 'db';"
+    if antigo in texto:
+        gravar(entrada, texto.replace(antigo, novo, 1))
+    for caso in (
+        "enviarMultiEmailBoleto",
+        "enviarMultiEmailBoletoACP",
+        "enviarMultiEmailBoletoLembrete",
+        "enviarMultiEmailBoletoCobranca",
+    ):
+        recusar_caso(
+            os.path.join(COPIA, "prog", "fin", "fin005", "grid_func-ajax.php"),
+            caso,
+            "A base local não envia e-mail.",
+        )
+
+    caminho = os.path.join(COPIA, "bibliotecas", "classes", "FIN001.php")
+    texto = ler(caminho)
+    frase = b"return 'A base local n\xc3\xa3o registra boleto.';"
+    if frase not in texto:
+        achado = re.search(
+            rb"public function gerarRemessaBancaria\(\$D007_Id\)\r?\n([ \t]*)\{\r?\n",
+            texto,
+        )
+        if not achado:
+            sys.exit("não achei a geração de remessa")
+        quebra = b"\r\n" if b"\r\n" in achado.group(0) else b"\n"
+        recuo = achado.group(1) + b"    "
+        bloco = achado.group(0) + recuo + frase + quebra
+        gravar(caminho, texto[: achado.start()] + bloco + texto[achado.end() :])
+
+    for relativa in (
+        ("bibliotecas", "phpmailer", "class.smtp.php"),
+        ("bibliotecas", "phpmailer", "class.pop3.php"),
+        ("hardness", "class", "phpmailer", "class.smtp.php"),
+        ("hardness", "class", "phpmailer", "class.pop3.php"),
+        ("hardness", "class", "nusoap", "lib", "class.soap_transport_http.php"),
+    ):
+        recusar_soquete(os.path.join(COPIA, *relativa))
+
+
 def garantir_autoload():
     caminho = os.path.join(COPIA, "bibliotecas", "composer", "vendor", "autoload.php")
     if os.path.isfile(caminho):
@@ -463,6 +582,7 @@ def main():
     ajustar_grade()
     ajustar_colunas()
     ajustar_totais()
+    isolar_saida()
     corrigir_php8(COPIA)
     corrigir_constantes(COPIA)
     escrever_configuracao()
