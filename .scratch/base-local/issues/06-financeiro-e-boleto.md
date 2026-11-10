@@ -9,8 +9,12 @@ Orbit: ERPFX-7
 
 **Status:** ready-for-agent
 
-- [ ] Contas a receber abre com grade vazia
-- [ ] Contas a pagar abre com grade vazia
-- [ ] Caixa e bancos abre sem movimento
-- [ ] Boletos abre sem movimento e sem registrar cobrança
-- [ ] A regra própria de boleto está ativa na base que roda
+- [x] Contas a receber abre com grade vazia
+- [x] Contas a pagar abre com grade vazia
+- [x] Caixa e bancos abre sem movimento
+- [x] Boletos abre sem movimento e sem registrar cobrança
+- [x] A regra própria de boleto está ativa na base que roda
+
+## Comments
+
+Concluído em b37aa49.
