@@ -10,7 +10,14 @@ case "$(uname -s)" in
     ;;
 esac
 
-python bin/preparar-base.py
+if python -c "import sys" >/dev/null 2>&1; then
+  python bin/preparar-base.py
+elif python3 -c "import sys" >/dev/null 2>&1; then
+  python3 bin/preparar-base.py
+else
+  echo "Falta o Python para preparar a cópia." >&2
+  exit 1
+fi
 if ! docker image inspect fixar-erp-web >/dev/null 2>&1; then
   docker build -t fixar-erp-web ./docker/php
 fi
