@@ -190,13 +190,18 @@ def ajustar_menu():
         b"etc010ContentUsuariosClientes",
         b"cad058ContentConfGlobal",
         b"menuId('confCega')",
+        b"menuId('fin001CreditoTroca')",
     )
     if not all(alvo in texto for alvo in alvos):
         sys.exit("não achei os itens fora do ciclo no menu")
-    # O menu genérico deixa orçamento e pedido comentados. O ciclo da Fixar abre os dois.
-    mostrar = (b"['Or\xc3\xa7amentos'][14]", b"['Pedidos'][15]")
+    # O menu genérico deixa orçamento, pedido e boleto comentados. O ciclo da Fixar abre os três.
+    mostrar = (
+        b"['Or\xc3\xa7amentos'][14]",
+        b"['Pedidos'][15]",
+        b"['Boleto Banc\xc3\xa1rio'][38]",
+    )
     if not all(alvo in texto for alvo in mostrar):
-        sys.exit("não achei orçamento e pedido no menu")
+        sys.exit("não achei orçamento, pedido e boleto no menu")
     saida = []
     for linha in texto.splitlines(keepends=True):
         if any(alvo in linha for alvo in mostrar):
@@ -222,7 +227,7 @@ def ativar_regras():
     """Coloca as regras próprias onde o legado as carrega ao abrir a tela.
 
     Origem: sistema-legado/outros/personalizacoes/fixar/FIXAR-VEN001.php,
-    FIXAR-VEN002.php e cad002-grid-historico.php.
+    FIXAR-VEN002.php, cad002-grid-historico.php e FIXAR-fin005GridPrincipal.php.
     Classe: dados_usuarios/<banco>/personalizacaoConf/<Classe>.PHP-alterarMetodos.php.
     Grade: dados_usuarios/<banco>/personalizacaoConf/<caminho-com-tracos>-alterarPrograma.php.
     """
@@ -233,6 +238,7 @@ def ativar_regras():
         "FIXAR-VEN001.php": "VEN001.PHP-alterarMetodos.php",
         "FIXAR-VEN002.php": "VEN002.PHP-alterarMetodos.php",
         "cad002-grid-historico.php": "cad-cad002-grid-historico-alterarPrograma.php",
+        "FIXAR-fin005GridPrincipal.php": "fin-fin005-grid-fin005GridPrincipal-alterarPrograma.php",
     }
     for nome, instalado in pares.items():
         caminho = os.path.join(origem, nome)

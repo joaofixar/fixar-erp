@@ -412,6 +412,10 @@ TELAS_DO_CICLO = (
     20,  # Expedição
     21,  # Nota fiscal de entrada
     110,  # Estoque
+    35,  # Contas a receber
+    36,  # Contas a pagar
+    37,  # Caixa e bancos
+    38,  # Boletos
     41,  # CFOP
     42,  # NCM
     43,  # ICMS
