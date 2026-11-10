@@ -13,6 +13,8 @@ COPIA = os.path.join(HTML, "hardness3")
 CHAVES = re.compile(
     br"(\$[A-Za-z_][A-Za-z0-9_]*(?:->[A-Za-z_][A-Za-z0-9_]*)?(?:\[[^\[\]]+\])*)\{([^{}\[']+)\}"
 )
+# No PHP 7 uma palavra solta virava texto. No PHP 8 isso derruba a página.
+CONSTANTES = re.compile(br"=>\s*(center|left|right|top|bottom)(?=\s*[,)])")
 
 
 def ignorar(diretorio, nomes):
@@ -64,6 +66,22 @@ def substituir(conteudo, antigo, novo, descricao):
     if antigo not in conteudo:
         sys.exit(f"não achei o trecho para {descricao}")
     return conteudo.replace(antigo, novo, 1)
+
+
+def corrigir_constantes(raiz):
+    vezes = 0
+    for diretorio, _, arquivos in os.walk(raiz):
+        for nome in arquivos:
+            if not nome.endswith(".php"):
+                continue
+            caminho = os.path.join(diretorio, nome)
+            original = ler(caminho)
+            corrigido, quantidade = CONSTANTES.subn(lambda achado: b"=> '" + achado.group(1) + b"'", original)
+            if quantidade:
+                gravar(caminho, corrigido)
+                vezes += quantidade
+    if vezes:
+        print(f"Constantes soltas ajustadas: {vezes}.")
 
 
 def corrigir_chaves(raiz):
@@ -147,6 +165,22 @@ def ajustar_conexao():
     gravar(caminho, texto)
 
 
+def ajustar_pedido():
+    # No Linux o apelido da tabela diferencia maiúsculas. A grade do pedido
+    # escreve o apelido em minúsculas e o JOIN em maiúsculas.
+    caminho = os.path.join(COPIA, "prog", "ven", "ven002", "grid.php")
+    texto = ler(caminho)
+    trocas = (
+        (b"vendedor.C007_Primeiro_Nome", b"Vendedor.C007_Primeiro_Nome"),
+        (b"supervisor.C007_Primeiro_Nome", b"Supervisor.C007_Primeiro_Nome"),
+    )
+    if not any(antigo in texto or novo in texto for antigo, novo in trocas):
+        sys.exit("não achei o apelido do vendedor na grade de pedido")
+    for antigo, novo in trocas:
+        texto = texto.replace(antigo, novo)
+    gravar(caminho, texto)
+
+
 def ajustar_menu():
     caminho = os.path.join(COPIA, "bibliotecas", "menu.php")
     texto = ler(caminho)
@@ -158,9 +192,21 @@ def ajustar_menu():
     )
     if not all(alvo in texto for alvo in alvos):
         sys.exit("não achei os itens fora do ciclo no menu")
+    # O menu genérico deixa orçamento e pedido comentados. O ciclo da Fixar abre os dois.
+    mostrar = (b"['Or\xc3\xa7amentos'][14]", b"['Pedidos'][15]")
+    if not all(alvo in texto for alvo in mostrar):
+        sys.exit("não achei orçamento e pedido no menu")
     saida = []
     for linha in texto.splitlines(keepends=True):
-        if any(alvo in linha for alvo in alvos) and not linha.lstrip().startswith(b"//"):
+        if any(alvo in linha for alvo in mostrar):
+            miolo = linha.lstrip(b" \t")
+            recuo = linha[: len(linha) - len(miolo)]
+            if miolo.startswith(b"//"):
+                miolo = miolo[2:]
+                if miolo.startswith(b" "):
+                    miolo = miolo[1:]
+                linha = recuo + miolo
+        elif any(alvo in linha for alvo in alvos) and not linha.lstrip().startswith(b"//"):
             quebra = b""
             if linha.endswith(b"\r\n"):
                 quebra = b"\r\n"
@@ -169,6 +215,26 @@ def ajustar_menu():
             linha = b"// " + linha[: len(linha) - len(quebra)] + quebra
         saida.append(linha)
     gravar(caminho, b"".join(saida))
+
+
+def ativar_regras():
+    """Coloca as regras próprias onde o legado carrega a classe ao abrir a tela.
+
+    Origem: sistema-legado/outros/personalizacoes/fixar/FIXAR-VEN001.php e FIXAR-VEN002.php.
+    O carregamento procura dados_usuarios/<banco>/personalizacaoConf/<Classe>.PHP-alterarMetodos.php.
+    """
+    origem = os.path.join(COPIA, "outros", "personalizacoes", "fixar")
+    destino = os.path.join(COPIA, "dados_usuarios", "fixar", "personalizacaoConf")
+    os.makedirs(destino, exist_ok=True)
+    pares = {
+        "FIXAR-VEN001.php": "VEN001.PHP-alterarMetodos.php",
+        "FIXAR-VEN002.php": "VEN002.PHP-alterarMetodos.php",
+    }
+    for nome, instalado in pares.items():
+        caminho = os.path.join(origem, nome)
+        if not os.path.isfile(caminho):
+            sys.exit(f"não achei a regra própria {nome}")
+        shutil.copy2(caminho, os.path.join(destino, instalado))
 
 
 def ajustar_totais():
@@ -379,6 +445,8 @@ def main():
         print("Corrigindo a sintaxe que o PHP 8.3 recusa carregar...")
         corrigir_chaves(COPIA)
     ajustar_menu()
+    ajustar_pedido()
+    ativar_regras()
     ajustar_entrada()
     ajustar_conexao()
     ajustar_funcoes()
@@ -386,6 +454,7 @@ def main():
     ajustar_colunas()
     ajustar_totais()
     corrigir_php8(COPIA)
+    corrigir_constantes(COPIA)
     escrever_configuracao()
     garantir_autoload()
     for relativa in ("smarty/templates_c", "smarty/cache"):

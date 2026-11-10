@@ -406,12 +406,48 @@ def inserir(tabela, explicitos):
 TELAS_DO_CICLO = (
     1,  # Cliente/Fornecedor
     5,  # Produtos
+    14,  # Orçamentos
+    15,  # Pedidos
+    16,  # Notas Fiscais de saída
     41,  # CFOP
     42,  # NCM
     43,  # ICMS
     57,  # Empresas
     84,  # Usuários/Perfis
 )
+
+
+def garantir_status_do_pedido():
+    # A listagem de orçamento e de pedido chama esta função. O dump da
+    # produção cai para tabelas quando a conta de leitura não exporta rotina.
+    # A tabela é latin1; o retorno precisa da mesma colação, senão o
+    # group_concat da grade de pedido não roda no MariaDB.
+    # Origem: sistema-legado/scripts/sql/T005_Status_Pedido.sql
+    nome = "T005_Status_Pedido"
+    colacao = celula(
+        "SELECT COLLATION_NAME FROM information_schema.routines "
+        f"WHERE routine_schema='fixar' AND routine_name='{nome}'"
+    )
+    if colacao == "latin1_swedish_ci":
+        return
+    caminho = os.path.join(RAIZ, "sistema-legado", "scripts", "sql", f"{nome}.sql")
+    if not os.path.isfile(caminho):
+        sys.exit(f"não achei a rotina {nome}")
+    with open(caminho, "rb") as arquivo:
+        corpo = arquivo.read().strip()
+    if corpo.endswith(b";"):
+        corpo = corpo[:-1]
+    marca = b"RETURNS varchar(30)"
+    retorno = b"RETURNS varchar(30) CHARSET latin1 COLLATE latin1_swedish_ci"
+    if marca not in corpo:
+        sys.exit(f"não achei o retorno de {nome}")
+    corpo = corpo.replace(marca, retorno, 1)
+    sql = (
+        b"DROP FUNCTION IF EXISTS `" + nome.encode() + b"`;\n"
+        b"DELIMITER $$\n" + corpo + b"$$\nDELIMITER ;\n"
+    )
+    local(sql)
+    print(f"Rotina {nome} disponível na base local.")
 
 
 def liberar_telas():
@@ -444,7 +480,7 @@ def liberar_telas():
                 "C030_Acesso_Liberado": "S",
             },
         )
-    print(f"Perfil {perfil} abre os cadastros do ciclo.")
+    print(f"Perfil {perfil} abre as telas do ciclo.")
 
 
 def semear_acesso(empresa):
@@ -645,6 +681,7 @@ def main():
         semear_acesso(empresa_local())
     else:
         print("O acesso local já está semeado.")
+    garantir_status_do_pedido()
     liberar_telas()
 
 
