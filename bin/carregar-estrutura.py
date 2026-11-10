@@ -402,6 +402,51 @@ def inserir(tabela, explicitos):
     return identificador
 
 
+# Itens do menu.php que o ciclo deste marco abre. Os demais ficam sem permissão.
+TELAS_DO_CICLO = (
+    1,  # Cliente/Fornecedor
+    5,  # Produtos
+    41,  # CFOP
+    42,  # NCM
+    43,  # ICMS
+    57,  # Empresas
+    84,  # Usuários/Perfis
+)
+
+
+def liberar_telas():
+    if celula(
+        "SELECT COUNT(*) FROM information_schema.tables "
+        "WHERE table_schema='fixar' AND LOWER(table_name)=LOWER('C030')"
+    ) == "0":
+        sys.exit("A tabela de permissão não existe na base local.")
+    perfil = celula(
+        "SELECT C021_Id FROM C021 WHERE C021_Nome_Perfil='Local' ORDER BY C021_Id LIMIT 1"
+    )
+    if not perfil:
+        sys.exit("O perfil local não existe.")
+    for tela in TELAS_DO_CICLO:
+        if celula(
+            "SELECT COUNT(*) FROM C030 "
+            f"WHERE C030_C021_Id={perfil} AND c030_C029_Id={tela}"
+        ) != "0":
+            local(
+                "UPDATE C030 SET C030_Acesso_Liberado='S' "
+                f"WHERE C030_C021_Id={perfil} AND c030_C029_Id={tela}"
+            )
+            continue
+        inserir(
+            "C030",
+            {
+                "C030_C021_Id": perfil,
+                "c030_C029_Id": str(tela),
+                "C030_Id_Perfil": perfil,
+                "C030_Acesso_Liberado": "S",
+            },
+        )
+    print(f"Perfil {perfil} abre os cadastros do ciclo.")
+
+
 def semear_acesso(empresa):
     perfil = inserir("C021", {"C021_Nome_Perfil": "Local"})
     senha = base64.b64encode(SENHA_LOCAL.encode("utf-8")).decode("ascii")
@@ -596,10 +641,11 @@ def main():
         credencial = ler_env()
         conferir_somente_leitura()
         copiar_empresa()
-    if usuario_pronto():
+    if not usuario_pronto():
+        semear_acesso(empresa_local())
+    else:
         print("O acesso local já está semeado.")
-        return
-    semear_acesso(empresa_local())
+    liberar_telas()
 
 
 if __name__ == "__main__":

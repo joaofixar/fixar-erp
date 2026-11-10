@@ -147,6 +147,94 @@ def ajustar_conexao():
     gravar(caminho, texto)
 
 
+def ajustar_menu():
+    caminho = os.path.join(COPIA, "bibliotecas", "menu.php")
+    texto = ler(caminho)
+    alvos = (
+        b"etc008ContentBancoDadosClientes",
+        b"etc009ContentContadoresClientes",
+        b"etc010ContentUsuariosClientes",
+        b"cad058ContentConfGlobal",
+    )
+    if not all(alvo in texto for alvo in alvos):
+        sys.exit("não achei os itens fora do ciclo no menu")
+    saida = []
+    for linha in texto.splitlines(keepends=True):
+        if any(alvo in linha for alvo in alvos) and not linha.lstrip().startswith(b"//"):
+            quebra = b""
+            if linha.endswith(b"\r\n"):
+                quebra = b"\r\n"
+            elif linha.endswith(b"\n"):
+                quebra = b"\n"
+            linha = b"// " + linha[: len(linha) - len(quebra)] + quebra
+        saida.append(linha)
+    gravar(caminho, b"".join(saida))
+
+
+def ajustar_totais():
+    caminho = os.path.join(COPIA, "sistema", "totais.php")
+    texto = ler(caminho)
+    antigo = b"'media' => $parcial['soma'] / $parcial['count']"
+    novo = b"'media' => $parcial['count'] ? $parcial['soma'] / $parcial['count'] : 0"
+    if novo in texto:
+        return
+    texto = substituir(texto, antigo, novo, "média de grade vazia no PHP 8.3")
+    gravar(caminho, texto)
+
+
+def ajustar_colunas():
+    caminho = os.path.join(COPIA, "sistema", "interfaceUsuario.php")
+    texto = ler(caminho)
+    antigo = b"public $gridFiltro, $colunasOcultar;"
+    novo = b"public $gridFiltro; public $colunasOcultar = array();"
+    if novo not in texto:
+        texto = substituir(texto, antigo, novo, "colunas ocultas no PHP 8.3")
+    antigo_parametro = (
+        b"$callbackParameterBase64 = isset($grid_valor['callbackParameter']) ? "
+        b"base64_encode($grid_valor['callbackParameter']) : '';"
+    )
+    novo_parametro = (
+        b"$callbackParameterBase64 = (isset($grid_valor['callbackParameter']) && "
+        b"is_string($grid_valor['callbackParameter'])) ? "
+        b"base64_encode($grid_valor['callbackParameter']) : '';"
+    )
+    if novo_parametro not in texto:
+        texto = substituir(texto, antigo_parametro, novo_parametro, "parâmetro de coluna no PHP 8.3")
+    texto = texto.replace(
+        b"in_array($tabelaId, $tables)",
+        b"in_array($tabelaId, is_array($tables) ? $tables : array())",
+    )
+    texto = texto.replace(
+        b"in_array($grid_valor['colunaValor'], $this->colunasOcultar)",
+        b"in_array($grid_valor['colunaValor'], is_array($this->colunasOcultar) ? $this->colunasOcultar : array())",
+    )
+    if b"if (is_array($value)) { $value[0] =" not in texto:
+        texto = texto.replace(
+            b"$value[0] = isset($value[0]) ? $value[0] : '';",
+            b"if (is_array($value)) { $value[0] = isset($value[0]) ? $value[0] : ''; }",
+        )
+        texto = texto.replace(
+            b"$value[1] = isset($value[1]) ? $value[1] : '';",
+            b"if (is_array($value)) { $value[1] = isset($value[1]) ? $value[1] : ''; }",
+        )
+    gravar(caminho, texto)
+
+
+def ajustar_grade():
+    caminho = os.path.join(COPIA, "bibliotecas", "funcoesGerais.php")
+    texto = ler(caminho)
+    antigo = b"$display = array_shift(array_values($g['smarty']->template_objects))->resource_name;"
+    novo = (
+        b"$objetosTemplate = is_array($g['smarty']->template_objects) ? $g['smarty']->template_objects : array();"
+        b" $ultimoTemplate = $objetosTemplate ? array_shift(array_values($objetosTemplate)) : null;"
+        b" $display = is_object($ultimoTemplate) ? $ultimoTemplate->resource_name : '';"
+    )
+    if novo in texto:
+        return
+    texto = substituir(texto, antigo, novo, "grade no PHP 8.3")
+    gravar(caminho, texto)
+
+
 def ajustar_funcoes():
     caminho = os.path.join(COPIA, "bibliotecas", "funcoesGerais.php")
     texto = ler(caminho)
@@ -290,9 +378,13 @@ def main():
         copiar()
         print("Corrigindo a sintaxe que o PHP 8.3 recusa carregar...")
         corrigir_chaves(COPIA)
+    ajustar_menu()
     ajustar_entrada()
     ajustar_conexao()
     ajustar_funcoes()
+    ajustar_grade()
+    ajustar_colunas()
+    ajustar_totais()
     corrigir_php8(COPIA)
     escrever_configuracao()
     garantir_autoload()
