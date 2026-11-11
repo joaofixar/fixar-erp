@@ -473,6 +473,16 @@ def garantir_prazos():
     )
 
 
+def garantir_tipo_do_plano():
+    # A grade do plano de contas chama esta função.
+    # Origem: sistema-legado/scripts/sql/D032_Tipo.sql
+    garantir_rotina(
+        "D032_Tipo",
+        b"RETURNS varchar(30)",
+        b"RETURNS varchar(30) CHARSET latin1 COLLATE latin1_swedish_ci",
+    )
+
+
 def liberar_telas():
     if celula(
         "SELECT COUNT(*) FROM information_schema.tables "
@@ -706,6 +716,7 @@ def main():
         print("O acesso local já está semeado.")
     garantir_status_do_pedido()
     garantir_prazos()
+    garantir_tipo_do_plano()
     liberar_telas()
 
 

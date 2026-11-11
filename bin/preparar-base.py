@@ -137,6 +137,37 @@ if (!isset($g['r'][0]) || $g['r'][0] === '') {
         "$result = false; // a base local não envia telemetria".encode(),
         "telemetria do fornecedor",
     )
+    # Origem: sistema-legado/sistema/index-framework.php. O menu concatena
+    # undefined quando a janela ainda não tem cadeia. unserialize devolve
+    # false e o count do PHP 8 derruba o POST.
+    texto = substituir(
+        texto,
+        b"$g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];",
+        b"""if (!is_array($g['divIdChain'])) {
+    $g['divIdChain'] = array($g['divId']);
+}
+$g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];""",
+        "cadeia de janela que o navegador manda como texto",
+    )
+    cadeia_pai = b"""if (!is_array($g['divIdParentChain'])) {
+    $g['divIdParentChain'] = array();
+}
+$g['divIdParent-last'] = $g['divIdParentChain'] ? $g['divIdParentChain'][count($g['divIdParentChain']) - 1] : '';"""
+    cadeia_pai_sem_guarda = b"""if (!is_array($g['divIdParentChain'])) {
+    $g['divIdParentChain'] = array();
+}
+$g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];"""
+    if cadeia_pai in texto:
+        pass
+    elif cadeia_pai_sem_guarda in texto:
+        texto = texto.replace(cadeia_pai_sem_guarda, cadeia_pai, 1)
+    else:
+        texto = substituir(
+            texto,
+            b"$g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];",
+            cadeia_pai,
+            "cadeia pai que o navegador manda como texto",
+        )
     gravar(caminho, texto)
 
 
@@ -530,6 +561,67 @@ def isolar_saida():
         recusar_soquete(os.path.join(COPIA, *relativa))
 
 
+def ajustar_formulario():
+    # Origem: referencia/sistema/automacaoFormulario.php. A pesquisa sem
+    # linha devolve nulo e o implode do PHP 8 derruba o formulário.
+    caminho = os.path.join(COPIA, "sistema", "automacaoFormulario.php")
+    texto = ler(caminho)
+    antigo = b"implode(' ', $campoPadraoPesquisa)"
+    novo = b"implode(' ', is_array($campoPadraoPesquisa) ? $campoPadraoPesquisa : array())"
+    if novo in texto:
+        return
+    texto = substituir(texto, antigo, novo, "pesquisa vazia no formulário")
+    gravar(caminho, texto)
+
+
+def ajustar_restricao_cte():
+    # Origem: sistema-legado/configuracoes/T084.php. No PHP 7 a palavra solta
+    # S era texto. No PHP 8 a exportação de CT-e emitido cai ao avaliar a trava.
+    caminho = os.path.join(COPIA, "configuracoes", "T084.php")
+    texto = ler(caminho)
+    novo = b"== 'S')"
+    if b"== S)" not in texto:
+        if novo in texto:
+            return
+        sys.exit("não achei a trava do CT-e")
+    gravar(caminho, texto.replace(b"== S)", novo, 1))
+
+
+def converter_concat(texto, antigo, novo, descricao):
+    if antigo not in texto:
+        if novo in texto:
+            return texto
+        sys.exit(f"não achei o concat para {descricao}")
+    return texto.replace(antigo, novo)
+
+
+def ajustar_ordem_de_compra():
+    # Origem: sistema-legado/prog/est/est016/grid.php. A coluna é latin1 e o
+    # texto do HTML viaja em utf8. O CONCAT do MariaDB 11 recusa a mistura.
+    caminho = os.path.join(COPIA, "prog", "est", "est016", "grid.php")
+    texto = ler(caminho)
+    trocas = (
+        (
+            b"concat(substr(D024_Nome_Empresa,1,30),\\'<br><font style=\"font-size:10px\"><i>\\',ifnull(T224_Observacao_Pedido_Perdido,\\'\\'))",
+            b"concat(convert(substr(D024_Nome_Empresa,1,30) using utf8),\\'<br><font style=\"font-size:10px\"><i>\\',convert(ifnull(T224_Observacao_Pedido_Perdido,\\'\\') using utf8))",
+            "razão social da ordem de compra",
+        ),
+        (
+            b"concat(T224_Nome_Status,\\'<br><font style=\"font-size:10px\"><i>\\',ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\\'\\'))",
+            b"concat(convert(T224_Nome_Status using utf8),\\'<br><font style=\"font-size:10px\"><i>\\',convert(ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\\'\\') using utf8))",
+            "status da ordem de compra",
+        ),
+        (
+            b"concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\\' \\',ifnull(D013_DDD_Telefone_1,\\'\\'),\\'-\\',ifnull(D013_Telefone_1,\\'\\'))",
+            b"concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\\' \\',convert(ifnull(D013_DDD_Telefone_1,\\'\\') using utf8),\\'-\\',convert(ifnull(D013_Telefone_1,\\'\\') using utf8))",
+            "contato da ordem de compra",
+        ),
+    )
+    for antigo, novo, descricao in trocas:
+        texto = converter_concat(texto, antigo, novo, descricao)
+    gravar(caminho, texto)
+
+
 def garantir_autoload():
     caminho = os.path.join(COPIA, "bibliotecas", "composer", "vendor", "autoload.php")
     if os.path.isfile(caminho):
@@ -555,6 +647,9 @@ def main():
     ajustar_grade()
     ajustar_colunas()
     ajustar_totais()
+    ajustar_formulario()
+    ajustar_restricao_cte()
+    ajustar_ordem_de_compra()
     isolar_saida()
     corrigir_php8(COPIA)
     corrigir_constantes(COPIA)

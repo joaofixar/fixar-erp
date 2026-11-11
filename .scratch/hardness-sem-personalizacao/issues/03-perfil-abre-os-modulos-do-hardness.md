@@ -9,7 +9,7 @@ Orbit: ERPFX-13
 
 **Status:** ready-for-agent
 
-- [ ] Cada item visível do menu que o ciclo ainda não abria abre para o perfil local
-- [ ] PDV, nota de loja, CRM, e-mail, PCP, SRM, comex, Serasa, SPED, módulo contábil e BI abrem quando o menu os mostra
-- [ ] Grade vazia passa
-- [ ] Sair da sessão volta ao login
+- [x] Cada item visível do menu que o ciclo ainda não abria abre para o perfil local
+- [x] PDV, nota de loja, CRM, e-mail, PCP, SRM, comex, Serasa, SPED, módulo contábil e BI abrem quando o menu os mostra
+- [x] Grade vazia passa
+- [x] Sair da sessão volta ao login
