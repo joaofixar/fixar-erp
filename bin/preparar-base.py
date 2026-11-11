@@ -304,13 +304,16 @@ def escrever_configuracao():
         arquivo.write(
             """<?php
 namespace hardness;
+// O Kiri publica o serviço em web.fixar-erp.kiri.localhost. O login
+// devolve o navegador para urlRaiz, então o host é o da requisição.
+$origem = $_SERVER['HTTP_HOST'] ?? 'web.fixar-erp.kiri.localhost';
 $confUsuario = array(
     'dbDatabase' => 'fixar',
     'dbHost' => 'db',
     'dbUser' => 'fixar',
     'dbPass' => 'fixar',
     'pathRaiz' => '/var/www/html/hardness3/',
-    'urlRaiz' => 'http://127.0.0.1:8080/hardness3/',
+    'urlRaiz' => 'http://' . $origem . '/hardness3/',
 );
 """
         )
