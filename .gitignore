@@ -13,3 +13,4 @@ smarty/templates_c/
 dados_usuarios/
 scripts/backup/
 static/css/temas/tema_*_cache.css
+bin/__pycache__/
