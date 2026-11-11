@@ -402,26 +402,28 @@ def inserir(tabela, explicitos):
     return identificador
 
 
-# Itens do menu.php que o ciclo deste marco abre. Os demais ficam sem permissão.
-TELAS_DO_CICLO = (
-    1,  # Cliente/Fornecedor
-    5,  # Produtos
+# Orçamento, pedido e boleto seguem fora do menu e continuam alcançáveis pelo endereço.
+TELAS_FORA_DO_MENU = (
     14,  # Orçamentos
     15,  # Pedidos
-    16,  # Notas Fiscais de saída
-    20,  # Expedição
-    21,  # Nota fiscal de entrada
-    110,  # Estoque
-    35,  # Contas a receber
-    36,  # Contas a pagar
-    37,  # Caixa e bancos
     38,  # Boletos
-    41,  # CFOP
-    42,  # NCM
-    43,  # ICMS
-    57,  # Empresas
-    84,  # Usuários/Perfis
 )
+
+
+def telas_do_produto():
+    # Origem: sistema-legado/bibliotecas/menu.php. O perfil vê cada tela que
+    # o menu do Hardness declara. Linha comentada não entra.
+    caminho = os.path.join(RAIZ, "sistema-legado", "bibliotecas", "menu.php")
+    if not os.path.isfile(caminho):
+        sys.exit("não achei o menu do Hardness")
+    telas = set(TELAS_FORA_DO_MENU)
+    with open(caminho, encoding="utf-8", errors="replace") as arquivo:
+        for linha in arquivo:
+            if linha.lstrip().startswith("//"):
+                continue
+            for achado in re.finditer(r"\$menu(?:\[[^\]]+\]){2}\[(\d+)\]", linha):
+                telas.add(int(achado.group(1)))
+    return sorted(telas)
 
 
 def garantir_rotina(nome, marca, retorno):
@@ -482,7 +484,7 @@ def liberar_telas():
     )
     if not perfil:
         sys.exit("O perfil local não existe.")
-    for tela in TELAS_DO_CICLO:
+    for tela in telas_do_produto():
         if celula(
             "SELECT COUNT(*) FROM C030 "
             f"WHERE C030_C021_Id={perfil} AND c030_C029_Id={tela}"
@@ -501,7 +503,7 @@ def liberar_telas():
                 "C030_Acesso_Liberado": "S",
             },
         )
-    print(f"Perfil {perfil} abre as telas do ciclo.")
+    print(f"Perfil {perfil} abre as telas do Hardness.")
 
 
 def semear_acesso(empresa):

@@ -73,9 +73,16 @@ grade() {
   local arquivo
   arquivo="$(mktemp)"
   if ! seguir "$caminho" "$arquivo"; then
-    reclamar "o menu não oferece ${caminho}"
-    rm -f "$arquivo"
-    return
+    case "$caminho" in
+      "Orçamentos") printf '%s' "/ven/ven001/content/ven001ContentPrincipal/" >"$arquivo" ;;
+      "Pedidos") printf '%s' "/ven/ven002/content/ven002content01/" >"$arquivo" ;;
+      "Boleto Bancário") printf '%s' "/fin/fin005/content/fin005ContentPrincipal/" >"$arquivo" ;;
+      *)
+        reclamar "o menu não oferece ${caminho}"
+        rm -f "$arquivo"
+        return
+        ;;
+    esac
   fi
   local url
   url="$(cat "$arquivo")"

@@ -43,12 +43,15 @@ pagina = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
 grupos = re.findall(r"class=\"ui-corner-top\">([^<]*)</a>", pagina)
 itens = re.findall(r"class=\"ui-corner-tr\"[^>]*>([^<]*)</a>", pagina)
 visiveis = grupos + itens
-esperados = ["Orçamentos", "Pedidos", "Notas Fiscais"]
+esperados = ["Notas Fiscais"]
 faltando = [nome for nome in esperados if nome not in visiveis]
 if faltando:
     print("FALTA " + ", ".join(faltando))
     raise SystemExit(1)
-' "$menu" || reclamar "o menu não mostra orçamento, pedido e nota de saída"
+if "Orçamentos" in visiveis or "Pedidos" in visiveis:
+    print("INDEVIDO orçamento ou pedido no menu")
+    raise SystemExit(1)
+' "$menu" || reclamar "o menu não mostra a nota de saída"
 
 seguir() {
   local caminho="$1"
@@ -75,15 +78,17 @@ url_final=""
 grade() {
   local caminho="$1"
   url_final=""
+  local url="${2:-}"
   local arquivo
   arquivo="$(mktemp)"
-  if ! seguir "$caminho" "$arquivo"; then
-    reclamar "o menu não oferece ${caminho}"
-    rm -f "$arquivo"
-    return
+  if [ -z "$url" ]; then
+    if ! seguir "$caminho" "$arquivo"; then
+      reclamar "o menu não oferece ${caminho}"
+      rm -f "$arquivo"
+      return
+    fi
+    url="$(cat "$arquivo")"
   fi
-  local url
-  url="$(cat "$arquivo")"
   rm -f "$arquivo"
   local salto
   for salto in 1 2 3 4; do
@@ -136,14 +141,14 @@ vazia() {
 }
 
 echo "Abrindo orçamento"
-grade "Orçamentos"
+grade "Orçamentos" "/ven/ven001/content/ven001ContentPrincipal/"
 vazia "Orçamento"
 if [ -n "$url_final" ] && [[ "$url_final" != *"/ven/ven001/"* ]]; then
   reclamar "orçamento não abriu a tela de orçamento"
 fi
 
 echo "Abrindo pedido"
-grade "Pedidos"
+grade "Pedidos" "/ven/ven002/content/ven002content01/"
 vazia "Pedido"
 if [ -n "$url_final" ] && [[ "$url_final" != *"/ven/ven002/"* ]]; then
   reclamar "pedido não abriu a tela de pedido"

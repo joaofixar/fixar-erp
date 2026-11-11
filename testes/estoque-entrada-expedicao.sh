@@ -49,9 +49,6 @@ faltando = [nome for nome in esperados if nome not in visiveis]
 if faltando:
     print("FALTA " + ", ".join(faltando))
     raise SystemExit(1)
-if "Conferência Cega" in visiveis:
-    print("INDEVIDO Conferência Cega")
-    raise SystemExit(1)
 ' "$menu" || reclamar "o menu não mostra estoque, entrada e expedição"
 
 seguir() {

@@ -181,46 +181,16 @@ def ajustar_pedido():
     gravar(caminho, texto)
 
 
-def ajustar_menu():
-    caminho = os.path.join(COPIA, "bibliotecas", "menu.php")
-    texto = ler(caminho)
-    alvos = (
-        b"etc008ContentBancoDadosClientes",
-        b"etc009ContentContadoresClientes",
-        b"etc010ContentUsuariosClientes",
-        b"cad058ContentConfGlobal",
-        b"menuId('confCega')",
-        b"menuId('fin001CreditoTroca')",
-    )
-    if not all(alvo in texto for alvo in alvos):
-        sys.exit("não achei os itens fora do ciclo no menu")
-    # O menu genérico deixa orçamento, pedido e boleto comentados. O ciclo da Fixar abre os três.
-    mostrar = (
-        b"['Or\xc3\xa7amentos'][14]",
-        b"['Pedidos'][15]",
-        b"['Boleto Banc\xc3\xa1rio'][38]",
-    )
-    if not all(alvo in texto for alvo in mostrar):
-        sys.exit("não achei orçamento, pedido e boleto no menu")
-    saida = []
-    for linha in texto.splitlines(keepends=True):
-        if any(alvo in linha for alvo in mostrar):
-            miolo = linha.lstrip(b" \t")
-            recuo = linha[: len(linha) - len(miolo)]
-            if miolo.startswith(b"//"):
-                miolo = miolo[2:]
-                if miolo.startswith(b" "):
-                    miolo = miolo[1:]
-                linha = recuo + miolo
-        elif any(alvo in linha for alvo in alvos) and not linha.lstrip().startswith(b"//"):
-            quebra = b""
-            if linha.endswith(b"\r\n"):
-                quebra = b"\r\n"
-            elif linha.endswith(b"\n"):
-                quebra = b"\n"
-            linha = b"// " + linha[: len(linha) - len(quebra)] + quebra
-        saida.append(linha)
-    gravar(caminho, b"".join(saida))
+def restaurar_menu():
+    # Origem: sistema-legado/bibliotecas/menu.php. A base anterior reescrevia
+    # este arquivo. O que roda é o menu que o Hardness entrega.
+    origem = os.path.join(ORIGEM, "bibliotecas", "menu.php")
+    destino = os.path.join(COPIA, "bibliotecas", "menu.php")
+    if not os.path.isfile(origem):
+        sys.exit("não achei o menu do Hardness")
+    if not os.path.isdir(os.path.dirname(destino)):
+        sys.exit("a cópia local não está pronta")
+    shutil.copy2(origem, destino)
 
 
 def ativar_regras():
@@ -573,7 +543,7 @@ def main():
         copiar()
         print("Corrigindo a sintaxe que o PHP 8.3 recusa carregar...")
         corrigir_chaves(COPIA)
-    ajustar_menu()
+    restaurar_menu()
     ajustar_pedido()
     ativar_regras()
     ajustar_entrada()

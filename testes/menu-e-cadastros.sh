@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Observa, pelo HTTP, o menu depois do login e a grade de cada cadastro do ciclo.
+# Observa, pelo HTTP, os cadastros depois do login.
 # Cliente, produto e os fiscais abrem sem linha. Usuários e empresa mostram o que foi semeado.
+# O menu em si é o do Hardness; isso fica em menu-do-hardness.sh.
 set -euo pipefail
 
 raiz="$(cd "$(dirname "$0")/.." && pwd)"
@@ -70,35 +71,16 @@ esperados = [
     "Usuários/Perfis",
     "Empresas",
 ]
-proibidos = (
-    "PDV",
-    "Loja",
-    "C.R.M.",
-    "Emails",
-    "P.C.P.",
-    "S.R.M.",
-    "Comex",
-    "Serasa",
-    "SPED",
-    "Contábil",
-    "B.I.",
-    "Coletor",
-    "B2B",
-    "BI",
-    "Opções",
-    "Banco Dados Clientes",
-    "Contadores Clientes",
-    "Usuarios Clientes",
-)
+proibidos = ("Coletor", "B2B")
 faltando = [nome for nome in esperados if nome not in visiveis]
 if faltando:
     print("FALTA " + ", ".join(faltando))
     raise SystemExit(1)
-indevidos = [nome for nome in visiveis if any(trecho in nome for trecho in proibidos)]
+indevidos = [nome for nome in visiveis if nome in proibidos]
 if indevidos:
     print("INDEVIDO " + ", ".join(indevidos))
     raise SystemExit(1)
-' "$menu" || reclamar "o menu não é o do ciclo"
+' "$menu" || reclamar "o menu não mostra os cadastros"
 
 seguir() {
   local caminho="$1"
@@ -217,4 +199,4 @@ if [ "$falhou" -ne 0 ]; then
   exit 1
 fi
 
-echo "O menu do ciclo e os cadastros abrem vazios."
+echo "Os cadastros abrem vazios."

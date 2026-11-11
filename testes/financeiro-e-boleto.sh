@@ -44,15 +44,15 @@ pagina = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
 grupos = re.findall(r"class=\"ui-corner-top\">([^<]*)</a>", pagina)
 itens = re.findall(r"class=\"ui-corner-tr\"[^>]*>([^<]*)</a>", pagina)
 visiveis = grupos + itens
-esperados = ["Contas a Receber", "Contas a Pagar", "Caixa e Bancos", "Boleto Bancário"]
+esperados = ["Contas a Receber", "Contas a Pagar", "Caixa e Bancos"]
 faltando = [nome for nome in esperados if nome not in visiveis]
 if faltando:
     print("FALTA " + ", ".join(faltando))
     raise SystemExit(1)
-if "Créditos Troca" in visiveis:
-    print("INDEVIDO Créditos Troca")
+if "Boleto Bancário" in visiveis:
+    print("INDEVIDO Boleto Bancário")
     raise SystemExit(1)
-' "$menu" || reclamar "o menu não mostra o financeiro e o boleto"
+' "$menu" || reclamar "o menu não mostra o financeiro"
 
 seguir() {
   local caminho="$1"
@@ -79,15 +79,17 @@ url_final=""
 grade() {
   local caminho="$1"
   url_final=""
+  local url="${2:-}"
   local arquivo
   arquivo="$(mktemp)"
-  if ! seguir "$caminho" "$arquivo"; then
-    reclamar "o menu não oferece ${caminho}"
-    rm -f "$arquivo"
-    return
+  if [ -z "$url" ]; then
+    if ! seguir "$caminho" "$arquivo"; then
+      reclamar "o menu não oferece ${caminho}"
+      rm -f "$arquivo"
+      return
+    fi
+    url="$(cat "$arquivo")"
   fi
-  local url
-  url="$(cat "$arquivo")"
   rm -f "$arquivo"
   local salto
   for salto in 1 2 3 4 5; do
@@ -161,7 +163,7 @@ if [ -n "$url_final" ] && [[ "$url_final" != *"/fin/fin003/"* ]]; then
 fi
 
 echo "Abrindo boletos"
-grade "Boleto Bancário"
+grade "Boleto Bancário" "/fin/fin005/content/fin005ContentPrincipal/"
 vazia "Boletos"
 if [ -n "$url_final" ]; then
   if [[ "$url_final" != *"/fin/fin005/"* ]]; then
