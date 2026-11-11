@@ -39,9 +39,10 @@ if ! curl -sS --max-time 40 -o "$menu" -c "$biscuits" -b "$biscuits" "$base/hard
   reclamar "o menu não abriu depois do login"
 fi
 
-python -c '
+python - "$menu" "$raiz/sistema-legado/bibliotecas/menu.php" <<'PY' || reclamar "o menu não é o do Hardness"
 import pathlib, re, sys
 pagina = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+produto = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8", errors="replace")
 grupos = [
     re.sub(r"<[^>]+>", "", miolo)
     for miolo in re.findall(r"class=\"ui-corner-top\">(.*?)</a>", pagina, re.S)
@@ -73,26 +74,32 @@ faltando = [nome for nome in esperados if nome not in visiveis]
 if faltando:
     print("FALTA " + ", ".join(faltando))
     raise SystemExit(1)
-proibidos = (
-    "Orçamentos",
-    "Pedidos",
-    "Boleto Bancário",
-    "Coletor",
-    "B2B",
-    "Locação",
-    "Serviços",
-    "Curva ABC Vendedores",
-    "Ordem de Compra",
-    "Divergências de Estoque",
-    "Catálogos",
-    "Supervisores/Vendedores",
-    "CRM",
-)
-indevidos = [nome for nome in visiveis if nome in proibidos]
+
+def limpar(nome):
+    nome = nome.replace("&nbsp;", " ").replace("\xa0", " ")
+    nome = re.sub(r"\s+", " ", nome).strip()
+    return re.sub(r"^[>\s]+", "", nome)
+
+def rotulo(linha):
+    achado = re.search(r"\$menu\['[^']+'\]\['([^']+)'\]", linha)
+    return achado.group(1) if achado else ""
+
+comentados = set()
+ativos = set()
+for linha in produto.splitlines():
+    nome = rotulo(linha)
+    if not nome:
+        continue
+    if linha.lstrip().startswith("//"):
+        comentados.add(limpar(nome))
+    else:
+        ativos.add(limpar(nome))
+proibidos = comentados - ativos
+indevidos = [nome for nome in visiveis if limpar(nome) in proibidos]
 if indevidos:
     print("INDEVIDO " + ", ".join(indevidos))
     raise SystemExit(1)
-' "$menu" || reclamar "o menu não é o do Hardness"
+PY
 
 seguir() {
   local caminho="$1"
