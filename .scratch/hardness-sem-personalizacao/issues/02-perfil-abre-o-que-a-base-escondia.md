@@ -9,8 +9,8 @@ Orbit: ERPFX-12
 
 **Status:** ready-for-agent
 
-- [ ] Banco Dados Clientes, Contadores Clientes, Usuarios Clientes, Opções, Conferência Cega e Créditos Troca abrem depois do login
-- [ ] Grade vazia nessas telas passa
-- [ ] A página não cai numa conta ou num aviso do PHP da base
-- [ ] Usuários mostra o usuário local
-- [ ] Empresa mostra a empresa de validação
+- [x] Banco Dados Clientes, Contadores Clientes, Usuarios Clientes, Opções, Conferência Cega e Créditos Troca abrem depois do login
+- [x] Grade vazia nessas telas passa
+- [x] A página não cai numa conta ou num aviso do PHP da base
+- [x] Usuários mostra o usuário local
+- [x] Empresa mostra a empresa de validação
