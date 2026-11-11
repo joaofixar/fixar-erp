@@ -3,6 +3,8 @@ Orbit: ERPFX-1
 
 # Base local do ERP
 
+O entendimento de 10 nov 2026 substitui esta spec onde as duas discordam. Vale o ADR 0002. A personalização não executa, o menu é o do Hardness, o perfil local abre todas as telas do produto e não há retrato da produção. O restante deste arquivo continua.
+
 ## Problem Statement
 
 A Fixar precisa ver o próprio ERP abrir na máquina de quem desenvolve. Hoje o código comprado não sobe: falta a configuração local, a estrutura das tabelas que a empresa usa agora e os registros mínimos de uma empresa e de um usuário. Sem isso, ninguém confere uma tela, e qualquer evolução parte de um sistema que não roda.
@@ -76,7 +78,7 @@ Uma base local, no contêiner do repositório, com a estrutura atual das tabelas
 
 ## Out of Scope
 
-- O importador de dados de negócio: cópia de clientes, títulos, notas e demais linhas, inutilização de segredo, retrato que substitui a base e nova execução. A decisão continua valendo; a spec dele vem depois que esta base entrar.
+- O retrato da produção. Não há spec dele em seguida. A base permanece sem linhas de negócio.
 - Emitir nota de verdade, registrar boleto de verdade e enviar e-mail de verdade. Esta spec só garante que a base local não faça isso.
 - PDV, nota de loja, CRM, e-mail integrado, PCP, SRM, comex, Serasa, SPED, módulo contábil, BI, coletor, lojas virtuais, B2B e personalização de outro cliente.
 - Acompanhar release do fornecedor, revender o sistema ou atender outro cliente.
@@ -87,5 +89,5 @@ Uma base local, no contêiner do repositório, com a estrutura atual das tabelas
 ## Further Notes
 
 - Vocabulário: empresa é o CNPJ que opera no ERP; cliente é quem compra da Fixar; fornecedor é quem vende para a Fixar. Cliente e fornecedor convivem no mesmo cadastro.
-- A decisão de nascer do legado, validar com uma empresa e deixar o importador para depois está no ADR do sistema novo. Esta spec cobre só o primeiro marco, a base local no ar.
+- A decisão de nascer do legado e validar com uma empresa está no ADR 0001. O ADR 0002 tira o retrato e a personalização deste caminho. Esta spec cobre a base local no ar.
 - Trazer a estrutura das tabelas é parte desta base. Trazer as linhas de negócio não é.
