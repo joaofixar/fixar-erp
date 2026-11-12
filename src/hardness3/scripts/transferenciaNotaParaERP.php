@@ -6,8 +6,8 @@ $confUsuarioERP = array(
 	'dbDatabase' => 'global',
 	'dbHost' => '127.0.0.1',
 	'dbUser' => 'root',
-	'dbPass' => '$$hard@@0982',
-	//'dbPass' => 'hardness',
+	'dbPass' => '',
+	//'dbPass' => '',
 );
 $conERP=@mysql_connect($confUsuarioERP['dbHost'], $confUsuarioERP['dbUser'], $confUsuarioERP['dbPass']);
 $Error=mysql_error();
@@ -20,7 +20,7 @@ $confUsuarioNOTA = array(
 	'dbDatabase' => 'global',
 	'dbHost' => '186.202.64.122',
 	'dbUser' => 'root',
-	'dbPass' => '!hard@3871',
+	'dbPass' => '',
 );
 $conNOTA=mysql_connect($confUsuarioNOTA['dbHost'], $confUsuarioNOTA['dbUser'], $confUsuarioNOTA['dbPass']);
 $Error=mysql_error();
@@ -227,6 +227,6 @@ while ($row = mysql_fetch_assoc($res)) {
 }
 */
 
-//echo 'CREATE DATABASE IF NOT EXISTS e300; USE e300;' > e214-e300.sql && mysqldump --user=root --password='hardness' --routines e214 >> e214-e300.sql
+//echo 'CREATE DATABASE IF NOT EXISTS e300; USE e300;' > e214-e300.sql && mysqldump --user=root --password='' --routines e214 >> e214-e300.sql
 //sed -i 's/`e214`/`e300`/g' e214-e300.sql
-//mysql --user=root --password='hardness' < e214-e300.sql
+//mysql --user=root --password='' < e214-e300.sql

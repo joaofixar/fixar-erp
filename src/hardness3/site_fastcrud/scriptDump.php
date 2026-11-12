@@ -4,7 +4,7 @@ $confUsuarioERP = array(
         'dbDatabase' => 'global',
         'dbHost' => '52.22.24.146',
         'dbUser' => 'root',
-        'dbPass' => '$$hard@@0982',
+        'dbPass' => '',
 );
 $conERP=@mysql_connect($confUsuarioERP['dbHost'], $confUsuarioERP['dbUser'], $confUsuarioERP['dbPass']);
 $Error=mysql_error();
@@ -42,7 +42,7 @@ $dump = str_replace('`e000`@`%`', "`{$C025_Banco_Dados}`@`localhost`", $dump);
 $dump = str_replace('e000', "{$C025_Banco_Dados}", $dump);
 file_put_contents($arqTmp, $dump);
 	
-shell_exec("ionice -c3 mysql --user='{$confUsuarioERP['dbUser']}' --password='\$\$hard@@0982' < {$arqTmp}");
+shell_exec("ionice -c3 mysql --user='{$confUsuarioERP['dbUser']}' --password='' < {$arqTmp}");
 shell_exec("ionice -c3 rm -f {$arqTmp}");
 
 $C025_Banco_Dados_Senha = md5($C025_Banco_Dados);

@@ -7,7 +7,7 @@ $confUsuarioNOTA = array(
 	'dbDatabase' => 'global',
 	'dbHost' => '192.168.10.3',
 	'dbUser' => 'root',
-	'dbPass' => '!hard@3871',
+	'dbPass' => '',
 );
 $conNOTA=mysql_connect($confUsuarioNOTA['dbHost'], $confUsuarioNOTA['dbUser'], $confUsuarioNOTA['dbPass']);
 $Error=mysql_error();

@@ -14,7 +14,7 @@ $confUsuario = array(
 	'dbDatabase' => $db,
 	'dbHost' => '127.0.0.1',
 	'dbUser' => 'root',
-	'dbPass' => '#qos!0982',
+	'dbPass' => '',
 );
 $con=@mysql_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass']);
 $Error=mysql_error();

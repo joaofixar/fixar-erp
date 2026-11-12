@@ -4,8 +4,8 @@ $confUsuarioERP = array(
 	'dbDatabase' => 'global',
 	'dbHost' => '187.45.202.72',
 	'dbUser' => 'root',
-	'dbPass' => '$$hard@@0982',
-	//'dbPass' => 'hardness',
+	'dbPass' => '',
+	//'dbPass' => '',
 );
 $conERP=@mysqli_connect($confUsuarioERP['dbHost'], $confUsuarioERP['dbUser'], $confUsuarioERP['dbPass']);
 $Error=mysqli_connect_error($con);

@@ -6,8 +6,8 @@ $confUsuarioERP = array(
 	'dbDatabase' => 'global',
 	'dbHost' => '127.0.0.1',
 	'dbUser' => 'root',
-	'dbPass' => '$$hard@@0982',
-	//'dbPass' => 'hardness',
+	'dbPass' => '',
+	//'dbPass' => '',
 );
 $conERP=@mysql_connect($confUsuarioERP['dbHost'], $confUsuarioERP['dbUser'], $confUsuarioERP['dbPass']);
 $Error=mysql_error();
@@ -20,7 +20,7 @@ $confUsuarioNOTA = array(
 	'dbDatabase' => 'global',
 	'dbHost' => '186.202.64.122',
 	'dbUser' => 'root',
-	'dbPass' => '!hard@3871',
+	'dbPass' => '',
 );
 $conNOTA=mysql_connect($confUsuarioNOTA['dbHost'], $confUsuarioNOTA['dbUser'], $confUsuarioNOTA['dbPass']);
 $Error=mysql_error();

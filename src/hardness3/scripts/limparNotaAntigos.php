@@ -6,7 +6,7 @@ $confUsuario = array(
 	'dbDatabase' => 'e001',
 	'dbHost' => '192.168.10.3',
 	'dbUser' => 'root',
-	'dbPass' => '!hard@3871',
+	'dbPass' => '',
 );
 $con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
 $Error=mysqli_connect_error($con);
@@ -89,7 +89,7 @@ while ($row = mysql_fetch_assoc($res)) {
 	if (empty($rowT007['T007_Data_Emissao']) || strtotime($rowT007['T007_Data_Emissao']) < strtotime('2013-06-01')) {
 		//echo "{$row['C025_Banco_Dados']} - {$row['D024_Id']} - {$rowT007['T007_Data_Emissao']} - {$row['D024_Nome_Empresa']} \n";
 		$BD = strtolower($row['C025_Banco_Dados']);
-		//echo "mysqldump --force --skip-lock-tables --events --routines --user=backup --password='hard3871' {$BD} | gzip > ./{$BD}.sql.gz\n";
+		//echo "mysqldump --force --skip-lock-tables --events --routines --user=backup --password='' {$BD} | gzip > ./{$BD}.sql.gz\n";
 		//echo "mv /var/www/hardness/dados_usuarios/{$BD} ./\n";
 		//echo "UPDATE C025 SET C025_Flag_Removido = '1' WHERE C025_Id = '{$row['C025_Id']}';\n";
 		echo "DROP DATABASE {$BD};\n";

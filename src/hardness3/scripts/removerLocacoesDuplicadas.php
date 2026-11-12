@@ -4,7 +4,7 @@ $confUsuario = array(
 	'dbDatabase' => 'e229_novo',
     'dbHost' => '127.0.0.1',
     'dbUser' => 'e229_novo',
-    'dbPass' => 'e2297613',
+    'dbPass' => '',
 );
 $con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
 $Error=mysqli_connect_error($con);

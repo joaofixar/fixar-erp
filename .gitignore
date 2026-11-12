@@ -17,6 +17,8 @@ bin/__pycache__/
 
 # Override local de porta. O compose commitado publica 8080.
 docker-compose.override.yml
+# Porta do percurso com volume vazio. Não muda a porta commitada.
+docker-compose.nascimento.yml
 
 # Hardness versionado: segredo, cache, uso, outro cliente, documento e mídia pesada
 src/hardness3/bibliotecas/confUsuario.php
@@ -51,3 +53,23 @@ src/hardness3/static/js/monaco-editor/0.25.2/dev/vs/editor/editor.main.js.map
 src/hardness3/static/js/monaco-editor/0.25.2/dev/vs/language/typescript/tsWorker.js
 src/hardness3/static/js/monaco-editor/0.25.2/esm/vs/language/typescript/lib/typescriptServices.js
 src/hardness3/static/js/monaco-editor/0.25.2/min-maps/vs/editor/editor.main.js.map
+
+# Chave privada, pkcs12 e keystore. Uma cópia seguinte não os recoloca.
+src/hardness3/outros/apps/apps.key
+src/hardness3/bibliotecas/tcpdf/tcpdf.p12
+src/hardness3/bibliotecas/tcpdf/tcpdf.crt
+src/hardness3/mobile/cert/my-release-key.keystore
+src/hardness3/**/*.p12
+src/hardness3/**/*.keystore
+
+# Material de outro cliente. A personalização da Fixar permanece.
+src/hardness3/**/*[Cc]eigon*
+src/hardness3/**/*[Gg]uimepa*
+src/hardness3/**/*[Ee]urosul*
+src/hardness3/**/*[Bb]oticario*
+src/hardness3/**/*[Bb]oticário*
+src/hardness3/**/*[Dd]erosso*
+src/hardness3/**/*[Ee]mprefix*
+src/hardness3/**/*[Nn]acomaq*
+src/hardness3/**/*[Pp]anceri*
+src/hardness3/**/*[Vv]edapar*
