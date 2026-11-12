@@ -19,6 +19,9 @@ bin/__pycache__/
 docker-compose.override.yml
 # Porta do percurso com volume vazio. Não muda a porta commitada.
 docker-compose.nascimento.yml
+# Porta do percurso das rotinas ausentes. Não publica 3306 nem 8080.
+docker-compose.rotinas-ausentes.yml
+.rotinas-antes.sh
 
 # Hardness versionado: segredo, cache, uso, outro cliente, documento e mídia pesada
 src/hardness3/bibliotecas/confUsuario.php

@@ -85,9 +85,21 @@ EOF
             printf '\n//\n'
         } > "$tmp"
         if mariadb -u"$usuario" $host_arg $senha_arg "$banco" < "$tmp" >/dev/null 2>"${tmp}.err"; then
-            criadas=$((criadas + 1))
             rm -f "$tmp" "${tmp}.err"
-            return 0
+            # O arquivo pode só remover. Sem a rotina no banco, a próxima
+            # passada contaria de novo uma criação que não aconteceu.
+            if [ "$tipo" = "TRIGGER" ]; then
+                existe=$(mariadb -u"$usuario" $host_arg $senha_arg "$banco" -N -B -e "SELECT COUNT(*) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA='${banco}' AND TRIGGER_NAME='${nome}'" 2>/dev/null) || existe=""
+            else
+                existe=$(mariadb -u"$usuario" $host_arg $senha_arg "$banco" -N -B -e "SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA='${banco}' AND ROUTINE_NAME='${nome}'" 2>/dev/null) || existe=""
+            fi
+            existe=$(printf '%s' "$existe" | tr -d '[:space:]')
+            if [ -n "$existe" ] && [ "$existe" != "0" ]; then
+                criadas=$((criadas + 1))
+                return 0
+            fi
+            falhas+=("${nome}: o arquivo nao criou a rotina")
+            return 1
         fi
         status=$(tr '\n' ' ' < "${tmp}.err")
         falhas+=("${nome}: ${status}")
