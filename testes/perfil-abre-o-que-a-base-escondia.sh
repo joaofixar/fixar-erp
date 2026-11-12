@@ -165,14 +165,15 @@ percorrer() {
   tem_grade=0
   local salto
   for salto in 1 2 3 4 5 6; do
-    local codigo destino
-    if [[ "$url" == *"?"* ]]; then
-      destino="${base}${url}&ajax=true"
-    else
-      destino="${base}${url}?ajax=true"
-    fi
+    # O menu abre com POST. Sem cadeia gravada, o JavaScript manda o texto undefined.
+    local codigo
     if ! codigo="$(curl -sS --max-time 40 -o "$corpo" -c "$biscuits" -b "$biscuits" -w '%{http_code}' \
-      "$destino")"; then
+      -X POST \
+      -d "ajax=true" \
+      -d "divId=janela" \
+      -d "divIdChain=undefined" \
+      -d "divIdParentChain=undefined" \
+      "${base}${url}")"; then
       return 1
     fi
     if [ "$codigo" -ge 400 ]; then
