@@ -1,0 +1,9 @@
+http://developer.android.com/sdk/installing.html
+http://developer.android.com/resources/tutorials/hello-world.html
+http://grail.cba.csuohio.edu/~matos/notes/cis-493/lecture-notes/Android-Chapter10-WebKit.pdf
+
+-->
+http://developer.android.com/guide/webapps/index.html
+
+http://developer.android.com/guide/publishing/app-signing.html#cert
+http://developer.android.com/guide/topics/manifest/manifest-element.html#package

@@ -1,0 +1,15 @@
+{
+  "cpu_attention_percent": 70,
+  "cpu_critical_percent": 90,
+  "memory_attention_percent": 70,
+  "memory_critical_percent": 85,
+  "disk_attention_percent": 80,
+  "disk_critical_percent": 90,
+  "attention_seconds": 5,
+  "critical_seconds": 15,
+  "lock_attention_seconds": 3,
+  "lock_critical_seconds": 10,
+  "mysql_connections_attention_percent": 60,
+  "mysql_connections_critical_percent": 85,
+  "disk_path": "/www"
+}

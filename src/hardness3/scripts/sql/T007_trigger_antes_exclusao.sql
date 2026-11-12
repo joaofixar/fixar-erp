@@ -1,0 +1,3 @@
+CREATE TRIGGER `T007_trigger_antes_exclusao` BEFORE DELETE ON `T007` FOR EACH ROW BEGIN
+	INSERT INTO T178 (T178_T005_Id, T178_Data, T178_Descricao, T178_Observacao) VALUES (OLD.T007_T005_Id, CURRENT_TIMESTAMP, 'Nota fiscal excluída.', OLD.T007_Numero_Nota_Fiscal);
+END;

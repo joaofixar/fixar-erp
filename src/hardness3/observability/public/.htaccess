@@ -1,0 +1,14 @@
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+<FilesMatch "(^\.|\.(?:json|log|ini|env|lock)$)">
+    Require all denied
+</FilesMatch>
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]

@@ -1,0 +1,3 @@
+CREATE TRIGGER `D069_trigger_antes_Alteracao` BEFORE UPDATE ON `D069` FOR EACH ROW BEGIN
+    SET NEW.D069_Data_Hora_Ultima_Alteracao_Sem_Calcular=CURRENT_TIMESTAMP();
+END;

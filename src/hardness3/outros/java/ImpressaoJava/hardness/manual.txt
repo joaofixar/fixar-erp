@@ -1,0 +1,3 @@
+- Extraia o executavel.rar na pasta C:/
+- Alterer o arquivo impressao.bat: no "idImpressora" informe o Id da impressora cadastrada no sistema pelo usuário, no "nomeImpressora" informe o nome da impressora que será utilizada no windowns e na "urlEmpresa" informe a URL da empresa.
+- Execute o arquivo inicializarExe.bat

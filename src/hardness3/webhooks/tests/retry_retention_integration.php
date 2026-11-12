@@ -1,0 +1,24 @@
+<?php
+declare(strict_types=1);
+use HardnessWebhooks\Delivery\DeliveryRepository; use HardnessWebhooks\Delivery\DeliveryRetentionService; use HardnessWebhooks\Delivery\RetryPolicy;
+require_once dirname(__DIR__) . '/autoload.php';
+function t9(bool $ok, string $message): void { if (!$ok) { throw new RuntimeException('Assertion failed: ' . $message); } }
+function t9q(mysqli $db, string $sql): array { $r = $db->query($sql); if ($r === false) { throw new RuntimeException($db->error); } return $r instanceof mysqli_result ? $r->fetch_all(MYSQLI_ASSOC) : array(); }
+$config = (string) getenv('WEBHOOKS_TEST_ERP_CONFIG'); if ($config === '' || !is_file($config)) { fwrite(STDERR, "WEBHOOKS_TEST_ERP_CONFIG must identify the explicit DEV ERP configuration.\n"); exit(2); }
+$confUsuario = array(); require $config; $db = new mysqli($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']); if ($db->connect_errno) { throw new RuntimeException('Could not connect to DEV database.'); }
+$company = 987654326; $repo = new DeliveryRepository(90); $policy = new RetryPolicy(array(60,300,900,3600,21600), 0.10, 21600, static function (int $min, int $max): int { return 0; });
+try {
+    t9q($db, "DELETE a FROM WHK005 a INNER JOIN WHK004 d ON d.WHK004_Id=a.WHK005_WHK004_Id WHERE d.WHK004_C004_Id={$company}"); t9q($db, "DELETE FROM WHK004 WHERE WHK004_C004_Id={$company}"); t9q($db, "DELETE FROM WHK003 WHERE WHK003_C004_Id={$company}");
+    t9($policy->maxAttempts() === 6 && $policy->retryDelay(1, null) === 60 && $policy->retryDelay(5, null) === 21600 && $policy->retryDelay(6, null) === null, 'six-attempt backoff is deterministic');
+    t9($policy->isRetryable(429, null) && $policy->retryDelay(1, '120') === 120 && $policy->retryDelay(1, '99999999') === 21600 && $policy->retryDelay(1, 'bad') === 60, 'Retry-After is capped and invalid values fall back');
+    t9(!$policy->isRetryable(302, null) && !$policy->isRetryable(404, null) && $policy->isRetryable(408, null) && $policy->isRetryable(425, null) && $policy->isRetryable(500, null) && $policy->isRetryable(null, 'transport_error'), 'HTTP classification is explicit');
+    t9q($db, "INSERT INTO WHK003 (WHK003_Event_Id,WHK003_C004_Id,WHK003_Type,WHK003_Schema_Version,WHK003_Aggregate_Type,WHK003_Aggregate_Id,WHK003_Payload,WHK003_Occurred_At) VALUES ('task09-event',{$company},'financial_analysis.requested','1','order','1','{}',UTC_TIMESTAMP())"); $event = $db->insert_id;
+    t9q($db, "INSERT INTO WHK004 (WHK004_Delivery_Id,WHK004_C004_Id,WHK004_WHK003_Id,WHK004_WHK001_Id,WHK004_WHK002_Id,WHK004_WHK007_Id,WHK004_Destination_URL,WHK004_Status,WHK004_Next_Attempt_At) VALUES ('00000000-0000-4000-8000-000000000909',{$company},{$event},1,1,1,'https://example.test/','P',UTC_TIMESTAMP())"); $delivery = $db->insert_id;
+    for ($n=1; $n<=6; ++$n) { t9($repo->tryClaim($db,$delivery,'task09-worker'), 'claim '. $n); $delay=$policy->retryDelay($n,null); t9($repo->recordHttpResult($db,$delivery,'task09-worker',$n,'http_server_error',500,'transport_error',1,0,$delay===null?'X':'R',$delay), 'persist '. $n); if ($n<6) { t9q($db,"UPDATE WHK004 SET WHK004_Next_Attempt_At=UTC_TIMESTAMP() WHERE WHK004_Id={$delivery}"); } }
+    $row=t9q($db,"SELECT WHK004_Status,WHK004_Attempt_Count FROM WHK004 WHERE WHK004_Id={$delivery}")[0]; t9($row['WHK004_Status']==='X' && (int)$row['WHK004_Attempt_Count']===6 && count(t9q($db,"SELECT * FROM WHK005 WHERE WHK005_WHK004_Id={$delivery}"))===6, 'retry becomes dead with unique operational history');
+    t9(!$repo->recordHttpResult($db,$delivery,'other',6,'http_server_error',500,'transport_error',1,0,'X',null), 'lost ownership cannot persist');
+    t9q($db,"UPDATE WHK004 SET WHK004_Status='P',WHK004_Next_Attempt_At=UTC_TIMESTAMP() WHERE WHK004_Id={$delivery}"); t9($repo->tryClaim($db,$delivery,'cancel-worker') && $repo->cancelClaimed($db,$delivery,'cancel-worker','endpoint_disabled') && !$repo->cancelClaimed($db,$delivery,'cancel-worker','endpoint_disabled'), 'cancellation is owner-only and idempotent');
+    t9q($db,"UPDATE WHK004 SET WHK004_Status='D',WHK004_Delivered_At=DATE_SUB(UTC_TIMESTAMP(),INTERVAL 91 DAY),WHK004_Data_Alteracao=DATE_SUB(UTC_TIMESTAMP(),INTERVAL 91 DAY) WHERE WHK004_Id={$delivery}"); $retention=(new DeliveryRetentionService())->purge($db,10); t9($retention['deliveries']===1 && count(t9q($db,"SELECT * FROM WHK004 WHERE WHK004_Id={$delivery}"))===0, 'bounded retention removes historical delivery after attempts');
+    echo "Task 09 synthetic tests passed.\n";
+} finally { t9q($db, "DELETE a FROM WHK005 a INNER JOIN WHK004 d ON d.WHK004_Id=a.WHK005_WHK004_Id WHERE d.WHK004_C004_Id={$company}"); t9q($db, "DELETE FROM WHK004 WHERE WHK004_C004_Id={$company}"); t9q($db, "DELETE FROM WHK003 WHERE WHK003_C004_Id={$company}"); $db->close(); }
+

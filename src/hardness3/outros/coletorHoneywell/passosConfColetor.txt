@@ -1,0 +1,22 @@
+- control panel - sound
+
+- autorun - scanwedge
+	Iniciar -> Programs -> Power Tools -> EZConfig Utilities -> Autorun
+	Custom Application #1
+	Edit -> Enable
+		Program: \Program Files\Power Tools\ScanWedge.exe
+		Args: (em branco)
+		Wait: No
+		StartOption: COLDBOOT, WARMBOOT
+	File -> Save
+
+- block screen with IE
+
+- backlight time && no turn off on battery
+	Iniciar -> Programs -> Power Tools -> EZConfig Utilities -> DeviceConfig
+	Power Management -> Backlight -> Battery
+		Timeout: 5 min
+	Power Management -> Power -> Battery
+		Timeout: Never
+
+- disable SIP on IE

@@ -6,7 +6,7 @@ sistema-legado/
 !.env.example
 
 # Cópia que sobe na máquina. Não leva segredo, cache, uso nem outro cliente.
-base/
+/base
 
 # Cache, arquivo de uso e o backup que carrega senha, se aparecerem na raiz
 smarty/templates_c/
@@ -14,3 +14,40 @@ dados_usuarios/
 scripts/backup/
 static/css/temas/tema_*_cache.css
 bin/__pycache__/
+
+# Override local de porta. O compose commitado publica 8080.
+docker-compose.override.yml
+
+# Hardness versionado: segredo, cache, uso, outro cliente, documento e mídia pesada
+src/hardness3/bibliotecas/confUsuario.php
+src/hardness3/bibliotecas/confUsuario.original
+src/hardness3/ide/sysConfig.php
+src/hardness3/scripts/queueMDFE/conf.php
+src/hardness3/scripts/queueMDFE/conf.php.original
+src/hardness3/scripts/queueNF/conf.original.php
+src/hardness3/dados_usuarios/
+src/hardness3/smarty/templates_c/
+src/hardness3/smarty/cache/
+src/hardness3/bibliotecas/tcpdf/cache/
+src/hardness3/hardness/phpqrcode/cache/
+src/hardness3/scripts/backup/
+src/hardness3/static/css/temas/tema_*_cache.css
+src/hardness3/configuracoes/painel-comercial-inecel-root-63.json
+src/hardness3/bibliotecas/layouts_remessa/manual/Manual Remessa HSBC.pdf
+src/hardness3/bibliotecas/layouts_remessa/manual/cresol/Manual Especificacoes Tecnicas Cresol.pdf
+src/hardness3/bibliotecas/validadorNFe/Manual_de_Orientacao_Contribuinte_v_6.00.pdf
+src/hardness3/outros/etiquetas/manuais/impressoraArgox/sManual_Portuguese.pdf
+src/hardness3/outros/etiquetas/manuais/impressoraEPL/zsu-1191060.exe
+src/hardness3/outros/leitorBiometrico/desenvolvimento/nitgen enbsp.rar
+src/hardness3/scripts/TabelaTIPI/TIPI - I - SE__O VI.htm
+src/hardness3/smarty/B2B/images/img-hardness.png
+src/hardness3/static/download/ChromeStandaloneSetup.exe
+src/hardness3/static/download/jre-7u51-windows-i586.exe
+src/hardness3/static/download/leitorbio.zip
+src/hardness3/static/download/smt-print-1.0.0.exe
+src/hardness3/static/download/smt-print-1.0.0.pdf
+src/hardness3/static/js/monaco-editor/0.25.2/dev/vs/editor/editor.main.js
+src/hardness3/static/js/monaco-editor/0.25.2/dev/vs/editor/editor.main.js.map
+src/hardness3/static/js/monaco-editor/0.25.2/dev/vs/language/typescript/tsWorker.js
+src/hardness3/static/js/monaco-editor/0.25.2/esm/vs/language/typescript/lib/typescriptServices.js
+src/hardness3/static/js/monaco-editor/0.25.2/min-maps/vs/editor/editor.main.js.map

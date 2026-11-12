@@ -1,0 +1,23 @@
+'C:\Users\Tiago\Desktop\C'
+
+'C:\Users\Public\hardnessCadDigital.exe'
+
+(compatibilidade: windows xp)
+
+
+signed.applets.codebase_principal_support
+
+http://stackoverflow.com/questions/3658604/how-to-sign-script-or-webpage-requiring-universalxpconnect-privilege
+https://developer.mozilla.org/en/Code_snippets/Running_applications
+http://delphi.about.com/od/beginners/a/runwithparams.htm
+ParamStr(1)
+
+
+- http
+- c:\firefox
+
+flycker/sistema/funcos/integracaoLeitorDigital/checkMD5/?ajax=true
+
+
+http://flycker/sistema/funcoes/integracaoLeitorDigital/upload/?ajax=true&noEmp=true&p=true&m=a
+C:\Users\Public\C

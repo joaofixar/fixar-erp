@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# MCP is an isolated HTTP endpoint and must not enter the Framework router.
+# Connection-specific routes accept only a 24-character base64url public id.
+RewriteRule ^mcp/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^mcp/c/[A-Za-z0-9_-]{24}$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^\.well-known/(oauth-protected-resource(?:/mcp)?|oauth-authorization-server|openid-configuration)/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^\.well-known/oauth-protected-resource/mcp/c/[A-Za-z0-9_-]{24}$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^oauth/register/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^oauth/authorize/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^oauth/token/?$ /hardness3/mcp/public/index.php [END]
+
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteRule ^(.*)$ /hardness3/index.php?r=$1 [QSA]

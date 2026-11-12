@@ -1,0 +1,36 @@
+				'editarOcultoRapido' => ((isset($grid_valor['colunaEditarOculto']) && $grid_valor['colunaEditarOculto']) || (isset($grid_valor['colunaEditar']) && $grid_valor['colunaEditar']) || (isset($grid_valor['colunaEditarOcultoRapido']) && $grid_valor['colunaEditarOcultoRapido'])) ? md5($grid_valor['colunaValor']) : 0,
+
+
+
+if ($i['colunaAgrupar'][$id] == 1 || $i['colunaAgrupar'][$id] == -1) {
+                $tmpAgrupar = $i['colunaAgrupar'][$id] == 1 ? " rowspan=\"{$i['agrupar0']['linhas']}\"" : '';
+                if (isset($i['colunaEditar'][$id]) && $i['colunaEditar'][$id] && !$i['colunaEditar'][$id][5]) {
+                    $i['colunaEditar'][$id][3] = isset($i['colunaEditar'][$id][3]) ? $i['colunaEditar'][$id][3] : '';
+                    $i['colunaEditar'][$id][4] = isset($i['colunaEditar'][$id][4]) ? $i['colunaEditar'][$id][4] : '';
+                    $campo = addslashes($tbody['keys'][$id]);
+                    $tmpEditar = " onclick=\"gEditarCampo('{$campo}', $(this), '{$i['colunaEditar'][$id][0]}', '{$i['colunaEditar'][$id][1]}', '{$i['colunaEditar'][$id][2]}', '{$i['colunaEditar'][$id][3]}', true, '{$i['colunaEditar'][$id][4]}', '{$loadingEditarGrid}'); event.stopPropagation(); return false;\"";
+                } else {
+                    $tmpEditar = '';
+                }
+                $tmpCampoEditavel = (isset($i['colunaEditar'][$id]) && $i['colunaEditar'][$id]) ? 'campoEditavel' : '';
+                if (isset($i['colunaEditar'][$id]) && $i['colunaEditar'][$id]) {
+                    $tmpValor = "<span>{$ii}</span></span";
+                } else {
+                    $tmpValor = $ii;
+                }
+                if (preg_match("#^0(,|\.)00+$#", $tmpValor)) {
+                    $tmpValor = '-';
+                }
+                $columnCount++;
+                // echo "<td{$tmpAgrupar}{$tmpEditar} id='{$idTd}' editarRapido='{$i['colunaEditar'][$id][5]}' class=\"{$tmpCampoEditavel}\" style=\"text-align: {$i['colunaAlinhar'][$id]};{$i['style'][$id]}\" {$i['extra'][$id]}>{$tmpValor}</td>";
+                if (isset($i['colunaEditar'][$id]) && $i['colunaEditar'][$id] && $i['colunaEditar'][$id][5]) {
+                    $i['colunaEditar'][$id][3] = isset($i['colunaEditar'][$id][3]) ? $i['colunaEditar'][$id][3] : '';
+                    $i['colunaEditar'][$id][4] = isset($i['colunaEditar'][$id][4]) ? $i['colunaEditar'][$id][4] : '';
+                    $campo = addslashes($tbody['keys'][$id]);
+                    echo "<td{$tmpAgrupar}{$tmpEditar} id='{$idTd}' editarRapido='{$i['colunaEditar'][$id][5]}' class=\"{$tmpCampoEditavel}\" style=\"text-align: {$i['colunaAlinhar'][$id]};{$i['style'][$id]}\" {$i['extra'][$id]}>{$tmpValor}</td>";
+                    echo "<script> gEditarCampoRapido('{$campo}', $('#{$idTd}'), '{$i['colunaEditar'][$id][0]}', '{$i['colunaEditar'][$id][1]}', '{$i['colunaEditar'][$id][2]}', '{$i['colunaEditar'][$id][3]}', true, '{$i['colunaEditar'][$id][4]}', '{$loadingEditarGrid}');</script>";
+                }else{
+                    echo "<td{$tmpAgrupar}{$tmpEditar} id='{$idTd}' editarRapido='{$i['colunaEditar'][$id][5]}' class=\"{$tmpCampoEditavel}\" style=\"text-align: {$i['colunaAlinhar'][$id]};{$i['style'][$id]}\" {$i['extra'][$id]}>{$tmpValor}</td>";
+                }
+                $idTd++;
+            }

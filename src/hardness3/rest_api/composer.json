@@ -1,0 +1,13 @@
+{
+  "name": "hardness/rest-api",
+  "description": "REST API foundation for Hardness ERP integrations",
+  "type": "project",
+  "require": {
+    "php": "^7.4 || ^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "RestApi\\": "src/"
+    }
+  }
+}

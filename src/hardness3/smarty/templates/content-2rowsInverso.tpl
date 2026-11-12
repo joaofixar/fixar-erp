@@ -1,0 +1,2 @@
+<div id="{$content2}" class="content content-2rows content-2rows-last" style="width: 100%; height: 49.9%;"></div>
+<div id="{$content1}" class="content content-2rows{if $content1Height} content-2rows-width content-2rows-width-{$content1Height}{/if}" style="width: 100%; height: 49.9%;"></div>

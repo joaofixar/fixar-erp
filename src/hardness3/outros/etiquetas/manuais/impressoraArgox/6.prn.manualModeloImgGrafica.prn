@@ -1,0 +1,18 @@
+Modelo de código utilizado para imprimir imagem gráfica utilizando o programa BarTender
+
+n                         // Usar unidade em polegadas
+M1500                     // Comprimento da etiqueta
+O0220                     // Avança início da impressão em x comprimento
+V0                        // Define a configuração do cortador e dispensador, V0 = sem função de cortador e descascador
+f220                      // Avança cabeça de impressão para ajustar ao corte da etiqueta
+D                         // Desativa o comando de interação, deve ser enviado antes de carregar imagens gráficas ou fontes, uma vez que algumas imagens ou fontes podem conter sequências de dados que podem ser mal interpretadas
+ICPgfx0                   // ?
+***** IMAGEM *****         // Código da imagem
+L                         // Inicia o modo impressão etiqueta até comando E
+D11                        // Tamanho do pixel, condiguração mínima D11
+A2                         // Define o modo lógico de impressão da imagem, Este comando coloca a impressora em operação lógica OR (A2) ou XOR (A1)
+1Y1100005310025gfx0
+Q0001                      // Limpa memória impressora (usar sempre no final da impressão)
+E                          // Fim do modo de formatação e imprimi
+xCGgfx0                   // ?
+

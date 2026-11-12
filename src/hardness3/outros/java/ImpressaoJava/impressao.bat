@@ -1,0 +1,1 @@
+start C:\hardness\executavel\impressao.exe "12" "Argox OS-214 plus series PPLA" "http://192.168.0.109/"

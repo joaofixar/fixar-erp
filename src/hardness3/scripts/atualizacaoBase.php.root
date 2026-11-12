@@ -1,0 +1,52 @@
+<?php
+
+/*****************************************************************************
+*   SCRIPT DE ATUALIZACAO BASE DE TODAS AS EMPRESAS EM DETERMINADA VERSAO
+*****************************************************************************/
+$argv = $_SERVER['argv'];
+if(empty($argv[1])){
+	die("Informe a versao dos clientes que terão a atualizacaoBase executada. (Ex: php atualizacaoBase.php trunk)\n");
+}
+$versao = $argv[1];
+chdir('/var/www/html/hardness3/');
+ini_set('default_charset', 'utf-8');
+setlocale(LC_CTYPE, 'pt_BR.UTF-8');
+$link = mysqli_connect('127.0.0.1', 'root', '=!H2r4n6s8!=');
+$empresas = scandir('/var/www/sites');
+foreach($empresas as $index => $empresa){
+	//Verifica os arquivos que o nome seja um arquivo de configuracao
+	if(strpos($empresa, '-confUsuario.php') !== false){
+		include_once('/var/www/sites/'.$empresa);
+		if(strpos($confUsuario['pathRaiz'], '/var/www/versoes/v3/'.$versao.'/') !== false){
+			echo "ATUALIZANDO DB: " . $confUsuario['dbDatabase'] . " - " . $confUsuario['urlRaiz'] . "\n";
+			if(mysql_select_db($confUsuario['dbDatabase'] , $link)){
+				mysql_set_charset('utf8');
+				$g['pathDados'] = "dados_usuarios/{$confUsuario['dbDatabase']}/";
+				mysql_query('SET NAMES utf8;');
+				include('scripts/atualizacaoBase.php');
+				unset($confUsuario);
+			} else {
+				echo "Não foi possível atualizar este db";
+			}
+			echo "\n\n\n";
+		}
+	}
+}
+
+$dbNota = array('e091', 'e099', 'e126', 'e136', 'e207', 'e282', 'e308', 'e310', 'e312', 'e362', 'e363', 'e364', 'e365', 'e366');
+foreach ($dbNota as $db) {
+    $check = mysql_query("SHOW TABLES FROM {$db} LIKE 'C004'");
+    if(mysql_num_rows($check) == 1){
+        echo "ATUALIZANDO DB: " . $db . "\n";
+        if(mysql_select_db($db, $link)){
+            mysql_set_charset('utf8');
+            mysql_query('SET NAMES utf8;');
+            mysql_query("TRUNCATE C029;");
+	    $g['pathDados'] = "dados_usuarios/{$db}/";
+	    include('scripts/atualizacaoBase.php');
+        } else {
+            echo "Não foi possível atualizar este db";
+        }
+        echo "\n\n\n";
+    }
+}

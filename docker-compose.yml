@@ -5,7 +5,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./base/html:/var/www/html
+      - ./src:/var/www/html
       - ./docker/php/compatibilidade.php:/usr/local/etc/php/compatibilidade.php:ro
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/fixar.ini:ro
       - ./docker/php/saidas.php:/var/www/html/saidas.php:ro

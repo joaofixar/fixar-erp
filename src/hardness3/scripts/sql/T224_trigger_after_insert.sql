@@ -1,0 +1,2 @@
+# Nesta trigger possuia apenas um insert na D085 que não será usada no hardness3. Caso seja necessário usá-la, deixa o drop no começo e recria ela logo abaixo
+DROP TRIGGER IF EXISTS `T224_trigger_afeter_insert`; 

@@ -37,7 +37,7 @@ git check-ignore -q base && echo "A cópia local fica fora do git" || reclamar "
 
 pesada="$(python -c '
 import os, subprocess, sys
-arquivos = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+arquivos = subprocess.check_output(["git", "ls-files"], text=True, encoding="utf-8").splitlines()
 for arquivo in arquivos:
     try:
         tamanho = os.path.getsize(arquivo)

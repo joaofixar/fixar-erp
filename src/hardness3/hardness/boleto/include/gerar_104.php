@@ -1,0 +1,103 @@
+<?php
+namespace hardness;
+
+require_once __DIR__ . '/../../../bibliotecas/layouts_remessa/104/beneficiario_104.php';
+
+require_once('../../old/lib/funcoes.php');
+require_once("./include/funcoes_".$mD007['D062_Numero_Banco'].".php");
+
+
+// Composição Nosso Numero - CEF SIGCB
+$dadosboleto["nosso_numero1"]       = '000'; // tamanho 3
+$dadosboleto["nosso_numero_const1"] = "1"; //constanto 1 , 1=registrada , 2=sem registro
+$dadosboleto["nosso_numero2"]       = '000'; // tamanho 3
+$dadosboleto["nosso_numero_const2"] = "4"; //constanto 2 , 4=emitido pelo proprio cliente
+
+if($g['C031']['atualizarNossoNumeroBoleto'] != 'S' && !empty($mD007['T117_Codigo_Barras'])){
+	$partes = explode("-",$mD007['T117_Nosso_Numero']); //retira o d�gito verificador e o "-"
+   $dadosboleto["nosso_numero3"] = substr($partes[0],-9); // tamanho 9
+}else{
+	$dadosboleto["nosso_numero3"] = STR_PAD(substr($mD007[D007_Nosso_Numero],0,9),9,'0',STR_PAD_LEFT); // tamanho 9
+}
+
+$codigobanco           = "104";
+$codigo_banco_com_dv   = b104_geraCodigoBanco($codigobanco);
+$nummoeda              = "9";
+$b104_fator_vencimento = b104_fator_vencimento(troca_data_dma($T117_Data_Vencimento));
+$nValor_Total          = number_format($nValor_Total,2,'.','');
+
+//valor tem 10 digitos, sem virgula
+$valor    = b104_formata_numero(str_replace('.','',$nValor_Total),10,0,"valor");
+//agencia 4 digitos
+$agencia  = b104_formata_numero($mD007[D007_Numero_Agencia],4,0);
+//conta 5 digitos
+$conta    = b104_formata_numero($mD007[D007_Numero_Conta],5,0);
+//dv da conta
+$conta_dv = b104_formata_numero($mD007[D007_Digito_Verificador_Conta],1,0);
+
+// Separa o DV informado no cadastro e preserva a composicao numerica existente.
+try {
+    $beneficiarioCaixa = b104_separar_beneficiario($mD007['D007_Codigo_Cedente']);
+} catch (\InvalidArgumentException $e) {
+    mysql_query("ROLLBACK");
+    msg_alerta($e->getMessage());
+    exit;
+}
+$conta_cedente = b104_formata_numero($beneficiarioCaixa['codigo'],6,0);
+//dv da conta cedente
+$conta_cedente_dv = b104_digitoVerificador_cedente($conta_cedente);
+
+//campo livre (sem dv) 24 digitos
+if(strlen($conta_cedente) > 6){
+   $campo_livre = $conta_cedente                                               . 
+                  b104_formata_numero($dadosboleto["nosso_numero1"],3,0)       . 
+                  b104_formata_numero($dadosboleto["nosso_numero_const1"],1,0) . 
+                  b104_formata_numero($dadosboleto["nosso_numero2"],3,0)       . 
+                  b104_formata_numero($dadosboleto["nosso_numero_const2"],1,0) . 
+                  b104_formata_numero($dadosboleto["nosso_numero3"],9,0);
+}else{
+   $campo_livre = $conta_cedente                                               . 
+                  $conta_cedente_dv                                            . 
+                  b104_formata_numero($dadosboleto["nosso_numero1"],3,0)       . 
+                  b104_formata_numero($dadosboleto["nosso_numero_const1"],1,0) . 
+                  b104_formata_numero($dadosboleto["nosso_numero2"],3,0)       . 
+                  b104_formata_numero($dadosboleto["nosso_numero_const2"],1,0) . 
+                  b104_formata_numero($dadosboleto["nosso_numero3"],9,0);
+}
+//dv do campo livre
+$dv_campo_livre = b104_digitoVerificador_nossonumero($campo_livre);
+$campo_livre_com_dv ="$campo_livre$dv_campo_livre";
+
+//nosso número (sem dv) com 17 digitos
+$nnum = b104_formata_numero($dadosboleto["nosso_numero_const1"],1,0).
+        b104_formata_numero($dadosboleto["nosso_numero_const2"],1,0).
+        b104_formata_numero($dadosboleto["nosso_numero1"],3,0)      .
+        b104_formata_numero($dadosboleto["nosso_numero2"],3,0)      .
+        b104_formata_numero($dadosboleto["nosso_numero3"],9,0);
+
+//nosso número completo (com dv) com 18 digitos
+$nossonumero = $nnum . '-' . b104_digitoVerificador_nossonumero($nnum);
+
+// 43 numeros para o calculo do digito verificador do codigo de barras
+$dv = b104_digitoVerificador_barra("$codigobanco$nummoeda$b104_fator_vencimento$valor$campo_livre_com_dv", 9, 0);
+// Numero para o codigo de barras com 44 digitos
+$codigo_barras = "$codigobanco$nummoeda$dv$b104_fator_vencimento$valor$campo_livre_com_dv";
+//$codigo_barras = "$codigobanco$nummoeda$b104_fator_vencimento$valor$campo_livre_com_dv";
+
+$linha_digitavel = b104_monta_linha_digitavel($codigo_barras);
+
+
+$cClausula  = " update T117 set ";
+$cClausula .= " T117_Nosso_Numero='$nossonumero', ";
+$cClausula .= " T117_Linha_Digitavel='".$linha_digitavel."', ";
+$cClausula .= " T117_Codigo_Barras='".$codigo_barras."' ";
+$cClausula .= " where T117_Id='$nT117_Id' ";
+mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro))
+{
+   mysql_query("ROLLBACK");
+   msg_alerta("ERRO: $cErro/p/pClausula: $cClausula");
+   exit;
+}
+?>

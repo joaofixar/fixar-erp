@@ -1,0 +1,3 @@
+- Copiar os diretórios hardness e sgloja para o C:\
+- Alterer o arquivo C:\hardness\integracao.bat: "urlEmpresa" informe a URL da empresa e "idEmpresa" o id da empresa.
+- Execute o arquivo C:\hardness\inicializarExe.bat

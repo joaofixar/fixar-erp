@@ -1,0 +1,2 @@
+<?php
+ goto kkIgV; Z_ykj: goto yuFul; goto jyC2X; zLDca: require 'sistema/index-framework.php'; goto Z_ykj; kkIgV: if (file_exists('framework/sistema/index-framework.php')) { goto YBFxl; } goto zLDca; jyC2X: YBFxl: goto MANRz; MANRz: require 'framework/sistema/index-framework.php'; goto gYxdA; gYxdA: yuFul:
