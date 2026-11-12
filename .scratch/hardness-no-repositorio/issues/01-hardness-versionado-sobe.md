@@ -9,9 +9,13 @@ Orbit: ERPFX-16
 
 **Status:** ready-for-agent
 
-- [ ] A base sobe e o login abre em `/login`
-- [ ] O menu do Hardness abre e as telas visíveis respondem em `/hardness3/`
-- [ ] Subir a base de novo não troca o Hardness que respondeu
-- [ ] Um ajuste num grid do Hardness versionado aparece ao atualizar esse grid
-- [ ] Personalização de outro cliente não aparece
-- [ ] A referência do legado permanece só de leitura
+- [x] A base sobe e o login abre em `/login`
+- [x] O menu do Hardness abre e as telas visíveis respondem em `/hardness3/`
+- [x] Subir a base de novo não troca o Hardness que respondeu
+- [x] Um ajuste num grid do Hardness versionado aparece ao atualizar esse grid
+- [x] Personalização de outro cliente não aparece
+- [x] A referência do legado permanece só de leitura
+
+## Comments
+
+Concluído em d41015e. O contêiner serve o Hardness de `src/` desde 450612f. Chave, keystore e arquivo de outro cliente saíram do que o git rastreia em a3a3004.
