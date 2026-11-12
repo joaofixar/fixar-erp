@@ -22,6 +22,6 @@ fi
 if ! docker image inspect fixar-erp-web >/dev/null 2>&1; then
   docker build -t fixar-erp-web ./docker/php
 fi
+# A fotografia entra só com o volume vazio. Um volume já preenchido permanece.
 docker compose up -d --no-build --wait
-"$py" bin/carregar-estrutura.py
 echo "Base no ar: http://web.fixar-erp.kiri.localhost/login"

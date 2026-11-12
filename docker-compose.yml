@@ -27,10 +27,12 @@ services:
       interval: 3s
       timeout: 5s
       retries: 40
+      start_period: 180s
     networks:
       - interna
     volumes:
       - db-dados:/var/lib/mysql
+      - ./banco/fotografia.sql:/docker-entrypoint-initdb.d/fotografia.sql:ro
 
 networks:
   interna:
