@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Observa, pelo HTTP, contas a receber, contas a pagar, caixa e bancos e boletos.
 # As quatro abrem sem movimento. Abrir o boleto não registra cobrança.
-# A grade de boleto é a da Fixar: a coluna própria aparece e a genérica não.
+# A grade de boleto é a do Hardness: a coluna do produto aparece e a da Fixar não.
 set -euo pipefail
 
 raiz="$(cd "$(dirname "$0")/.." && pwd)"
@@ -187,11 +187,11 @@ raise SystemExit(0 if any(trecho in pagina for trecho in registrada) else 1)
   reclamar "a listagem de boletos registrou cobrança"
 fi
 if [ -n "$url_final" ] && [[ "$url_final" == *"/fin/fin005/"* ]]; then
-  if ! grep -q 'Atualiz.' "$corpo"; then
-    reclamar "o boleto não é o da Fixar"
+  if ! grep -F -q 'Vencimento Boleto' "$corpo"; then
+    reclamar "o boleto não é o do Hardness"
   fi
-  if grep -q 'Vencimento Boleto' "$corpo"; then
-    reclamar "o boleto ficou o genérico"
+  if grep -F -q 'Atualiz.' "$corpo"; then
+    reclamar "o boleto ficou o da Fixar"
   fi
 fi
 

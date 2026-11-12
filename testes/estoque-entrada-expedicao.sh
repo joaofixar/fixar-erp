@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Observa, pelo HTTP, estoque, a listagem da nota de entrada e a expedição.
 # As três abrem sem movimento. Abrir a entrada não importa XML.
-# O histórico de produto é o da Fixar: o filtro próprio aparece e o genérico não.
+# O histórico de produto é o do Hardness: o filtro do produto aparece e o da Fixar não.
 set -euo pipefail
 
 raiz="$(cd "$(dirname "$0")/.." && pwd)"
@@ -198,11 +198,11 @@ raise SystemExit(0 if any(trecho in pagina for trecho in ruim) else 1)
 ' "$corpo"; then
   reclamar "o histórico de produto abriu com erro"
 fi
-if ! grep -q 'Data Lançamento' "$corpo"; then
-  reclamar "o histórico de produto não é o da Fixar"
+if ! grep -F -q 'NFe Entrada' "$corpo"; then
+  reclamar "o histórico de produto não é o do Hardness"
 fi
-if grep -q 'NFe Entrada' "$corpo"; then
-  reclamar "o histórico de produto ficou o genérico"
+if grep -F -q 'Data Lançamento' "$corpo"; then
+  reclamar "o histórico de produto ficou o da Fixar"
 fi
 if grep -q 'linha color' "$corpo"; then
   reclamar "o histórico de produto não está vazio"

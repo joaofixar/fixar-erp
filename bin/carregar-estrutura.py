@@ -473,6 +473,16 @@ def garantir_prazos():
     )
 
 
+def garantir_email_do_cliente():
+    # A grade de boleto do Hardness chama esta função.
+    # Origem: sistema-legado/scripts/sql/D024_Email_Cliente.sql
+    garantir_rotina(
+        "D024_Email_Cliente",
+        b"RETURNS VARCHAR(100) CHARSET utf8",
+        b"RETURNS varchar(100) CHARSET latin1 COLLATE latin1_swedish_ci",
+    )
+
+
 def garantir_tipo_do_plano():
     # A grade do plano de contas chama esta função.
     # Origem: sistema-legado/scripts/sql/D032_Tipo.sql
@@ -527,6 +537,7 @@ def semear_acesso(empresa):
             "C007_Nome": "Desenvolvedor",
             "C007_Primeiro_Nome": "Fixar",
             "C007_Ativo": "S",
+            "C007_Usuario_Suporte": "S",
             "C007_Flag_Ausente": "N",
             "C007_Dispositivo_Acesso": "0",
             "C007_D024_Id": "0",
@@ -547,6 +558,23 @@ def semear_acesso(empresa):
         },
     )
     print(f"Usuário local {USUARIO_LOCAL} vinculado à empresa {empresa}.")
+
+
+def marcar_suporte():
+    # Origem: sistema-legado/bibliotecas/funcoesGerais.php, gVerificaRoot.
+    # CTRL+ALT+SHIFT+P responde para o usuário 63 ou para esta flag. O
+    # usuário local não é o 63.
+    if celula(
+        "SELECT COUNT(*) FROM information_schema.columns "
+        "WHERE table_schema='fixar' AND LOWER(table_name)=LOWER('C007') "
+        "AND column_name='C007_Usuario_Suporte'"
+    ) == "0":
+        sys.exit("A coluna C007_Usuario_Suporte não existe na base local.")
+    local(
+        "UPDATE C007 SET C007_Usuario_Suporte='S' "
+        f"WHERE C007_Login='{USUARIO_LOCAL}'"
+    )
+    print(f"Usuário local {USUARIO_LOCAL} com suporte.")
 
 
 def alinhar_nomes():
@@ -714,9 +742,11 @@ def main():
         semear_acesso(empresa_local())
     else:
         print("O acesso local já está semeado.")
+    marcar_suporte()
     garantir_status_do_pedido()
     garantir_prazos()
     garantir_tipo_do_plano()
+    garantir_email_do_cliente()
     liberar_telas()
 
 

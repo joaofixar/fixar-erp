@@ -212,6 +212,20 @@ def ajustar_pedido():
     gravar(caminho, texto)
 
 
+def ajustar_historico():
+    # No Linux o apelido da tabela diferencia maiúsculas. O histórico do
+    # produto escreve o apelido em minúsculas e o JOIN em maiúsculas.
+    # Origem: sistema-legado/prog/cad/cad002/grid.php.
+    caminho = os.path.join(COPIA, "prog", "cad", "cad002", "grid.php")
+    texto = ler(caminho)
+    antigo = b"vendedor.C007_Primeiro_Nome"
+    novo = b"Vendedor.C007_Primeiro_Nome"
+    if antigo not in texto and novo not in texto:
+        sys.exit("não achei o apelido do vendedor no histórico de produto")
+    if antigo in texto:
+        gravar(caminho, texto.replace(antigo, novo))
+
+
 def restaurar_menu():
     # Origem: sistema-legado/bibliotecas/menu.php. A base anterior reescrevia
     # este arquivo. O que roda é o menu que o Hardness entrega.
@@ -224,28 +238,36 @@ def restaurar_menu():
     shutil.copy2(origem, destino)
 
 
-def ativar_regras():
-    """Coloca as regras próprias onde o legado as carrega ao abrir a tela.
+def retirar_regras():
+    """Tira da cópia que roda o gancho da personalização gravada à parte.
 
     Origem: sistema-legado/outros/personalizacoes/fixar/FIXAR-VEN001.php,
-    FIXAR-VEN002.php, cad002-grid-historico.php e FIXAR-fin005GridPrincipal.php.
-    Classe: dados_usuarios/<banco>/personalizacaoConf/<Classe>.PHP-alterarMetodos.php.
-    Grade: dados_usuarios/<banco>/personalizacaoConf/<caminho-com-tracos>-alterarPrograma.php.
+    FIXAR-VEN002.php, cad002-grid-historico.php, FIXAR-fin005GridPrincipal.php,
+    FIXAR - T004_Gravar_Totalizaca.sql e cad002-extra-reprocessahistorico.
+    O gancho fica em dados_usuarios/<banco>/personalizacaoConf/. A pasta de
+    origem no legado permanece. Outro cliente não fica na cópia que roda.
     """
-    origem = os.path.join(COPIA, "outros", "personalizacoes", "fixar")
     destino = os.path.join(COPIA, "dados_usuarios", "fixar", "personalizacaoConf")
-    os.makedirs(destino, exist_ok=True)
-    pares = {
-        "FIXAR-VEN001.php": "VEN001.PHP-alterarMetodos.php",
-        "FIXAR-VEN002.php": "VEN002.PHP-alterarMetodos.php",
-        "cad002-grid-historico.php": "cad-cad002-grid-historico-alterarPrograma.php",
-        "FIXAR-fin005GridPrincipal.php": "fin-fin005-grid-fin005GridPrincipal-alterarPrograma.php",
-    }
-    for nome, instalado in pares.items():
-        caminho = os.path.join(origem, nome)
-        if not os.path.isfile(caminho):
-            sys.exit(f"não achei a regra própria {nome}")
-        shutil.copy2(caminho, os.path.join(destino, instalado))
+    instalados = (
+        "VEN001.PHP-alterarMetodos.php",
+        "VEN002.PHP-alterarMetodos.php",
+        "cad-cad002-grid-historico-alterarPrograma.php",
+        "fin-fin005-grid-fin005GridPrincipal-alterarPrograma.php",
+    )
+    if os.path.isdir(destino):
+        for nome in instalados:
+            caminho = os.path.join(destino, nome)
+            if os.path.isfile(caminho):
+                os.remove(caminho)
+    pasta = os.path.join(COPIA, "outros", "personalizacoes")
+    if not os.path.isdir(pasta):
+        return
+    for nome in os.listdir(pasta):
+        if nome == "fixar":
+            continue
+        caminho = os.path.join(pasta, nome)
+        if os.path.isdir(caminho):
+            shutil.rmtree(caminho)
 
 
 def ajustar_totais():
@@ -640,7 +662,8 @@ def main():
         corrigir_chaves(COPIA)
     restaurar_menu()
     ajustar_pedido()
-    ativar_regras()
+    ajustar_historico()
+    retirar_regras()
     ajustar_entrada()
     ajustar_conexao()
     ajustar_funcoes()
