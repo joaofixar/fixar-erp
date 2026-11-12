@@ -9,8 +9,12 @@ Orbit: ERPFX-14
 
 **Status:** ready-for-agent
 
-- [ ] Entrar, abrir cada item visível, abrir orçamento, pedido e boleto pelo endereço e sair não abre conexão com a receita, com banco, com e-mail nem com o fornecedor
-- [ ] O clique de emitir nota não chega à receita
-- [ ] O clique de registrar boleto não chega ao banco
-- [ ] O clique de enviar e-mail não sai da máquina
-- [ ] A subida não consulta boleto nem telemetria do fornecedor
+- [x] Entrar, abrir cada item visível, abrir orçamento, pedido e boleto pelo endereço e sair não abre conexão com a receita, com banco, com e-mail nem com o fornecedor
+- [x] O clique de emitir nota não chega à receita
+- [x] O clique de registrar boleto não chega ao banco
+- [x] O clique de enviar e-mail não sai da máquina
+- [x] A subida não consulta boleto nem telemetria do fornecedor
+
+## Comments
+
+Concluído em 6d0c979. O catálogo de permissões veio da produção e ficou atrelado ao perfil local, para o C.R.M. abrir orçamento, pedido e nota.
