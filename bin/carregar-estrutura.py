@@ -2,9 +2,9 @@
 
 A produção só é lida. A sessão é somente leitura, o dump não pede trava
 e a conta precisa ser de leitura. O que entra de registro é a empresa que
-concentra orçamento, pedido e nota fiscal de saída, um usuário daqui e o
-vínculo de permissão. Cliente, produto, orçamento, pedido, nota e título
-não são copiados.
+concentra orçamento, pedido e nota fiscal de saída, um usuário daqui, o
+catálogo de permissões de perfil e o vínculo desse usuário. Cliente,
+produto, orçamento, pedido, nota e título não são copiados.
 """
 
 import base64
@@ -299,10 +299,7 @@ def escolher_empresa():
 
 
 def copiar_tabela(tabela, condicao):
-    if celula(
-        "SELECT COUNT(*) FROM information_schema.tables "
-        f"WHERE table_schema='fixar' AND LOWER(table_name)=LOWER('{tabela}')"
-    ) == "0":
+    if not tabela_existe(tabela):
         return
     conteudo = dump(
         [
@@ -314,6 +311,9 @@ def copiar_tabela(tabela, condicao):
             tabela,
         ]
     )
+    # O cliente de dump devolve o nome em minúsculas. A base local consulta em maiúsculas.
+    nome = tabela.upper().encode()
+    conteudo = re.sub(rb"`" + re.escape(tabela.encode()) + rb"`", b"`" + nome + b"`", conteudo, flags=re.I)
     local(conteudo)
 
 
@@ -371,10 +371,10 @@ def valor_obrigatorio(tipo, tipo_completo):
     return ""
 
 
-def inserir(tabela, explicitos):
+def montar_insert(tabela, explicitos, definicao=None):
     campos = []
     valores = []
-    for nome, tipo, tipo_completo, anulavel, padrao, extra in colunas(tabela):
+    for nome, tipo, tipo_completo, anulavel, padrao, extra in definicao or colunas(tabela):
         if "auto_increment" in extra.lower():
             continue
         if nome in explicitos:
@@ -389,10 +389,11 @@ def inserir(tabela, explicitos):
         valores.append(literal(valor_obrigatorio(tipo, tipo_completo)))
     if not campos:
         sys.exit(f"Não há colunas para inserir em {tabela}.")
-    saida = local(
-        f"INSERT INTO {tabela} ({', '.join(campos)}) VALUES ({', '.join(valores)});\n"
-        "SELECT LAST_INSERT_ID();"
-    )
+    return f"INSERT INTO {tabela} ({', '.join(campos)}) VALUES ({', '.join(valores)})"
+
+
+def inserir(tabela, explicitos):
+    saida = local(montar_insert(tabela, explicitos) + ";\nSELECT LAST_INSERT_ID();")
     identificador = ""
     for linha in saida.splitlines():
         if linha.strip():
@@ -483,6 +484,16 @@ def garantir_email_do_cliente():
     )
 
 
+def garantir_quantidade_de_regras():
+    # A grade de CFOP chama esta função.
+    # Origem: sistema-legado/scripts/sql/D137_Quantidade_Regras.sql
+    garantir_rotina(
+        "D137_Quantidade_Regras",
+        b"RETURNS INT(11)",
+        b"RETURNS INT(11)",
+    )
+
+
 def garantir_tipo_do_plano():
     # A grade do plano de contas chama esta função.
     # Origem: sistema-legado/scripts/sql/D032_Tipo.sql
@@ -493,37 +504,77 @@ def garantir_tipo_do_plano():
     )
 
 
-def liberar_telas():
-    if celula(
+def tabela_existe(nome):
+    return celula(
         "SELECT COUNT(*) FROM information_schema.tables "
-        "WHERE table_schema='fixar' AND LOWER(table_name)=LOWER('C030')"
-    ) == "0":
+        f"WHERE table_schema='fixar' AND LOWER(table_name)=LOWER('{nome}')"
+    ) != "0"
+
+
+def catalogo_vazio():
+    return (
+        tabela_existe("C029")
+        and celula("SELECT COUNT(*) FROM C029") == "0"
+    )
+
+
+def copiar_permissoes():
+    # Origem: sistema-legado/prog/cad/cad032/grid.php. A tela que atrela
+    # permissão ao perfil lista C029. Sem essas linhas o perfil local não
+    # alcança orçamento, pedido e nota no C.R.M.
+    if not tabela_existe("C029"):
+        sys.exit("A tabela de permissões não existe na base local.")
+    if not catalogo_vazio():
+        print("As permissões de perfil já estão na base local.")
+        return
+    print("Copiando as permissões de perfil da produção.", flush=True)
+    copiar_tabela("C029", "1=1")
+    if catalogo_vazio():
+        sys.exit("A produção não devolveu permissão de perfil.")
+
+
+def ids_de_permissao():
+    desejadas = {str(tela) for tela in telas_do_produto()}
+    if tabela_existe("C029"):
+        for linha in linhas("SELECT C029_Id FROM C029"):
+            if linha and linha[0].strip().isdigit():
+                desejadas.add(linha[0].strip())
+    return sorted(desejadas, key=int)
+
+
+def liberar_telas():
+    if not tabela_existe("C030"):
         sys.exit("A tabela de permissão não existe na base local.")
     perfil = celula(
         "SELECT C021_Id FROM C021 WHERE C021_Nome_Perfil='Local' ORDER BY C021_Id LIMIT 1"
     )
     if not perfil:
         sys.exit("O perfil local não existe.")
-    for tela in telas_do_produto():
-        if celula(
-            "SELECT COUNT(*) FROM C030 "
-            f"WHERE C030_C021_Id={perfil} AND c030_C029_Id={tela}"
-        ) != "0":
-            local(
-                "UPDATE C030 SET C030_Acesso_Liberado='S' "
-                f"WHERE C030_C021_Id={perfil} AND c030_C029_Id={tela}"
-            )
+    local(f"UPDATE C030 SET C030_Acesso_Liberado='S' WHERE C030_C021_Id={perfil}")
+    presentes = set()
+    for linha in linhas(f"SELECT c030_C029_Id FROM C030 WHERE C030_C021_Id={perfil}"):
+        if linha and linha[0].strip():
+            presentes.add(linha[0].strip())
+    definicao = colunas("C030")
+    comandos = []
+    for tela in ids_de_permissao():
+        if tela in presentes:
             continue
-        inserir(
-            "C030",
-            {
-                "C030_C021_Id": perfil,
-                "c030_C029_Id": str(tela),
-                "C030_Id_Perfil": perfil,
-                "C030_Acesso_Liberado": "S",
-            },
+        comandos.append(
+            montar_insert(
+                "C030",
+                {
+                    "C030_C021_Id": perfil,
+                    "c030_C029_Id": tela,
+                    "C030_Id_Perfil": perfil,
+                    "C030_Acesso_Liberado": "S",
+                },
+                definicao,
+            )
         )
-    print(f"Perfil {perfil} abre as telas do Hardness.")
+    if comandos:
+        local("START TRANSACTION;\n" + ";\n".join(comandos) + ";\nCOMMIT;\n")
+    print(f"Perfil {perfil} abre as telas do Hardness e as permissões de perfil.")
 
 
 def semear_acesso(empresa):
@@ -747,6 +798,11 @@ def main():
     garantir_prazos()
     garantir_tipo_do_plano()
     garantir_email_do_cliente()
+    garantir_quantidade_de_regras()
+    if catalogo_vazio() and not credencial:
+        credencial = ler_env()
+        conferir_somente_leitura()
+    copiar_permissoes()
     liberar_telas()
 
 

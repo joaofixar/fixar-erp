@@ -169,6 +169,27 @@ $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 
             "cadeia pai que o navegador manda como texto",
         )
     gravar(caminho, texto)
+    nao_consultar_boleto()
+
+
+def nao_consultar_boleto():
+    # Origem: sistema-legado/sistema/index-framework.php. Com as permissões
+    # do perfil, a subida consultava o boleto do fornecedor.
+    caminho = os.path.join(COPIA, "sistema", "index-framework.php")
+    texto = ler(caminho)
+    novo = "// A base local não consulta boleto do fornecedor.\n".encode()
+    if novo in texto:
+        return
+    antigo = b"""if (isset($g['c029Ids'][35]) && $g['c029Ids'][35] || isset($g['c029Ids'][36]) && $g['c029Ids'][36] || isset($g['c029Ids'][37]) && $g['c029Ids'][37] && !empty($g['usuarioAtual']) && $g['nivelAlcada'] == 4) {
+    $Cnpj_Empresa_Usuaria = md5($g['C004']['C004_Cnpj']);
+    verificaBoleto($Cnpj_Empresa_Usuaria, 'S', 63, true);
+}
+if ($g['usuarioAtual'] == 63) {
+    verificaBoletoParceiro('', 'S', 63, true);
+}
+"""
+    texto = substituir(texto, antigo, novo, "consulta de boleto do fornecedor")
+    gravar(caminho, texto)
 
 
 def ajustar_conexao():

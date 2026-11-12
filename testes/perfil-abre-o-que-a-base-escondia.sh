@@ -150,7 +150,13 @@ import pathlib, re, sys
 pagina = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
 if re.search(r'class=.grid( |")', pagina):
     print("grade")
-elif "cad058FormConfInterface" in pagina and "Tamanho da fonte" in pagina:
+# Origem: sistema-legado/prog/cad/cad058/tab.php. Com a permissão 185
+# o primeiro conteúdo é o geral.
+elif (
+    "cad058FormConfInterface" in pagina and "Tamanho da fonte" in pagina
+) or (
+    "cad058FormConfGeral" in pagina and "Nome Empresa Exibido" in pagina
+):
     print("opcoes")
 elif "Leia o ID para iniciar" in pagina or "Leia um código de barras" in pagina:
     print("conferencia")
