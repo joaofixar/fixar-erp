@@ -3429,7 +3429,7 @@ EOT;
             array('colunaValor' => 'D024_Nome_Fantasia', 'colunaTitulo' => 'Nome Fantasia', 'colunaAlinhar' => 'left', 'colunaExibir' => false),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'colunaAlinhar' => 'left', 'style' => 'width:1%'),
             array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'concat(CONVERT(substr(D013_Nome_Contato,1,10) USING utf8),\' \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\')) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;white-space:normal;min-width:190px;width:190px'),
+            array('colunaValor' => 'concat(substr(D013_Nome_Contato,1,10),\' \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\')) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;white-space:normal;min-width:190px;width:190px'),
             array('colunaValor' => 'count(distinct T219_Id)', 'colunaTitulo' => 'Itens', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'T218_Valor_Total', 'colunaTitulo' => 'Valor total', 'style' => 'width:1%', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => 2),
             array('colunaValor' => 'group_concat(distinct T004_T003_Id)', 'colunaTitulo' => 'Orç', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),

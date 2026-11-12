@@ -1177,6 +1177,9 @@ EOT;
 		$enviar_btnId = 'cad031FormAvisosIndexBtn';
 		// Form que será executado ao clicar no botão
 		$enviar_acaoHref = '/cad/cad031/form/cad031FormAvisosIndex/';
+		// A lista de empresas não indica empresa. Sem identificador, o campo fica
+		// de fora do SQL e a coluna grava nulo. String vazia quebra o insert.
+		$semEmpresa = ($C004_Id === false || $C004_Id === '');
 
 		// Editor
 		$form_editor = array(
@@ -1187,7 +1190,7 @@ EOT;
 		$formArray = array(
 			'campos' => array(
 				'geral' => array(
-					'C032_C004_Id' => array('name' => 'C032_C004_Id', 'label' => '', 'type' => 'hidden', 'value' => $C004_Id),
+					'C032_C004_Id' => array('name' => 'C032_C004_Id', 'label' => '', 'type' => 'hidden', 'value' => $C004_Id, 'reject' => $semEmpresa),
 					'C032_Aviso_' => array('name' => 'C032_Aviso_', 'label' => 'Aviso', 'type' => 'textarea', 'length' => array(7,75), 'reject' => true, 'uppercase' => false),
 					'C032_Aviso' => array('name' => 'C032_Aviso', 'type' => 'hidden', 'uppercase' => false),
 					'C032_Flag_Ativo' => array('name' => 'C032_Flag_Ativo', 'label'=>'Aviso está ativo?', 'type' => 'select','select' => 
@@ -1216,6 +1219,11 @@ EOT;
 	 					$('#C032_Aviso').val(myEditor.instanceById('C032_Aviso_').getContent());
 	 				}
 	 			});
+	 			function copiarAvisoParaCampo() {
+	 				if (typeof(myEditor.instanceById('C032_Aviso_')) != 'undefined') {
+	 					$('#C032_Aviso').val(myEditor.instanceById('C032_Aviso_').getContent());
+	 				}
+	 			}
 	 			setTimeout(function() {
 	 				$('.nicEdit-panelContain').css({'border': '1px solid #4297D7', 'background': 'url("/hardness3/static/img/jquery.ui/ui-bg_gloss-wave_55_5c9ccc_500x100.png") repeat-x scroll 50% 50% #5C9CCC'});
 	 				$('.nicEdit-main').height(70).css('overflow', 'auto');
@@ -1224,6 +1232,7 @@ EOT;
 	 				if (myEditor.instanceById('C032_Aviso_') != 'undefined') {
 	 					myEditor.instanceById('C032_Aviso_').setContent($('#C032_Aviso').val());
 	 				}
+	 				$('#cad031FormAvisosIndexBtn').on('mousedown', copiarAvisoParaCampo);
 	 			}, 100);
 	 	    } </script></div>
 EOT;
@@ -1238,17 +1247,11 @@ EOT;
 				echo gGeraAlertMsgErroForm($form);
 			// Form sem erros
 			} else if ($formCodigo == 2) {
-				// Insert ou Update?
-				$arquivo = $form->campoValorEnviado('uploadAviso');
-				if ($arquivo['error'] == UPLOAD_ERR_OK) {
-					$form->campoSetarValor('C032_Imagem', $arquivo['name'], true);
-					if (!empty($r_acaoId)) {
-						// Update
-						if ($sql = $g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $r_acaoId, $form)) {
-							
-							$alert = gGeraAlertMsg('Operação OK', 'Registro Alterado com Sucesso!', false);
-					
-							echo <<<EOT
+				// Texto do aviso. A imagem fica no formulário cad031FormAvisosImagem.
+				if (!empty($r_acaoId)) {
+					if ($sql = $g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $r_acaoId, $form)) {
+						$alert = gGeraAlertMsg('Operação OK', 'Registro Alterado com Sucesso!', false);
+						echo <<<EOT
 								<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 									$("#{$g['divId']}").closest('.ui-dialog-content').bind( "dialogclose", function(data, ui) {
 										setTimeout(function() {
@@ -1256,31 +1259,19 @@ EOT;
 										{$alert}
 	  								});
 									$("#{$g['divId']}").closest('.ui-dialog-content').dialog('close');
-									// O FW atualiza a linha do grid automaticamente, somente recarregar se não for grid
 									if ($('#{$g['divIdParent']}').find('table.grid').length === 0) {
 										divRefresh('{$g['divIdParent']}', true);
 									}
 							} </script></div>
 EOT;
-						}	
-					} else {
-						
-						// Neste caso, guardamos o nome do arquivo no banco
-						if ($arquivo['error'] == UPLOAD_ERR_OK) {
-							
-							// Neste caso, guardamos o nome do arquivo no banco
-							if ($sql = $g['sqlAuto']->gerarSQLInsert($form_tabela, $form)) {
-								// Gravar o arquivo no disco
-				
-								echo <<<EOT
+					}
+				} else if ($sql = $g['sqlAuto']->gerarSQLInsert($form_tabela, $form)) {
+					echo <<<EOT
 		                            <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 								        $("#{$g['divId']}").closest('.ui-dialog-content').dialog('close');
 			                                divRefresh('{$g['divIdParent']}', true);
 		                            } </script></div>
 EOT;
-							}
-						}
-					}
 				}
 			}
 		} else {

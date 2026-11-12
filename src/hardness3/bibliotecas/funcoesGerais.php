@@ -1,28 +1,315 @@
 <?php
- namespace hardness; setlocale(LC_CTYPE, 'pt_BR.UTF-8'); use setasign\Fpdi\Tcpdf\Fpdi; function gInserePorcentagem($valor) { goto xL7AQ; vCaDs: if (!empty($valor['campoAtual'])) { goto DOJSW; } goto ybBun; eE3vr: DOJSW: goto rWYmi; vmmfu: uScZY: goto ztTzK; xL7AQ: if (!is_array($valor)) { goto uScZY; } goto vCaDs; ztTzK: return $valor . '%'; goto Urjra; rWYmi: $valor = $valor['campoAtual']; goto vmmfu; ybBun: return ''; goto eE3vr; Urjra: } function gDeletarArquivo($caminho) { goto dIhrY; ffJWl: return "Arquivo não encontrado"; goto G1iE3; G1iE3: goto O1R9n; goto lFk0X; dIhrY: $extensao = pathinfo($caminho, PATHINFO_EXTENSION); goto Yawv2; Yawv2: if (!($extensao == "pdf")) { goto FgvXA; } goto DpgP8; DpgP8: if (file_exists($caminho)) { goto zw18a; } goto ffJWl; whZ_F: return unlink($caminho); goto SX0W1; lFk0X: zw18a: goto whZ_F; SX0W1: O1R9n: goto RnjNt; RnjNt: FgvXA: goto mT8Tj; mT8Tj: } function gRedimensionarPDF($caminhoPdf, $caminhoOutput, $modoImagem, $dimensoes) { goto giqr_; LsH87: cl0r4: goto E2ahx; uygeh: if (empty($resposta['data'])) { goto cl0r4; } goto unbVz; R7L59: $resposta = array("code" => false, "data" => ""); goto Jq2wa; H9JvU: nPpIW: goto t0HCF; hteLL: $resposta['code'] = true; goto P0SK1; mOp0o: if (!($modoImagem != 'L' and $modoImagem != 'P')) { goto wK2A5; } goto XcCUs; MNm6z: $resposta['data'] = "As dimensões não foram especificadas."; goto fk6uQ; fk6uQ: Tr92c: goto mOp0o; coCXI: CSge1: goto uygeh; Jq2wa: if (!(empty($caminhoPdf) or empty($modoImagem))) { goto gddN3; } goto w7dMy; Dctsq: $reposta['data'] = "O pdf não pode ser redimensionado"; goto ZGCnQ; t0HCF: if (!(pathinfo($caminhoOutput)['extension'] != 'pdf')) { goto CSge1; } goto p3pAk; unbVz: return $resposta; goto LsH87; YIcA7: $resposta['data'] = "O caminho não existe, ou não é um pdf"; goto H9JvU; XcCUs: $resposta['data'] = "O modo de imagem não foi especificado corretamente"; goto fFmiL; P0SK1: $reposta['data'] = "Sucesso ao redimensionar o PDF"; goto iddc8; D4vDl: if (!(!file_exists($caminhoPdf) or pathinfo($caminhoPdf)['extension'] != 'pdf')) { goto nPpIW; } goto YIcA7; HkpaP: $pdf->useTemplate($tplIdx); goto J04in; k1frk: $pdf->setSourceFile($caminhoPdf); goto qN0Rq; E2ahx: $pdf = new Fpdi($modoImagem, 'mm', array($dimensoes['x'], $dimensoes['y'])); goto k1frk; Doukj: $pdf->AddPage(); goto HkpaP; N1JMt: return $resposta; goto atiYS; D0bMN: vi9Hx: goto hteLL; giqr_: global $g; goto R7L59; OXC8Q: if (file_exists($caminhoOutput)) { goto vi9Hx; } goto Dctsq; p3pAk: $resposta['data'] = "O caminho de saída deve especificar um arquivo pdf."; goto coCXI; iddc8: ghP0l: goto N1JMt; qN0Rq: $tplIdx = $pdf->importPage(1); goto Doukj; fFmiL: wK2A5: goto D4vDl; ZGCnQ: goto ghP0l; goto D0bMN; w7dMy: $resposta['data'] = "Caminho ou modo de imagem estão vazios."; goto n4RKJ; J04in: $pdf->Output($caminhoOutput, 'F'); goto OXC8Q; n4RKJ: gddN3: goto lAsHC; lAsHC: if (!(!isset($dimensoes['x']) or !isset($dimensoes['y']))) { goto Tr92c; } goto MNm6z; atiYS: } function gCorrigeData($data, $removerTime = false) { goto h9zuH; DHXMJ: return $data; goto zmkDn; uwT8B: $data = mktime(0, 0, 0, $valor[1], $valor[2], $valor[0]); goto SEZFN; jxjAC: sIndh: goto SF7b6; h9zuH: $valor = $data; goto Np3R_; E3aZP: return $valor[2] . '/' . $valor[1] . '/' . $valor[0]; goto HwYzj; hso2n: $hora = isset($valor[1]) ? ' ' . $valor[1] : ''; goto Wp2DQ; mbvNx: return $valor[2] . '/' . $valor[1] . '/' . $valor[0] . $hora; goto aZ0_O; biZGm: ORhxa: goto Us5Ul; zmkDn: goto sIndh; goto rV1A2; aZ0_O: goto CHob5; goto sQyYH; sQyYH: zbrhY: goto E3aZP; Us5Ul: $valor = $valor['campoAtual']; goto JejSp; HwYzj: CHob5: goto jxjAC; swrtA: if (!empty($valor['campoAtual'])) { goto ORhxa; } goto K2VFJ; aS_ci: if (isset($valor[0]) && isset($valor[1]) && isset($valor[2])) { goto QFY57; } goto DHXMJ; Mrzm1: if (!($valor[0] == '0000')) { goto mvqGv; } goto pdLBy; Wp2DQ: $valor = explode('-', $valor[0]); goto Mrzm1; K2VFJ: return ''; goto biZGm; Np3R_: if (!is_array($valor)) { goto AoDbn; } goto swrtA; HCaNy: $valor = explode(' ', $valor); goto hso2n; JejSp: AoDbn: goto HCaNy; SEZFN: if ($removerTime) { goto zbrhY; } goto mbvNx; LsZDE: mvqGv: goto aS_ci; rV1A2: QFY57: goto uwT8B; pdLBy: return ''; goto LsZDE; SF7b6: } function gCorrigeDataInverte($valor) { goto pVnTS; BdyjB: $valor = trim($valor); goto QxVvd; z_ksr: xfhQO: goto FI1EL; hs_NB: if (!empty($data)) { goto JZnmz; } goto Vo2yc; BRQjQ: $hora = explode(':', $hora); goto Nm3rb; bviY6: if (count($hora) > 0) { goto A1D4i; } goto gaGdf; pVnTS: if (!(empty($valor) || stripos($valor, '*VAZIO*') !== false)) { goto mBAK2; } goto PMr9P; ySlNI: JVsit: goto hs_NB; Gh1Vt: return ''; goto tTwYR; gaGdf: $data = date("Y-m-d", $data); goto UEH3l; PtUt7: goto JVsit; goto qJYHr; FI1EL: return $data; goto Fr0pc; lS0ON: $data = date("Y-m-d h:i:s", $data); goto z_ksr; aslPf: if (!empty($valor['campoAtual'])) { goto XA1X3; } goto Gh1Vt; Vo2yc: return ''; goto HAJTq; UEH3l: goto xfhQO; goto BjrWl; IpBoe: if (!is_array($valor)) { goto AJdRr; } goto aslPf; QxVvd: $hora = NULL; goto NPDqb; WPSV8: if (!empty($hora)) { goto JmnQk; } goto abhxG; qJYHr: JmnQk: goto BRQjQ; HoJ4s: $valor = $valor['campoAtual']; goto jeq5s; C5wB4: NdF0n: goto feIiF; PbrLR: $hora = trim(substr($valor, 10, 8)); goto C5wB4; tTwYR: XA1X3: goto HoJ4s; NPDqb: if (!(strlen($valor) == 19)) { goto NdF0n; } goto PbrLR; dLaP5: $valor[2] = (int) $valor[2]; goto WPSV8; jeq5s: AJdRr: goto BdyjB; feIiF: $valor = trim(substr($valor, 0, 10)); goto hC3H2; BjrWl: A1D4i: goto lS0ON; abhxG: $data = @mktime(0, 0, 0, $valor[1], $valor[0], $valor[2]); goto PtUt7; PMr9P: return ''; goto Mg9BK; hC3H2: $valor = explode('/', $valor); goto dLaP5; HAJTq: JZnmz: goto bviY6; Nm3rb: $data = @mktime($hora[0], $hora[1], $hora[2], $valor[1], $valor[0], $valor[2]); goto ySlNI; Mg9BK: mBAK2: goto IpBoe; Fr0pc: } function gCorrigeNumero($valor, $decimal = 2) { goto pqXHW; BQBOB: return ''; goto axIK5; BtqyG: goto AVzhd; goto AXtxB; tBezD: return number_format($valor, $decimal, ',', '.'); goto YTHG5; r3ZjA: goto WGCyx; goto wbOU5; AXtxB: ZaJ5t: goto CsZM4; wbOU5: J4VSa: goto tBezD; HoJck: $valor = $valor['campoAtual']; goto guwPN; ARGM_: if (!empty($valor['campoAtual'])) { goto TQ6fe; } goto BQBOB; J24Lz: if (empty($decimal)) { goto ZaJ5t; } goto Imbpy; RAcyv: if (!empty($valor) && is_numeric($valor)) { goto J4VSa; } goto J24Lz; y0_MG: AVzhd: goto r3ZjA; CsZM4: return '0'; goto y0_MG; guwPN: bWz9f: goto RAcyv; Imbpy: return str_pad('0,', $decimal + 2, "0", STR_PAD_RIGHT); goto BtqyG; pqXHW: if (!is_array($valor)) { goto bWz9f; } goto ARGM_; axIK5: TQ6fe: goto HoJck; YTHG5: WGCyx: goto uJO83; uJO83: } function gCorrigeNumeroInverte($valor) { goto G9NhP; lS2Zk: $valor_ = str_replace(',', '.', $valor_); goto GdZXB; i3Kv1: return ''; goto sa0Gf; sa0Gf: hZyci: goto TQhus; i6wBR: $valor_ = str_replace('.', '', $valor); goto lS2Zk; G9NhP: if (!is_array($valor)) { goto F1GvV; } goto TTlD9; TTlD9: if (!empty($valor['campoAtual'])) { goto hZyci; } goto i3Kv1; kSgVU: F1GvV: goto i6wBR; TQhus: $valor = $valor['campoAtual']; goto kSgVU; GdZXB: return $valor_; goto GFJ9H; GFJ9H: } function gHtmlentities($valor) { goto fzDIb; pDaqQ: eeVq_: goto XN50G; zrJNI: if (!empty($valor['campoAtual'])) { goto E0emG; } goto Bqg_m; XN50G: return htmlentities($valor, ENT_COMPAT, 'utf-8'); goto cKjTs; HaYJX: $valor = $valor['campoAtual']; goto pDaqQ; xbljy: E0emG: goto HaYJX; fzDIb: if (!is_array($valor)) { goto eeVq_; } goto zrJNI; Bqg_m: return ''; goto xbljy; cKjTs: } function gExcluirLinha($valor, $array = false) { goto yBcA0; vYtz2: $id = $array[0]; goto XgfSi; yBcA0: global $g, $r_origemFiltro; goto Fnh5G; Fnh5G: if (!isset($r_origemFiltro)) { goto Sf9Ud; } goto M6QFF; M6QFF: return '&nbsp;'; goto HmH53; CZSPw: $divReload = isset($array[4]) ? $array[4] : false; goto q1h9s; ZMdFt: return <<<EOT
+/**
+ * funcoesGerais.php
+ *
+ * Versão legível. O original foi ofuscado com desvios; o fluxo foi
+ * reconstruído em if/else/while/foreach, no mesmo comportamento.
+ */
+namespace hardness;
+
+use setasign\Fpdi\Tcpdf\Fpdi;
+
+setlocale(LC_CTYPE, 'pt_BR.UTF-8');
+
+function gInserePorcentagem($valor)
+{
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    return $valor . '%';
+}
+
+function gDeletarArquivo($caminho)
+{
+    $extensao = pathinfo($caminho, PATHINFO_EXTENSION);
+    if (!($extensao == "pdf")) {
+    } else {
+        if (file_exists($caminho)) {
+            return unlink($caminho);
+        } else {
+            return "Arquivo não encontrado";
+        }
+    }
+}
+
+function gRedimensionarPDF($caminhoPdf, $caminhoOutput, $modoImagem, $dimensoes)
+{
+    global $g;
+    $resposta = array("code" => false, "data" => "");
+    if (empty($caminhoPdf) or empty($modoImagem)) {
+        $resposta['data'] = "Caminho ou modo de imagem estão vazios.";
+    }
+    if (!isset($dimensoes['x']) or !isset($dimensoes['y'])) {
+        $resposta['data'] = "As dimensões não foram especificadas.";
+    }
+    if ($modoImagem != 'L' and $modoImagem != 'P') {
+        $resposta['data'] = "O modo de imagem não foi especificado corretamente";
+    }
+    if (!file_exists($caminhoPdf) or pathinfo($caminhoPdf)['extension'] != 'pdf') {
+        $resposta['data'] = "O caminho não existe, ou não é um pdf";
+    }
+    if (pathinfo($caminhoOutput)['extension'] != 'pdf') {
+        $resposta['data'] = "O caminho de saída deve especificar um arquivo pdf.";
+    }
+    if (empty($resposta['data'])) {
+        $pdf = new Fpdi($modoImagem, 'mm', array($dimensoes['x'], $dimensoes['y']));
+        $pdf->setSourceFile($caminhoPdf);
+        $tplIdx = $pdf->importPage(1);
+        $pdf->AddPage();
+        $pdf->useTemplate($tplIdx);
+        $pdf->Output($caminhoOutput, 'F');
+        if (file_exists($caminhoOutput)) {
+            $resposta['code'] = true;
+            $reposta['data'] = "Sucesso ao redimensionar o PDF";
+        } else {
+            $reposta['data'] = "O pdf não pode ser redimensionado";
+        }
+        return $resposta;
+    } else {
+        return $resposta;
+    }
+}
+
+function gCorrigeData($data, $removerTime = false)
+{
+    $valor = $data;
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    $valor = explode(' ', $valor);
+    $hora = isset($valor[1]) ? ' ' . $valor[1] : '';
+    $valor = explode('-', $valor[0]);
+    if (!($valor[0] == '0000')) {
+        if (isset($valor[0]) && isset($valor[1]) && isset($valor[2])) {
+            $data = mktime(0, 0, 0, $valor[1], $valor[2], $valor[0]);
+            if ($removerTime) {
+                return $valor[2] . '/' . $valor[1] . '/' . $valor[0];
+            } else {
+                return $valor[2] . '/' . $valor[1] . '/' . $valor[0] . $hora;
+            }
+        } else {
+            return $data;
+        }
+    } else {
+        return '';
+    }
+}
+
+function gCorrigeDataInverte($valor)
+{
+    if (!(empty($valor) || stripos($valor, '*VAZIO*') !== false)) {
+        if (!(!is_array($valor))) {
+            if (!empty($valor['campoAtual'])) {
+                $valor = $valor['campoAtual'];
+            } else {
+                return '';
+            }
+        }
+        $valor = trim($valor);
+        $hora = NULL;
+        if (strlen($valor) == 19) {
+            $hora = trim(substr($valor, 10, 8));
+        }
+        $valor = trim(substr($valor, 0, 10));
+        $valor = explode('/', $valor);
+        $valor[2] = (int)$valor[2];
+        if (!empty($hora)) {
+            $hora = explode(':', $hora);
+            $data = @mktime($hora[0], $hora[1], $hora[2], $valor[1], $valor[0], $valor[2]);
+        } else {
+            $data = @mktime(0, 0, 0, $valor[1], $valor[0], $valor[2]);
+        }
+        if (!empty($data)) {
+            if (count($hora) > 0) {
+                $data = date("Y-m-d h:i:s", $data);
+            } else {
+                $data = date("Y-m-d", $data);
+            }
+            return $data;
+        } else {
+            return '';
+        }
+    } else {
+        return '';
+    }
+}
+
+function gCorrigeNumero($valor, $decimal = 2)
+{
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    if (!empty($valor) && is_numeric($valor)) {
+        return number_format($valor, $decimal, ',', '.');
+    } else {
+        if (empty($decimal)) {
+            return '0';
+        } else {
+            return str_pad('0,', $decimal + 2, "0", STR_PAD_RIGHT);
+        }
+    }
+}
+
+function gCorrigeNumeroInverte($valor)
+{
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    $valor_ = str_replace('.', '', $valor);
+    $valor_ = str_replace(',', '.', $valor_);
+    return $valor_;
+}
+
+function gHtmlentities($valor)
+{
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    return htmlentities($valor, ENT_COMPAT, 'utf-8');
+}
+
+function gExcluirLinha($valor, $array = false)
+{
+    global $g, $r_origemFiltro;
+    if (!isset($r_origemFiltro)) {
+        $id = $array[0];
+        $divId = !$array[1] ? $g['divId'] : $array[1];
+        $campoParent = isset($array[2]) ? $array[2] : false;
+        $valorParent = isset($array[3]) ? $array[3] : false;
+        $divReload = isset($array[4]) ? $array[4] : false;
+        $pk = $valor['todosCampos'][$id];
+        $restricao = $g['conf']->restricaoTravar('excluir', $id, $pk, $campoParent, $valorParent);
+        if ($restricao === true) {
+            return<<<EOT
 \t\t\t<a href="#" onclick="gExcluirLinha('{$id}', '{$pk}', '{$divId}', '{$campoParent}', '{$valorParent}', '{$divReload}')">
 \t\t\t\t<span class="ui-icon ui-icon-circle-close" title="Excluir"></span>
 \t\t\t</a>
 EOT;
-goto Xs8XH; XgfSi: $divId = !$array[1] ? $g['divId'] : $array[1]; goto bEERk; uTZ01: goto qT1zm; goto ZIkhp; bEERk: $campoParent = isset($array[2]) ? $array[2] : false; goto vchtm; apM1g: if ($restricao === true) { goto HiYox; } goto o87ft; ZIkhp: HiYox: goto ZMdFt; o87ft: return '&nbsp;'; goto uTZ01; ZWqOa: $restricao = $g['conf']->restricaoTravar('excluir', $id, $pk, $campoParent, $valorParent); goto apM1g; vchtm: $valorParent = isset($array[3]) ? $array[3] : false; goto CZSPw; Xs8XH: qT1zm: goto ZDJ13; q1h9s: $pk = $valor['todosCampos'][$id]; goto ZWqOa; HmH53: Sf9Ud: goto vYtz2; ZDJ13: } function gLinhaCount($value) { global $linhaCount; return '<span class="linhaCount" onclick="$(this).closest(\'tr\').trigger(\'click\');">' . $linhaCount++ . '</span>'; } function gCorrigeTempo($valor) { goto huU7Q; wJ63s: $novoValor = explode(':', $valor); goto Qc0hI; ZPaFF: if (!empty($valor['campoAtual'])) { goto XxBc9; } goto eH2EI; RdtX5: XxBc9: goto QmTIA; U6D6t: UQ7Gl: goto wJ63s; huU7Q: if (!is_array($valor)) { goto UQ7Gl; } goto ZPaFF; QmTIA: $valor = $valor['campoAtual']; goto U6D6t; SAGQ3: return $novoValor; goto AA42S; Qc0hI: $novoValor = $novoValor[0] . ':' . $novoValor[1]; goto SAGQ3; eH2EI: return ''; goto RdtX5; AA42S: } function gSubstr($valor, $tamanho = 0, $ellipsis = false) { goto IMXX9; Vmtnx: eW0cU: goto jI2qu; IMXX9: if (!is_array($valor)) { goto Ou2le; } goto ncCsq; OY7jT: Ou2le: goto b_X_H; ncCsq: if (!empty($valor['campoAtual'])) { goto Z_Sua; } goto j9j1v; b_X_H: if ($ellipsis && strlen($valor) > $tamanho) { goto k1cDA; } goto KUfCI; j9j1v: return ''; goto StXMt; n1ISH: k1cDA: goto hoTZX; zYxMI: $valor = $valor['campoAtual']; goto OY7jT; KUfCI: return substr($valor, 0, $tamanho); goto Fbvl3; Fbvl3: goto eW0cU; goto n1ISH; StXMt: Z_Sua: goto zYxMI; hoTZX: return substr($valor, 0, $tamanho) . '...'; goto Vmtnx; jI2qu: } function gProcessaTabs(array $tabsList, array &$tabs, bool $processAll = false) { goto ywUIm; ETVzR: A_Czi: goto bSAI3; VImYN: if ($g['modoDesenvolvedor']) { goto PHag7; } goto Le7iJ; bSAI3: $personalizado = array(); goto VImYN; ywUIm: global $g, $r_titleTab; goto uvzdP; o1mab: dK0RP: goto wOqYM; xaOaa: foreach ($tabsList as $value) { goto jyc9M; g069r: if (!$tabPersonalizada) { goto ogkxk; } goto sym1h; R63e9: $count++; goto d2bAr; k3674: $bugGridEmBackground = ''; goto ilryx; oMXjb: goto DAzlq; goto TagMa; Nkbg2: $loadOnClick = isset($value[5]) && ($value[5] == 'S' || $value[5] === true) ? true : false; goto gQyAC; wgkWQ: UT4Vb: goto J3ssS; TagMa: FLN91: goto cnw48; vXpRe: $md5 = md5(trim($value[1], '/') . '/'); goto OO5pf; ElE3i: $titleTab = mysql_real_escape_string($titleTab); goto AHkia; LT3fG: if (!(isset($tabPersonalizada['exibir']) && $tabPersonalizada['exibir'] != 'S')) { goto FLN91; } goto oMXjb; HLd7K: $vars = isset($value[3]) ? $value[3] : ''; goto m92wu; oT1IX: $count--; goto EAlSF; Y2Kxp: $titleTab = mysql_real_escape_string($r_titleTab . '||' . $value[2]); goto NwAg7; EAlSF: goto DAzlq; goto LDQHl; WH2jK: $value[2] = $tabPersonalizada['titulo']; goto fVTR3; l7gX_: if (!($count == 1)) { goto TOW8p; } goto LfujR; sPPP1: POWJX: goto Y8rOd; OO5pf: $r_titleTab = explode('||', $r_titleTab); goto GEqS9; J3ssS: ogkxk: goto R63e9; gQyAC: $callback = isset($value[6]) ? str_replace("'", "\\'", $value[6]) : ''; goto sROqo; XN45I: $titleTab = $r_titleTab . '||' . $value[2]; goto ElE3i; L1f4l: $md5 = md5(trim($value[1], '/') . '/'); goto s70NE; OT8KK: $divIdChain = urlencode(base64_encode(serialize($g['divIdChain']))); goto ptRKK; L5vwZ: $notProcess = isset($value[4]) ? $value[4] : false; goto Nkbg2; Jr0az: array_unshift($g['divIdChain'], $value[0]); goto OT8KK; jyc9M: $tabPersonalizada = $personalizado[$value[1]]; goto g069r; aP_Sw: if ($g['conf']->tabsNaoUsar($g['r'][3], $value[2])) { goto KLHlA; } goto oT1IX; sym1h: if (!$tabPersonalizada['titulo']) { goto k0Vt8; } goto WH2jK; ae1nc: m0jKd: goto bmE64; QyZkX: $g['lastTimeAjax'] += 100; goto ae1nc; ptRKK: if (($count == 1 || !$notProcess && $processAll) && !$loadOnClick) { goto POWJX; } goto XN45I; d2bAr: array_push($tabs, array('count' => $count, 'tabId' => $value[0], 'title' => $value[2], 'hide' => !$g['conf']->tabsNaoUsar($g['r'][3], $value[2]))); goto aP_Sw; AHkia: $vars_ = $vars . '&titleTab=' . $titleTab; goto L1f4l; pbx3S: if (!($count != 1)) { goto IN8vT; } goto k3674; GEqS9: $r_titleTab = $r_titleTab[1]; goto Y2Kxp; sROqo: $triggerTabShow = ''; goto l7gX_; ilryx: IN8vT: goto vXpRe; CeMi1: goto m0jKd; goto sPPP1; Y8rOd: $bugGridEmBackground = "corrigeGrid('{$value[0]}');"; goto pbx3S; cnw48: if (!(isset($tabPersonalizada['exibirCallback']) && !executarCodigo($tabPersonalizada['exibirCallback']))) { goto UT4Vb; } goto b_m5q; bmE64: DAzlq: goto mMuxz; m92wu: $vars = gRepassaRequest($vars, strpos($g['r_'], 'sistema/personalizacao/tab') !== false); goto L5vwZ; s70NE: $return .= <<<EOT
-\t\t\t<div class="divHidden"><script type="text/javascript">if (typeof jQuery != 'undefined') {
-\t\t\t\t\$('#{$value[0]}').data({
-\t\t\t\t\t'divId': '{$value[0]}',
-\t\t\t\t\t'divIdChain': '{$divIdChain}',
-\t\t\t\t\t'divIdRoot': '{$g['divIdRoot']}',
-\t\t\t\t\t'divIdParent': '{$g['divIdParent']}',
-\t\t\t\t\t'divIdParentChain': '{$g['divIdParentChain_']}',
-\t\t\t\t\t'vars': '{$vars_}',
-\t\t\t\t\t'href': '{$value[1]}',
-\t\t\t\t\t'md5': '{$md5}',
-\t\t\t\t\t'loaded': false,
-\t\t\t\t\t'loadOnClick': '{$loadOnClick}',
-\t\t\t\t\t'callback': '{$callback}',
-\t\t\t\t\t'titleTab': '{$titleTab}'
-\t\t\t\t});
-\t\t\t} </script></div>
-EOT;
-goto CeMi1; fVTR3: k0Vt8: goto LT3fG; LDQHl: KLHlA: goto HLd7K; b_m5q: goto DAzlq; goto wgkWQ; NwAg7: $return .= <<<EOT
+        } else {
+            return '&nbsp;';
+        }
+    } else {
+        return '&nbsp;';
+    }
+}
+
+function gLinhaCount($value)
+{
+    global $linhaCount;
+    return '<span class="linhaCount" onclick="$(this).closest(\'tr\').trigger(\'click\');">' . $linhaCount++ . '</span>';
+}
+
+function gCorrigeTempo($valor)
+{
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    $novoValor = explode(':', $valor);
+    $novoValor = $novoValor[0] . ':' . $novoValor[1];
+    return $novoValor;
+}
+
+function gSubstr($valor, $tamanho = 0, $ellipsis = false)
+{
+    if (!(!is_array($valor))) {
+        if (!empty($valor['campoAtual'])) {
+            $valor = $valor['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    if ($ellipsis && strlen($valor) > $tamanho) {
+        return substr($valor, 0, $tamanho) . '...';
+    } else {
+        return substr($valor, 0, $tamanho);
+    }
+}
+
+function gProcessaTabs(array $tabsList, array &$tabs, bool $processAll = false)
+{
+    global $g, $r_titleTab;
+    $tabId = md5(trim($g['r_'], '/') . '/');
+    $tabsListUrl = array();
+    foreach ($tabsList as $value) {
+        $tabsListUrl[$value[1]] = $value;
+    }
+    $personalizado = array();
+    if ($g['modoDesenvolvedor']) {
+        $personalizado_ = Personalizacoes::processarTabs($tabId, array('desenvolvedor'));
+    } else {
+        if ($g['modoDesenvolvedorApp']) {
+            $personalizado_ = Personalizacoes::processarTabs($tabId, array('desenvolvedor', 'apps', 'apps-editor'));
+        } else {
+            $personalizado_ = Personalizacoes::processarTabs($tabId);
+        }
+    }
+    foreach ($personalizado_ as $value) {
+        $personalizado[$value['url']] = $value;
+        if (!($tabsListUrl[$value['url']])) {
+            $tabsList[] = array(uniqid(), $value['url'], $value['titulo'], $value['parametros'], false, $value['carregarAoClicar']);
+        }
+    }
+    $return = '';
+    $count = 0;
+    foreach ($tabsList as $value) {
+        $tabPersonalizada = $personalizado[$value[1]];
+        if ($tabPersonalizada) {
+            if (!(!$tabPersonalizada['titulo'])) {
+                $value[2] = $tabPersonalizada['titulo'];
+            }
+            if (!(isset($tabPersonalizada['exibir']) && $tabPersonalizada['exibir'] != 'S')) {
+                if (!(isset($tabPersonalizada['exibirCallback']) && !executarCodigo($tabPersonalizada['exibirCallback']))) {
+                }
+            }
+        }
+        $count++;
+        array_push($tabs, array('count' => $count, 'tabId' => $value[0], 'title' => $value[2], 'hide' => !$g['conf']->tabsNaoUsar($g['r'][3], $value[2])));
+        if ($g['conf']->tabsNaoUsar($g['r'][3], $value[2])) {
+            $vars = isset($value[3]) ? $value[3] : '';
+            $vars = gRepassaRequest($vars, strpos($g['r_'], 'sistema/personalizacao/tab') !== false);
+            $notProcess = isset($value[4]) ? $value[4] : false;
+            $loadOnClick = isset($value[5]) && ($value[5] == 'S' || $value[5] === true) ? true : false;
+            $callback = isset($value[6]) ? str_replace("'", "\\'", $value[6]) : '';
+            $triggerTabShow = '';
+            if ($count == 1) {
+                $triggerTabShow = "moveBtnsToContent('{$value[0]}');";
+            }
+            array_unshift($g['divIdChain'], $value[0]);
+            $divIdChain = urlencode(base64_encode(serialize($g['divIdChain'])));
+            if (($count == 1 || !$notProcess && $processAll) && !$loadOnClick) {
+                $bugGridEmBackground = "corrigeGrid('{$value[0]}');";
+                if ($count != 1) {
+                    $bugGridEmBackground = '';
+                }
+                $md5 = md5(trim($value[1], '/') . '/');
+                $r_titleTab = explode('||', $r_titleTab);
+                $r_titleTab = $r_titleTab[1];
+                $titleTab = mysql_real_escape_string($r_titleTab . '||' . $value[2]);
+                $return .= <<<EOT
 \t\t\t<div class="divHidden"><script> if (typeof jQuery != 'undefined') {
 \t\t\t\t\$('#{$value[0]}').parent().parent().showLoading();
 \t\t\t\t\$('#{$value[0]}').data({
@@ -69,26 +356,132 @@ goto CeMi1; fVTR3: k0Vt8: goto LT3fG; LDQHl: KLHlA: goto HLd7K; b_m5q: goto DAzl
 \t\t\t\t}, {$g['lastTimeAjax']});
 \t\t\t} </script></div>
 EOT;
-goto QyZkX; BKyJD: TOW8p: goto Jr0az; LfujR: $triggerTabShow = "moveBtnsToContent('{$value[0]}');"; goto BKyJD; mMuxz: } goto Act7E; wg0Nj: apc_store("tabs-{$tabId}", serialize($tabsList), 3600); goto WTAMq; gbuIL: $return = ''; goto VXID_; w8Zm0: foreach ($tabsList as $value) { $tabsListUrl[$value[1]] = $value; WrDIJ: } goto ETVzR; tzWZL: $tabsListUrl = array(); goto w8Zm0; j13AS: $tabsCache = apc_fetch("tabs-{$tabId}"); goto j9hcJ; wOqYM: foreach ($personalizado_ as $value) { goto geica; PfNsR: Lk4EE: goto toNCg; geica: $personalizado[$value['url']] = $value; goto Ve3Jz; qalDU: xxnOk: goto PfNsR; GKOb3: $tabsList[] = array(uniqid(), $value['url'], $value['titulo'], $value['parametros'], false, $value['carregarAoClicar']); goto qalDU; Ve3Jz: if ($tabsListUrl[$value['url']]) { goto xxnOk; } goto GKOb3; toNCg: } goto lM6jD; Le7iJ: if ($g['modoDesenvolvedorApp']) { goto Dqub8; } goto nDZmi; VXID_: $count = 0; goto xaOaa; lM6jD: sF5xp: goto gbuIL; uvzdP: $tabId = md5(trim($g['r_'], '/') . '/'); goto tzWZL; HxurZ: $personalizado_ = Personalizacoes::processarTabs($tabId, array('desenvolvedor')); goto o1mab; EGVsa: return $return; goto nR719; MKE4E: goto dK0RP; goto bLEQ2; QU82k: goto mTnoK; goto ZpWlY; nDZmi: $personalizado_ = Personalizacoes::processarTabs($tabId); goto QU82k; j9hcJ: if ($tabsCache) { goto fMwne; } goto wg0Nj; xEgND: $personalizado_ = Personalizacoes::processarTabs($tabId, array('desenvolvedor', 'apps', 'apps-editor')); goto VE8PU; ZpWlY: Dqub8: goto xEgND; VE8PU: mTnoK: goto MKE4E; WTAMq: fMwne: goto EGVsa; bLEQ2: PHag7: goto HxurZ; Act7E: tOSkN: goto j13AS; nR719: } function gProcessaAcoes($actions, $permitirEsc = true) { goto c_9zi; cTTzb: if (!empty($contentOriginal['url2'])) { goto RrfiX; } goto G4tR2; qQ2lg: if ($g['modoDesenvolvedor']) { goto gdhjj; } goto Lzl3B; Jj_V0: bAOXr: goto r7OXO; uA5k7: $actions[] = array($content['id2'], $content['url2'], $content['parametros2']); goto asTiL; XB8J8: $url = '/' . trim($g['r_'], '/') . '/'; goto lnAGB; mfcOg: $content['id2'] = $content['id2'] ? $content['id2'] : uniqid(); goto dsjwx; yHUbt: $return .= <<<EOT
-\t\t\t\t\$icon.data('exibirTrocarEmp', true);
+                $g['lastTimeAjax'] += 100;
+            } else {
+                $titleTab = $r_titleTab . '||' . $value[2];
+                $titleTab = mysql_real_escape_string($titleTab);
+                $vars_ = $vars . '&titleTab=' . $titleTab;
+                $md5 = md5(trim($value[1], '/') . '/');
+                $return .= <<<EOT
+\t\t\t<div class="divHidden"><script type="text/javascript">if (typeof jQuery != 'undefined') {
+\t\t\t\t\$('#{$value[0]}').data({
+\t\t\t\t\t'divId': '{$value[0]}',
+\t\t\t\t\t'divIdChain': '{$divIdChain}',
+\t\t\t\t\t'divIdRoot': '{$g['divIdRoot']}',
+\t\t\t\t\t'divIdParent': '{$g['divIdParent']}',
+\t\t\t\t\t'divIdParentChain': '{$g['divIdParentChain_']}',
+\t\t\t\t\t'vars': '{$vars_}',
+\t\t\t\t\t'href': '{$value[1]}',
+\t\t\t\t\t'md5': '{$md5}',
+\t\t\t\t\t'loaded': false,
+\t\t\t\t\t'loadOnClick': '{$loadOnClick}',
+\t\t\t\t\t'callback': '{$callback}',
+\t\t\t\t\t'titleTab': '{$titleTab}'
+\t\t\t\t});
+\t\t\t} </script></div>
 EOT;
-goto ZWpQc; v4MCo: $contentPersonalizado = Personalizacoes::processarContent($contentId); goto qQ2lg; z9vPR: OAqoj: goto Yo7jy; Itr7r: if (!$content['tamanho']) { goto TL0N_; } goto YsPjI; fC8w4: OassZ: goto pZ5A4; nGh2r: $contentPersonalizado['parametros2'] = gSubstituirVariaveisParametros($contentPersonalizado['parametros2']); goto GRa3c; KR7Eu: Hznnk: goto puVMf; YsPjI: $content['tamanho'] = trim($content['tamanho'], 'px') . 'px'; goto yqqRV; lPwjl: if ($content['tipo'] == 'unico') { goto zmYuv; } goto OYQEb; xknSG: $g['smarty']->display('content-2columns.tpl'); goto Rb2La; YbcyQ: $contentOriginal = array('tipo' => $tipo ? $tipo : 'unico', 'url' => $actions[0][1], 'url2' => $actions[1][1], 'tamanho' => $tipo == '2linhas' ? $g['smarty']->getTemplateVars('content1Height') : $g['smarty']->getTemplateVars('content1Width')); goto cTTzb; ewM9G: $return = '<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") {'; goto rXrq4; GRa3c: Oilpf: goto q4NvL; orkOi: $tipo = $g['smarty']->getTemplateVars('tipo'); goto YbcyQ; zGGLC: $trocarOk = false; goto KwfP_; ZD0op: wSvct: goto iMM6P; SgMfn: if ($pularDisplay) { goto OAqoj; } goto lPwjl; TdweM: gdhjj: goto cK3UM; ylnFR: apc_store("content-{$contentId}", serialize($contentOriginal), 3600); goto gF2yg; szIUg: if (!$contentPersonalizado['parametros2']) { goto Oilpf; } goto nGh2r; wNJxu: $g['smarty']->assign('content1', $content['id']); goto O1xkr; ijVAg: $g['smarty']->assign('content2', $content['id2']); goto uA5k7; rXrq4: if ($permitirEsc) { goto Hznnk; } goto XB8J8; XUggn: if (!$contentPersonalizado['parametros']) { goto L18Cw; } goto BWElV; gF2yg: ckPWY: goto oru9E; oru9E: $contentOriginal['parametros'] = $actions[0][2]; goto SEyLU; lnAGB: $return .= <<<EOT
+            }
+        } else {
+            $count--;
+        }
+    }
+    $tabsCache = apc_fetch("tabs-{$tabId}");
+    if (!$tabsCache) {
+        apc_store("tabs-{$tabId}", serialize($tabsList), 3600);
+    }
+    return $return;
+}
+
+function gProcessaAcoes($actions, $permitirEsc = true)
+{
+    global $g, $r_acaoId, $r_tabela, $r_titleTab;
+    $return = '<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") {';
+    if (!$permitirEsc) {
+        $url = '/' . trim($g['r_'], '/') . '/';
+        $return .= <<<EOT
 \t\t\tg.janelasIgnorarESC['{$url}'] = true;
 EOT;
-goto KR7Eu; iUAae: $return .= <<<EOT
-\t\t\t\$icon.data({
-\t\t\t\t'id': '{$r_acaoId}',
-\t\t\t\t'table': '{$r_tabela}'
-\t\t\t});
-\t\t\t\$icon.data('exibirAuditoria', true);
-\t\t\t\$icon.data('exibirAnterior', true);
-\t\t\t\$icon.data('exibirProximo', true);
-\t\t\t\$icon.data('exibirPrimeiro', true);
-\t\t\t\$icon.data('exibirUltimo', true);
-\t\t\t\$icon.data('exibirDuplicar', true);
-\t\t\t\$icon.data('exibirBusca', true);
-EOT;
-goto zGGLC; dsjwx: $actions = array(); goto wNJxu; hYCgP: if ($display) { goto y5zOD; } goto orkOi; TRThW: RrfiX: goto Y1j6j; Y1j6j: if (!empty($contentOriginal['tamanho'])) { goto bAOXr; } goto jNfd5; puVMf: $pularDisplay = $actions[0][3]; goto nZtdq; NkrH6: foreach ($actions as $value) { goto vrhwZ; ZXgpj: $md5 = md5(trim($value[1], '/') . '/'); goto jhwtA; jhwtA: $return .= <<<EOT
+    }
+    $pularDisplay = $actions[0][3];
+    $contentId = md5(trim($g['r_'], '/') . '/');
+    $objetosTemplate = is_array($g['smarty']->template_objects) ? $g['smarty']->template_objects : array();
+    $ultimoTemplate = $objetosTemplate ? array_shift(array_values($objetosTemplate)) : null;
+    $display = is_object($ultimoTemplate) ? $ultimoTemplate->resource_name : '';
+    if (!$display) {
+        $tipo = $g['smarty']->getTemplateVars('tipo');
+        $contentOriginal = array('tipo' => $tipo ? $tipo : 'unico', 'url' => $actions[0][1], 'url2' => $actions[1][1], 'tamanho' => $tipo == '2linhas' ? $g['smarty']->getTemplateVars('content1Height') : $g['smarty']->getTemplateVars('content1Width'));
+        if (!(!empty($contentOriginal['url2']))) {
+            unset($contentOriginal['url2']);
+        }
+        if (!(!empty($contentOriginal['tamanho']))) {
+            unset($contentOriginal['tamanho']);
+        }
+        $contentCache = apc_fetch("content-{$contentId}");
+        if (!$contentCache) {
+            apc_store("content-{$contentId}", serialize($contentOriginal), 3600);
+        }
+        $contentOriginal['parametros'] = $actions[0][2];
+        $contentOriginal['parametros2'] = $actions[1][2];
+        $contentOriginal['id'] = $actions[0][0];
+        $contentOriginal['id2'] = $actions[1][0];
+        $contentPersonalizado = Personalizacoes::processarContent($contentId);
+        if ($g['modoDesenvolvedor']) {
+            $contentPersonalizado = Personalizacoes::processarContent($contentId, array('desenvolvedor'));
+        } else {
+            if (!(!$g['modoDesenvolvedorApp'])) {
+                $contentPersonalizado = Personalizacoes::processarContent($contentId, array('desenvolvedor', 'apps', 'apps-editor'));
+            }
+        }
+        if (!(!$contentPersonalizado['parametros'])) {
+            $contentPersonalizado['parametros'] = gSubstituirVariaveisParametros($contentPersonalizado['parametros']);
+        }
+        if (!(!$contentPersonalizado['parametros2'])) {
+            $contentPersonalizado['parametros2'] = gSubstituirVariaveisParametros($contentPersonalizado['parametros2']);
+        }
+        $content = array_merge($contentOriginal, $contentPersonalizado);
+        $content['id'] = $content['id'] ? $content['id'] : uniqid();
+        $content['id2'] = $content['id2'] ? $content['id2'] : uniqid();
+        $actions = array();
+        $g['smarty']->assign('content1', $content['id']);
+        $actions[] = array($content['id'], $content['url'], $content['parametros']);
+        if (!(!$content['url2'])) {
+            $g['smarty']->assign('content2', $content['id2']);
+            $actions[] = array($content['id2'], $content['url2'], $content['parametros2']);
+        }
+        if (!(!$content['tamanho'])) {
+            $content['tamanho'] = trim($content['tamanho'], 'px') . 'px';
+            if ($content['tipo'] == '2linhas') {
+                $g['smarty']->assign('content1Height', $content['tamanho']);
+            } else {
+                if ($content['tipo'] == '2colunas') {
+                    $g['smarty']->assign('content1Width', $content['tamanho']);
+                }
+            }
+        }
+        if (!$pularDisplay) {
+            if ($content['tipo'] == 'unico') {
+                $g['smarty']->display('content-full.tpl');
+            } else {
+                if ($content['tipo'] == '2linhas') {
+                    $g['smarty']->display('content-2rows.tpl');
+                } else {
+                    if ($content['tipo'] == '2colunas') {
+                        $g['smarty']->display('content-2columns.tpl');
+                    } else {
+                        die("Tipo {$content['tipo']} não é uma opção válida.");
+                    }
+                }
+            }
+        }
+    }
+    $r_titleTab = mysql_real_escape_string($r_titleTab);
+    foreach ($actions as $value) {
+        $vars = isset($value[2]) ? $value[2] : '';
+        $vars = gRepassaRequest($vars, strpos($g['r_'], 'sistema/personalizacao/content') !== false);
+        array_unshift($g['divIdChain'], $value[0]);
+        $divIdChain = urlencode(base64_encode(serialize($g['divIdChain'])));
+        $md5 = md5(trim($value[1], '/') . '/');
+        $return .= <<<EOT
 \t\t\t\$('#{$value[0]}').showLoading();
 \t\t\tvar xhr = \$.ajax({
 \t\t\t\turl: '{$value[1]}',
@@ -119,10 +512,66 @@ goto zGGLC; dsjwx: $actions = array(); goto wNJxu; hYCgP: if ($display) { goto y
 \t\t\t}
 \t\t\trequisicoesAjax['{$value[0]}'].push(xhr);
 EOT;
-goto rBlCl; rBlCl: yG2YY: goto uGf95; YG1Xo: array_unshift($g['divIdChain'], $value[0]); goto FsTUG; Z2djN: $vars = gRepassaRequest($vars, strpos($g['r_'], 'sistema/personalizacao/content') !== false); goto YG1Xo; vrhwZ: $vars = isset($value[2]) ? $value[2] : ''; goto Z2djN; FsTUG: $divIdChain = urlencode(base64_encode(serialize($g['divIdChain']))); goto ZXgpj; uGf95: } goto Moqiv; AdawV: goto fNz__; goto hriig; C0TLN: $r_titleTab = mysql_real_escape_string($r_titleTab); goto NkrH6; I_PqY: $g['smarty']->assign('content1Width', $content['tamanho']); goto PNe3u; tGW5A: $return .= '} </script></div>'; goto UH77J; KwfP_: $g['conf']->carregaArquivoConf($r_tabela . '_Id', 'trocarEmpresa'); goto UCVtz; G4tR2: unset($contentOriginal['url2']); goto TRThW; PNe3u: A80VS: goto F7dW_; rqZhW: $objetosTemplate = is_array($g['smarty']->template_objects) ? $g['smarty']->template_objects : array(); $ultimoTemplate = $objetosTemplate ? array_shift(array_values($objetosTemplate)) : null; $display = is_object($ultimoTemplate) ? $ultimoTemplate->resource_name : ''; goto hYCgP; Vdli3: NtL9v: goto XUggn; Hr8BE: $return .= <<<EOT
+    }
+    $return .= <<<EOT
 \t\t\$icon = \$("#{$g['divId']}").parent().find('.dialog-mais > .fa-bars');
 EOT;
-goto DRMoY; Yo7jy: y5zOD: goto C0TLN; W8T2t: zmYuv: goto d0Rns; m1VZw: if (!$content['url2']) { goto sghbS; } goto ijVAg; nZtdq: $contentId = md5(trim($g['r_'], '/') . '/'); goto rqZhW; OYQEb: if ($content['tipo'] == '2linhas') { goto q0cdF; } goto A94X_; A94X_: if ($content['tipo'] == '2colunas') { goto niuWX; } goto YGgXh; TMOnG: OSIWw: goto IaHQ9; y4g_M: $g['smarty']->display('content-2rows.tpl'); goto ocC8v; IaHQ9: goto NtL9v; goto TdweM; r7OXO: $contentCache = apc_fetch("content-{$contentId}"); goto HZzR9; RjkP0: $contentPersonalizado = Personalizacoes::processarContent($contentId, array('desenvolvedor', 'apps', 'apps-editor')); goto TMOnG; QXc1Y: if (!($content['tipo'] == '2colunas')) { goto A80VS; } goto I_PqY; ilJCM: fKjlN: goto z9vPR; Moqiv: o0BJN: goto Hr8BE; K4z7G: goto fKjlN; goto W8T2t; O1xkr: $actions[] = array($content['id'], $content['url'], $content['parametros']); goto m1VZw; TbCZ_: goto qiE6f; goto NGEyC; jNfd5: unset($contentOriginal['tamanho']); goto Jj_V0; cK3UM: $contentPersonalizado = Personalizacoes::processarContent($contentId, array('desenvolvedor')); goto Vdli3; yqqRV: if ($content['tipo'] == '2linhas') { goto wSvct; } goto QXc1Y; BWElV: $contentPersonalizado['parametros'] = gSubstituirVariaveisParametros($contentPersonalizado['parametros']); goto w1SKK; pZ5A4: if (!$trocarOk) { goto EbQNd; } goto yHUbt; c_9zi: global $g, $r_acaoId, $r_tabela, $r_titleTab; goto ewM9G; ZWpQc: EbQNd: goto tGW5A; Ne_e0: $trocarOk = eval("namespace hardness;\n{$g['conf']->conf['trocarEmpresa']['exibir']}"); goto fC8w4; iMM6P: $g['smarty']->assign('content1Height', $content['tamanho']); goto gDEcH; asTiL: sghbS: goto Itr7r; hriig: q0cdF: goto y4g_M; q4NvL: $content = array_merge($contentOriginal, $contentPersonalizado); goto r3wQE; DRMoY: log("Tabela = " . $r_tabela . ", r_acaoId = " . $r_acaoId); goto iUAae; am5I6: $contentOriginal['id'] = $actions[0][0]; goto nFrck; UCVtz: if (!$g['conf']->conf['trocarEmpresa']['exibir']) { goto OassZ; } goto Ne_e0; ocC8v: fNz__: goto K4z7G; w1SKK: L18Cw: goto szIUg; nFrck: $contentOriginal['id2'] = $actions[1][0]; goto v4MCo; YGgXh: die("Tipo {$content['tipo']} não é uma opção válida."); goto TbCZ_; gDEcH: AG9rU: goto HjMGs; Rb2La: qiE6f: goto AdawV; HjMGs: TL0N_: goto SgMfn; SEyLU: $contentOriginal['parametros2'] = $actions[1][2]; goto am5I6; r3wQE: $content['id'] = $content['id'] ? $content['id'] : uniqid(); goto mfcOg; Lzl3B: if (!$g['modoDesenvolvedorApp']) { goto OSIWw; } goto RjkP0; d0Rns: $g['smarty']->display('content-full.tpl'); goto ilJCM; F7dW_: goto AG9rU; goto ZD0op; HZzR9: if ($contentCache) { goto ckPWY; } goto ylnFR; UH77J: return $return; goto sJADt; NGEyC: niuWX: goto xknSG; sJADt: } function gBotaoAuditoria($from) { goto af2XA; zdcG8: $g['smarty']->assign('grid_tabela', $from); goto qCBkR; qCBkR: $g['smarty']->assign('gridTable', $from); goto hezw2; af2XA: global $g; goto zdcG8; hezw2: } function gHabilitaNavegacao($divId, $classe = false, $method = false) { goto Ulucv; nM9yQ: $dir = "{$g['pathDados']}personalizacaoConf/"; goto LPzfA; huVH6: $script .= "\$('#{$divId}').closest('.ui-dialog').find('.dialog-excluir').css('display', 'inline-block');"; goto JavBj; vU2Ps: $classe = new $classe(); goto ol1O_; NJI2q: $script .= "\$('#{$divId}').closest('.ui-dialog').find('.dialog-incluir').css('display', 'inline-block');"; goto rtb8F; LPzfA: $arquivoGlobal = $dir . $classe . '.PHP-alterarMetodos.php'; goto VpcYW; mV5F7: if (!in_array('excluir_' . $method, get_class_methods($classe))) { goto r81QG; } goto huVH6; gjeai: include_once './bibliotecas/classes/' . $classe . '.php'; goto EYbL0; DpuSH: $script = ''; goto nM9yQ; ol1O_: if (!in_array($method, get_class_methods($classe))) { goto LyHOq; } goto NJI2q; ZD60F: $script .= "\$('#{$divId}').closest('.ui-dialog').find('.dialog-duplicar').css('display', 'inline-block');"; goto B5hvh; B5hvh: p2BB3: goto mV5F7; JavBj: r81QG: goto BBLOJ; EYbL0: $classe = "\\hardness\\{$classe}"; goto vU2Ps; BBLOJ: echo <<<EOT
+    log("Tabela = " . $r_tabela . ", r_acaoId = " . $r_acaoId);
+    $return .= <<<EOT
+\t\t\t\$icon.data({
+\t\t\t\t'id': '{$r_acaoId}',
+\t\t\t\t'table': '{$r_tabela}'
+\t\t\t});
+\t\t\t\$icon.data('exibirAuditoria', true);
+\t\t\t\$icon.data('exibirAnterior', true);
+\t\t\t\$icon.data('exibirProximo', true);
+\t\t\t\$icon.data('exibirPrimeiro', true);
+\t\t\t\$icon.data('exibirUltimo', true);
+\t\t\t\$icon.data('exibirDuplicar', true);
+\t\t\t\$icon.data('exibirBusca', true);
+EOT;
+    $trocarOk = false;
+    $g['conf']->carregaArquivoConf($r_tabela . '_Id', 'trocarEmpresa');
+    if (!(!$g['conf']->conf['trocarEmpresa']['exibir'])) {
+        $trocarOk = eval("namespace hardness;\n{$g['conf']->conf['trocarEmpresa']['exibir']}");
+    }
+    if ($trocarOk) {
+        $return .= <<<EOT
+\t\t\t\t\$icon.data('exibirTrocarEmp', true);
+EOT;
+    }
+    $return .= '} </script></div>';
+    return $return;
+}
+
+function gBotaoAuditoria($from)
+{
+    global $g;
+    $g['smarty']->assign('grid_tabela', $from);
+    $g['smarty']->assign('gridTable', $from);
+}
+
+function gHabilitaNavegacao($divId, $classe = false, $method = false)
+{
+    global $g;
+    $script = '';
+    $dir = "{$g['pathDados']}personalizacaoConf/";
+    $arquivoGlobal = $dir . $classe . '.PHP-alterarMetodos.php';
+    $arquivoEmpresa = $dir . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php';
+    $caminho = file_exists($arquivoEmpresa) ? $arquivoEmpresa : $arquivoGlobal;
+    include_once './bibliotecas/classes/' . $classe . '.php';
+    $classe = "\\hardness\\{$classe}";
+    $classe = new $classe();
+    if (!(!in_array($method, get_class_methods($classe)))) {
+        $script .= "\$('#{$divId}').closest('.ui-dialog').find('.dialog-incluir').css('display', 'inline-block');";
+    }
+    if (!(!in_array('duplicar_' . $method, get_class_methods($classe)))) {
+        $script .= "\$('#{$divId}').closest('.ui-dialog').find('.dialog-duplicar').css('display', 'inline-block');";
+    }
+    if (!(!in_array('excluir_' . $method, get_class_methods($classe)))) {
+        $script .= "\$('#{$divId}').closest('.ui-dialog').find('.dialog-excluir').css('display', 'inline-block');";
+    }
+    echo<<<EOT
 \t\t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") {\t
 \t\t\t{$script}
 \t\t\tif(typeof \$('#{$divId}').data('labelPesquisa') != 'undefined' && typeof \$('#{$divId}').data('sqlPesquisa') != 'undefined'){
@@ -134,45 +583,551 @@ goto DRMoY; Yo7jy: y5zOD: goto C0TLN; W8T2t: zmYuv: goto d0Rns; m1VZw: if (!$con
 \t\t\t\$("#{$divId}").closest('.ui-dialog').find('.dialog-ultimo').css('display', 'inline-block');
 \t\t} </script></div>
 EOT;
-goto t4Qje; JSTYC: if (!in_array('duplicar_' . $method, get_class_methods($classe))) { goto p2BB3; } goto ZD60F; Ulucv: global $g; goto DpuSH; hBpmI: $caminho = file_exists($arquivoEmpresa) ? $arquivoEmpresa : $arquivoGlobal; goto gjeai; rtb8F: LyHOq: goto JSTYC; VpcYW: $arquivoEmpresa = $dir . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php'; goto hBpmI; t4Qje: } function gGeraSelect($tabela, $campoId, $campoTxt, $sqlExtra = '', $first = false, $default = false, $formato = false, $firstTitle = false) { goto mH_qX; TaGFh: $campoTxt = preg_split('/as/i', $campoTxt); goto EtVBI; p1z1x: if (count($campoTxt_) > 1) { goto ECVEx; } goto vDlL8; D3RLA: goto aSO8o; goto vnZgm; vrG2x: JE7lY: goto qIz37; Q1Nao: SUhHf: goto ZnnSc; Arv7Z: goto bbo9l; goto m0mtV; bfAq8: if (!($row = mysql_fetch_row($result))) { goto hmOMx; } goto zF2TH; CHMpR: reset($select); goto CzXHe; LIVbL: X72Sl: goto ia1EY; MGcxf: $cTxt = ''; goto hgh2t; tryTJ: ECVEx: goto MGcxf; ia1EY: WvIwY: goto bfAq8; UTHzR: $select = array(); goto D3RLA; XBDLz: if ($default > 0 && $default == $row[$campoId]) { goto bRuL1; } goto roztk; d95tY: RBxcC: goto wsDPW; LFdDU: $select[0]['selected'] = true; goto oPGEh; roztk: $select[] = array('title' => $cTxt, 'value' => $row[$campoId]); goto g2kTF; tiK9f: $sql = "SELECT {$campoId}, {$campoTxtTmp} FROM {$tabela} {$sqlExtra};"; goto iV_8O; CzXHe: $key = key($select); goto HSMFv; GZgIc: if (!empty($formato)) { goto X72Sl; } goto CuT2h; UtOZX: aSO8o: goto GZgIc; zF2TH: $cTxt = $formato; goto dGGBa; lrBpP: $firstTitle = !$firstTitle ? '...' : $firstTitle; goto ng14i; oPGEh: Znpu0: goto UtOZX; bgXwM: if ($default) { goto Znpu0; } goto LFdDU; g2kTF: goto Pliob; goto qwj5e; b3az6: if ($first) { goto kfz_N; } goto UTHzR; hgh2t: foreach ($campoTxt_ as $value) { goto zLZwC; AkTzo: cMCO7: goto C8vz0; NqLYf: $value = preg_split('/as/i', $value); goto FMGKN; C8vz0: $cTxt .= $cTxt == '' ? $row[trim($value)] : ' - ' . $row[trim($value)]; goto WYMHe; zLZwC: $value = str_ireplace('[[virgula]]', ',', $value); goto ItDmF; ItDmF: if (!stripos($value, ' as ')) { goto cMCO7; } goto NqLYf; FMGKN: $value = trim($value[1]); goto AkTzo; WYMHe: aEPIF: goto FsfKr; FsfKr: } goto thhma; mbKGn: goto wnS79; goto tryTJ; GVboe: hmOMx: goto ZaSEO; gJP6Q: dwdol: goto qf2PP; qIz37: $cTxt = $row[$campoTxt]; goto mbKGn; ZaSEO: cXau8: goto I0i4f; yIvoN: wnS79: goto XBDLz; VEi0O: goto WvIwY; goto GVboe; thhma: W3TzA: goto yIvoN; CF0Of: Pliob: goto MobVh; I0i4f: if (empty($select)) { goto dwdol; } goto CHMpR; EtVBI: $campoTxt = trim($campoTxt[1]); goto vrG2x; wsDPW: $campoTxt_ = explode(',', $campoTxt); goto b3az6; mH_qX: $campoTxtTmp = str_ireplace('[[virgula]]', ',', $campoTxt); goto tiK9f; vnZgm: kfz_N: goto lrBpP; T91fl: bbo9l: goto VEi0O; ZnnSc: goto cXau8; goto LIVbL; qwj5e: bRuL1: goto Tx5am; vmLxN: $select[] = array('title' => $cTxt, 'value' => $row[0]); goto Arv7Z; bzjXv: if (!mysql_error()) { goto RBxcC; } goto sh3iP; Tx5am: $select[] = array('title' => $cTxt, 'value' => $row[$campoId], 'selected' => true); goto CF0Of; MobVh: goto wXD10; goto Q1Nao; vDlL8: if (!stripos($campoTxt, ' as ')) { goto JE7lY; } goto TaGFh; sh3iP: return array(array('title' => mysql_error() . " - SQL: ({$sql})", 'value' => '', 'selected' => true)); goto d95tY; xE9qw: if ($default > 0 && $default == $row[0]) { goto Q43nR; } goto vmLxN; posfF: if (!($row = mysql_fetch_assoc($result))) { goto SUhHf; } goto p1z1x; qf2PP: return $select; goto a4Wuw; ALLRw: yJcMz: goto xE9qw; ng14i: $select = array(array('title' => $firstTitle, 'value' => 0)); goto bgXwM; m0mtV: Q43nR: goto XNZqq; XNZqq: $select[] = array('title' => $cTxt, 'value' => $row[0], 'selected' => true); goto T91fl; HSMFv: $select[$key]['gGeraSelect'] = array($tabela, $campoId, $campoTxt, $sqlExtra, $first, $default, $formato); goto gJP6Q; dGGBa: foreach ($row as $key => $value) { goto c2fE9; ZObPn: $cTxt = str_replace("%{$key}", $value, $cTxt); goto GuduW; Magmd: cxYWa: goto ZObPn; POMEj: goto zRNjl; goto Magmd; c2fE9: if (!($key == 0)) { goto cxYWa; } goto POMEj; GuduW: zRNjl: goto N3FyB; N3FyB: } goto ALLRw; iV_8O: $result = mysql_query($sql); goto bzjXv; CuT2h: wXD10: goto posfF; a4Wuw: } function gInsertExtraWhere($extraOriginal, $extra, $noFinal = false) { goto hmfkd; nIsEq: o3D01: goto sbRNn; OkD16: goto yQvd1; goto bxEAy; RpHAZ: if (strpos($extraOriginal, 'GROUP BY') !== false) { goto PDrps; } goto LkUd7; pQvSU: goto H9AzA; goto WKaF1; cO0B1: $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal); goto T9tMp; b0bNi: if (strpos($extraOriginal, 'WHERE') !== false) { goto MzH8Z; } goto HbBS8; QeAWY: $extraOriginal .= " WHERE ({$extra})"; goto a3BmF; T9tMp: $extraOriginal = str_replace('group by', 'GROUP BY ', $extraOriginal); goto vH69T; pyLd4: hsJlC: goto XDdF3; HbBS8: if (strpos($extraOriginal, 'GROUP BY') !== false) { goto LMUFR; } goto dLuo0; Kogpw: if ($noFinal === true) { goto dlAkd; } goto b0bNi; ZBYdI: $extraOriginal = str_replace('GROUP BY', "WHERE ({$extra}) GROUP BY", $extraOriginal); goto EOolJ; XDdF3: goto KrSW9; goto RY95_; LkUd7: if (strpos($extraOriginal, 'WHERE') !== false) { goto Piosi; } goto ils9l; t3Yy2: $extraOriginal = str_replace('ORDER BY', "WHERE ({$extra}) ORDER BY", $extraOriginal); goto pyLd4; HVqT0: g1XoN: goto iFvpR; RZMgD: BoX1u: goto W6csz; nG6rL: KrSW9: goto OkD16; iTNN4: $extraOriginal .= " AND ({$extra}) "; goto zrcq1; vH69T: $extraReplaceUniq = uniqid(); goto gBUpR; a3BmF: goto hsJlC; goto UGuFE; wDcPK: PLmlq: goto K2FyV; hmfkd: if (!empty($extra)) { goto g1XoN; } goto Ljt_2; ils9l: $extraOriginal .= " WHERE {$extra} "; goto Jdkfn; gBUpR: $extraOriginal = str_replace('WHERE [[filtro]]', $extraReplaceUniq, $extraOriginal); goto Kogpw; iFvpR: $extraOriginal = str_replace('where', 'WHERE', $extraOriginal); goto cO0B1; dLuo0: if (strpos($extraOriginal, 'ORDER BY') !== false) { goto AHRQc; } goto QeAWY; UmTh_: goto o3D01; goto wDcPK; zFS6b: goto hRAZg; goto HYFIu; EOolJ: goto qsHEt; goto RZMgD; AvFoE: $extraOriginal = str_replace($extraReplaceUniq, 'WHERE [[filtro]]', $extraOriginal); goto T0ay0; W6csz: $extraOriginal = str_replace('GROUP BY', " AND ({$extra}) GROUP BY", $extraOriginal); goto G_qt_; Jdkfn: goto yo2gb; goto BMDEz; K2FyV: $extraOriginal = str_replace('ORDER BY', " AND ({$extra}) ORDER BY", $extraOriginal); goto nIsEq; Ljt_2: return $extraOriginal; goto HVqT0; UfSPF: yQvd1: goto pQvSU; bxEAy: MzH8Z: goto AT1cm; zWZce: $extraOriginal = str_replace('GROUP BY', "WHERE ({$extra}) GROUP BY", $extraOriginal); goto nG6rL; XuR9F: if (strpos($extraOriginal, 'WHERE') !== false) { goto BoX1u; } goto ZBYdI; sbRNn: N14P8: goto RpHAZ; BMDEz: Piosi: goto iTNN4; d2jAo: if (strpos($extraOriginal, 'WHERE') !== false) { goto PLmlq; } goto Gdmmp; HYFIu: PDrps: goto XuR9F; zrcq1: yo2gb: goto zFS6b; WKaF1: dlAkd: goto lz95e; UGuFE: AHRQc: goto t3Yy2; RY95_: LMUFR: goto zWZce; Gdmmp: $extraOriginal = str_replace('ORDER BY', "WHERE ({$extra}) ORDER BY", $extraOriginal); goto UmTh_; CoJB0: hRAZg: goto FP5zz; FP5zz: H9AzA: goto AvFoE; G_qt_: qsHEt: goto CoJB0; lz95e: if (!(strpos($extraOriginal, 'ORDER BY') !== false)) { goto N14P8; } goto d2jAo; AT1cm: $extraOriginal = str_replace('WHERE', "WHERE ({$extra}) AND", $extraOriginal); goto UfSPF; T0ay0: return ' ' . trim($extraOriginal); goto uqSUL; uqSUL: } function gInsertGroupBy($extraOriginal, $groupBy) { goto BAWOp; V8Llt: $extraOriginal = substr($extraOriginal, 0, $posGroupBy) . "GROUP BY {$groupBy}" . substr($extraOriginal, $posLimit, $fimExtraOriginal); goto d_Wft; BNH83: PyKlH: goto bwAKN; g4IC5: if (strpos($extraOriginal, 'ORDER BY') !== false) { goto MDGhb; } goto bXPjG; A7ELu: goto PyKlH; goto JtCnb; su4zW: $extraOriginal = str_replace('group by', 'LIMIT', $extraOriginal); goto yLgHw; WxSf9: vDz_n: goto BA1W9; iaCXj: $extraOriginal = str_replace('group by', 'GROUP BY ', $extraOriginal); goto su4zW; qkwPZ: $extraOriginal = substr($extraOriginal, 0, $posGroupBy) . "GROUP BY {$groupBy}"; goto XmQL0; S_UMV: $extraOriginal .= " GROUP BY {$groupBy}"; goto tl3YI; jUGbn: if (strpos($extraOriginal, 'ORDER BY') !== false) { goto W4Nl9; } goto hz0oY; VD91f: f3PBO: goto A7ELu; yLgHw: if (strpos($extraOriginal, 'GROUP BY') !== false) { goto QqV2F; } goto jUGbn; cVAqs: $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal); goto iaCXj; JSIQ_: j3yFY: goto ocNV7; d_Wft: XoOdn: goto k6Xf1; HK5hg: return $extraOriginal; goto PjImh; RaUHz: $posGroupBy = strpos($extraOriginal, 'GROUP BY'); goto qBT8_; PcVp8: MDGhb: goto UB0Ab; IiWJM: QqV2F: goto RaUHz; JtCnb: W4Nl9: goto an7As; hz0oY: if (strpos($extraOriginal, 'LIMIT') !== false) { goto j3yFY; } goto S_UMV; qBT8_: $posOrderBy = strpos($extraOriginal, 'ORDER BY'); goto SySMp; bXPjG: if (strpos($extraOriginal, 'LIMIT') !== false) { goto SU2JK; } goto qkwPZ; XmQL0: goto XoOdn; goto Sv1_r; BA1W9: nqqbb: goto HK5hg; bwAKN: goto nqqbb; goto IiWJM; cnYu9: $fimExtraOriginal = strlen($extraOriginal); goto g4IC5; Sv1_r: SU2JK: goto V8Llt; BAWOp: $extraOriginal = str_replace('where', 'WHERE', $extraOriginal); goto cVAqs; UB0Ab: $extraOriginal = substr($extraOriginal, 0, $posGroupBy) . "GROUP BY {$groupBy}" . substr($extraOriginal, $posOrderBy, $fimExtraOriginal); goto WxSf9; ocNV7: $extraOriginal = str_replace('LIMIT', "GROUP BY {$groupBy} LIMIT", $extraOriginal); goto VD91f; k6Xf1: goto vDz_n; goto PcVp8; tl3YI: goto f3PBO; goto JSIQ_; an7As: $extraOriginal = str_replace('ORDER BY', "GROUP BY {$groupBy} ORDER BY", $extraOriginal); goto BNH83; SySMp: $posLimit = strpos($extraOriginal, 'LIMIT'); goto cnYu9; PjImh: } function gInsertExtraWherePrincipal($extraOriginal, $extra) { goto oYpkb; KecHt: goto TNrSZ; goto o3Qgu; VWjeq: Jc4aD: goto aA8T1; iM3aH: if (strpos($extraOriginal, 'ORDER BY') !== false) { goto gqaYc; } goto yJLkc; o3Qgu: gqaYc: goto kPYF5; NvHjO: $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal); goto w2fsJ; q3ayd: $extraOriginal = str_replace('GROUP BY', "WHERE ({$extra}) GROUP BY", $extraOriginal); goto wqUSx; wqUSx: Jqr3D: goto TRLcG; yJLkc: $extraOriginal .= " WHERE ({$extra})"; goto KecHt; HcvvL: if (strpos($extraOriginal, 'WHERE') !== false) { goto J19hs; } goto ft9NG; kPYF5: $extraOriginal = str_replace('ORDER BY', "WHERE ({$extra}) ORDER BY", $extraOriginal); goto oSFQU; oYpkb: $extraOriginal = str_replace('where', 'WHERE', $extraOriginal); goto NvHjO; w2fsJ: $extraOriginal = str_replace('group by', 'GROUP BY ', $extraOriginal); goto HcvvL; HmVN0: qJlZi: goto q3ayd; iNzzl: goto Jqr3D; goto HmVN0; Fbdji: J19hs: goto MxeDL; aA8T1: return $extraOriginal; goto Jmug8; ft9NG: if (strpos($extraOriginal, 'GROUP BY') !== false) { goto qJlZi; } goto iM3aH; oSFQU: TNrSZ: goto iNzzl; MxeDL: $extraOriginal = substr_replace($extraOriginal, $extra, strpos($extraOriginal, 'WHERE')); goto VWjeq; TRLcG: goto Jc4aD; goto Fbdji; Jmug8: } function gInsertExtraHaving($extraOriginal, $extra) { goto iawIy; pyCQX: if (preg_match('/[^\\(]ORDER BY/', $extraOriginal, $matches)) { goto m13O0; } goto FzJHm; EzvTq: kb4gn: goto tJwUY; g7aC2: HYttE: goto Aorh7; YNF1s: goto HYttE; goto y_LEG; I3PMT: $extraOriginal = substr_replace($extraOriginal, "HAVING ({$extra}) ", strrpos($extraOriginal, 'ORDER BY'), 0); goto EzvTq; y_LEG: OjHiU: goto AVzV0; AVzV0: $extraOriginal = str_replace('LIMIT', "HAVING ({$extra}) LIMIT", $extraOriginal); goto g7aC2; tJwUY: return $extraOriginal; goto eYw_x; iawIy: $extraOriginal = str_replace('limit', 'LIMIT', $extraOriginal); goto Wmqvo; FzJHm: if (strpos($extraOriginal, 'LIMIT') !== false) { goto OjHiU; } goto tdOWM; Wmqvo: $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal); goto pyCQX; Aorh7: goto kb4gn; goto YgbLZ; tdOWM: $extraOriginal .= " HAVING ({$extra}) "; goto YNF1s; YgbLZ: m13O0: goto I3PMT; eYw_x: } function gPegarParteWhere($extra, $once = false) { goto FqFE3; FqFE3: if ($once) { goto QXac_; } goto bNR2L; GcyuY: goto yENFf; goto Nvftd; bH24v: $extra = $extra[0]; goto SzM0F; bNR2L: $extra = preg_split('/WHERE/i', $extra); goto e3vUK; GMfMK: $extra = preg_split('/HAVING/i', $extra, 2); goto bH24v; YqHV1: return $extra; goto hlen9; eP_XA: $extra = $extra[0]; goto GMfMK; pmKeL: yENFf: goto UXAgw; qvF2E: $extra = $extra[0]; goto YqHV1; n7A9e: $extra = preg_split('/WHERE/i', $extra, 2); goto OSI1k; OSI1k: $extra = $extra[1]; goto pmKeL; Nvftd: QXac_: goto n7A9e; SzM0F: $extra = preg_split('/ORDER BY/i', $extra, 2); goto qvF2E; UXAgw: $extra = preg_split('/GROUP BY/i', $extra, 2); goto eP_XA; e3vUK: $extra = $extra[count($extra) - 1]; goto GcyuY; hlen9: } function gPegarWhereAgrupamento($extra, $once = false) { goto vFuOI; IaxTT: $extra = preg_split('/GROUP BY/i', $extra, 2); goto PeFH8; A1zkZ: $extra = preg_split('/ORDER BY/i', $extra, 2); goto mc_Oy; mc_Oy: $extra = $extra[0]; goto PJOUf; PeFH8: $extra = $extra[0]; goto A1zkZ; PJOUf: return $extra; goto D11Qs; vFuOI: $extra = stristr($extra, "WHERE ((1=1"); goto IaxTT; D11Qs: } function gPegarParteJoin($extra) { return substr($extra, 0, strrpos($extra, 'WHERE')); return $extra; } function gPegarParteGroupBy($extra) { goto okBVp; Mg_PN: $extra = $extra[0]; goto uqhiZ; mDgGD: $extra = $extra[0]; goto yGLKk; bK8ya: $extra = preg_split('/GROUP BY/i', $extra, 2); goto nor1M; yNI8S: $extra = $extra[count($extra) - 1]; goto bK8ya; yGLKk: return trim($extra); goto Bgw0i; nor1M: $extra = $extra[1]; goto o3tql; uqhiZ: $extra = preg_split('/ORDER BY/i', $extra, 2); goto mDgGD; okBVp: $extra = preg_split('/WHERE/i', $extra); goto yNI8S; o3tql: $extra = preg_split('/HAVING/i', $extra, 2); goto Mg_PN; Bgw0i: } function gRetirarOrderBy($extra) { goto JiilT; QUuCm: $extra = implode(' ORDER BY ', $extra); goto lOiIe; ayNny: $extra = explode('ORDER BY', $extra); goto mp4Si; HfuRZ: return $extra; goto YwWbk; RDH3O: if (!(strpos($extra, 'ORDER BY') !== false)) { goto hcr5R; } goto ayNny; mp4Si: unset($extra[count($extra) - 1]); goto QUuCm; lOiIe: hcr5R: goto HfuRZ; JiilT: $extra = str_replace('order by', 'ORDER BY', $extra); goto RDH3O; YwWbk: } function gRetirarGroupBy($extra) { goto Z9_4O; SC79m: $extra = explode('GROUP BY', $extra); goto EOvR8; ogJxR: Jsjbd: goto t9x9M; t9x9M: return $extra; goto jIxqo; EOvR8: $extra = $extra[count($extra) - 2]; goto ogJxR; LHUOE: if (!(strpos($extra, 'GROUP BY') !== false)) { goto Jsjbd; } goto SC79m; n_aQJ: $extra = str_replace('group by', 'GROUP BY', $extra); goto LHUOE; Z9_4O: $extra = strtoupper($extra); goto n_aQJ; jIxqo: } function gGeraAlertMsg($titulo = '', $msg = '', $includeJs = true) { goto U5jNt; XBg8S: $return .= <<<EOT
+}
+
+function gGeraSelect($tabela, $campoId, $campoTxt, $sqlExtra = '', $first = false, $default = false, $formato = false, $firstTitle = false)
+{
+    $campoTxtTmp = str_ireplace('[[virgula]]', ',', $campoTxt);
+    $sql = "SELECT {$campoId}, {$campoTxtTmp} FROM {$tabela} {$sqlExtra};";
+    $result = mysql_query($sql);
+    if (!mysql_error()) {
+        $campoTxt_ = explode(',', $campoTxt);
+        if ($first) {
+            $firstTitle = !$firstTitle ? '...' : $firstTitle;
+            $select = array(array('title' => $firstTitle, 'value' => 0));
+            if (!$default) {
+                $select[0]['selected'] = true;
+            }
+        } else {
+            $select = array();
+        }
+        if (!empty($formato)) {
+            while ($row = mysql_fetch_row($result)) {
+                $cTxt = $formato;
+                foreach ($row as $key => $value) {
+                    if (!($key == 0)) {
+                        $cTxt = str_replace("%{$key}", $value, $cTxt);
+                    }
+                }
+                if ($default > 0 && $default == $row[0]) {
+                    $select[] = array('title' => $cTxt, 'value' => $row[0], 'selected' => true);
+                } else {
+                    $select[] = array('title' => $cTxt, 'value' => $row[0]);
+                }
+            }
+        } else {
+            while ($row = mysql_fetch_assoc($result)) {
+                if (count($campoTxt_) > 1) {
+                    $cTxt = '';
+                    foreach ($campoTxt_ as $value) {
+                        $value = str_ireplace('[[virgula]]', ',', $value);
+                        if (!(!stripos($value, ' as '))) {
+                            $value = preg_split('/as/i', $value);
+                            $value = trim($value[1]);
+                        }
+                        $cTxt .= $cTxt == '' ? $row[trim($value)] : ' - ' . $row[trim($value)];
+                    }
+                } else {
+                    while (!stripos($campoTxt, ' as ')) {
+                        $cTxt = $row[$campoTxt];
+                    }
+                    $campoTxt = preg_split('/as/i', $campoTxt);
+                    $campoTxt = trim($campoTxt[1]);
+                }
+                if ($default > 0 && $default == $row[$campoId]) {
+                    $select[] = array('title' => $cTxt, 'value' => $row[$campoId], 'selected' => true);
+                } else {
+                    $select[] = array('title' => $cTxt, 'value' => $row[$campoId]);
+                }
+            }
+        }
+        if (!(empty($select))) {
+            reset($select);
+            $key = key($select);
+            $select[$key]['gGeraSelect'] = array($tabela, $campoId, $campoTxt, $sqlExtra, $first, $default, $formato);
+        }
+        return $select;
+    } else {
+        return array(array('title' => mysql_error() . " - SQL: ({$sql})", 'value' => '', 'selected' => true));
+    }
+}
+
+function gInsertExtraWhere($extraOriginal, $extra, $noFinal = false)
+{
+    if (!empty($extra)) {
+        $extraOriginal = str_replace('where', 'WHERE', $extraOriginal);
+        $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal);
+        $extraOriginal = str_replace('group by', 'GROUP BY ', $extraOriginal);
+        $extraReplaceUniq = uniqid();
+        $extraOriginal = str_replace('WHERE [[filtro]]', $extraReplaceUniq, $extraOriginal);
+        if ($noFinal === true) {
+            if (strpos($extraOriginal, 'ORDER BY') !== false) {
+                if (strpos($extraOriginal, 'WHERE') !== false) {
+                    $extraOriginal = str_replace('ORDER BY', " AND ({$extra}) ORDER BY", $extraOriginal);
+                } else {
+                    $extraOriginal = str_replace('ORDER BY', "WHERE ({$extra}) ORDER BY", $extraOriginal);
+                }
+            }
+            if (strpos($extraOriginal, 'GROUP BY') !== false) {
+                if (strpos($extraOriginal, 'WHERE') !== false) {
+                    $extraOriginal = str_replace('GROUP BY', " AND ({$extra}) GROUP BY", $extraOriginal);
+                } else {
+                    $extraOriginal = str_replace('GROUP BY', "WHERE ({$extra}) GROUP BY", $extraOriginal);
+                }
+            } else {
+                if (strpos($extraOriginal, 'WHERE') !== false) {
+                    $extraOriginal .= " AND ({$extra}) ";
+                } else {
+                    $extraOriginal .= " WHERE {$extra} ";
+                }
+            }
+        } else {
+            if (strpos($extraOriginal, 'WHERE') !== false) {
+                $extraOriginal = str_replace('WHERE', "WHERE ({$extra}) AND", $extraOriginal);
+            } else {
+                if (strpos($extraOriginal, 'GROUP BY') !== false) {
+                    $extraOriginal = str_replace('GROUP BY', "WHERE ({$extra}) GROUP BY", $extraOriginal);
+                } else {
+                    if (strpos($extraOriginal, 'ORDER BY') !== false) {
+                        $extraOriginal = str_replace('ORDER BY', "WHERE ({$extra}) ORDER BY", $extraOriginal);
+                    } else {
+                        $extraOriginal .= " WHERE ({$extra})";
+                    }
+                }
+            }
+        }
+        $extraOriginal = str_replace($extraReplaceUniq, 'WHERE [[filtro]]', $extraOriginal);
+        return ' ' . trim($extraOriginal);
+    } else {
+        return $extraOriginal;
+    }
+}
+
+function gInsertGroupBy($extraOriginal, $groupBy)
+{
+    $extraOriginal = str_replace('where', 'WHERE', $extraOriginal);
+    $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal);
+    $extraOriginal = str_replace('group by', 'GROUP BY ', $extraOriginal);
+    $extraOriginal = str_replace('group by', 'LIMIT', $extraOriginal);
+    if (strpos($extraOriginal, 'GROUP BY') !== false) {
+        $posGroupBy = strpos($extraOriginal, 'GROUP BY');
+        $posOrderBy = strpos($extraOriginal, 'ORDER BY');
+        $posLimit = strpos($extraOriginal, 'LIMIT');
+        $fimExtraOriginal = strlen($extraOriginal);
+        if (strpos($extraOriginal, 'ORDER BY') !== false) {
+            $extraOriginal = substr($extraOriginal, 0, $posGroupBy) . "GROUP BY {$groupBy}" . substr($extraOriginal, $posOrderBy, $fimExtraOriginal);
+        } else {
+            if (strpos($extraOriginal, 'LIMIT') !== false) {
+                $extraOriginal = substr($extraOriginal, 0, $posGroupBy) . "GROUP BY {$groupBy}" . substr($extraOriginal, $posLimit, $fimExtraOriginal);
+            } else {
+                $extraOriginal = substr($extraOriginal, 0, $posGroupBy) . "GROUP BY {$groupBy}";
+            }
+        }
+    } else {
+        if (strpos($extraOriginal, 'ORDER BY') !== false) {
+            $extraOriginal = str_replace('ORDER BY', "GROUP BY {$groupBy} ORDER BY", $extraOriginal);
+        } else {
+            if (strpos($extraOriginal, 'LIMIT') !== false) {
+                $extraOriginal = str_replace('LIMIT', "GROUP BY {$groupBy} LIMIT", $extraOriginal);
+            } else {
+                $extraOriginal .= " GROUP BY {$groupBy}";
+            }
+        }
+    }
+    return $extraOriginal;
+}
+
+function gInsertExtraWherePrincipal($extraOriginal, $extra)
+{
+    $extraOriginal = str_replace('where', 'WHERE', $extraOriginal);
+    $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal);
+    $extraOriginal = str_replace('group by', 'GROUP BY ', $extraOriginal);
+    if (strpos($extraOriginal, 'WHERE') !== false) {
+        $extraOriginal = substr_replace($extraOriginal, $extra, strpos($extraOriginal, 'WHERE'));
+    } else {
+        if (strpos($extraOriginal, 'GROUP BY') !== false) {
+            $extraOriginal = str_replace('GROUP BY', "WHERE ({$extra}) GROUP BY", $extraOriginal);
+        } else {
+            if (strpos($extraOriginal, 'ORDER BY') !== false) {
+                $extraOriginal = str_replace('ORDER BY', "WHERE ({$extra}) ORDER BY", $extraOriginal);
+            } else {
+                $extraOriginal .= " WHERE ({$extra})";
+            }
+        }
+    }
+    return $extraOriginal;
+}
+
+function gInsertExtraHaving($extraOriginal, $extra)
+{
+    $extraOriginal = str_replace('limit', 'LIMIT', $extraOriginal);
+    $extraOriginal = str_replace('order by', 'ORDER BY', $extraOriginal);
+    if (preg_match('/[^\\(]ORDER BY/', $extraOriginal, $matches)) {
+        $extraOriginal = substr_replace($extraOriginal, "HAVING ({$extra}) ", strrpos($extraOriginal, 'ORDER BY'), 0);
+    } else {
+        if (strpos($extraOriginal, 'LIMIT') !== false) {
+            $extraOriginal = str_replace('LIMIT', "HAVING ({$extra}) LIMIT", $extraOriginal);
+        } else {
+            $extraOriginal .= " HAVING ({$extra}) ";
+        }
+    }
+    return $extraOriginal;
+}
+
+function gPegarParteWhere($extra, $once = false)
+{
+    if ($once) {
+        $extra = preg_split('/WHERE/i', $extra, 2);
+        $extra = $extra[1];
+    } else {
+        $extra = preg_split('/WHERE/i', $extra);
+        $extra = $extra[count($extra) - 1];
+    }
+    $extra = preg_split('/GROUP BY/i', $extra, 2);
+    $extra = $extra[0];
+    $extra = preg_split('/HAVING/i', $extra, 2);
+    $extra = $extra[0];
+    $extra = preg_split('/ORDER BY/i', $extra, 2);
+    $extra = $extra[0];
+    return $extra;
+}
+
+function gPegarWhereAgrupamento($extra, $once = false)
+{
+    $extra = stristr($extra, "WHERE ((1=1");
+    $extra = preg_split('/GROUP BY/i', $extra, 2);
+    $extra = $extra[0];
+    $extra = preg_split('/ORDER BY/i', $extra, 2);
+    $extra = $extra[0];
+    return $extra;
+}
+
+function gPegarParteJoin($extra)
+{
+    return substr($extra, 0, strrpos($extra, 'WHERE'));
+    return $extra;
+}
+
+function gPegarParteGroupBy($extra)
+{
+    $extra = preg_split('/WHERE/i', $extra);
+    $extra = $extra[count($extra) - 1];
+    $extra = preg_split('/GROUP BY/i', $extra, 2);
+    $extra = $extra[1];
+    $extra = preg_split('/HAVING/i', $extra, 2);
+    $extra = $extra[0];
+    $extra = preg_split('/ORDER BY/i', $extra, 2);
+    $extra = $extra[0];
+    return trim($extra);
+}
+
+function gRetirarOrderBy($extra)
+{
+    $extra = str_replace('order by', 'ORDER BY', $extra);
+    if (strpos($extra, 'ORDER BY') !== false) {
+        $extra = explode('ORDER BY', $extra);
+        unset($extra[count($extra) - 1]);
+        $extra = implode(' ORDER BY ', $extra);
+    }
+    return $extra;
+}
+
+function gRetirarGroupBy($extra)
+{
+    $extra = strtoupper($extra);
+    $extra = str_replace('group by', 'GROUP BY', $extra);
+    if (strpos($extra, 'GROUP BY') !== false) {
+        $extra = explode('GROUP BY', $extra);
+        $extra = $extra[count($extra) - 2];
+    }
+    return $extra;
+}
+
+function gGeraAlertMsg($titulo = '', $msg = '', $includeJs = true)
+{
+    $titulo = str_replace("\"", "\\\"", $titulo);
+    $msg = str_replace("\"", "\\\"", $msg);
+    $msg = preg_replace("/[\r\n]+/s", "", $msg);
+    $return = $includeJs ? '<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") {' : '';
+    $return .= <<<EOT
 \t\tdialogConfirm("{$titulo}", "{$msg}");
 EOT;
-goto bRkOm; OPilV: $msg = preg_replace("/[\r\n]+/s", "", $msg); goto Sjnf6; U5jNt: $titulo = str_replace("\"", "\\\"", $titulo); goto p6_xd; p6_xd: $msg = str_replace("\"", "\\\"", $msg); goto OPilV; bRkOm: $return .= $includeJs ? '} </script></div>' : ''; goto tBEZC; tBEZC: return $return; goto BWv0Y; Sjnf6: $return = $includeJs ? '<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") {' : ''; goto XBg8S; BWv0Y: } function gGeraAlertMsgErroForm($form) { goto d4oJM; U6bxl: $msg = ''; goto xBLss; NKKwH: ox938: goto aPP3p; aPP3p: $tmp = explode('<br', $msg); goto oSroO; d4oJM: global $g; goto U6bxl; xBLss: $erros = ''; goto OQ4e0; BJVe1: $return .= "\n<div class='divHidden'><script type=\"text/javascript\"> if (typeof jQuery != 'undefined') { {$erros} } </script></div>"; goto S8R2Z; oSroO: if (!(count($tmp) > 45)) { goto Bv4kO; } goto CH8MT; n7Z1o: $return = gGeraAlertMsg('Existem erros! Por favor, verifique.', $msg . '<span id="gGeraAlertMsgErroForm" style="display: none;"></span>'); goto BJVe1; OQ4e0: foreach ($form->formArray['campos'] as $tab => $tabCampos) { goto QqaQN; Xxlxa: rD652: goto yp3n0; dMTaB: foreach ($tabCampos as $key => $value) { goto VLGzG; oD2RC: !empty($value['label']) or $value['label'] = $value['name']; goto N252H; usikA: isset($value['label']) or $value['label'] = ''; goto oD2RC; hAWKd: lJkPL: goto Nca23; MDbHH: goto k4vBA; goto Ccmen; mhYZ_: $erros .= "\$('#{$g['divId']} .itemForm-{$key}').addClass('form-input-error');\n"; goto jbXK1; TsdI3: cNJpF: goto XyC2l; m8JWZ: $erros .= "\$('#{$g['divId']} .itemForm-{$key}').removeClass('ui-state-error');\n"; goto MDbHH; RY1dJ: $msg .= empty($msg) ? '' : '<br /><br />'; goto n7QCU; L9TpM: $msg .= "<b style='font-size: 1.3em;'>{$value['label']}</b>: <span style='font-size: 1.1em;'>{$form->pegarErro($key)}</span><br style='br' />"; goto c8PKD; d3Xet: Pt5tp: goto xEdri; K2dsk: if (!$first) { goto YOfS7; } goto yE4Li; R0lXH: $erros .= "\$('#{$g['divId']} .itemForm-{$key}').removeClass('form-input-error');\n"; goto m8JWZ; xDJN3: !$rLabel or $value['label'] = $rLabel; goto L9TpM; Ccmen: oobm2: goto K2dsk; QlP1d: $erros .= "\$('#{$g['divId']} .itemForm-{$key}').trigger('focus');\n"; goto iiaH1; jbXK1: $erros .= "\$('#{$g['divId']} .itemForm-{$key}').addClass('ui-state-error');\n"; goto ik0E4; azZ7J: $erros .= "\$('#{$g['divId']} .itemForm-{$key}_Pesquisa').addClass('ui-state-error');\n"; goto N6_UY; bvkGM: if ($value['type'] == 'pesquisa') { goto egRbX; } goto QlP1d; iiaH1: goto Pt5tp; goto pENIj; ik0E4: goto HscgF; goto hAWKd; VLGzG: if ($form->temErro($key)) { goto oobm2; } goto R0lXH; Nca23: $erros .= "\$('#{$g['divId']} .itemForm-{$key}_Pesquisa').addClass('form-input-error');\n"; goto azZ7J; n7QCU: $msg .= "<b>ABA " . mb_strtoupper($tab) . ":</b><br /><br/>"; goto bvkGM; N6_UY: HscgF: goto usikA; N252H: $rLabel = $g['conf']->camposLabelForm($key); goto xDJN3; c8PKD: k4vBA: goto TsdI3; pENIj: egRbX: goto Hdurs; xEdri: YOfS7: goto RhAr_; Hdurs: $erros .= "\$('#{$g['divId']} .itemForm-{$key}_Pesquisa').trigger('focus');\n"; goto d3Xet; RhAr_: if ($value['type'] == 'pesquisa') { goto lJkPL; } goto mhYZ_; yE4Li: $first = false; goto RY1dJ; XyC2l: } goto Xxlxa; QqaQN: $first = true; goto dMTaB; yp3n0: DYTfx: goto GJzT5; GJzT5: } goto NKKwH; CH8MT: $msg = str_replace("<br style='br' />", '&nbsp&nbsp&nbsp&nbsp;', $msg); goto XJ0X6; XJ0X6: Bv4kO: goto n7Z1o; S8R2Z: return $return; goto lOcK4; lOcK4: } function gGeraCamposForm($form, $tab, $acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk, $confirmacao = false, $form_parent = false, $form_parent_valor = false, $travar = true) { goto JieCj; xcjqg: goto MtfDn; goto hDZUZ; dv28S: foreach ($formEditorData as $key => $value) { $formEditorData[$key]['alterado'] = true; ApCWf: } goto MvYnn; WO6lz: $arrayRecebido = json_decode($r_formEditorData, true); goto FOs5B; N46gW: $arquivoAppsEditor = Apps::getDirEditor() . 'personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto whAuL; Hxw7b: MhzFd: goto w3GYK; mU4Ek: lgGIU: goto xg7Jm; Hh9mK: $arrayNovo = array(); goto zpGuh; Y52XG: if (!(!empty($r_formEditorData) && $g['r']['2'] != 'formDash')) { goto bBidI; } goto c7wvv; MUMo9: die; goto hxs6Q; h1FQz: $tabTotal = count($form->formArray['campos']); goto UmlWP; zpGuh: $arrayOriginal = json_decode($form_editor[$tab], true); goto WO6lz; hcoE9: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arquivoGlobal))) { goto zrPko; } goto S4J_z; UdRGH: if (!($g['modoDesenvolvedorApp'] && file_exists($arquivoAppsEditor))) { goto qe97I; } goto EbEcq; pNKvL: global $r_modoFormLeve; goto tPnmW; Ah334: $arquivoIde = 'ide/personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto wG5GX; pz5lN: zrPko: goto OWQXS; KWrK3: uwBMe: goto KcFTv; JOqkd: $operacao = empty($acaoId) ? 'incluir' : 'alterar'; goto ubP9v; R06_5: if (!(!$g['modoDesenvolvedor'] && file_exists($arquivoApps))) { goto EUKYf; } goto poHDk; R2TRd: $arquivo = $arquivoIde; goto Bjx4U; xQTFw: $arquivo = $arquivoGlobal; goto jBkTK; OWQXS: $formEditorData = array(); goto ms0Yn; i6Quc: $formEditorData_ = json_decode($form_editor[$tab], true); goto Vzgqm; Bjx4U: GyopC: goto Y52XG; KqxTM: $disabled = false; goto LCa4u; EQO1x: file_put_contents($arquivo, $r_formEditorData); goto D2Mx8; WblUM: foreach ($form->formArray['campos'] as $tabCampo => $tabCampos) { goto rg19N; YBehE: if (empty($btnCln)) { goto bMju8; } goto ubypV; CwwGi: $confirmacao = addslashes($confirmacao); goto Au_vO; wDaav: if (isset($r_modoFormLeve) && $r_modoFormLeve && $acaoId) { goto hCfUo; } goto BhZ0c; Au_vO: $acao = <<<EOT
-\t\t\t\t\t\t\tvar \$buttons = {
-\t\t\t\t\t\t\t\t"Sim": function() {
-\t\t\t\t\t\t\t\t\t{$acao}
-\t\t\t\t\t\t\t\t\t\$(this).dialog("destroy").remove();
-\t\t\t\t\t\t\t\t},
-\t\t\t\t\t\t\t\t"Não": function() { \$(this).dialog("destroy").remove(); }
-\t\t\t\t\t\t\t}
-\t\t\t\t\t\t\tdialogConfirm('Atenção!', "{$confirmacao}", \$buttons);
-EOT;
-goto zLRC_; ij5kU: $target = "target:     '#{$g['divId']}', "; goto Mgcps; X3FYj: $btnCln = ''; goto V_AUA; etx3k: irmCQ: goto DHioP; R0EFr: $return['pagina'] .= <<<EOT
+    $return .= $includeJs ? '} </script></div>' : '';
+    return $return;
+}
+
+function gGeraAlertMsgErroForm($form)
+{
+    global $g;
+    $msg = '';
+    $erros = '';
+    foreach ($form->formArray['campos'] as $tab => $tabCampos) {
+        $first = true;
+        foreach ($tabCampos as $key => $value) {
+            if ($form->temErro($key)) {
+                if ($first) {
+                    $first = false;
+                    $msg .= empty($msg) ? '' : '<br /><br />';
+                    $msg .= "<b>ABA " . mb_strtoupper($tab) . ":</b><br /><br/>";
+                    if ($value['type'] == 'pesquisa') {
+                        $erros .= "\$('#{$g['divId']} .itemForm-{$key}_Pesquisa').trigger('focus');\n";
+                    } else {
+                        $erros .= "\$('#{$g['divId']} .itemForm-{$key}').trigger('focus');\n";
+                    }
+                }
+                if ($value['type'] == 'pesquisa') {
+                    $erros .= "\$('#{$g['divId']} .itemForm-{$key}_Pesquisa').addClass('form-input-error');\n";
+                    $erros .= "\$('#{$g['divId']} .itemForm-{$key}_Pesquisa').addClass('ui-state-error');\n";
+                } else {
+                    $erros .= "\$('#{$g['divId']} .itemForm-{$key}').addClass('form-input-error');\n";
+                    $erros .= "\$('#{$g['divId']} .itemForm-{$key}').addClass('ui-state-error');\n";
+                }
+                isset($value['label']) or $value['label'] = '';
+                !empty($value['label']) or $value['label'] = $value['name'];
+                $rLabel = $g['conf']->camposLabelForm($key);
+                !$rLabel or $value['label'] = $rLabel;
+                $msg .= "<b style='font-size: 1.3em;'>{$value['label']}</b>: <span style='font-size: 1.1em;'>{$form->pegarErro($key)}</span><br style='br' />";
+            } else {
+                $erros .= "\$('#{$g['divId']} .itemForm-{$key}').removeClass('form-input-error');\n";
+                $erros .= "\$('#{$g['divId']} .itemForm-{$key}').removeClass('ui-state-error');\n";
+            }
+        }
+    }
+    $tmp = explode('<br', $msg);
+    if (count($tmp) > 45) {
+        $msg = str_replace("<br style='br' />", '&nbsp&nbsp&nbsp&nbsp;', $msg);
+    }
+    $return = gGeraAlertMsg('Existem erros! Por favor, verifique.', $msg . '<span id="gGeraAlertMsgErroForm" style="display: none;"></span>');
+    $return .= "\n<div class='divHidden'><script type=\"text/javascript\"> if (typeof jQuery != 'undefined') { {$erros} } </script></div>";
+    return $return;
+}
+
+function gGeraCamposForm($form, $tab, $acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk, $confirmacao = false, $form_parent = false, $form_parent_valor = false, $travar = true)
+{
+    global $g, $r_formEditorData, $form_editor, $formNaoRecarregar;
+    global $r_modoFormLeve;
+    global $r_campoRefresh;
+    $g['smarty']->assign('isMobile', false);
+    $arquivoIde = 'ide/personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    $arquivoAppsEditor = Apps::getDirEditor() . 'personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    $arquivoGlobal = "{$g['pathDados']}personalizacaoForm/" . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    if ($g['modoDesenvolvedor']) {
+        $arquivo = $arquivoIde;
+    } else {
+        if ($g['modoDesenvolvedorApp']) {
+            $arquivo = $arquivoAppsEditor;
+        } else {
+            $arquivo = $arquivoGlobal;
+        }
+    }
+    if (!empty($r_formEditorData) && $g['r']['2'] != 'formDash') {
+        if (isset($form_editor) && isset($form_editor[$tab]) && !empty($form_editor[$tab])) {
+            $arrayNovo = array();
+            $arrayOriginal = json_decode($form_editor[$tab], true);
+            $arrayRecebido = json_decode($r_formEditorData, true);
+            foreach ($arrayRecebido as $key => $value) {
+                $diferente = false;
+                if (!isset($arrayOriginal[$key])) {
+                    $diferente = true;
+                } else {
+                    foreach ($value as $key2 => $value2) {
+                        if (!isset($arrayOriginal[$key][$key2]) && isset($value2)) {
+                            $diferente = true;
+                        } else {
+                            $valor = round($value2, 2);
+                            $valorOriginal = round($arrayOriginal[$key][$key2], 2);
+                            if (($key2 == 'hidden')) {
+                                $limite = 0;
+                            } elseif (($key2 == 'top')) {
+                                $limite = 2;
+                            } else {
+                                $limite = 5;
+                            }
+                            $valor = abs($valor - $valorOriginal);
+                            if ($valor > $limite) {
+                                $diferente = true;
+                            }
+                        }
+                    }
+                }
+                if ($diferente) {
+                    $arrayNovo[$key] = $value;
+                }
+            }
+            if (empty($arrayNovo)) {
+                unlink($arquivo);
+            } else {
+                file_put_contents($arquivo, json_encode($arrayNovo));
+            }
+        } else {
+            file_put_contents($arquivo, $r_formEditorData);
+        }
+    }
+    $arquivoIde = 'ide/personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    $arquivoApps = Apps::getDirAtivos() . 'personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    $arquivoAppsEditor = Apps::getDirEditor() . 'personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    $arquivoGlobal = "{$g['pathDados']}personalizacaoForm/" . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}";
+    $arquivo = $arquivoIde;
+    if (!$g['modoDesenvolvedor'] && file_exists($arquivoApps)) {
+        $arquivo = $arquivoApps;
+    }
+    if ($g['modoDesenvolvedorApp'] && file_exists($arquivoAppsEditor)) {
+        $arquivo = $arquivoAppsEditor;
+    }
+    if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arquivoGlobal)) {
+        $arquivo = $arquivoGlobal;
+    }
+    $formEditorData = array();
+    $formEditorUtilizado = false;
+    if (!(!file_exists($arquivo))) {
+        $formEditorData = json_decode(file_get_contents($arquivo), true);
+        foreach ($formEditorData as $key => $value) {
+            $formEditorData[$key]['alterado'] = true;
+        }
+        $formEditorUtilizado = true;
+    }
+    if (isset($form_editor) && isset($form_editor[$tab]) && !empty($form_editor[$tab])) {
+        if (!empty($formEditorData)) {
+            $formEditorData_ = json_decode($form_editor[$tab], true);
+            $formEditorData = array_merge($formEditorData_, $formEditorData);
+        } else {
+            $formEditorData = json_decode($form_editor[$tab], true);
+        }
+        $formEditorUtilizado = true;
+    }
+    $return = array('table' => array(), 'pagina' => '');
+    $disabled = false;
+    if ($travar) {
+        $operacao = empty($acaoId) ? 'incluir' : 'alterar';
+        $restricao = $g['conf']->restricaoTravar($operacao, $form_campo_pk, $acaoId, $form_parent, $form_parent_valor);
+        if ($restricao !== true) {
+            $disabled = true;
+        }
+    }
+    $table = array();
+    $tabCount = 0;
+    $tabTotal = count($form->formArray['campos']);
+    $editorPosAuto = array('top' => - 16, 'left' => 5, 'hidden' => 0);
+    foreach ($form->formArray['campos'] as $tabCampo => $tabCampos) {
+        $tabCount++;
+        foreach ($tabCampos as $key => $value) {
+            if ($tabCampo == $tab) {
+                if ($value['type'] == 'hidden') {
+                    $value['displayType'] = 'hidden';
+                } else {
+                    $value['displayType'] = 'normal';
+                }
+                $form->formArray['campos'][$tabCampo][$key]['displayType'] = $value['displayType'];
+                $value['label'] = isset($value['label']) ? $value['label'] : false;
+                $rLabel = $g['conf']->camposLabelForm($key);
+                !$rLabel or $value['label'] = $rLabel;
+                if (!isset($value['restricao']) || $value['restricao']) {
+                    $value['label'] = $g['conf']->restricaoVerificaIncluirUpdate($key) && $value['type'] != 'hidden' && !empty($value['label']) ? '* ' . $value['label'] : $value['label'];
+                }
+                if ($value['label'][0] != '*') {
+                    $arqPerCallbackRestricaoIde = 'ide/personalizacaoForm/' . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao';
+                    $arqPerCallbackRestricaoApps = Apps::getDirAtivos() . 'personalizacaoForm/' . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao';
+                    $arqPerCallbackRestricaoAppsEditor = Apps::getDirEditor() . 'personalizacaoForm/' . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao';
+                    $arqPerCallbackRestricaoGlobal = "{$g['pathDados']}personalizacaoForm/" . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao';
+                    $arqPerCallbackRestricao = $arqPerCallbackRestricaoIde;
+                    if (!$g['modoDesenvolvedor'] && file_exists($arqPerCallbackRestricaoApps)) {
+                        $arqPerCallbackRestricao = $arqPerCallbackRestricaoApps;
+                    }
+                    if ($g['modoDesenvolvedorApp'] && file_exists($arqPerCallbackRestricaoAppsEditor)) {
+                        $arqPerCallbackRestricao = $arqPerCallbackRestricaoAppsEditor;
+                    }
+                    if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arqPerCallbackRestricaoGlobal)) {
+                        $arqPerCallbackRestricao = $arqPerCallbackRestricaoGlobal;
+                    }
+                    if (file_exists($arqPerCallbackRestricao) || $value['callbackRestricao']) {
+                        $value['label'] = '* ' . $value['label'];
+                    }
+                }
+                $value['label'] = $value['type'] == 'hidden' ? '' : $value['label'];
+                $alterado = false;
+                if (!isset($formEditorData[$key])) {
+                    $value['type'] == 'hidden' or $editorPosAuto['top'] += 23;
+                    $editorPos = $editorPosAuto;
+                    if ($formEditorUtilizado) {
+                        $editorPos['hidden'] = 1;
+                    }
+                } else {
+                    $editorPos = $formEditorData[$key];
+                    if (!(!isset($formEditorData[$key]['alterado']))) {
+                        $alterado = true;
+                    }
+                }
+                if (!(!isset($editorPos['width']))) {
+                    isset($form->formArray['campos'][$tabCampo][$key]['style']) or $form->formArray['campos'][$tabCampo][$key]['style'] = '';
+                    $form->formArray['campos'][$tabCampo][$key]['style'] = "width: {$editorPos['width']}px;" . $form->formArray['campos'][$tabCampo][$key]['style'];
+                }
+                if (!(!isset($editorPos['height']))) {
+                    isset($form->formArray['campos'][$tabCampo][$key]['style']) or $form->formArray['campos'][$tabCampo][$key]['style'] = '';
+                    $form->formArray['campos'][$tabCampo][$key]['style'] = "height: {$editorPos['height']}px;" . $form->formArray['campos'][$tabCampo][$key]['style'];
+                }
+                if (!(isset($editorPos['hidden']))) {
+                    $editorPos['hidden'] = 0;
+                }
+                if (trim($value['label']) && strpos($value['label'], '<a') === false) {
+                    $colunaValorBase64 = $value['name'];
+                    $titulo = trim(strip_tags($value['label']), '* ');
+                    $formLabelClass = $_SESSION['device'] == 'mobile' ? 'tw-form-label' : '';
+                    $value['label'] = "<span class=\"form-rotulo {$formLabelClass}\"  style=\"cursor: pointer;\" onclick=\"wikiAjuda('{$g['divId']}', 'FORM', 'CAMPO', '{$colunaValorBase64}', '{$titulo}');\">{$value['label']}</span>";
+                }
+                $tailwind['columns'] = '';
+                if (in_array($value['type'], ['button', 'submit'])) {
+                    $tailwind['columns'] = 'tw-w-auto';
+                } else {
+                    $tailwind['columns'] = '@3xl:tw-w-1/2 tw-w-full';
+                }
+                $cell = array('id' => $key, 'label' => $value['label'], 'name' => $value['name'], 'value' => $form->campoCodigoHTML($key, isset($r_modoFormLeve) && $r_modoFormLeve && $acaoId ? true : $disabled, $alterado, $enviar_btnId), 'align' => isset($value['align']) ? $value['align'] : false, 'style' => isset($value['style']) ? $value['style'] : false, 'type' => $value['type'], 'editorPos' => $editorPos, 'tabindex' => (($value['type'] == 'button' || $value['type'] == 'submit' ? 2 : 0) + $editorPos['top']) * 1000 + $editorPos['left'], 'hidden' => $editorPos['hidden'], 'columns' => $tailwind['columns']);
+                array_push($return['table'], $cell);
+            }
+        }
+        if ($tabCampo == $tab && $tabCount == 1) {
+            $return['pagina'] .= '<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") { ';
+            if (is_array($enviar_btnId)) {
+                $btnAdd = isset($enviar_btnId[0]) ? $enviar_btnId[0] : '';
+                $btnCln = isset($enviar_btnId[1]) ? $enviar_btnId[1] : '';
+                $btnNew = isset($enviar_btnId[2]) ? $enviar_btnId[2] : '';
+            } else {
+                $btnAdd = $enviar_btnId;
+                $btnCln = '';
+                $btnNew = '';
+            }
+            if ($disabled) {
+                $return['pagina'] .= <<<EOT
 \t\t\t\t\t\$("#{$btnAdd}").unbind('click.enviaForm').css('opacity', '0.5');
 \t\t\t\t\t\$("#{$btnCln}").unbind('click.limpaForm').css('opacity', '0.5');
 EOT;
-goto QrlSd; bMvl7: fdf80: goto hWZ6Z; SV0Sf: if (empty($btnNew)) { goto irmCQ; } goto YpgbI; aQVRC: $return['pagina'] .= "\$('#{$g['divId']}').find('> form > .buttonsBottom').remove();"; goto tlOas; ZnQbQ: $btnAdd = $enviar_btnId; goto X3FYj; AN0ti: $return['pagina'] .= '<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != "undefined") { '; goto aH0T8; t3b01: if (empty($btnAdd)) { goto QmD_B; } goto X87vc; uybeJ: if (!($tabCampo == $tab && $tabCount == 1)) { goto fdf80; } goto AN0ti; QU2J5: ocJhq: goto uybeJ; rg19N: $tabCount++; goto Vz0Ns; V_AUA: $btnNew = ''; goto MWwLe; U2uT6: aj_rL: goto GvHYf; ppeEB: $extra = <<<EOT
+            } else {
+                if (isset($r_modoFormLeve) && $r_modoFormLeve && $acaoId) {
+                    $return['pagina'] .= <<<EOT
+\t\t\t\t\t\$("#{$btnAdd}").unbind('click.enviaForm').bind('click.enviaForm', function() {
+\t\t\t\t\t\tdivSetarAcaoId('{$g['divId']}', '', 'modoFormLeve');
+\t\t\t\t\t\tdivRefresh('{$g['divId']}');
+\t\t\t\t\t\t\$(this).find('span').css('font-weight', 'normal').html('Enviar');
+\t\t\t\t\t}).find('span').css('font-weight', 'bold').html('Habilitar Edição');
+\t\t\t\t\t\$("#{$btnCln}").unbind('click.limpaForm').css('opacity', '0.5');
+EOT;
+                } else {
+                    if (!(!$form->verificaSeFoiEnviado())) {
+                        $return['pagina'] .= "\$('#{$g['divId']}').find('> form > .buttonsBottom').remove();";
+                    }
+                    if (!(empty($btnAdd))) {
+                        $func = uniqid();
+                        $target = "target:     '#{$g['divId']}', ";
+                        $reload = "reloadUI('{$g['divId']}');";
+                        $extra = '';
+                        if (!(!isset($formNaoRecarregar))) {
+                            $target = '';
+                            $reload = '';
+                            $extra = <<<EOT
 \t\t\t\t\t\t\t// CTRL + S
 \t\t\t\t\t\t\t\$("#{$btnAdd}").addClass('ctrlsbtn');
 EOT;
-goto RzOKK; aH0T8: if (is_array($enviar_btnId)) { goto vRC7D; } goto ZnQbQ; ubypV: $return['pagina'] .= <<<EOT
-\t\t\t\t\t\t\$("#{$btnCln}").unbind('click.limpaForm'); // evita eventos duplicados
-\t\t\t\t\t\t\$("#{$btnCln}").bind('click.limpaForm', function() {
-\t\t\t\t\t\t\t\$('#{$g['divId']}').find('form').limpaForm();
-\t\t\t\t\t\t\treturn false; // preventDefault() & stopPropagation()
-\t\t\t\t\t\t});
-\t\t\t\t\t\t
-EOT;
-goto ohUeJ; RzOKK: oZYw8: goto AAS4n; YpgbI: $return['pagina'] .= <<<EOT
-\t\t\t\t\t\t\$("#{$btnNew}").unbind('click.limpaForm'); // evita eventos duplicados
-\t\t\t\t\t\t\$("#{$btnNew}").bind('click.limpaForm', function() {
-\t\t\t\t\t\t\tdivSetarAcaoId('{$g['divId']}', '');
-\t\t\t\t\t\t\tdivRefresh('{$g['divId']}', false);
-\t\t\t\t\t\t\treturn false; // preventDefault() & stopPropagation()
-\t\t\t\t\t\t});
-\t\t\t\t\t\t
-EOT;
-goto etx3k; MWwLe: goto hASX8; goto lte13; zLRC_: jpmak: goto wrWWk; aKGwS: jIGs7: goto R0EFr; A06G6: if (empty($confirmacao)) { goto jpmak; } goto CwwGi; GvHYf: $return['pagina'] .= "\n} </script></div>\n"; goto bMvl7; X87vc: $func = uniqid(); goto ij5kU; lte13: vRC7D: goto mnNUX; AAS4n: $acaoFunc = <<<EOT
+                        }
+                        $acaoFunc = <<<EOT
 \t\t\t\t\tfunction func{$func}() {
 \t\t\t\t\t\tif (\$("#{$btnAdd}").data('processando') != 1) {
 \t\t\t\t\t\t\t\$("#{$btnAdd}").data('processando', 1);
@@ -268,15 +1223,21 @@ goto etx3k; MWwLe: goto hASX8; goto lte13; zLRC_: jpmak: goto wrWWk; aKGwS: jIGs
 \t\t\t\t\t});
 \t\t\t\t\t*/
 EOT;
-goto H1LLz; QFUBh: if (!isset($formNaoRecarregar)) { goto oZYw8; } goto U7moY; tlOas: es6AR: goto t3b01; Vz0Ns: foreach ($tabCampos as $key => $value) { goto Jxev8; qj9lc: dse6N: goto yFzoH; sPrVj: $arqPerCallbackRestricaoApps = Apps::getDirAtivos() . 'personalizacaoForm/' . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao'; goto lGV0Q; zGfde: $value['label'] = isset($value['label']) ? $value['label'] : false; goto Ov5XO; JoKFr: psTZd: goto fTMQE; OAE9R: if (!isset($formEditorData[$key]['alterado'])) { goto HGhOH; } goto PG8zu; ZZAY1: HGhOH: goto etflW; HhWxH: array_push($return['table'], $cell); goto NVlQG; u5ewr: $arqPerCallbackRestricao = $arqPerCallbackRestricaoApps; goto qj9lc; ZCjVm: $form->formArray['campos'][$tabCampo][$key]['style'] = "width: {$editorPos['width']}px;" . $form->formArray['campos'][$tabCampo][$key]['style']; goto NCBxN; bp2ml: $tailwind['columns'] = ''; goto yMtUL; Ufh07: $arqPerCallbackRestricao = $arqPerCallbackRestricaoIde; goto dB2Ar; aa5nB: goto EasfS; goto RD1aF; o546s: tpJFV: goto d1cFh; QnRLG: $value['label'] = "<span class=\"form-rotulo {$formLabelClass}\"  style=\"cursor: pointer;\" onclick=\"wikiAjuda('{$g['divId']}', 'FORM', 'CAMPO', '{$colunaValorBase64}', '{$titulo}');\">{$value['label']}</span>"; goto EKE3a; XTioV: $value['displayType'] = 'normal'; goto aa5nB; l6XuY: $colunaValorBase64 = $value['name']; goto ptID2; RD1aF: khuot: goto JvZLK; jhJV7: if ($value['type'] == 'hidden') { goto khuot; } goto XTioV; SBUWr: $editorPos['hidden'] = 1; goto YdIAA; jPb_T: !$rLabel or $value['label'] = $rLabel; goto M6GWc; ptID2: $titulo = trim(strip_tags($value['label']), '* '); goto U_dnp; a6yNL: rejJA: goto H1Kg9; bB0Nc: if (isset($editorPos['hidden'])) { goto tpJFV; } goto V0crn; zHf1L: $arqPerCallbackRestricaoGlobal = "{$g['pathDados']}personalizacaoForm/" . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao'; goto Ufh07; etflW: goto RqMrV; goto KYoIH; db_0J: RqMrV: goto mYKvA; NZ4NL: $value['type'] == 'hidden' or $editorPosAuto['top'] += 23; goto Pekf0; yMtUL: if (in_array($value['type'], ['button', 'submit'])) { goto rejJA; } goto rOqP4; P2rYY: if (!isset($editorPos['height'])) { goto Nyian; } goto Gi6oZ; i9nzM: EasfS: goto dPW1T; Jxev8: if (!($tabCampo == $tab)) { goto U5Ldf; } goto jhJV7; tiLct: if (!isset($formEditorData[$key])) { goto sW_Xv; } goto D5e7b; dPW1T: $form->formArray['campos'][$tabCampo][$key]['displayType'] = $value['displayType']; goto zGfde; KYoIH: sW_Xv: goto NZ4NL; M6GWc: if (!(!isset($value['restricao']) || $value['restricao'])) { goto psTZd; } goto i9SpC; PG8zu: $alterado = true; goto ZZAY1; WD_da: goto M4ORV; goto a6yNL; qPG5K: $arqPerCallbackRestricaoIde = 'ide/personalizacaoForm/' . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao'; goto sPrVj; EKE3a: b5Job: goto bp2ml; PV9Ya: M4ORV: goto G1_nR; rOqP4: $tailwind['columns'] = '@3xl:tw-w-1/2 tw-w-full'; goto WD_da; Horzm: Lh79p: goto Nxw0X; Nxw0X: $value['label'] = $value['type'] == 'hidden' ? '' : $value['label']; goto RJG0v; Gi6oZ: isset($form->formArray['campos'][$tabCampo][$key]['style']) or $form->formArray['campos'][$tabCampo][$key]['style'] = ''; goto Ygh3W; G1_nR: $cell = array('id' => $key, 'label' => $value['label'], 'name' => $value['name'], 'value' => $form->campoCodigoHTML($key, isset($r_modoFormLeve) && $r_modoFormLeve && $acaoId ? true : $disabled, $alterado, $enviar_btnId), 'align' => isset($value['align']) ? $value['align'] : false, 'style' => isset($value['style']) ? $value['style'] : false, 'type' => $value['type'], 'editorPos' => $editorPos, 'tabindex' => (($value['type'] == 'button' || $value['type'] == 'submit' ? 2 : 0) + $editorPos['top']) * 1000 + $editorPos['left'], 'hidden' => $editorPos['hidden'], 'columns' => $tailwind['columns']); goto HhWxH; CFV36: yuMHU: goto Horzm; Ygh3W: $form->formArray['campos'][$tabCampo][$key]['style'] = "height: {$editorPos['height']}px;" . $form->formArray['campos'][$tabCampo][$key]['style']; goto ZVlCD; GAI9E: $value['label'] = '* ' . $value['label']; goto CFV36; fTMQE: if (!($value['label'][0] != '*')) { goto Lh79p; } goto qPG5K; pzndh: sNBL7: goto D16sJ; JvZLK: $value['displayType'] = 'hidden'; goto i9nzM; NCBxN: oxEjZ: goto P2rYY; NVlQG: U5Ldf: goto NGK0i; d1cFh: if (!(trim($value['label']) && strpos($value['label'], '<a') === false)) { goto b5Job; } goto l6XuY; D5e7b: $editorPos = $formEditorData[$key]; goto OAE9R; U_dnp: $formLabelClass = $_SESSION['device'] == 'mobile' ? 'tw-form-label' : ''; goto QnRLG; zx0va: if (!$formEditorUtilizado) { goto Pp2bR; } goto SBUWr; i9SpC: $value['label'] = $g['conf']->restricaoVerificaIncluirUpdate($key) && $value['type'] != 'hidden' && !empty($value['label']) ? '* ' . $value['label'] : $value['label']; goto JoKFr; Ov5XO: $rLabel = $g['conf']->camposLabelForm($key); goto jPb_T; Pekf0: $editorPos = $editorPosAuto; goto zx0va; H1Kg9: $tailwind['columns'] = 'tw-w-auto'; goto PV9Ya; D16sJ: if (!(file_exists($arqPerCallbackRestricao) || $value['callbackRestricao'])) { goto yuMHU; } goto GAI9E; GwIkN: isset($form->formArray['campos'][$tabCampo][$key]['style']) or $form->formArray['campos'][$tabCampo][$key]['style'] = ''; goto ZCjVm; dX2cj: n2ebi: goto HUUqG; lGV0Q: $arqPerCallbackRestricaoAppsEditor = Apps::getDirEditor() . 'personalizacaoForm/' . str_replace('/', '-', trim(@$g['r_'], '/')) . '-' . $key . '-callbackRestricao'; goto zHf1L; w4SL9: $arqPerCallbackRestricao = $arqPerCallbackRestricaoGlobal; goto pzndh; RJG0v: $alterado = false; goto tiLct; dB2Ar: if (!(!$g['modoDesenvolvedor'] && file_exists($arqPerCallbackRestricaoApps))) { goto dse6N; } goto u5ewr; mYKvA: if (!isset($editorPos['width'])) { goto oxEjZ; } goto GwIkN; NGK0i: nOEgF: goto Sl86X; ZVlCD: Nyian: goto bB0Nc; yzGUW: $arqPerCallbackRestricao = $arqPerCallbackRestricaoAppsEditor; goto dX2cj; YdIAA: Pp2bR: goto db_0J; yFzoH: if (!($g['modoDesenvolvedorApp'] && file_exists($arqPerCallbackRestricaoAppsEditor))) { goto n2ebi; } goto yzGUW; V0crn: $editorPos['hidden'] = 0; goto o546s; HUUqG: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arqPerCallbackRestricaoGlobal))) { goto sNBL7; } goto w4SL9; Sl86X: } goto QU2J5; mGB8K: hASX8: goto NlC0u; BhZ0c: if (!$form->verificaSeFoiEnviado()) { goto es6AR; } goto aQVRC; ommZF: hCfUo: goto UZR4F; UZR4F: $return['pagina'] .= <<<EOT
-\t\t\t\t\t\$("#{$btnAdd}").unbind('click.enviaForm').bind('click.enviaForm', function() {
-\t\t\t\t\t\tdivSetarAcaoId('{$g['divId']}', '', 'modoFormLeve');
-\t\t\t\t\t\tdivRefresh('{$g['divId']}');
-\t\t\t\t\t\t\$(this).find('span').css('font-weight', 'normal').html('Enviar');
-\t\t\t\t\t}).find('span').css('font-weight', 'bold').html('Habilitar Edição');
-\t\t\t\t\t\$("#{$btnCln}").unbind('click.limpaForm').css('opacity', '0.5');
+                        $acao = "func{$func}();";
+                        if (!(empty($confirmacao))) {
+                            $confirmacao = addslashes($confirmacao);
+                            $acao = <<<EOT
+\t\t\t\t\t\t\tvar \$buttons = {
+\t\t\t\t\t\t\t\t"Sim": function() {
+\t\t\t\t\t\t\t\t\t{$acao}
+\t\t\t\t\t\t\t\t\t\$(this).dialog("destroy").remove();
+\t\t\t\t\t\t\t\t},
+\t\t\t\t\t\t\t\t"Não": function() { \$(this).dialog("destroy").remove(); }
+\t\t\t\t\t\t\t}
+\t\t\t\t\t\t\tdialogConfirm('Atenção!', "{$confirmacao}", \$buttons);
 EOT;
-goto U2uT6; QrlSd: goto aj_rL; goto ommZF; ohUeJ: bMju8: goto SV0Sf; botNH: QmD_B: goto YBehE; y_FdN: $btnNew = isset($enviar_btnId[2]) ? $enviar_btnId[2] : ''; goto mGB8K; D7tBP: $extra = ''; goto QFUBh; U7moY: $target = ''; goto xCaFu; NlC0u: if ($disabled) { goto jIGs7; } goto wDaav; Mgcps: $reload = "reloadUI('{$g['divId']}');"; goto D7tBP; DHioP: goto aj_rL; goto aKGwS; mnNUX: $btnAdd = isset($enviar_btnId[0]) ? $enviar_btnId[0] : ''; goto CtF2z; wrWWk: $return['pagina'] .= <<<EOT
+                        }
+                        $return['pagina'] .= <<<EOT
 \t\t\t\t\t\t{$acaoFunc}
 \t\t\t\t\t\t\$("#{$btnAdd}").unbind('click.enviaForm'); // evita eventos duplicados
 \t\t\t\t\t\t\$("#{$btnAdd}").bind('click.enviaForm', function() {
@@ -284,7 +1245,88 @@ goto U2uT6; QrlSd: goto aj_rL; goto ommZF; ohUeJ: bMju8: goto SV0Sf; botNH: QmD_
 \t\t\t\t\t\t\treturn false; // preventDefault() & stopPropagation()
 \t\t\t\t\t\t});
 EOT;
-goto botNH; CtF2z: $btnCln = isset($enviar_btnId[1]) ? $enviar_btnId[1] : ''; goto y_FdN; hWZ6Z: oSEwQ: goto e3CaP; H1LLz: $acao = "func{$func}();"; goto A06G6; xCaFu: $reload = ''; goto ppeEB; e3CaP: } goto bE1Zo; lLTCT: goto XFekT; goto ASSCU; D2Mx8: goto sN34P; goto NYxc4; TBm2x: $arquivoAppsEditor = Apps::getDirEditor() . 'personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto y_Tkm; j2rN4: if ($g['modoDesenvolvedorApp']) { goto QUwJF; } goto xQTFw; bfXFS: QUwJF: goto RDakW; ekI8q: if (!($restricao !== true)) { goto G7OKN; } goto Dfsnt; w3GYK: if (!$r_campoRefresh) { goto LXqFi; } goto xSj2B; xSj2B: ob_end_clean(); goto Sui69; wdH1o: UHLLM: goto MUMo9; NYxc4: iZTwL: goto Hh9mK; RDakW: $arquivo = $arquivoAppsEditor; goto o2llY; wCjb4: $g['smarty']->assign('isMobile', false); goto bkX09; ubP9v: $restricao = $g['conf']->restricaoTravar($operacao, $form_campo_pk, $acaoId, $form_parent, $form_parent_valor); goto ekI8q; bkX09: $arquivoIde = 'ide/personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto TBm2x; Vzgqm: $formEditorData = array_merge($formEditorData_, $formEditorData); goto Vd6fL; tPnmW: global $r_campoRefresh; goto wCjb4; NQke1: EUKYf: goto UdRGH; EbEcq: $arquivo = $arquivoAppsEditor; goto M0Bw6; S_do0: $formEditorData = json_decode($form_editor[$tab], true); goto xcjqg; adcc3: G7OKN: goto gtRw0; L5Swi: unlink($arquivo); goto WfSqm; S4J_z: $arquivo = $arquivoGlobal; goto pz5lN; wG5GX: $arquivoApps = Apps::getDirAtivos() . 'personalizacaoForm/' . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto N46gW; Dfsnt: $disabled = true; goto adcc3; Vd6fL: MtfDn: goto KPiWe; b0Dkw: usort($return['table'], function ($a, $b) { goto F4hVC; IUMIu: return $a['tabindex'] < $b['tabindex'] ? -1 : 1; goto OYno9; QgiYF: cuJ7i: goto IUMIu; F4hVC: if (!($a['tabindex'] == $b['tabindex'])) { goto cuJ7i; } goto bGjQl; bGjQl: return 0; goto QgiYF; OYno9: }); goto Hxw7b; MvYnn: N6gqQ: goto Cmakd; M0Bw6: qe97I: goto hcoE9; o2llY: P9bhq: goto D2d18; fOowm: sN34P: goto h45QT; D2d18: goto GyopC; goto ztUV6; ztUV6: NQJoR: goto R2TRd; whAuL: $arquivoGlobal = "{$g['pathDados']}personalizacaoForm/" . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto Adwh8; x9aEC: if (!$formEditorUtilizado) { goto MhzFd; } goto b0Dkw; Bm9_Z: if ($g['modoDesenvolvedor']) { goto NQJoR; } goto j2rN4; LCa4u: if (!$travar) { goto Ft_hv; } goto JOqkd; FOs5B: foreach ($arrayRecebido as $key => $value) { goto iJ3mf; xVFY2: $arrayNovo[$key] = $value; goto Q4l_t; SRztn: if (!isset($arrayOriginal[$key])) { goto Xdsw3; } goto WCPr8; ReaKg: if (!$diferente) { goto h_icM; } goto xVFY2; pQw6c: Xdsw3: goto aOZk3; VYnwy: tWpSJ: goto VeacX; VeacX: goto jGFGz; goto pQw6c; Q4l_t: h_icM: goto N7Bsm; iJ3mf: $diferente = false; goto SRztn; N7Bsm: hPzHy: goto fbk4l; aOZk3: $diferente = true; goto N7Le5; N7Le5: jGFGz: goto ReaKg; WCPr8: foreach ($value as $key2 => $value2) { goto YxVX5; XYMRC: UxW68: goto YiMJp; MHz8I: goto hlIG7; goto ktWUG; ezZX4: switch ($key2) { case 'hidden': $limite = 0; goto Mms5M; case 'top': $limite = 2; goto Mms5M; default: $limite = 5; goto Mms5M; } goto ZMt64; JP8an: $diferente = true; goto pXKY6; ktWUG: my1mx: goto NoTeT; oHloR: $valor = abs($valor - $valorOriginal); goto iv4B3; LVNec: hlIG7: goto XYMRC; YxVX5: if (!isset($arrayOriginal[$key][$key2]) && isset($value2)) { goto my1mx; } goto vReZB; sYly2: $valorOriginal = round($arrayOriginal[$key][$key2], 2); goto ezZX4; pXKY6: YITdv: goto MHz8I; ZMt64: Hdidm: goto a9I_w; a9I_w: Mms5M: goto oHloR; NoTeT: $diferente = true; goto LVNec; vReZB: $valor = round($value2, 2); goto sYly2; iv4B3: if (!($valor > $limite)) { goto YITdv; } goto JP8an; YiMJp: } goto VYnwy; fbk4l: } goto KWrK3; JieCj: global $g, $r_formEditorData, $form_editor, $formNaoRecarregar; goto pNKvL; c7wvv: if (isset($form_editor) && isset($form_editor[$tab]) && !empty($form_editor[$tab])) { goto iZTwL; } goto EQO1x; Sui69: foreach ($return['table'] as $campo) { goto fZkVB; lsP1s: Zuc8F: goto zVcBM; zVcBM: dodkH: goto aZ2w0; fZkVB: if (!($campo['id'] == $r_campoRefresh)) { goto Zuc8F; } goto IVloE; IVloE: echo $campo['value']; goto lsP1s; aZ2w0: } goto wdH1o; hDZUZ: gdbYd: goto i6Quc; y_Tkm: $arquivoGlobal = "{$g['pathDados']}personalizacaoForm/" . 'formEditorData-' . str_replace('/', '-', trim($g['r_'], '/')) . "-{$tab}"; goto Bm9_Z; Adwh8: $arquivo = $arquivoIde; goto R06_5; bE1Zo: BqvmR: goto x9aEC; WfSqm: XFekT: goto fOowm; kfKGH: $return = array('table' => array(), 'pagina' => ''); goto KqxTM; KPiWe: $formEditorUtilizado = true; goto rYRr5; xg7Jm: if (!(isset($form_editor) && isset($form_editor[$tab]) && !empty($form_editor[$tab]))) { goto rRKAB; } goto fGw2I; h45QT: bBidI: goto Ah334; ASSCU: bJwg2: goto L5Swi; poHDk: $arquivo = $arquivoApps; goto NQke1; Op1cO: if (!file_exists($arquivo)) { goto lgGIU; } goto MwsTW; Cmakd: $formEditorUtilizado = true; goto mU4Ek; ms0Yn: $formEditorUtilizado = false; goto Op1cO; gtRw0: Ft_hv: goto KQEM9; jBkTK: goto P9bhq; goto bfXFS; rYRr5: rRKAB: goto kfKGH; KcFTv: if (empty($arrayNovo)) { goto bJwg2; } goto p9e_z; UmlWP: $editorPosAuto = array('top' => -16, 'left' => 5, 'hidden' => 0); goto WblUM; MwsTW: $formEditorData = json_decode(file_get_contents($arquivo), true); goto dv28S; KQEM9: $table = array(); goto wFKxX; hxs6Q: LXqFi: goto mgUEU; wFKxX: $tabCount = 0; goto h1FQz; fGw2I: if (!empty($formEditorData)) { goto gdbYd; } goto S_do0; mgUEU: return $return; goto y2W5R; p9e_z: file_put_contents($arquivo, json_encode($arrayNovo)); goto lLTCT; y2W5R: } function gProcessaSelect($options) { goto raZlM; BhPNF: return $selectOptions; goto dtpvZ; HAAto: foreach ($options as $option) { goto rgw1r; xJRdf: $selectOptions .= '<option ' . trim($tmp) . ">{$option['title']}</option>"; goto p1UWb; JO7ME: wzeKt: goto lHZqb; sMsoo: $tmp .= isset($option['value']) ? "value=\"{$option['value']}\" " : ''; goto a7JEc; p1UWb: goto wzeKt; goto dxp4t; a7JEc: $tmp .= isset($option['tooltip']) ? "title=\"{$option['tooltip']}\" " : ''; goto vVdq3; lHZqb: qnPCV: goto lKxdd; RPG2n: $selectOptions .= '<optgroup label="' . $option['value'] . '"></optgroup>'; goto JO7ME; dxp4t: q9VD5: goto RPG2n; rgw1r: if ($option['title'] == 'optgroup') { goto q9VD5; } goto CMmvf; vVdq3: $tmp .= isset($option['selected']) && $option['selected'] ? 'selected="selected" ' : ''; goto xJRdf; CMmvf: $tmp = ''; goto sMsoo; lKxdd: } goto gAI0o; gAI0o: WWdQ7: goto k9w90; raZlM: $selectOptions = ''; goto dUrqH; dUrqH: if (!$options) { goto kN1q1; } goto HAAto; k9w90: kN1q1: goto BhPNF; dtpvZ: } function gProcessaDocumento($templateNome) { goto NRTey; Nq58E: $css = $matches[1]; goto slVC3; N9Ogb: $template = $g['pathRaiz'] . 'configuracoes/documentos/' . $templateNome; goto BrwWV; slVC3: $css = preg_replace("/\n/sm", " /\n", trim($css)); goto cb0Qo; w6rlM: if (!isset($matches)) { goto U9qWv; } goto jIPAI; spanr: $tmp = str_replace($toReplace, $css, $tmp); goto Rl5UH; Rl5UH: U9qWv: goto cdLLb; BrwWV: pj3C7: goto ZbSGM; cdLLb: return $g['smarty']->fetch($template); goto Q9XGB; cb0Qo: $css = <<<EOT
+                    }
+                    if (!(empty($btnCln))) {
+                        $return['pagina'] .= <<<EOT
+\t\t\t\t\t\t\$("#{$btnCln}").unbind('click.limpaForm'); // evita eventos duplicados
+\t\t\t\t\t\t\$("#{$btnCln}").bind('click.limpaForm', function() {
+\t\t\t\t\t\t\t\$('#{$g['divId']}').find('form').limpaForm();
+\t\t\t\t\t\t\treturn false; // preventDefault() & stopPropagation()
+\t\t\t\t\t\t});
+\t\t\t\t\t\t
+EOT;
+                    }
+                    if (!(empty($btnNew))) {
+                        $return['pagina'] .= <<<EOT
+\t\t\t\t\t\t\$("#{$btnNew}").unbind('click.limpaForm'); // evita eventos duplicados
+\t\t\t\t\t\t\$("#{$btnNew}").bind('click.limpaForm', function() {
+\t\t\t\t\t\t\tdivSetarAcaoId('{$g['divId']}', '');
+\t\t\t\t\t\t\tdivRefresh('{$g['divId']}', false);
+\t\t\t\t\t\t\treturn false; // preventDefault() & stopPropagation()
+\t\t\t\t\t\t});
+\t\t\t\t\t\t
+EOT;
+                    }
+                }
+            }
+            $return['pagina'] .= "\n} </script></div>\n";
+        }
+    }
+    if ($formEditorUtilizado) {
+        usort($return['table'], function($a, $b) {
+            if (!($a['tabindex'] == $b['tabindex'])) {
+                return $a['tabindex'] < $b['tabindex'] ? - 1 : 1;
+            } else {
+                return 0;
+            }
+        });
+    }
+    if (!$r_campoRefresh) {
+        return $return;
+    } else {
+        ob_end_clean();
+        foreach ($return['table'] as $campo) {
+            if ($campo['id'] == $r_campoRefresh) {
+                echo $campo['value'];
+            }
+        }
+        die;
+    }
+}
+
+function gProcessaSelect($options)
+{
+    $selectOptions = '';
+    if ($options) {
+        foreach ($options as $option) {
+            if ($option['title'] == 'optgroup') {
+                $selectOptions .= '<optgroup label="' . $option['value'] . '"></optgroup>';
+            } else {
+                $tmp = '';
+                $tmp .= isset($option['value']) ? "value=\"{$option['value']}\" " : '';
+                $tmp .= isset($option['tooltip']) ? "title=\"{$option['tooltip']}\" " : '';
+                $tmp .= isset($option['selected']) && $option['selected'] ? 'selected="selected" ' : '';
+                $selectOptions .= '<option ' . trim($tmp) . ">{$option['title']}</option>";
+            }
+        }
+    }
+    return $selectOptions;
+}
+
+function gProcessaDocumento($templateNome)
+{
+    global $g, $confUsuario;
+    $template = $g['pathRaiz'] . 'configuracoes/configuracoesPorBanco/' . $confUsuario['dbDatabase'] . '/documentos/' . $templateNome;
+    if (!(file_exists($template))) {
+        $template = $g['pathRaiz'] . 'configuracoes/documentos/' . $templateNome;
+    }
+    $tmp = file_get_contents($template);
+    preg_match('/<style.*>(.*)<\\/style>/sm', $tmp, $matches);
+    if (!(!isset($matches))) {
+        $toReplace = $matches[0];
+        $css = $matches[1];
+        $css = preg_replace("/\n/sm", " /\n", trim($css));
+        $css = <<<EOT
 <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t\$('head').append(' \\
 \t\t<style type="text/css"> \\
@@ -293,7 +1335,1523 @@ goto botNH; CtF2z: $btnCln = isset($enviar_btnId[1]) ? $enviar_btnId[1] : ''; go
 \t');
 } </script></div>
 EOT;
-goto spanr; jIPAI: $toReplace = $matches[0]; goto Nq58E; yBZ5O: preg_match('/<style.*>(.*)<\\/style>/sm', $tmp, $matches); goto w6rlM; SkLP_: if (file_exists($template)) { goto pj3C7; } goto N9Ogb; ZbSGM: $tmp = file_get_contents($template); goto yBZ5O; NRTey: global $g, $confUsuario; goto CG6Vx; CG6Vx: $template = $g['pathRaiz'] . 'configuracoes/configuracoesPorBanco/' . $confUsuario['dbDatabase'] . '/documentos/' . $templateNome; goto SkLP_; Q9XGB: } function mysql_query($query, $executarTriggersPHP = true) { goto h5weo; cq2Zg: $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'updateBefore' ({$tabela})</span><br />"; goto KOS2V; PF5Ox: x49lb: goto sCVE3; J8uem: $sql = "SELECT * FROM {$T162_Registro_Tabela} WHERE {$T162_Registro_CampoId} = '{$T162_Registro_Id}';"; goto PeZvA; GZSI4: preg_match('/ *([^ ]+) /Uis', $query, $acao); goto F3Itp; eInJu: if ($acao == 'U') { goto XnqXO; } goto VkkVe; XZAOt: if (!isset($g['conf']->conf['auditoriaCampos'])) { goto Io_dT; } goto bWwQq; gqszt: $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'updateBefore' ({$tabela}) ({$tabelaAcaoId})</span><br />"; goto fH6_m; Za1Cs: fwrite($h, $log . "\n"); goto uf2UX; pyTKu: $tabela = $tabela[1]; goto GZSI4; hi1KQ: $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'insertAfter' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />"; goto sTnXd; w9kwY: PA9uh: goto Jhwgj; Xw7ef: $T162_Registro_Depois = array(); goto RARzG; uBRaj: LGE27: goto vdkvs; fvD_4: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto Y07y5; } goto OM90W; U33KG: $acao = 'U'; goto PIG74; e3uh7: $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'insertBefore' ({$tabela})</span><br />"; goto IB_JO; HxroN: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto qx1yg; } goto fbTAt; T1WH9: processarCacheTabela($tabela); goto Z7k_U; OoDbK: v7O2v: goto fvD_4; Z7k_U: kyBwI: goto ifBSj; VE1bF: ED4ga: goto sqxLu; gATyY: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto P97k_; } goto hi1KQ; h5weo: global $g, $confUsuario; goto d_nef; gHWFa: $T162_Registro_Id = $g['mysqlLastId']; goto PK0Lq; jGkio: preg_match('/INTO ([^ ]+) /Uis', $query, $tabela); goto iq5RL; vdkvs: N9cYo: goto q01Y1; sTnXd: $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'insertAfter' ({$tabela}) ({$g['mysqlLastId']})</span><br />"; goto gqq21; KOS2V: fwrite($h, $log . "\n"); goto zRJ7_; nJOfI: Wu5rj: goto AM2LO; IJ_0G: $T162_Registro_Id = 0; goto NMgVP; fH6_m: fwrite($h, $log . "\n"); goto UwfnA; HU67K: $sql = "INSERT INTO T162 (T162_C007_Id, T162_Acao, T162_Query, T162_DataHora, T162_Tabela, T162_TempoExecucao, T162_Registro_Id, T162_Registro, T162_IP) VALUES ('{$g['usuarioAtual']}', '{$acao}', '{$T162_Extra}', '" . date('Y-m-d H:i:s') . "', '{$tabela}', '{$time}', '{$T162_Registro_Id}', COMPRESS('{$arrayAlterados}'), '{$_SERVER['REMOTE_ADDR']}');"; goto iukId; SLWeN: $time_start = microtime(true); goto lWj2T; uu0d3: $arrayAlterados = $T162_Registro; goto nJOfI; Egapo: if (!$executarTriggersPHP) { goto oya4P; } goto cnZn4; NYjIN: $tmpTimeStart = microtime(true); goto gjitZ; kQTr4: X8U3_: goto XCTNb; J7cup: if ($retorno) { goto HQiGg; } goto lAXFv; PIG74: $tabelaAcaoId = $tabelaAuxiliarRegistro["{$tabelaAuxiliar['tabela']}_Id"]; goto y5tvH; ievpk: $g['conf']->triggers($tabela, 'deleteAfter', $tabelaAcaoId); goto vVmN1; XXSid: Y07y5: goto pZeBM; uuC2W: $query = mysql_real_escape_string($query); goto fdOZ3; z3UXl: if (!empty($tabela)) { goto HHrSI; } goto jGkio; tECKq: if ($acao == 'I') { goto cV1N0; } goto eInJu; BqCSh: Os4EC: goto MZT0j; SNyjc: $debug = debug_backtrace(); goto n1TOV; gpzmX: $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'deleteAfter' ({$tabela}) ({$tabelaAcaoId})</span><br />"; goto nEutH; euHrC: fwrite($h, $log . "\n"); goto qJnUA; VSS8t: unset($debug); goto Egapo; qtvAe: $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'deleteBefore' ({$tabela}) ({$tabelaAcaoId})</span><br />"; goto dmY0r; XCTNb: G6le4: goto JJTUd; lmAxI: uIRbB: goto fg3N_; cg80B: if (!(mysql_num_rows($resT162RegistroDepois) == 1)) { goto LGE27; } goto LddIy; VkkVe: if (!($acao == 'D')) { goto pyxPg; } goto HxroN; pi0Ng: if (!$resT162RegistroDepois) { goto N9cYo; } goto cg80B; p_9Hd: $tabelaAcaoId = 0; goto Ecq1D; s3F0S: fwrite($h, $log . "\n"); goto aG28w; bgAQl: goto PA9uh; goto S3Y6x; txcDA: goto hSwNr; goto OQcxK; iq5RL: if (!empty($tabela)) { goto XryII; } goto L4p6_; h46gc: if ($time < 3) { goto qjgZH; } goto lhPqQ; zRJ7_: QtovZ: goto w9kwY; vDS9a: AShH0: goto SLWeN; TMGGA: $T162_Registro_Tabela = $T162_Registro_Tabela[0]; goto TkNoG; cnZn4: if ($acao == 'I') { goto Awzkv; } goto UQqA9; UkvQ2: Q224O: goto iJQZO; dM_9i: goto bgn8A; goto BjFaw; GZsWf: $acao = 'D'; goto y3EQ8; RrQju: E4BYV: goto UkvQ2; xTH7j: $T162_Registro = @mysql_fetch_assoc($resT162Registro); goto w50dB; bWwQq: foreach ($g['conf']->conf['auditoriaCampos'] as $value) { goto x11uP; x11uP: if (!(strpos($value, $tabela) !== false)) { goto dqMZn; } goto MVcpM; oJQaa: dqMZn: goto is_pO; MVcpM: gExplodeAuditoria($value, mysql_insert_id($g['conexaoBancoAuditoria'])); goto oJQaa; is_pO: FHA3_: goto okfkl; okfkl: } goto vbVtO; lAXFv: return $retorno; goto oPxpw; aG28w: iLYZf: goto X5zpR; ic6gd: $g['conf']->triggers($tabela, 'deleteBefore', $tabelaAcaoId); goto In0cI; pJVtS: goto x49lb; goto D2v_P; ifBSj: $T162_Extra = ''; goto SNyjc; yvEhh: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto X8U3_; } goto DbDC2; Vifj4: preg_match('/INSERT INTO (?<tabela>[^A]+A) \\((?<fk>[^,]+), (?<campo>[^\\)]+)\\) VALUES \\((?<id>[^,]+), [^\\)]+\\) ON DUPLICATE KEY UPDATE.*/Uis', $query, $tabelaAuxiliar); goto reSzW; h1pfn: if (!empty($tabela)) { goto ADJgK; } goto Xdayx; iMZ1B: Awzkv: goto gATyY; WETXa: if (!(mysql_num_rows($resT162Registro) == 1)) { goto BOqEM; } goto xTH7j; iJQZO: goto h3eR3; goto VE1bF; y3EQ8: qgnTT: goto pJVtS; AM91t: $h = fopen("/tmp/debug-{$_COOKIE['debug']}", 'a'); goto py5Uv; pLOvy: $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'deleteAfter' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />"; goto gpzmX; d_nef: gVerificarConexao(); goto mHVYn; J6Omb: Tsccy: goto Jk22u; NWO3r: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto CptZf; } goto pLOvy; ZwYKn: CptZf: goto ievpk; KIO0h: UhDyw: goto dOdcR; bDnEC: $g['conf']->triggers($tabela, 'insertAfter', $g['mysqlLastId']); goto e7xSp; PeZvA: $resT162Registro = mysqli_query($sql); goto UYDqe; ShjVu: if (empty($tabelaAuxiliarRegistro)) { goto RObcc; } goto U33KG; lHzqp: if (stristr($acao, 'SELECT')) { goto UhDyw; } goto GBQwA; kVDGa: Io_dT: goto LBgTq; BjFaw: bP2al: goto WETXa; VjJ_9: HHrSI: goto brlI7; dmY0r: fwrite($h, $log . "\n"); goto P1fYt; n1TOV: if (!isset($debug[0])) { goto bcyOy; } goto ibsO8; brlI7: ADJgK: goto spNjv; uf2UX: olSmd: goto BqCSh; Tm3io: $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'deleteBefore' ({$tabela})</span><br />"; goto ahXZ5; SLZY9: j_Sw0: goto jv3X9; stZOy: fwrite($h, $log . "\n"); goto Ik19I; azFIP: $acao = 'U'; goto PF5Ox; spNjv: $t = $tabela; goto pyTKu; X5zpR: NVJju: goto vDS9a; v1NVQ: oya4P: goto hnKWg; zuqa0: oPfhN: goto ngXOx; ysuWV: return $retorno; goto BVSqf; kHG5g: $tmpTimeEnd = microtime(true); goto Ed3Wh; HjHk8: MMkOY: goto v1NVQ; MUOyW: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto iLYZf; } goto PtgLJ; DbDC2: $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'updateAfter' ({$tabela})</span><br />"; goto jIgwE; fg3N_: nlAg2: goto NE9Of; IB_JO: fwrite($h, $log . "\n"); goto FOc2T; eVeHX: $g['mysqlAffectedRows'] = mysql_affected_rows(); goto b11Mn; hbWEG: goto HKEMX; goto KIO0h; WBpEF: if (!(strpos($debug[0]['file'], "NOTIFICACOES") === false)) { goto uIRbB; } goto nSqUx; iYUke: $g['conf']->triggers($tabela, 'updateBefore', $tabelaAcaoId); goto T_HLH; pZeBM: $g['conf']->triggers($tabela, 'updateAfter', $tabelaAcaoId); goto yvEhh; xw1I3: hSwNr: goto WQ7SK; dOdcR: $acao = 'S'; goto HygKl; z4k9L: $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'deleteAfter' ({$tabela})</span><br />"; goto Za1Cs; OeqX_: $time = round($time_end - $time_start, 2); goto WQAKw; In0cI: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto TJ_g_; } goto Tm3io; Xdayx: preg_match('/UPDATE ([^ ]+) /Uis', $query, $tabela); goto z3UXl; fCKFj: $arrayAlterados = array(); goto mXrly; Q_uns: $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'insertBefore' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />"; goto e3uh7; Cbnmb: $tabelaAcaoId = $matches[3]; goto J8uem; LddIy: $T162_Registro_Depois = @mysql_fetch_assoc($resT162RegistroDepois); goto uBRaj; ijbyx: fVRyb: goto jKJjY; PVPY1: $tempo = "<span style='color: blue;'>{$time}s</span>"; goto xw1I3; sCVE3: goto zACLh; goto tlQKC; FOc2T: zSfdm: goto ywUHW; byH05: $g['conf']->auditoriaCampos("{$tabela}_Id"); goto XZAOt; UQqA9: if ($acao == 'U') { goto v7O2v; } goto V__1M; e4zZc: if ($time < 1) { goto oPfhN; } goto h46gc; FASUv: if (!($acao == 'I')) { goto qOx82; } goto negC9; lhPqQ: $tempo = "<span style='color: red; font-weight: bold;'>{$time}s</span>"; goto txcDA; e0Hso: goto x3_ax; goto SLZY9; gjitZ: session_start(); goto yi4Ln; BfUOQ: if (stristr($acao, 'UPDATE')) { goto vTcnK; } goto AvoaS; KdqoJ: TlMuq: goto WBpEF; qJnUA: xCaR2: goto HjHk8; vbVtO: y3qbz: goto kVDGa; PK0Lq: qaCNv: goto vYF1K; OyLkB: qOx82: goto eVeHX; WQAKw: if (!(in_array($tabela, $g['tabelasCache']) && $acao != 'S')) { goto kyBwI; } goto T1WH9; sO5_D: P97k_: goto bDnEC; MZT0j: goto G6le4; goto OoDbK; SWdqr: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto T0C_W; } goto AM91t; Vhlen: bcyOy: goto VSS8t; jv3X9: x3_ax: goto LJJOI; OQcxK: qjgZH: goto PVPY1; PtgLJ: $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'insertBefore' ({$tabela})</span><br />"; goto s3F0S; tcI2M: $T162_Registro_Tabela = explode('_', $T162_Registro_CampoId); goto TMGGA; lWj2T: $retorno = mysqli_query($query); goto J7cup; GBQwA: if (stristr($acao, 'INSERT')) { goto F42hj; } goto BfUOQ; b11Mn: $time_end = microtime(true); goto OeqX_; reSzW: $tabelaAuxiliarId = trim($tabelaAuxiliar['id'], "'"); goto QO_hf; negC9: $g['mysqlLastId'] = mysql_insert_id(); goto OyLkB; AM2LO: $arrayAlterados = mysql_real_escape_string(serialize($arrayAlterados), $g['conexaoBancoAuditoria']); goto kEn0v; ebokw: if (!isset($matches[1]) || $matches[1] !== 0 && empty($matches[1])) { goto j_Sw0; } goto jtqQ1; sqxLu: preg_match('/WHERE ?([^ =]+) ?= ?(\'|")?([0-9]+)(\'|")?/im', $query, $matches); goto ebokw; V__1M: if (!($acao == 'D')) { goto Os4EC; } goto NWO3r; vVmN1: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto olSmd; } goto z4k9L; py5Uv: T0C_W: goto VxSBi; NE9Of: $T162_Extra .= "{$debug[0]['file']}:{$debug[0]['line']}"; goto Vhlen; q01Y1: foreach ($T162_Registro_Depois as $keyDepois => $valueDepois) { goto shCxh; shCxh: if (!($T162_Registro[$keyDepois] != $valueDepois)) { goto q5wBw; } goto lzbZ1; BJKlt: NQD6K: goto APahs; lzbZ1: $arrayAlterados[$keyDepois] = array($T162_Registro[$keyDepois], $valueDepois); goto GN4NF; GN4NF: q5wBw: goto BJKlt; APahs: } goto ijbyx; arxAz: $acao = 'I'; goto OiRkv; RARzG: $sql = "SELECT * FROM {$T162_Registro_Tabela} WHERE {$T162_Registro_CampoId} = '{$T162_Registro_Id}';"; goto R1YqE; nEutH: fwrite($h, $log . "\n"); goto ZwYKn; b52mX: if (!($acao == 'I')) { goto Q224O; } goto Vifj4; S3Y6x: XnqXO: goto yL_3q; rhJiF: if (!($acao != 'U' || !empty($arrayAlterados))) { goto Hb3x4; } goto uuC2W; i5k7H: $g['time']['sql'] += $tmpTimeEnd - $tmpTimeStart; goto ysuWV; Jk22u: $tmpTimeEnd = microtime(true); goto i5k7H; LBgTq: Hb3x4: goto J6Omb; oa2NI: $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'updateAfter' ({$tabela}) ({$tabelaAcaoId})</span><br />"; goto Yzgve; nSqUx: $log = "<span style='color: gray; float: right;'>{$debug[0]['file']}:{$debug[0]['line']}</span><br />({$time}) <span style='color: var(--letra-log);'>{$query}</span><br />"; goto stZOy; mXrly: if (!($acao != 'D' && $acao == 'U' && !empty($T162_Registro))) { goto SqABx; } goto Xw7ef; JJTUd: goto MMkOY; goto iMZ1B; LJJOI: h3eR3: goto SWdqr; LwIPX: pyxPg: goto bgAQl; ahXZ5: fwrite($h, $log . "\n"); goto K8DlV; y5tvH: RObcc: goto RrQju; Ecq1D: $T162_Registro_Tabela = $T162_Registro_CampoId = ''; goto SuAj_; jKJjY: SqABx: goto rhJiF; kEn0v: $T162_Extra = mysql_real_escape_string($T162_Extra, $g['conexaoBancoAuditoria']); goto HU67K; yi4Ln: preg_match('/FROM ([^ ]+) /Uis', $query, $tabela); goto h1pfn; ICJjN: $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'insertAfter' ({$tabela})</span><br />"; goto euHrC; z3VTz: bgn8A: goto e0Hso; T_HLH: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto QtovZ; } goto cq2Zg; CLIKF: cV1N0: goto ruZsC; VxSBi: if (!$executarTriggersPHP) { goto AShH0; } goto tECKq; hnKWg: if (!($acao == 'I')) { goto qaCNv; } goto gHWFa; tlQKC: F42hj: goto arxAz; fdOZ3: if (!($acao == 'D')) { goto Wu5rj; } goto uu0d3; Yzgve: fwrite($h, $log . "\n"); goto XXSid; D2v_P: vTcnK: goto azFIP; ywUHW: $g['conf']->triggers($tabela, 'insertBefore'); goto MUOyW; jIgwE: fwrite($h, $log . "\n"); goto kQTr4; L4p6_: $mysql = mysqli_query($query); goto kHG5g; SuAj_: if ($acao == 'U' || $acao == 'D') { goto ED4ga; } goto b52mX; K8DlV: TJ_g_: goto LwIPX; ngXOx: $tempo = "<span style='color: grey;'>{$time}s</span>"; goto KdqoJ; QO_hf: if (empty($tabelaAuxiliarId)) { goto E4BYV; } goto w_tkX; w_tkX: $tabela = $tabelaAuxiliar['tabela']; goto cR0CJ; ruZsC: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto zSfdm; } goto Q_uns; Gle0n: $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'updateBefore' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />"; goto gqszt; Jhwgj: goto NVJju; goto CLIKF; jtqQ1: $T162_Registro_CampoId = $matches[1]; goto tcI2M; OM90W: $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'updateAfter' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />"; goto oa2NI; vYF1K: if (!($acao != 'S' && (!$g['tabelasAuditoria'][strtoupper($tabela)] || $g['tabelasAuditoria'][strtoupper($tabela)] == 'S'))) { goto Tsccy; } goto fCKFj; TkNoG: $T162_Registro_Id = $matches[3]; goto Cbnmb; AvoaS: if (!stristr($acao, 'DELETE')) { goto qgnTT; } goto GZsWf; fbTAt: $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'deleteBefore' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />"; goto qtvAe; F3Itp: $acao = $acao[1]; goto lHzqp; UwfnA: Ktzut: goto iYUke; R1YqE: $resT162RegistroDepois = mysqli_query($sql); goto pi0Ng; ibsO8: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto nlAg2; } goto e4zZc; iukId: mysqli_query($sql, $g['conexaoBancoAuditoria']); goto byH05; WQ7SK: goto TlMuq; goto zuqa0; NMgVP: $T162_Registro = array(); goto p_9Hd; gqq21: fwrite($h, $log . "\n"); goto sO5_D; HygKl: HKEMX: goto IJ_0G; HYXzu: return $mysql; goto nCLLC; oPxpw: HQiGg: goto FASUv; OiRkv: zACLh: goto hbWEG; nCLLC: XryII: goto VjJ_9; yL_3q: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto Ktzut; } goto Gle0n; e7xSp: if (!(isset($_COOKIE['debug']) && !empty($_COOKIE['debug']))) { goto xCaR2; } goto ICJjN; Ik19I: $_SESSION['debugSqlCounter']++; goto lmAxI; Ed3Wh: $g['time']['sql'] += $tmpTimeEnd - $tmpTimeStart; goto HYXzu; mHVYn: $query = str_replace("\t", '', trim($query)); goto NYjIN; UYDqe: if ($resT162Registro) { goto bP2al; } goto dM_9i; w50dB: BOqEM: goto z3VTz; P1fYt: qx1yg: goto ic6gd; cR0CJ: $tabelaAuxiliarRegistro = mysql_fetch_assoc(mysqli_query("SELECT {$tabelaAuxiliar['tabela']}_Id FROM {$tabelaAuxiliar['tabela']} WHERE {$tabelaAuxiliar['fk']} = '{$tabelaAuxiliarId}' AND {$tabelaAuxiliar['campo']} IS NOT NULL")); goto ShjVu; BVSqf: } function mysqli_query($query, $conexao = false) { goto ULX0o; p3jfb: die('Conexão ClickHouse não configurada (bibliotecas/conexaoBancoClickHouse.php), por favor, contate o suporte técnico.'); goto HIJB7; EYBPY: $g['conexaoBanco'] = mysqli_init(); goto nWol9; k7qZf: die("mysqli_init failed"); goto nqYOW; yQVbV: $g['conexaoBanco']->options(MYSQLI_OPT_READ_TIMEOUT, 240); goto WcYoK; QywXT: $conexao = $g['conexaoBancoClickHouse']; goto Fk6oL; Fk6oL: $g['conexaoLastQuery'] = $conexao; goto FzK3x; WP_E3: $g['conexaoBanco']->options(MYSQLI_OPT_CONNECT_TIMEOUT, 240); goto yQVbV; HIJB7: bIsBK: goto QywXT; TNOeb: wGAnU: goto a2skw; nqYOW: TBChV: goto WP_E3; nWol9: if ($g['conexaoBanco']) { goto TBChV; } goto k7qZf; WcYoK: $g['conexaoBanco']->real_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']); goto vazLF; a2skw: if (!(stripos($query, '/* ClickHouse */') !== false)) { goto HcggN; } goto M2KrK; FzK3x: HcggN: goto Akya9; J3Kyn: unset($g['conexaoLastQuery']); goto Gwyo3; GVDdA: if (!(stripos($query, '/* ClickHouse */') !== false && !isset($g['conexaoBancoClickHouse']))) { goto bIsBK; } goto p3jfb; FDB2b: if ($g['conexaoBanco']) { goto ifk7d; } goto EYBPY; M2KrK: verificarConexaoClickhouse(); goto GVDdA; ULX0o: global $g, $confUsuario; goto FDB2b; Gwyo3: if (!($conexao === false)) { goto wGAnU; } goto kiL1R; Akya9: return \mysqli_query($conexao, $query); goto zN1EL; kiL1R: $conexao = $g['conexaoBanco']; goto TNOeb; vazLF: ifk7d: goto J3Kyn; zN1EL: } function mysql_result($query, $field = 0) { goto PwGTC; KFNcr: return $row[$field]; goto m4wP7; ds2cY: $row = mysql_fetch_array($query); goto KFNcr; PwGTC: global $g; goto ds2cY; m4wP7: } function mysql_insert_id($conexao = false) { goto C3uRb; HTglY: $retorno = \mysqli_insert_id($conexao); goto atxu3; C3uRb: global $g; goto C9Tb3; qxksd: $conexao = $g['conexaoBanco']; goto Mf0HD; Mf0HD: P5M1y: goto HTglY; atxu3: return $retorno; goto uaHei; C9Tb3: if (!($conexao === false)) { goto P5M1y; } goto qxksd; uaHei: } function mysqli_insert_id($conexao = false) { goto szQ4Q; n480w: RJqEo: goto F522w; UUj6c: $conexao = $g['conexaoBanco']; goto n480w; VsUDZ: if (!($conexao === false)) { goto RJqEo; } goto UUj6c; szQ4Q: global $g; goto VsUDZ; F522w: $retorno = \mysqli_insert_id($conexao); goto ByHRp; ByHRp: return $retorno; goto ia_oE; ia_oE: } function mysql_real_escape_string($string, $conexao = false) { goto V16QF; V16QF: global $g; goto O5uBh; O4yZS: hrrgJ: goto NtI4G; mCuG_: return $retorno; goto frcs3; SbILb: $conexao = $g['conexaoBanco']; goto O4yZS; O5uBh: if (!($conexao === false)) { goto hrrgJ; } goto SbILb; NtI4G: $retorno = \mysqli_real_escape_string($conexao, $string); goto mCuG_; frcs3: } function mysqli_real_escape_string($string, $conexao = false) { goto Nk623; UrhDT: return $retorno; goto qHtgj; d4tIL: $conexao = $g['conexaoBanco']; goto cKDAb; BAwEI: $retorno = \mysqli_real_escape_string($conexao, $string); goto UrhDT; Nk623: global $g; goto OxmUT; cKDAb: Ncs6y: goto BAwEI; OxmUT: if (!($conexao === false)) { goto Ncs6y; } goto d4tIL; qHtgj: } function mysql_fetch_assoc($result) { goto GxVXE; s0I0h: return $retorno; goto qNUx3; GxVXE: global $g; goto nba2q; nba2q: $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_assoc($result) : null); goto s0I0h; qNUx3: } function mysql_fetch_row($result) { goto mhZ6O; aQBlB: return $retorno; goto XuX7O; erSmH: $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_row($result) : null); goto aQBlB; mhZ6O: global $g; goto erSmH; XuX7O: } function mysql_num_rows($result) { goto vOIg1; vOIg1: global $g; goto X10TA; sbMhZ: return $retorno; goto LO6Lh; X10TA: $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0); goto sbMhZ; LO6Lh: } function mysql_numrows($result) { goto bHH6a; DcnY_: return $retorno; goto tAi8M; Xba4E: $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0); goto DcnY_; bHH6a: global $g; goto Xba4E; tAi8M: } function mysql_free_result($result) { goto eeY4I; OMm3b: return $retorno; goto k_yuM; VZem_: $retorno = \mysqli_free_result($result); goto OMm3b; eeY4I: global $g; goto VZem_; k_yuM: } function mysql_error($conexao = false) { goto MlQ1J; p7P3a: $conexao = $g['conexaoLastQuery']; goto skPVD; pO5sK: if (!($conexao === false)) { goto L3ONq; } goto sCvch; YODjm: eUm48: goto p7P3a; skPVD: rPT5D: goto KbVWq; QT4Sb: $retorno = \mysqli_error($conexao); goto IRJRN; IRJRN: return $retorno; goto rjGVl; sfWOT: $conexao = $g['conexaoBanco']; goto RGebc; RGebc: goto rPT5D; goto YODjm; MlQ1J: global $g; goto pO5sK; KbVWq: L3ONq: goto QT4Sb; sCvch: if ($g['conexaoLastQuery']) { goto eUm48; } goto sfWOT; rjGVl: } function mysqli_error($conexao = false) { goto Z5AnB; OLbMi: return $retorno; goto l23wZ; lEsTE: $retorno = \mysqli_error($conexao); goto OLbMi; Z5AnB: global $g; goto wmAOY; N9B35: $conexao = $g['conexaoBanco']; goto DO1f9; DO1f9: Nj91e: goto lEsTE; wmAOY: if (!($conexao === false)) { goto Nj91e; } goto N9B35; l23wZ: } function mysql_errno($conexao = false) { goto nc82K; nc82K: global $g; goto LKu2j; LKu2j: if (!($conexao === false)) { goto QONWy; } goto Zbu0F; Tc0sE: return $retorno; goto JSV06; Zbu0F: $conexao = $g['conexaoBanco']; goto AfS8A; AfS8A: QONWy: goto J6Bbg; J6Bbg: $retorno = \mysqli_errno($conexao); goto Tc0sE; JSV06: } function mysql_data_seek($result, $offset) { goto M2RL5; wt1BA: return $retorno; goto JfiCO; Pggeh: $retorno = \mysqli_data_seek($result, $offset); goto wt1BA; M2RL5: global $g; goto Pggeh; JfiCO: } function mysql_set_charset($string, $conexao = false) { goto Claej; c2GCj: IYIdd: goto aIP6N; Fn11q: if (!($conexao === false)) { goto IYIdd; } goto WWJo4; ofiHx: return $retorno; goto TabWQ; Claej: global $g; goto Fn11q; aIP6N: $retorno = \mysqli_set_charset($conexao, $string); goto ofiHx; WWJo4: $conexao = $g['conexaoBanco']; goto c2GCj; TabWQ: } function mysql_fetch_array($result) { goto UdOqK; UdOqK: global $g; goto DSvE8; i2CIy: return $retorno; goto EbVb6; DSvE8: $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_array($result) : null); goto i2CIy; EbVb6: } function sql_fetch_array($result) { goto XCg9Q; orGy8: $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_array($result) : null); goto Ikn2N; XCg9Q: global $g; goto orGy8; Ikn2N: return $retorno; goto qrDum; qrDum: } function mysql_affected_rows($conexao = false) { goto ifEZt; ifEZt: global $g; goto d87X0; rFuOP: $retorno = \mysqli_affected_rows($conexao); goto q1_1n; i2fhC: $conexao = $g['conexaoBanco']; goto ojsXj; q1_1n: return $retorno; goto yElon; d87X0: if (!($conexao === false)) { goto Guo22; } goto i2fhC; ojsXj: Guo22: goto rFuOP; yElon: } function mysqli_query_clickHoue($query) { goto fSd70; fSd70: global $g; goto iMHet; iMHet: $retorno = \mysqli_query($g['conexaoBancoClickHouse'], $query); goto QZGPw; QZGPw: return $retorno; goto NGRg2; NGRg2: } function mysqli_query_clickHouse($query) { goto vBQdB; vBQdB: global $g; goto bzOm_; lP8HC: return $retorno; goto RZW7a; bzOm_: $retorno = \mysqli_query($g['conexaoBancoClickHouse'], $query); goto lP8HC; RZW7a: } function mysqli_insert_id_clickHouse() { goto lG8tA; oyEhl: $retorno = \mysqli_insert_id($g['conexaoBancoClickHouse']); goto LX8uo; lG8tA: global $g; goto oyEhl; LX8uo: return $retorno; goto ujxEJ; ujxEJ: } function mysqli_error_clickHouse() { goto pvMEd; T39FU: return $retorno; goto j3Ubq; pvMEd: global $g; goto PpuE9; PpuE9: $retorno = \mysqli_error($g['conexaoBancoClickHouse']); goto T39FU; j3Ubq: } function mysqli_fetch_assoc_clickHouse($result) { goto b9h1h; b9h1h: global $g; goto X8mfO; d8R1w: return $retorno; goto Pd2uC; X8mfO: $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_assoc($result) : null); goto d8R1w; Pd2uC: } function mysqli_num_rows_clickHouse($result) { goto NGXNq; C4Mwf: return $retorno; goto vvC2L; NGXNq: global $g; goto fPbJr; fPbJr: $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0); goto C4Mwf; vvC2L: } function mysqli_numrows_clickHouse($result) { goto qKf0E; fQRHQ: $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0); goto q5bqd; qKf0E: global $g; goto fQRHQ; q5bqd: return $retorno; goto ZYHSb; ZYHSb: } function gRedimensionaImagem($imagem, $largura, $pasta) { goto mW2yO; mW2yO: if ($imagem['type'] == "image/jpeg") { goto dCyUT; } goto cMDK7; cf9oI: $nova = imagecreatetruecolor($largura, $autura); goto H9N3I; lxc0l: imagejpeg($nova, $pasta); goto MQ9z3; MQ9z3: imagedestroy($img); goto HBtHz; PnO1V: $y = imagesy($img); goto LSd56; ZP2Fi: $img = imagecreatefromjpeg($imagem['tmp_name']); goto RWdv1; Fzfr3: $img = imagecreatefrompng($imagem['tmp_name']); goto xykwK; H9N3I: imagecopyresampled($nova, $img, 0, 0, 0, 0, $largura, $autura, $x, $y); goto lxc0l; lkEjg: Dnrlz: goto LK71q; xykwK: cOTWr: goto VkMl9; cMDK7: if ($imagem['type'] == "image/gif") { goto P9gin; } goto DhV_W; DhV_W: if (!($imagem['type'] == "image/png")) { goto cOTWr; } goto Fzfr3; Cgo70: P9gin: goto PGlJ6; PGlJ6: $img = imagecreatefromgif($imagem['tmp_name']); goto lkEjg; LSd56: $autura = $largura * $y / $x; goto cf9oI; f45SB: dCyUT: goto ZP2Fi; LK71q: goto VKfdx; goto f45SB; zunUi: $x = imagesx($img); goto PnO1V; RWdv1: VKfdx: goto zunUi; VkMl9: goto Dnrlz; goto Cgo70; HBtHz: imagedestroy($nova); goto antRt; antRt: } function gRetornaMes($mes) { goto CS5at; Xp1tY: c6qlq: goto xm903; X5cgo: na8OZ: goto Xp1tY; CS5at: switch ($mes) { case '01': return 'janeiro'; goto c6qlq; case '02': return 'fevereiro'; goto c6qlq; case '03': return 'março'; goto c6qlq; case '04': return 'abril'; goto c6qlq; case '05': return 'maio'; goto c6qlq; case '06': return 'junho'; goto c6qlq; case '07': return 'julho'; goto c6qlq; case '08': return 'agosto'; goto c6qlq; case '09': return 'setembro'; goto c6qlq; case '10': return 'outubro'; goto c6qlq; case '11': return 'novembro'; goto c6qlq; case '12': return 'dezembro'; goto c6qlq; } goto X5cgo; xm903: } function gRetornaDiaExtenso($dia) { goto QBCvA; QBCvA: switch ($dia) { case '01': return 'primeiro'; goto culJt; case '02': return 'dois'; goto culJt; case '03': return 'três'; goto culJt; case '04': return 'quatro'; goto culJt; case '05': return 'cinco'; goto culJt; case '06': return 'seis'; goto culJt; case '07': return 'sete'; goto culJt; case '08': return 'oito'; goto culJt; case '09': return 'nove'; goto culJt; case '10': return 'dez'; goto culJt; case '11': return 'onze'; goto culJt; case '12': return 'doze'; goto culJt; case '13': return 'treze'; goto culJt; case '14': return 'quatorze'; goto culJt; case '15': return 'quinze'; goto culJt; case '16': return 'dezesseis'; goto culJt; case '17': return 'dezessete'; goto culJt; case '18': return 'dezoito'; goto culJt; case '19': return 'dezenove'; goto culJt; case '20': return 'vinte'; goto culJt; case '21': return 'vinte e um'; goto culJt; case '22': return 'vinte e dois'; goto culJt; case '23': return 'vinte e quatro'; goto culJt; case '25': return 'vinte e cinco'; goto culJt; case '26': return 'vinte e seis'; goto culJt; case '27': return 'vinte e sete'; goto culJt; case '28': return 'vinte e oito'; goto culJt; case '29': return 'vinte e nove'; goto culJt; case '30': return 'trinta'; goto culJt; case '31': return 'trinta e um'; goto culJt; } goto gDOwq; iO8k5: culJt: goto V7pry; gDOwq: hm3_R: goto iO8k5; V7pry: } function gPegaRelacionamento($Entidade, $Id_Entidade, $Excecao = '') { goto egAuI; KlTuT: $x++; goto cY7Hg; CxD0Q: kTCsa: goto WMHbX; o46WW: $mTC[] = $mCampos[0]; goto jWx5y; V_dW5: $x = 0; goto d7mLF; qG6xL: $cSql2 = mysql_query("desc {$mTabela[0]} '%{$Entidade}%'"); goto VCFd9; BlKrh: goto RYuIf; goto u7sbs; WZbjJ: J8lOg: goto V_dW5; d7mLF: BCXE9: goto jpqYO; jpqYO: if (!($x < count($mT))) { goto QeSHW; } goto JnnCM; oADdD: mGV93: goto qG6xL; cY7Hg: goto BCXE9; goto LGeJB; msA1R: g5H6i: goto Gh213; aChP4: if (!(mysql_num_rows($resultado) > 0)) { goto kTCsa; } goto EyqFK; OnZEk: $mT[] = $mTabela[0]; goto o46WW; XVDQ4: goto PrGYx; goto CSiLN; tEcwz: mqxS3: goto yj_5j; fphcL: $cSql = mysql_query("show tables"); goto msA1R; c268i: goto L8rrl; goto tEcwz; u7sbs: gI0aF: goto a_I_e; b34ir: PrGYx: goto CxD0Q; fz8Sh: goto QeSHW; goto e7A0e; t11n5: $mTabela[0] = strtoupper($mTabela[0]); goto N43xw; QV0LM: RYuIf: goto sS7Pu; OR2Ns: $mSql = mysql_fetch_array($cSql); goto Ex_5d; a_I_e: return false; goto QV0LM; jWx5y: j97jv: goto c268i; Gh213: if (!($mTabela = mysql_fetch_array($cSql))) { goto J8lOg; } goto t11n5; EyqFK: if (strpos($mSql[1], 'ON DELETE CASCADE') != 0) { goto EbHKs; } goto R3hFR; KtEcK: goto g5H6i; goto oADdD; vMdhJ: $resultado = mysql_query("{$cSql}"); goto aChP4; WMHbX: VR0xo: goto KlTuT; dKC9v: return $mT[$x]; goto fz8Sh; VCFd9: L8rrl: goto by8e1; Ex_5d: $cSql = "select {$mTC[$x]} from {$mT[$x]} where {$mTC[$x]}={$Id_Entidade} limit 0,1"; goto vMdhJ; by8e1: if (!($mCampos = mysql_fetch_array($cSql2))) { goto mqxS3; } goto UyiKg; LGeJB: QeSHW: goto BlKrh; CSiLN: EbHKs: goto b34ir; N43xw: if (!($mTabela[0] == $Entidade)) { goto mGV93; } goto KtEcK; e7A0e: oAXiJ: goto XVDQ4; UyiKg: if (!(strpos($mCampos[0], "{$Entidade}") !== false)) { goto j97jv; } goto OnZEk; JnnCM: $cSql = mysql_query("show create table {$mT[$x]}"); goto OR2Ns; egAuI: if ($Id_Entidade <= 0) { goto gI0aF; } goto fphcL; yj_5j: goto g5H6i; goto WZbjJ; R3hFR: if (!(strpos(" " . $Excecao, $mT[$x]) <= 0)) { goto oAXiJ; } goto dKC9v; sS7Pu: } function gPegaRelacionamento2($tabela) { goto jL3So; f42VW: $table = $table[0]; goto vA68g; Vh3Fk: goto nhIUP; goto vmoO1; vA68g: if (!(strtoupper($table) == $tabela . 'A')) { goto TiGGv; } goto tiVjU; LpyVZ: if (!($column != $tabela . '_Id')) { goto PDyCa; } goto MBW_2; fjLrL: nhIUP: goto MAI1R; MAI1R: if (!($column = mysql_fetch_row($resDesc))) { goto NCZ1G; } goto VGXK1; jL3So: global $g; goto bSo8T; vmoO1: NCZ1G: goto LNqzS; VGXK1: $column = $column[0]; goto qzLCv; Da1bJ: bFfoQ: goto qHNHO; Bonvb: $relacionamentos = array(); goto UOZt6; H1Eom: Hwk4T: goto Bonvb; qexN9: fERFI: goto Vh3Fk; LNqzS: goto pd7Zl; goto Da1bJ; MBW_2: $relacionamentos[] = $column; goto cm_lz; oFHP6: $res = mysql_query($sql); goto Mu2MV; hK1r0: $resDesc = mysql_query($sql); goto fjLrL; cm_lz: PDyCa: goto qexN9; Vd5lw: $sql = "DESC {$table}"; goto hK1r0; HEpHD: TiGGv: goto Vd5lw; yhQjd: return $relacionamentos; goto EDhyj; qHNHO: $g['cacheRelacionamento'][$tabela] = $relacionamentos; goto yhQjd; qzLCv: if (!preg_match('/^[^_]+_' . preg_quote($tabela, '/') . '_Id$/i', $column)) { goto fERFI; } goto LpyVZ; tiVjU: goto pd7Zl; goto HEpHD; eCPQy: if (!($table = mysql_fetch_row($res))) { goto bFfoQ; } goto f42VW; UOZt6: $sql = "SHOW TABLES;"; goto oFHP6; Mu2MV: pd7Zl: goto eCPQy; Z62iB: return $g['cacheRelacionamento'][$tabela]; goto H1Eom; bSo8T: if (!(isset($g['cacheRelacionamento']) && isset($g['cacheRelacionamento'][$tabela]))) { goto Hwk4T; } goto Z62iB; EDhyj: } function gMudarC004($tabela, $id, $C004_Id) { goto BoBFH; n0dBn: mysqli_query("ROLLBACK"); goto c3SOf; jd87_: mysqli_query("SET AUTOCOMMIT=1"); goto AqP2j; Lv3Gs: $erro = mysql_error(); goto No4rS; sfFYf: $sql = mysqli_query("SHOW COLUMNS FROM `{$table}` WHERE Field = '{$campoD009}'"); goto Lv3Gs; dNRcq: $mD009AtualizaEstoque = array(); goto Du2OS; yERQp: DIMab: goto rjzz_; Wv0FH: mysqli_query("ROLLBACK"); goto VSYcE; sa514: mysqli_query("START TRANSACTION"); goto dNRcq; u2bYU: $campoD009 = "{$table}_D009_Id"; goto sfFYf; No4rS: if (!$erro) { goto fkoek; } goto ol1UD; k82F3: return "Erro 4: {$erro}"; goto DwasC; PeuBW: w8Pzs: goto k2L5Y; Eqszm: a4HS7: goto lLBau; i0ghQ: $mD049 = mysql_fetch_assoc($D049); goto SZDN7; oA9n3: $erro = mysql_error(); goto H_1On; e_HXt: if (!($mSqlTableD009 = mysql_fetch_assoc($sqlTableD009))) { goto RUjJ8; } goto XTeis; YARpb: vR5eR: goto uolrP; uolrP: $sql = mysqli_query("UPDATE {$table} SET {$table}_T066_Id = '{$mD009['T066_Id']}' WHERE {$table}_Id = '{$tableD009_Id}'"); goto Wo1e_; rjzz_: zN4d_: goto SQb2l; KNife: $D009 = mysqli_query("SELECT D009_Id, T066_Id FROM D009 LEFT JOIN T066 ON T066_D009_Id=D009_Id WHERE D009_D049_Id='{$mD049['D009_D049_Id']}' AND D009_C004_Id='{$C004_Id}'"); goto JInD4; xuWEm: $sql = mysqli_query("UPDATE {$table} SET {$table}_C004_Id = '{$C004_Id}' WHERE {$table}_{$tabela}_Id = '{$id}'"); goto xFQO0; XChrT: $campoRelacionamento = "{$table}_{$tabela}_Id"; goto G7VmM; DwasC: DlT80: goto u2bYU; jVv6w: mysqli_query("ROLLBACK"); goto mtwAw; gD3IZ: $erro = mysql_error(); goto Po6Zi; VSYcE: return "Erro 2: {$erro}"; goto sT_xw; ppiNg: foreach ($mD009AtualizaEstoque as $D009_Id => $value) { $CAD002->D001_reprocessa_historico(0, $D009_Id, 20, true); gwgnJ: } goto xwpTT; wMRyG: $table = strtoupper($table[0]); goto XChrT; lcm8e: $sqlTableD009 = mysqli_query("SELECT {$table}_Id, {$table}_D009_Id FROM {$table} WHERE {$table}_{$tabela}_Id = '{$id}'"); goto RKqFO; EyQv_: if (!mysql_num_rows($sql)) { goto DIMab; } goto lcm8e; In00N: return "Erro 7: {$erro}"; goto SKdfz; PgLtx: return "Erro 8: {$erro}"; goto Qif45; gsSLP: KglCF: goto e_HXt; D3dWX: fkoek: goto EyQv_; xxBt8: rl9hN: goto voPJg; k2L5Y: if (!mysql_num_rows($sql)) { goto zN4d_; } goto xuWEm; ZHacm: $erro = mysql_error(); goto TcXH_; voPJg: $sql = mysqli_query("UPDATE {$table} SET {$table}_D009_Id = '{$mD009['D009_Id']}' WHERE {$table}_Id = '{$tableD009_Id}'"); goto oA9n3; I9vSz: if (!($mD009['D009_Id'] <= 0)) { goto rl9hN; } goto n0dBn; JTxZl: $erro = mysql_error(); goto ppRoy; sZtyt: if (!$erro) { goto AeHTH; } goto n61bM; DBVzq: return "Erro 5: {$erro}"; goto D3dWX; Du2OS: $sql = mysqli_query("UPDATE {$tabela} SET {$tabela}_C004_Id = '{$C004_Id}' WHERE {$tabela}_Id = '{$id}'"); goto gD3IZ; WYOW4: mysqli_query("ROLLBACK"); goto PgLtx; xobEK: if (!($tableType !== 'BASE TABLE')) { goto tEqox; } goto c12Ij; AqP2j: require_once "bibliotecas/classes/CAD002.php"; goto qrzD0; Uv759: mysqli_query("SET AUTOCOMMIT=0"); goto sa514; oCSxw: return "Erro 6: {$erro}"; goto xwrsZ; XTeis: $tableD009_Id = $mSqlTableD009["{$table}_Id"]; goto LXN12; lm8L1: $mD009AtualizaEstoque[$D009_Id] = true; goto izQ0k; ol1UD: mysqli_query("ROLLBACK"); goto DBVzq; H_1On: if (!$erro) { goto vR5eR; } goto zeMDW; x6NSH: RUjJ8: goto yERQp; SQb2l: goto NCgfG; goto j95Xf; DHB_L: mysqli_query("ROLLBACK"); goto IWvkG; xwpTT: DarSX: goto mbdm8; NtOXc: NCgfG: goto cZ6OJ; RKqFO: $erro = mysql_error(); goto PzInB; izQ0k: $D049 = mysqli_query("SELECT D009_D049_Id,\n\t\t\t\t\t\t\t\t\t\t\t\t\tD001_Codigo_Produto \n\t\t\t\t\t                           FROM D009 \n\t\t\t\t\t\t\t\t   \t      LEFT JOIN D049 ON D049_Id=D009_D049_Id \n\t\t\t\t\t\t\t\t\t\t  LEFT JOIN D001 ON D001_Id=D049_D001_Id\n\t\t\t\t\t\t\t\t\t\t      WHERE D009_Id='{$D009_Id}'"); goto i0ghQ; RHZoj: mysqli_query("ROLLBACK"); goto oCSxw; Qif45: hfIBU: goto I9vSz; LXN12: $D009_Id = $mSqlTableD009["{$table}_D009_Id"]; goto lm8L1; c12Ij: goto NCgfG; goto jCefR; TcXH_: if (!$erro) { goto hfIBU; } goto WYOW4; mbdm8: return true; goto fBxPQ; xwrsZ: Uf8g2: goto gsSLP; q4eA6: if (!($erro && !strpos(" {$erro} ", "Unknown"))) { goto DlT80; } goto IEVOQ; SZDN7: $erro = mysql_error(); goto sZtyt; Wo1e_: goto KglCF; goto x6NSH; mtwAw: return "Erro 3: {$erro}"; goto PeuBW; IEVOQ: mysqli_query("ROLLBACK"); goto k82F3; qrzD0: $CAD002 = new CAD002(); goto ppiNg; lLBau: $sqlTables = mysqli_query("SHOW FULL TABLES"); goto E0lHD; c3SOf: return "Erro 9: Não foi encontrado o produto {$mD049['D001_Codigo_Produto']} em {$id}"; goto xxBt8; fKXZ0: if (!$erro) { goto p6244; } goto Wv0FH; MkF5h: $tableType = isset($table[1]) ? strtoupper(trim($table[1])) : ''; goto xobEK; BoBFH: global $g; goto Uv759; jCefR: tEqox: goto wMRyG; IWvkG: return "Erro 1: {$erro}"; goto Eqszm; E0lHD: $erro = mysql_error(); goto fKXZ0; sT_xw: p6244: goto NtOXc; SKdfz: AeHTH: goto KNife; G7VmM: $sql = mysqli_query("SHOW COLUMNS FROM `{$table}` WHERE Field = '{$campoRelacionamento}'"); goto JTxZl; cZ6OJ: if (!($table = mysql_fetch_array($sqlTables))) { goto IfLHP; } goto MkF5h; ppRoy: if (!$erro) { goto w8Pzs; } goto jVv6w; n61bM: mysqli_query("ROLLBACK"); goto In00N; Uczb1: mysqli_query("COMMIT"); goto jd87_; e1t2B: return "Erro 9: {$erro}"; goto YARpb; JInD4: $mD009 = mysql_fetch_assoc($D009); goto ZHacm; j95Xf: IfLHP: goto Uczb1; zeMDW: mysqli_query("ROLLBACK"); goto e1t2B; Po6Zi: if (!$erro) { goto a4HS7; } goto DHB_L; xFQO0: $erro = mysql_error(); goto q4eA6; PzInB: if (!$erro) { goto Uf8g2; } goto RHZoj; fBxPQ: } function gJuntarCodigos($tabela, $antigo, $novo, $tabelasBloqueio = array(), $tabelasRestricao = array(), $executarTriggersPHP = true) { goto YxMzT; mFq4I: $res = mysql_query($sql, $executarTriggersPHP); goto HBE5Q; EycUL: if (!($antigo <= 0 || $novo <= 0)) { goto kDEWv; } goto wSBog; u7iCY: if (!($desc = mysql_fetch_array($resDesc))) { goto aLmaJ; } goto pOhv9; Qkbza: if (!(strpos(" {$showTable} ", 'DIM0') || strpos(" {$showTable} ", 'FAC0'))) { goto u829y; } goto gTANP; hKXoQ: $resShowTables = mysql_query('SHOW FULL TABLES'); goto j7HbR; mDqUp: goto rqUAZ; goto PDY67; gJR8a: goto rqUAZ; goto fpm0n; OheYt: return 'Erro interno 4 Erro: ' . mysql_error(); goto c6I2e; BWkQD: wO0UI: goto RbXvc; AY1Rd: u829y: goto laN08; atCqV: if (!($showTable = mysql_fetch_array($resShowTables))) { goto uHUpO; } goto VFfal; Qz9A_: Awi67: goto u7iCY; IaD6w: return 'Erro interno 3'; goto rVfzm; c6I2e: x_wk7: goto J8xt3; f9DZT: kCRJ6: goto Qz9A_; mDVF7: tajZ4: goto DkWB3; eQyrS: goto Awi67; goto Z7D94; DkWB3: $resCount = mysql_query("SELECT {$desc} FROM {$showTable} WHERE {$desc} = '{$antigo}'"); goto cOa0p; YxMzT: $antigo = (int) $antigo; goto Bt_NO; qfkGc: return 'Erro interno 22 ' . "DESC `{$showTable}` '%{$tabela}_Id%' " . mysql_error(); goto f9DZT; KSoTQ: IaEVE: goto FYFAn; VZ4ns: if (!(mysql_num_rows($resCount) > 0)) { goto IaEVE; } goto mL3M1; gTANP: goto rqUAZ; goto AY1Rd; SDjhD: goto Awi67; goto ytUb_; RAisc: TLa4g: goto RQf1V; mL3M1: return "BLOQUEADO-{$showTable}"; goto KSoTQ; Gws1j: if (!($antigo == $novo)) { goto AjpuP; } goto wKN8a; s_ZkR: if (!($desc == "{$tabela}_Id")) { goto hI81k; } goto SDjhD; ytUb_: hI81k: goto a17Wq; ILcdK: return true; goto crfmy; PDcTe: $res = mysqli_query($sql); goto iRSPT; XLWGC: s3v95: goto ILcdK; Bt_NO: $novo = (int) $novo; goto kv1aY; C45Gy: $sql = "UPDATE {$showTable} SET {$desc} = '{$novo}' WHERE {$desc} = '{$antigo}'"; goto PDcTe; ZK3P6: sIK35: goto JpEss; m7H3I: return 'Erro interno 5'; goto XLWGC; HyUT_: $showTable = strtoupper($showTable[0]); goto Qkbza; PDY67: a2L9z: goto HyUT_; wSBog: return 'Os dois códigos devem ser preenchidos.'; goto W3tfn; Zk66v: if (!($tableType !== 'BASE TABLE')) { goto a2L9z; } goto mDqUp; p9qOJ: if ($res) { goto x_wk7; } goto OheYt; iRSPT: if (!$res && in_array($showTable, $tabelasRestricao)) { goto sIK35; } goto p9qOJ; j7HbR: if ($resShowTables) { goto wO0UI; } goto mxKkK; kv1aY: $tabela = strtoupper($tabela); goto EycUL; J8xt3: goto TLa4g; goto ZK3P6; iaMte: AjpuP: goto hKXoQ; RQf1V: goto LhDAg; goto mDVF7; mxKkK: return 'Erro interno 1'; goto BWkQD; VFfal: $tableType = isset($showTable[1]) ? strtoupper(trim($showTable[1])) : ''; goto Zk66v; RbXvc: rqUAZ: goto atCqV; LJ3nC: if ($resDesc) { goto kCRJ6; } goto qfkGc; wKN8a: return 'Os códigos não podem ser o mesmo.'; goto iaMte; fpm0n: uHUpO: goto qT4hY; pOhv9: $desc = $desc[0]; goto s_ZkR; FYFAn: LhDAg: goto eQyrS; W3tfn: kDEWv: goto Gws1j; laN08: $resDesc = mysqli_query("DESC `{$showTable}` '%{$tabela}_Id%'"); goto LJ3nC; JpEss: mysql_query("DELETE FROM {$showTable} WHERE {$desc} = '{$antigo}'", $executarTriggersPHP); goto RAisc; Z7D94: aLmaJ: goto gJR8a; cOa0p: if ($resCount) { goto TCXbH; } goto IaD6w; a17Wq: if (in_array($showTable, $tabelasBloqueio)) { goto tajZ4; } goto C45Gy; HBE5Q: if ($res) { goto s3v95; } goto m7H3I; rVfzm: TCXbH: goto VZ4ns; qT4hY: $sql = "DELETE FROM {$tabela} WHERE {$tabela}_Id = {$antigo}"; goto mFq4I; crfmy: } function gPegaDiaSemana($data) { goto omE3v; B2dE3: xldhT: goto EiSGm; jlJAi: $mes = substr("{$data}", 5, -3); goto LxYHC; dJ6AT: $diasemana = date("w", mktime(0, 0, 0, $mes, $dia, $ano)); goto xlQZl; LxYHC: $dia = substr("{$data}", 8, 9); goto dJ6AT; EiSGm: xjdfd: goto KD0kT; xlQZl: switch ($diasemana) { case "0": $diasemana = "Domingo"; goto xjdfd; case "1": $diasemana = "Segunda-Feira"; goto xjdfd; case "2": $diasemana = "Terça-Feira"; goto xjdfd; case "3": $diasemana = "Quarta-Feira"; goto xjdfd; case "4": $diasemana = "Quinta-Feira"; goto xjdfd; case "5": $diasemana = "Sexta-Feira"; goto xjdfd; case "6": $diasemana = "Sábado"; goto xjdfd; } goto B2dE3; KD0kT: return $diasemana; goto LmN7K; omE3v: $ano = substr("{$data}", 0, 4); goto jlJAi; LmN7K: } function gValidaFeriado($data) { goto bG3lM; TD9PU: $datas['corpus_cristi'] = $datas['pascoa'] + 60 * $dia; goto DJL_H; DJL_H: $feriados = array('01/01', date('d/m', $datas['carnaval']), date('d/m', $datas['sexta_santa']), date('d/m', $datas['pascoa']), '21/04', '01/05', date('d/m', $datas['corpus_cristi']), '08/08', '07/09', '08/09', '12/10', '02/11', '15/11', '25/12'); goto ooGUJ; ZtgDX: $datas = array(); goto zuHbm; n1E7B: $retorno = true; goto R6TNz; SB_f7: $datas['sexta_santa'] = $datas['pascoa'] - 2 * $dia; goto hixMM; ooGUJ: $retorno = false; goto e2Rdd; wN0kY: return $retorno; goto aZIiu; R6TNz: lx0rN: goto wN0kY; hixMM: $datas['carnaval'] = $datas['pascoa'] - 47 * $dia; goto TD9PU; bG3lM: $dia = 86400; goto ZtgDX; e2Rdd: if (!array_search($data, $feriados)) { goto lx0rN; } goto n1E7B; zuHbm: $datas['pascoa'] = easter_date($ano); goto SB_f7; aZIiu: } function gTemPermissao($C029_Id) { goto e9qtx; e9qtx: global $g; goto OwCSu; jIFV7: return true; goto xhaqY; xhaqY: O_T8V: goto pLsxd; pLsxd: return false; goto kOkeU; OwCSu: if (!isset($g['c029Ids'][$C029_Id])) { goto O_T8V; } goto jIFV7; kOkeU: } function gValorPorExtenso($valor) { goto XA2x1; mt4Ji: if (!($i < count($inteiro))) { goto Lu3c7; } goto xlL1p; wuKpx: $rt = ''; goto NbHiC; uC34t: ejCOG: goto z7Q1O; tmyfa: if (!($ii < 3)) { goto iE6OA; } goto esM_p; xu2FC: $rc = $valor > 100 && $valor < 200 ? "cento" : $c[$valor[0]]; goto AhHZO; s32v5: c7j6x: goto movNN; nukDU: $ii = strlen($inteiro[$i]); goto PLlKv; xIBZp: $i++; goto iYB0j; AhHZO: $rd = $valor[1] < 2 ? "" : $d[$valor[1]]; goto qjgsN; z7Q1O: if (!$r) { goto y8jq6; } goto H00Ke; nmU5z: $c = array("", "cem", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos"); goto EXshB; LZwcv: $r = $rc . ($rc && ($rd || $ru) ? " e " : "") . $rd . ($rd && $ru ? " e " : "") . $ru; goto mAJBW; ezo0n: goto c7j6x; goto FgnX3; iAb3q: $z = 0; goto nq3DR; movNN: if (!($t == 1 && $z > 0 && $inteiro[0] > 0)) { goto ejCOG; } goto M6q1K; T610N: iE6OA: goto G3x2t; S9b_z: if ($valor == "000") { goto pvejb; } goto ksl3x; jqowe: $z--; goto s32v5; z0ZD6: $r .= $r ? " " . ($valor > 1 ? $plural[$t] : $singular[$t]) : ""; goto S9b_z; XA2x1: $singular = array("centavo", "real", "mil", "milhão", "bilhão", "trilhão", "quatrilhão"); goto FV6Ay; esM_p: $inteiro[$i] = "0" . $inteiro[$i]; goto Qurnj; M6q1K: $r .= ($z > 1 ? " de " : "") . $plural[$t]; goto uC34t; nq3DR: $valor = number_format($valor, 2, ".", "."); goto plWfu; qZmYY: return $rt ? $rt : "zero"; goto GoH2i; Ne5YK: q7aLh: goto mt4Ji; Rw_By: goto VqrYI; goto T610N; xlL1p: $valor = $inteiro[$i]; goto xu2FC; SNUgf: y8jq6: goto WGyK_; WGyK_: cYzAc: goto k_B0v; FV6Ay: $plural = array("centavos", "reais", "mil", "milhões", "bilhões", "trilhões", "quatrilhões"); goto nmU5z; qjgsN: $ru = $valor > 0 ? $valor[1] == 1 ? $d10[$valor[2]] : $u[$valor[2]] : ""; goto LZwcv; vt4MM: pvejb: goto giDNe; PLlKv: VqrYI: goto tmyfa; mAJBW: $t = count($inteiro) - 1 - $i; goto z0ZD6; b7Wr3: $d10 = array("dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezesete", "dezoito", "dezenove"); goto spL_u; itG0I: $fim = count($inteiro) - ($inteiro[count($inteiro) - 1] > 0 ? 1 : 2); goto wuKpx; aGeta: if (!($i < count($inteiro))) { goto gFAXg; } goto nukDU; hzSU0: goto c7j6x; goto vt4MM; f9PmI: Lu3c7: goto qZmYY; Qurnj: jGlgG: goto CAtJy; ksl3x: if ($z > 0) { goto a3egh; } goto hzSU0; jeFk7: goto q7aLh; goto f9PmI; G3x2t: RPsFn: goto xIBZp; giDNe: $z++; goto ezo0n; plWfu: $inteiro = explode(".", $valor); goto JFYEh; EXshB: $d = array("", "dez", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"); goto b7Wr3; H00Ke: $rt = $rt . ($i > 0 && $i <= $fim && $inteiro[0] > 0 && $z < 1 ? $i < $fim ? ", " : " e " : " ") . $r; goto SNUgf; CAtJy: $ii++; goto Rw_By; spL_u: $u = array("", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"); goto iAb3q; k_B0v: $i++; goto jeFk7; SXEdR: gFAXg: goto itG0I; xGsJR: QC8Nq: goto aGeta; iYB0j: goto QC8Nq; goto SXEdR; FgnX3: a3egh: goto jqowe; JFYEh: $i = 0; goto xGsJR; NbHiC: $i = 0; goto Ne5YK; GoH2i: } function gJurosSimples($valor, $taxa, $parcelas) { goto y0R2R; y0R2R: $taxa = $taxa / 100; goto mhP8m; x504T: $valParcela = number_format($m / $parcelas, 2, ",", "."); goto MIEVV; MIEVV: return $valParcela; goto Q_nDk; mhP8m: $m = $valor * (1 + $taxa * $parcelas); goto x504T; Q_nDk: } function gJurosCompostos($valor, $taxa, $parcelas) { goto wMKUP; G2NtO: $valParcela = number_format($valParcela / $parcelas, 2, ",", "."); goto BF5mt; wMKUP: $taxa = $taxa / 100; goto tQ2Zs; BF5mt: return $valParcela; goto kzA1p; tQ2Zs: $valParcela = $valor * pow(1 + $taxa, $parcelas); goto G2NtO; kzA1p: } function gJurosCompostosTitulos($valor, $taxa, $parcelas) { goto iM7Oc; iM7Oc: $taxa = $taxa / 100; goto WaeBM; WaeBM: $valParcela = $valor * pow(1 + $taxa, $parcelas); goto Pj0dt; Pj0dt: return $valParcela; goto A4P5k; A4P5k: } function gParcelaOriginal($valorFinal, $prazo) { goto z7MV4; TiY0u: return $parcelaOriginal; goto t4KOy; xqTLC: $taxa = $taxa / 100; goto tyWLE; eSsfc: $taxa = $g['c004']['C004_Taxa_Juros']; goto xqTLC; z7MV4: global $g; goto eSsfc; tyWLE: $parcelaOriginal = $valorFinal / pow(1 + $taxa, $prazo); goto TiY0u; t4KOy: } function gLimpaTexto($string) { return preg_replace("/[^a-z0-9 ]/imsu", ' ', $string); } function gRemoveCaracteresEspeciais($string) { return str_replace(" ", " ", preg_replace("/&([a-z])[a-z]+;/i", "\$1", htmlentities(trim($string)))); } function gLimpaAcentos($x) { goto KCEro; FY1rv: if (!($code == 197)) { goto V17WA; } goto oN1EH; RUTj7: $novoX .= 'A'; goto mjgu4; M29gB: if (!($code == 236)) { goto y_VcV; } goto RtK1C; to28B: goto EpJBR; goto rN0W3; yT3XD: Azp5w: goto lBX0f; gb7CV: goto EpJBR; goto rEPLH; DIijh: cE9GD: goto rWhzZ; EX3HM: qIcTm: goto M29gB; NqlFU: if (strpos($cCharPermitido, strtoupper($c)) !== FALSE) { goto PcVva; } goto nFXBG; pq0NE: $cCharPermitido = '&ABCDEFGHIJLKYMNOPQRSTUVXWZ 1234567890()[]{}.,+_-:/=%?;!@|$"'; goto FKOrY; Ot6SA: if (!($n < strlen($x))) { goto eiwYJ; } goto ixSt_; EFfhL: $novoX .= 'A'; goto uNlUU; jZzYs: TQuBh: goto hDOgZ; kcXip: fSak2: goto o1MCp; lqrYY: goto EpJBR; goto JK5iZ; kU6jO: zQbB7: goto H4qYc; yQXhu: if (!($code == 207)) { goto ixMpe; } goto RO9Vh; ClSjT: J63MO: goto sda3v; t7qsh: goto EpJBR; goto kU6jO; rBXYO: $novoX .= 'A'; goto nIQAw; vEamP: HFSo6: goto YNOMn; vykJw: ANMTV: goto Tu553; tWjX_: sEKVg: goto PQBFQ; b8G33: if (!($code == 202)) { goto q8bVv; } goto cSLta; ixSt_: $c = substr($x, $n, 1); goto NqlFU; LrHFc: if (!($code == 242)) { goto zw_Ev; } goto Dw7aC; lwC97: Fuq3a: goto B_qRl; qFvFB: $novoX .= 'I'; goto t7qsh; VDOSm: $novoX .= 'I'; goto QfEtz; VvIWX: $n++; goto snYzs; q2Ek5: goto EpJBR; goto MxiJd; wsTzi: goto EpJBR; goto jdGEX; x7mid: if (!($code == 228)) { goto OEX_q; } goto rBXYO; z5UZ2: $x = $stringSemAcentos ? $stringSemAcentos : $x; goto L2lhK; eFu84: $novoX .= 'A'; goto BMYIj; oePV0: goto EpJBR; goto gLDg1; Kh7kq: goto EpJBR; goto EX3HM; wGwot: lWA37: goto NZ2P4; oMJmQ: $novoX .= 'A'; goto gu2ka; P9rfz: if (!($code == 199)) { goto sEKVg; } goto VX5Hx; d5CRY: if (!($code == 204)) { goto lWA37; } goto VDOSm; YNOMn: $x = $novoX; goto pq0NE; XjJ0G: qsXvx: goto Q3t5K; p_meh: if (!($code == 237)) { goto LZo24; } goto G3JGf; pXGtD: if (!($code == 203)) { goto AgbH7; } goto sRtRt; j3OT2: Yu0Cl: goto PXwKU; guky1: if (!($code == 213)) { goto T55Q6; } goto QqQEJ; Tu553: if (!($code == 226)) { goto RDfd2; } goto AWLt_; QWqFw: goto EpJBR; goto MF0_A; PXwKU: if (!($code == 233)) { goto Z5CKp; } goto GRCVv; SgncG: $novoX .= 'O'; goto tFQE1; VX5Hx: $novoX .= 'C'; goto d2vkQ; g7m1m: FgWis: goto Jbovb; nIQAw: goto EpJBR; goto N8Z6z; XduYT: $novoX .= 'E'; goto Kh7kq; RtK1C: $novoX .= 'I'; goto xqw7j; VLoh_: $novoX .= 'A'; goto QhIOh; YDRxy: if (!($code == 232)) { goto Yu0Cl; } goto kmvpR; wpUba: if (!($code == 234)) { goto xC40x; } goto JMcO3; xwP4y: eiwYJ: goto WVTzq; ySlpV: AWPb7: goto FY1rv; Z2_HJ: if (!($code == 218)) { goto kLW7o; } goto iHybl; eHh8l: $novoX .= 'O'; goto Jx3Yl; PQBFQ: if (!($code == 200)) { goto Azp5w; } goto lcJXG; tFQE1: goto EpJBR; goto EcF7E; gLDg1: GQa37: goto guky1; lBX0f: if (!($code == 201)) { goto E4STX; } goto si8vo; NTTIw: $novoX .= 'O'; goto rXtuN; uIy44: AgbH7: goto d5CRY; YAbwb: LZo24: goto ogaEx; d89Wo: if (!($code == 249)) { goto Fuq3a; } goto x0B5G; xZV17: goto EpJBR; goto yh8M6; G3JGf: $novoX .= 'I'; goto UtVKn; CZwMY: goto EpJBR; goto pGJPS; jdGEX: d0sxo: goto yQXhu; DjwJH: $novoX .= 'O'; goto O9fdU; YK9Mo: goto EpJBR; goto yzLEj; KKkkv: return $x; goto oKNqA; ltBSi: if (!($code == 235)) { goto qIcTm; } goto XduYT; Ncd9P: ixMpe: goto N_GZ9; oN1EH: $novoX .= 'A'; goto kTv1A; KkYr7: goto EpJBR; goto G0Ax2; lcJXG: $novoX .= 'E'; goto F3cg_; BF3Qb: PcVva: goto V1coX; butd9: $novoX .= 'U'; goto cqDVN; nCn6g: goto EpJBR; goto pfhlC; MxiJd: EIf8N: goto LrHFc; sMl3r: goto EpJBR; goto jZzYs; qIHwq: goto EpJBR; goto ySlpV; iHybl: $novoX .= 'U'; goto nCn6g; wcqlB: $novoX .= 'U'; goto Y345h; yzLEj: eGdLq: goto x7mid; ogaEx: if (!($code == 238)) { goto bdx1g; } goto utsww; KCEro: $stringSemAcentos = iconv('UTF-8', 'ASCII//TRANSLIT', $x); goto z5UZ2; eeX3H: $novoX .= 'A'; goto gb7CV; zaMbo: $i = 0; goto uVuFg; d2vkQ: goto EpJBR; goto tWjX_; ABV9N: $novoX .= 'O'; goto oePV0; rWhzZ: if (!($code == 224)) { goto FgWis; } goto Xn0SX; ICx5J: Z5CKp: goto wpUba; RO9Vh: $novoX .= 'I'; goto YTSOj; pfhlC: kLW7o: goto Pmkn0; pGJPS: zw_Ev: goto b9OF7; MSL30: if (!($code == 214)) { goto hD5G5; } goto Z86bH; OFtB9: goto EpJBR; goto SVcsL; ZP019: ExdVM: goto h24h_; CObQ1: $novoX .= 'O'; goto QWqFw; L2lhK: $novoX = ''; goto zaMbo; k03J9: $novoX .= 'O'; goto sMl3r; vTZ72: $novoX .= 'A'; goto oCcED; H4qYc: if (!($code == 206)) { goto d0sxo; } goto aAK0N; QqQEJ: $novoX .= 'O'; goto hO6nM; r4zER: goto QkrKf; goto BF3Qb; wDUCM: goto EpJBR; goto uIy44; MQPJx: $novoX .= 'C'; goto i0Byw; rEPLH: X5E1P: goto VYaP6; yWcs7: lfr1n: goto frdsC; si8vo: $novoX .= 'E'; goto lqrYY; f_qBU: etMtA: goto P9rfz; h24h_: if (!($code == 194)) { goto hAHFF; } goto RUTj7; d5glU: YMO8Q: goto KWXQS; snYzs: goto pBoaI; goto xwP4y; Jbovb: if (!($code == 225)) { goto ANMTV; } goto VLoh_; F3cg_: goto EpJBR; goto yT3XD; utsww: $novoX .= 'I'; goto KkYr7; NZ2P4: if (!($code == 205)) { goto zQbB7; } goto qFvFB; UtVKn: goto EpJBR; goto YAbwb; Fre5G: $i++; goto iGUi2; PYUZq: if (!($code == 227)) { goto eGdLq; } goto M1tJD; hDOgZ: if (!($code == 246)) { goto kEzxF; } goto SgncG; iOhj4: if (!($code == 220)) { goto cE9GD; } goto butd9; TrX4B: EpJBR: goto Fre5G; ahiXR: $novoX .= 'U'; goto ghd_X; pBVwS: $novoX .= 'A'; goto qIHwq; uWiQU: T55Q6: goto MSL30; cqDVN: goto EpJBR; goto DIijh; lO28U: goto EpJBR; goto PCbBS; zX60A: goto EpJBR; goto lwC97; B_qRl: if (!($code == 250)) { goto EqyoL; } goto wcqlB; b9OF7: if (!($code == 243)) { goto v2ktN; } goto CObQ1; Z86bH: $novoX .= 'O'; goto OFtB9; O9fdU: goto EpJBR; goto ClSjT; M1tJD: $novoX .= 'A'; goto YK9Mo; PCbBS: U6wD3: goto eVlJ7; eVlJ7: $novoX .= $x[$i]; goto TrX4B; Vc1DH: y_VcV: goto p_meh; xHNuw: if (!($code == 244)) { goto qsXvx; } goto eHh8l; FKOrY: $n = 0; goto aPFjy; Hnxax: goto EpJBR; goto ICx5J; i4EC3: if (!($code == 198)) { goto etMtA; } goto vTZ72; BvC_W: J22WO: goto FnPR9; yh8M6: q8bVv: goto pXGtD; sRtRt: $novoX .= 'E'; goto wDUCM; SDQlh: $code = ord($x[$i]); goto AdBoW; huB75: $novoX .= 'U'; goto ilDRk; VYaP6: if (!($code == 193)) { goto ExdVM; } goto eFu84; QhIOh: goto EpJBR; goto vykJw; MF0_A: v2ktN: goto xHNuw; NJqn8: V17WA: goto i4EC3; Jx3Yl: goto EpJBR; goto XjJ0G; xqw7j: goto EpJBR; goto Vc1DH; WVTzq: $x = $r; goto h8nwD; ilDRk: goto EpJBR; goto kcXip; E6XNW: QkrKf: goto TZtkI; lgn5z: if (!($code == 239)) { goto EIf8N; } goto GGmpQ; BMYIj: goto EpJBR; goto ZP019; rXtuN: goto EpJBR; goto yWcs7; aPFjy: pBoaI: goto Ot6SA; Q3t5K: if (!($code == 245)) { goto TQuBh; } goto k03J9; G0Ax2: bdx1g: goto lgn5z; g2kfh: NEBWg: goto Z2_HJ; JK5iZ: E4STX: goto b8G33; uVuFg: W_9xl: goto TkO8v; oCcED: goto EpJBR; goto f_qBU; mjgu4: goto EpJBR; goto AUtAn; x0B5G: $novoX .= 'U'; goto zX60A; Pmkn0: if (!($code == 219)) { goto ZuM23; } goto ahiXR; HX1I4: goto EpJBR; goto g7m1m; kaCVx: DSDqE: goto YDRxy; Kq4Xf: goto EpJBR; goto j3OT2; lVJO4: $novoX .= 'U'; goto lO28U; Dnlr6: $novoX .= 'U'; goto gyui1; JMcO3: $novoX .= 'E'; goto zZjNW; h8nwD: $x = str_replace("&", "&amp;", $x); goto KKkkv; x2niK: if (!($code == 229)) { goto YMO8Q; } goto EFfhL; V1coX: $r .= $c; goto E6XNW; ty5CT: EqyoL: goto y00_8; aAK0N: $novoX .= 'I'; goto wsTzi; cSLta: $novoX .= 'E'; goto xZV17; GGmpQ: $novoX .= 'I'; goto q2Ek5; TkO8v: if (!($i < strlen($x))) { goto HFSo6; } goto SDQlh; N8Z6z: OEX_q: goto x2niK; nFXBG: $r .= ""; goto r4zER; FnPR9: if (!($code == 196)) { goto AWPb7; } goto pBVwS; aTuKN: xC40x: goto ltBSi; ghd_X: goto EpJBR; goto Zw1vz; gu2ka: goto EpJBR; goto BvC_W; QfEtz: goto EpJBR; goto wGwot; Zw1vz: ZuM23: goto iOhj4; SVcsL: hD5G5: goto B6fiv; frdsC: if (!($code == 212)) { goto GQa37; } goto ABV9N; kmvpR: $novoX .= 'E'; goto Kq4Xf; o1MCp: if (!($code == 252)) { goto U6wD3; } goto lVJO4; B6fiv: if (!($code == 217)) { goto NEBWg; } goto Dnlr6; AUtAn: hAHFF: goto JyljE; N_GZ9: if (!($code == 210)) { goto J63MO; } goto DjwJH; gyui1: goto EpJBR; goto g2kfh; Dw7aC: $novoX .= 'O'; goto CZwMY; KWXQS: if (!($code == 231)) { goto DSDqE; } goto MQPJx; i0Byw: goto EpJBR; goto kaCVx; hO6nM: goto EpJBR; goto uWiQU; EcF7E: kEzxF: goto d89Wo; sda3v: if (!($code == 211)) { goto lfr1n; } goto NTTIw; AWLt_: $novoX .= 'A'; goto to28B; AdBoW: if (!($code == 192)) { goto X5E1P; } goto eeX3H; uNlUU: goto EpJBR; goto d5glU; GRCVv: $novoX .= 'E'; goto Hnxax; JyljE: if (!($code == 195)) { goto J22WO; } goto oMJmQ; kTv1A: goto EpJBR; goto NJqn8; zZjNW: goto EpJBR; goto aTuKN; TZtkI: UGaNC: goto VvIWX; y00_8: if (!($code == 251)) { goto fSak2; } goto huB75; YTSOj: goto EpJBR; goto Ncd9P; rN0W3: RDfd2: goto PYUZq; Xn0SX: $novoX .= 'A'; goto HX1I4; Y345h: goto EpJBR; goto ty5CT; iGUi2: goto W_9xl; goto vEamP; oKNqA: } function gLimpaAcentosPuro($x) { goto UNMiY; UNMiY: if (!(mb_detect_encoding($x) != 'UTF-8')) { goto ZMqWL; } goto yr4vj; Gw0iv: $table = array('Š' => 'S', 'š' => 's', 'Đ' => 'Dj', 'đ' => 'dj', 'Ž' => 'Z', 'ž' => 'z', 'Č' => 'C', 'č' => 'c', 'Ć' => 'C', 'ć' => 'c', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y', 'Ŕ' => 'R', 'ŕ' => 'r'); goto rnnTF; yr4vj: $x = utf8_encode($x); goto Zt5cQ; Zt5cQ: ZMqWL: goto Gw0iv; rnnTF: return strtr($x, $table); goto cRfU6; cRfU6: } function gCorrigeAssinatura($string) { goto bGhNU; E_4p0: $string = preg_replace("/<\\/font>/imsU", '', $string); goto iuMZM; bGhNU: $string = preg_replace("/<font.*>/imsU", '', $string); goto E_4p0; iuMZM: return $string; goto aRaXn; aRaXn: } function gTruncar($str, $length = 10, $trailing = '...') { goto bFWdM; aGkv3: Y5ZMU: goto bFDBy; ibTPb: UOs2h: goto GVq6e; bFDBy: if (!empty($str)) { goto fc6NR; } goto acnUR; MlLUn: return ''; goto tkm0B; GVq6e: return $res; goto B2DC1; GX9mH: return mb_substr($str, 0, $length) . $trailing; goto ibTPb; acnUR: return $str; goto gt8jL; gt8jL: fc6NR: goto nTxcB; hR9wG: $str = $str['campoAtual']; goto aGkv3; EyClF: if (mb_strlen($str) > $length) { goto x9WU0; } goto B5prr; bFWdM: if (!is_array($str)) { goto Y5ZMU; } goto RDvt1; RDvt1: if (!empty($str['campoAtual'])) { goto Lqncc; } goto MlLUn; B5prr: $res = $str; goto OlHmD; tkm0B: Lqncc: goto hR9wG; OlHmD: goto UOs2h; goto ftW8Q; ftW8Q: x9WU0: goto GX9mH; nTxcB: $length -= mb_strlen($trailing); goto EyClF; B2DC1: } function gRetornaSqlDuplicacao($tabela, $pk) { goto mVJQp; O1TAW: dUN7W: goto qGS8C; r5xH1: return $sql; goto g7OHV; nrGTg: $ret = mysql_query("SHOW COLUMNS FROM {$tabela} WHERE FIELD!='{$chave}'"); goto l53qi; ai9iZ: $campos = substr($campos, 0, -1); goto f8znf; l53qi: $campos = ""; goto O1TAW; qGS8C: if (!($linha = mysql_fetch_assoc($ret))) { goto MN0pe; } goto OfkFr; ftYk_: goto dUN7W; goto ubSnK; ubSnK: MN0pe: goto ai9iZ; mVJQp: $chave = $tabela . '_Id'; goto nrGTg; f8znf: $sql = "INSERT INTO {$tabela} ({$campos}) SELECT {$campos} FROM {$tabela} WHERE {$chave}={$pk}"; goto r5xH1; OfkFr: $campos .= $linha['Field'] . ','; goto ftYk_; g7OHV: } function gGerarThumb($src, $dest, $desired_width) { goto zuzpf; zuzpf: if (!file_exists($dest)) { goto ExVtk; } goto bIO_e; AmW0C: $virtual_image = imagecreatetruecolor($desired_width, $desired_height); goto fBq6i; udQp8: $source_image = @imagecreatefromjpeg($src); goto zHJxA; yJbeb: ExVtk: goto udQp8; sHZGb: $height = imagesy($source_image); goto SRwfX; bIO_e: unlink($dest); goto yJbeb; mGQEZ: $source_image = imagecreatefrompng($src); goto n6Gx8; K5MpC: $width = imagesx($source_image); goto sHZGb; zHJxA: if ($source_image) { goto ruayp; } goto mGQEZ; n6Gx8: ruayp: goto K5MpC; CdiwH: imagejpeg($virtual_image, $dest); goto U8Qdu; SRwfX: $desired_height = floor($height * ($desired_width / $width)); goto AmW0C; fBq6i: imagecopyresampled($virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height); goto CdiwH; U8Qdu: } function gDiasUteis($data_ini, $data_fin) { goto ygLbK; FHJA3: $naoutil = 0; goto aUw1m; MtFsV: goto u1Mhi; goto BIUgC; tzX8W: $naoutil++; goto lw5el; WJPm6: return $dias - $naoutil; goto KPU6a; BIUgC: WbwvR: goto WJPm6; aUw1m: u1Mhi: goto ZQvPR; Gow1W: $data_ini += 86400; goto MtFsV; ygLbK: $dias = number_format(($data_fin - $data_ini) / 86400, 0); goto FHJA3; lw5el: xRh2e: goto Gow1W; cPZfU: if (!(date("w", $data_ini) == 0 || date("w", $data_ini) == 6)) { goto xRh2e; } goto tzX8W; ZQvPR: if (!($data_ini < $data_fin)) { goto WbwvR; } goto cPZfU; KPU6a: } function gModificarFKGlobal($pk, $valor, $novo_valor) { goto i02qM; FycIs: BO2by: goto nq9qb; J33nH: $sql = "SHOW TABLES;"; goto hXPHD; i02qM: $pk = explode('_', $pk); goto J33nH; el1nR: goto BO2by; goto rVlte; pI7Xb: Mcn1K: goto CYKLM; UoGy_: $sql = "UPDATE {$fk[0]} SET {$desc[0]} = '{$novo_valor}' WHERE {$desc[0]} = '{$valor}';"; goto k2Nlt; TCtWo: if (!(isset($fk[2]) && $fk[2] == 'Id' && $fk[1] == $pk[0])) { goto OVJBR; } goto UoGy_; CYKLM: if (!($desc = mysql_fetch_row($resDesc))) { goto YEMCj; } goto dXaSm; feupn: $sql = "DESC {$table};"; goto ydGq5; nq9qb: if (!($table = mysql_fetch_row($res))) { goto C2jdr; } goto l2Ovv; l2Ovv: $table = $table[0]; goto feupn; dXaSm: $fk = explode('_', $desc[0]); goto TCtWo; ydGq5: $resDesc = mysql_query($sql); goto pI7Xb; hXPHD: $res = mysql_query($sql); goto QTwB7; o1qWC: OVJBR: goto lXLQp; rVlte: C2jdr: goto DOvP4; lXLQp: goto Mcn1K; goto s7iR6; QTwB7: $count = 0; goto FycIs; gshe2: dnMSK: goto o1qWC; WlG5j: if ($result) { goto dnMSK; } goto umj2x; k2Nlt: $result = mysql_query($sql); goto WlG5j; umj2x: die('Invalid query: ' . mysql_error()); goto gshe2; s7iR6: YEMCj: goto el1nR; DOvP4: } function definirClasse($classe) { goto kkTkq; ir9Eo: eval("namespace hardness;\n{$arquivos[0]}"); goto nvG5B; WQjMa: log("arquivos <pre>" . htmlentities(print_r($arquivos, true)) . "</pre>"); goto mwLhL; EpZ6d: foreach ($arquivoAppsMerge as $value) { $arquivos[] = $value; DHStq: } goto SbAZt; SOmNt: Js9lJ: goto EpZ6d; VZpse: $arquivoApps = Apps::getDirAtivos() . "personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php'; goto xQUmX; scWT9: $arquivos[] = $arquivoEmpresaAppsEditor; goto NZGGq; BrZKg: $codigo = "namespace hardness;\n"; goto yVskC; SQRdM: $limparConteudo = function ($conteudo) { goto m5XED; VZIO5: $conteudo = preg_replace('/\\?\\>( |\\n)+?\\$/m', '', $conteudo); goto H1Rmx; H1Rmx: return $conteudo; goto RkTt2; m5XED: $conteudo = preg_replace('/^\\<\\?(php)?/m', '', $conteudo); goto hSSK1; hSSK1: $conteudo = str_replace('namespace hardness;', '', $conteudo); goto VZIO5; RkTt2: }; goto DP0ZK; kutLY: $arquivos = array(); goto SQRdM; eYj9d: $arquivoEmpresaAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php'; goto Aucog; lfPbP: YMhpw: goto FN9EF; NU6Pm: if (empty($arquivoEmpresaIDE)) { goto Be6YW; } goto rwNHD; AcgvP: $arquivos[] = $arquivoUsuario; goto KVEi9; F_XmZ: goto uAB_H; goto SOmNt; XCyz1: $arquivoAppsMerge = @unserialize($arquivoEmpresaApps); goto e9x_a; nvG5B: KfLO1: goto tvkoh; Ubrmn: if (!(!$g['modoDesenvolvedor'] && !empty($arquivoEmpresaApps))) { goto PX9eb; } goto XCyz1; zvRLE: return false; goto vLu70; haeg4: pGWpa: goto z3MfA; z3MfA: return false; goto svX4W; tBPyI: if ($arquivoAppsMerge) { goto zsUyb; } goto Z2N7m; Z2N7m: $arquivos[] = $arquivoApps; goto RQugn; NZGGq: SGhRI: goto uZOGa; svX4W: Ttkdr: goto SyDQt; SbAZt: G1mmb: goto DIbqm; cEb08: BaQ4I: goto Iw0Gz; ia8Ej: $arquivoEmpresaApps = Apps::getDirAtivos() . "personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php'; goto eYj9d; QN94w: goto KfLO1; goto MnHvf; FN9EF: eval($codigo); goto QN94w; Iw0Gz: kIaId: goto Ubrmn; tvkoh: goto pGWpa; goto uP2uY; Q2etH: $arquivoUsuario = "{$g['pathDados']}personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php'; goto FAaZ0; FAaZ0: $arquivoIDE = file_exists($arquivoIDE) ? file_get_contents($arquivoIDE) : false; goto mtMi6; mwLhL: $arquivos[0] = $limparConteudo($arquivos[0]); goto ir9Eo; wSoHN: if (empty($arquivoIDE)) { goto lXD3Q; } goto Cn90W; yVskC: foreach ($arquivos as $key => $arquivo) { goto tnZNU; kqSxU: $arquivo = str_replace("class {$classe} extends {$classe}_", "class {$classe}_{$key} extends {$classe}_{$keyAnterior}", $arquivo); goto LvGq8; P4sNP: $codigo .= $arquivo . "\n"; goto SEp20; gMoDq: $keyAnterior = $key - 1; goto HXLkp; WoQIf: iK8Uw: goto cKK8Q; tnZNU: $arquivo = $limparConteudo($arquivo); goto gMoDq; LvGq8: goto iK8Uw; goto dzage; midMU: XYT15: goto Men0Z; cKK8Q: goto tnhjW; goto midMU; dzage: RnR2q: goto BPAjL; oVGqD: if ($key === 0) { goto RnR2q; } goto kqSxU; Men0Z: $arquivo = str_replace("class {$classe} extends {$classe}_", "class {$classe} extends {$classe}_{$keyAnterior}", $arquivo); goto muSgP; muSgP: tnhjW: goto P4sNP; HXLkp: if (count($arquivos) - 1 == $key) { goto XYT15; } goto oVGqD; BPAjL: $arquivo = str_replace("class {$classe} extends {$classe}_", "class {$classe}_{$key} extends {$classe}_", $arquivo); goto WoQIf; SEp20: JSi8f: goto eHKyQ; eHKyQ: } goto lfPbP; p23sO: eval("namespace hardness;\nclass {$classe} extends {$classe}_ {}"); goto haeg4; rwNHD: $arquivos[] = $arquivoEmpresaIDE; goto Lp8Hc; PMWVu: $arquivoEmpresaApps = file_exists($arquivoEmpresaApps) ? file_get_contents($arquivoEmpresaApps) : false; goto fmwbr; xQUmX: $arquivoAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php'; goto Q2etH; oG5PM: $arquivoUsuario = file_exists($arquivoUsuario) ? file_get_contents($arquivoUsuario) : false; goto u8Ejd; DIbqm: uAB_H: goto h1M_K; u8Ejd: $arquivoEmpresaIDE = "ide/personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php'; goto ia8Ej; KVEi9: PNr0c: goto vQtCw; fmwbr: $arquivoEmpresaAppsEditor = file_exists($arquivoEmpresaAppsEditor) ? file_get_contents($arquivoEmpresaAppsEditor) : false; goto l48pu; mtMi6: $arquivoApps = file_exists($arquivoApps) ? file_get_contents($arquivoApps) : false; goto SQMuA; SyDQt: eval("namespace hardness;\nclass {$classe} extends {$classe}_ {}"); goto zvRLE; pl34z: fIqho: goto WrrWz; ejMYR: if (!(!$g['modoDesenvolvedor'] && !empty($arquivoApps))) { goto kIaId; } goto DcXMf; SQMuA: $arquivoAppsEditor = file_exists($arquivoAppsEditor) ? file_get_contents($arquivoAppsEditor) : false; goto oG5PM; Cn90W: $arquivos[] = $arquivoIDE; goto RlSq_; kmioq: foreach ($arquivoAppsMerge as $value) { $arquivos[] = $value; HQvr2: } goto kRdNo; rkOjG: if (!($g['modoDesenvolvedorApp'] && !empty($arquivoAppsEditor))) { goto fIqho; } goto TThR2; HIrcu: $arquivos[] = $arquivoEmpresaApps; goto F_XmZ; TThR2: $arquivos[] = $arquivoAppsEditor; goto pl34z; l5Gx1: if (count($arquivos) == 1) { goto wDuob; } goto BrZKg; EEkbn: $arquivos[] = $arquivoEmpresaUsuario; goto t9XBQ; h1M_K: PX9eb: goto rkOjG; WrrWz: if (!($g['modoDesenvolvedorApp'] && !empty($arquivoEmpresaAppsEditor))) { goto SGhRI; } goto scWT9; XCECZ: zsUyb: goto kmioq; MnHvf: wDuob: goto WQjMa; Aucog: $arquivoEmpresaUsuario = "{$g['pathDados']}personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php'; goto grxNi; kkTkq: global $g; goto rY4Q5; rY4Q5: if (!isset($g)) { goto Ttkdr; } goto kutLY; kRdNo: E2sJV: goto cEb08; grxNi: $arquivoEmpresaIDE = file_exists($arquivoEmpresaIDE) ? file_get_contents($arquivoEmpresaIDE) : false; goto PMWVu; t9XBQ: PQmP5: goto zInI0; uP2uY: mZnjD: goto p23sO; uZOGa: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && !empty($arquivoUsuario))) { goto PNr0c; } goto AcgvP; DcXMf: $arquivoAppsMerge = @unserialize($arquivoApps); goto tBPyI; RlSq_: lXD3Q: goto NU6Pm; DP0ZK: $arquivoIDE = "ide/personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php'; goto VZpse; RQugn: goto BaQ4I; goto XCECZ; Lp8Hc: Be6YW: goto ejMYR; l48pu: $arquivoEmpresaUsuario = file_exists($arquivoEmpresaUsuario) ? file_get_contents($arquivoEmpresaUsuario) : false; goto wSoHN; vQtCw: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && !empty($arquivoEmpresaUsuario))) { goto PQmP5; } goto EEkbn; e9x_a: if ($arquivoAppsMerge) { goto Js9lJ; } goto HIrcu; zInI0: if (empty($arquivos)) { goto mZnjD; } goto l5Gx1; vLu70: } function incluirMenu() { goto UtZ4q; btLGZ: hIUeI: goto JRIH3; PXDlY: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arquivoEmpresaGlobal))) { goto dpaEb; } goto gP7vm; PQgj8: $arquivoGlobalAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . 'GLOBAL-menu.php'; goto Q9XQG; VimRo: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arquivoGlobalGlobal))) { goto DbYa_; } goto nUXul; t4nK7: if (!(!$g['modoDesenvolvedor'] && file_exists($arquivoEmpresaApps))) { goto UUKnA; } goto NL7op; gP7vm: $arquivoEmpresa = $arquivoEmpresaGlobal; goto WIcOr; Ehhjb: OZ3Sr: goto cyyui; NL7op: $arquivoEmpresa = $arquivoEmpresaApps; goto IGODd; fvDyY: return true; goto Ehhjb; OU0Ci: require_once $arquivoGlobal; goto fvDyY; oryhy: bQb26: goto PXDlY; ZAEVp: if (!($g['modoDesenvolvedorApp'] && file_exists($arquivoGlobalAppsEditor))) { goto Ym2WT; } goto S7NvC; TCcvS: vbENr: goto ZAEVp; Q9XQG: $arquivoGlobalGlobal = "{$g['pathDados']}personalizacaoConf/" . 'GLOBAL-menu.php'; goto qyLLi; k9w4o: DbYa_: goto FWtya; UtZ4q: global $g, $menu; goto niQLI; JRIH3: if (!file_exists($arquivoGlobal)) { goto OZ3Sr; } goto OU0Ci; TATID: $arquivoEmpresa = $arquivoEmpresaAppsEditor; goto oryhy; qyLLi: $arquivoGlobal = $arquivoGlobalIde; goto WsIGa; C5K36: if (!file_exists($arquivoEmpresa)) { goto hIUeI; } goto v_vB3; cyyui: return false; goto GTXdQ; f1e_A: Ym2WT: goto VimRo; zrrkj: $arquivoGlobalApps = Apps::getDirAtivos() . "personalizacaoConf/" . 'GLOBAL-menu.php'; goto PQgj8; thQUn: $arquivoEmpresaApps = Apps::getDirAtivos() . "personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php'; goto XTV8B; nUXul: $arquivoGlobal = $arquivoGlobalGlobal; goto k9w4o; v_vB3: require_once $arquivoEmpresa; goto bJeps; QTbL5: if (!($g['modoDesenvolvedorApp'] && file_exists($arquivoEmpresaAppsEditor))) { goto bQb26; } goto TATID; bJeps: return true; goto btLGZ; IGODd: UUKnA: goto QTbL5; niQLI: $arquivoGlobalIde = "ide/personalizacaoConf/" . 'GLOBAL-menu.php'; goto zrrkj; XTV8B: $arquivoEmpresaAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php'; goto xCvKy; S7NvC: $arquivoGlobal = $arquivoGlobalAppsEditor; goto f1e_A; FWtya: $arquivoEmpresaIde = "ide/personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php'; goto thQUn; WIcOr: dpaEb: goto C5K36; WsIGa: if (!(!$g['modoDesenvolvedor'] && file_exists($arquivoGlobalApps))) { goto vbENr; } goto WM7iH; EmARW: $arquivoEmpresa = $arquivoEmpresaIde; goto t4nK7; WM7iH: $arquivoGlobal = $arquivoGlobalApps; goto TCcvS; xCvKy: $arquivoEmpresaGlobal = "{$g['pathDados']}personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php'; goto EmARW; GTXdQ: } function incluirColunaEditarRestricoes() { goto oAMRM; m3FzC: require_once $arquivoGlobal; goto CB3dw; oAMRM: global $g, $menu; goto V6eRD; nLqrU: require_once $arquivoEmpresa; goto HIwJf; Vi00h: pmFdQ: goto racbX; EG2Wn: f1mch: goto Ybf37; TQ3dn: VhGLT: goto lIT5d; CB3dw: oyUU6: goto EphZm; Ybf37: $arquivoGlobal = Apps::getDirAtivos() . "personalizacaoConf/GLOBAL-colunaEditarRestricoes.php"; goto q1n_c; poY5C: if (!file_exists($arquivoGlobal)) { goto oyUU6; } goto m3FzC; UnLe5: if (!file_exists($arquivoEmpresa)) { goto f1mch; } goto X9P2U; SemL1: require_once $arquivoEmpresa; goto V2u6Q; V2u6Q: MaOfK: goto bd7bZ; LYU4v: require_once $arquivoGlobal; goto TQ3dn; HIwJf: eNHTf: goto pfBnd; UfDyl: require_once $arquivoEmpresa; goto O8ffD; aHqTe: if (!($g['modoDesenvolvedorApp'] && file_exists($arquivoGlobal))) { goto pmFdQ; } goto zRQe3; IjimO: $arquivoGlobal = "{$g['pathDados']}personalizacaoConf/GLOBAL-colunaEditarRestricoes.php"; goto poY5C; lIT5d: $arquivoEmpresa = "ide/personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php"; goto UnLe5; X9P2U: require_once $arquivoEmpresa; goto EG2Wn; V6eRD: require_once 'configuracoes/_colunaEditarRestricoes.php'; goto N64XE; pfBnd: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'])) { goto TeDNv; } goto IjimO; O8ffD: zo680: goto OBnQQ; OBnQQ: $arquivoGlobal = Apps::getDirEditor() . "personalizacaoConf/GLOBAL-colunaEditarRestricoes.php"; goto aHqTe; N64XE: $arquivoGlobal = "ide/personalizacaoConf/GLOBAL-colunaEditarRestricoes.php"; goto VHn2a; bX4Rn: if (!file_exists($arquivoEmpresa)) { goto MaOfK; } goto SemL1; iCQe2: if (!(!$g['modoDesenvolvedor'] && file_exists($arquivoEmpresa))) { goto zo680; } goto UfDyl; racbX: $arquivoEmpresa = Apps::getDirEditor() . "personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php"; goto o10Ao; o10Ao: if (!($g['modoDesenvolvedorApp'] && file_exists($arquivoEmpresa))) { goto eNHTf; } goto nLqrU; q1n_c: if (!(!$g['modoDesenvolvedor'] && file_exists($arquivoGlobal))) { goto HuavF; } goto xwpP4; bd7bZ: TeDNv: goto j3Xzp; npfEG: $arquivoEmpresa = Apps::getDirAtivos() . "personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php"; goto iCQe2; xwpP4: require_once $arquivoGlobal; goto bYaWw; EphZm: $arquivoEmpresa = "{$g['pathDados']}personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php"; goto bX4Rn; zRQe3: require_once $arquivoGlobal; goto Vi00h; VHn2a: if (!file_exists($arquivoGlobal)) { goto VhGLT; } goto LYU4v; bYaWw: HuavF: goto npfEG; j3Xzp: } function personalizacaoBotoes($md5 = false) { goto cWOEe; kwZdj: $arquivo = file_exists($arquivoPerfil) ? $arquivoPerfil : $arquivo; goto LDlKf; YhrRW: $arquivo = $arquivoIde; goto OowZh; QnKQ0: foreach ($GLOBALS as $name => $value) { global ${$name}; as_Fr: } goto FyTM1; FyTM1: foF9u: goto jBFeY; rkSRb: include $arquivo; goto rMxBV; LDlKf: $arquivo = file_exists($arquivoUsuario) ? $arquivoUsuario : $arquivo; goto jyxPk; LiP24: $arquivoAppsEditor = Apps::getDirEditor() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes'; goto zs4qw; VJURf: $arquivoIde = "ide/personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes'; goto y73D7; nieL3: if (!isset($r_origemFiltro)) { goto Qa6AJ; } goto CmOq6; LuEa0: egCiG: goto aB7D9; zs4qw: $arquivoGlobal = "{$g['pathDados']}personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes'; goto Xb3dh; CmOq6: return true; goto TIZ6R; rMxBV: return true; goto LuEa0; r0ofC: if (!file_exists($arquivo)) { goto egCiG; } goto rkSRb; Dr65k: CZrAy: goto YhrRW; l8Ms9: Y1CmO: goto LU2p0; OowZh: DKFBf: goto r0ofC; G_BXh: if ($g['modoDesenvolvedor']) { goto CZrAy; } goto SNR0h; aB7D9: return false; goto t_lxG; jyxPk: goto vzi9m; goto l8Ms9; VTDpU: $arquivo = $arquivoIde; goto zNfDp; y73D7: $arquivoApps = Apps::getDirAtivos() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes'; goto LiP24; CwgiT: vzi9m: goto P571Q; SNR0h: if ($g['modoDesenvolvedorApp']) { goto Y1CmO; } goto VTDpU; TIZ6R: Qa6AJ: goto QnKQ0; Co5Yi: $arquivoUsuario = "{$g['pathDados']}personalizacaoGrid/u" . $g['C007']['C007_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-botoes'; goto G_BXh; ca79K: $arquivo = file_exists($arquivoAppsEditor) ? $arquivoAppsEditor : $arquivo; goto CwgiT; cWOEe: global $g, $r_origemFiltro; goto nieL3; k1Rs2: $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo; goto ca79K; Xb3dh: $arquivoPerfil = "{$g['pathDados']}personalizacaoGrid/" . $g['C021']['C021_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-botoes'; goto Co5Yi; P571Q: goto DKFBf; goto Dr65k; lwqZa: $arquivo = file_exists($arquivoGlobal) ? $arquivoGlobal : $arquivo; goto kwZdj; jBFeY: $r_grid = preg_replace('/^\\//', '', $g['r_']); goto VJURf; LU2p0: $arquivo = $arquivoIde; goto k1Rs2; zNfDp: $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo; goto lwqZa; t_lxG: } function personalizacaoTotais($md5 = false, $ajax = false) { goto v5u8c; jwYxa: include $arquivo; goto S1ANZ; sGBEP: echo <<<EOT
+        $tmp = str_replace($toReplace, $css, $tmp);
+    }
+    return $g['smarty']->fetch($template);
+}
+
+function mysql_query($query, $executarTriggersPHP = true)
+{
+    global $g, $confUsuario;
+    gVerificarConexao();
+    $query = str_replace("\t", '', trim($query));
+    $tmpTimeStart = microtime(true);
+    session_start();
+    preg_match('/FROM ([^ ]+) /Uis', $query, $tabela);
+    if (!(!empty($tabela))) {
+        preg_match('/UPDATE ([^ ]+) /Uis', $query, $tabela);
+        if (!(!empty($tabela))) {
+            preg_match('/INTO ([^ ]+) /Uis', $query, $tabela);
+            if (!empty($tabela)) {
+            } else {
+                $mysql = mysqli_query($query);
+                $tmpTimeEnd = microtime(true);
+                $g['time']['sql'] += $tmpTimeEnd - $tmpTimeStart;
+                return $mysql;
+            }
+        }
+    }
+    $t = $tabela;
+    $tabela = $tabela[1];
+    preg_match('/ *([^ ]+) /Uis', $query, $acao);
+    $acao = $acao[1];
+    if (stristr($acao, 'SELECT')) {
+        $acao = 'S';
+    } else {
+        if (stristr($acao, 'INSERT')) {
+            $acao = 'I';
+        } else {
+            if (stristr($acao, 'UPDATE')) {
+                $acao = 'U';
+            } else {
+                if (!(!stristr($acao, 'DELETE'))) {
+                    $acao = 'D';
+                }
+            }
+        }
+    }
+    $T162_Registro_Id = 0;
+    $T162_Registro = array();
+    $tabelaAcaoId = 0;
+    $T162_Registro_Tabela = $T162_Registro_CampoId = '';
+    if ($acao == 'U' || $acao == 'D') {
+        preg_match('/WHERE ?([^ =]+) ?= ?(\'|")?([0-9]+)(\'|")?/im', $query, $matches);
+        if (!isset($matches[1]) || $matches[1] !== 0 && empty($matches[1])) {
+        } else {
+            $T162_Registro_CampoId = $matches[1];
+            $T162_Registro_Tabela = explode('_', $T162_Registro_CampoId);
+            $T162_Registro_Tabela = $T162_Registro_Tabela[0];
+            $T162_Registro_Id = $matches[3];
+            $tabelaAcaoId = $matches[3];
+            $sql = "SELECT * FROM {$T162_Registro_Tabela} WHERE {$T162_Registro_CampoId} = '{$T162_Registro_Id}';";
+            $resT162Registro = mysqli_query($sql);
+            if ($resT162Registro) {
+                if (mysql_num_rows($resT162Registro) == 1) {
+                    $T162_Registro = @mysql_fetch_assoc($resT162Registro);
+                }
+            }
+        }
+    } else {
+        if ($acao == 'I') {
+            preg_match('/INSERT INTO (?<tabela>[^A]+A) \\((?<fk>[^,]+), (?<campo>[^\\)]+)\\) VALUES \\((?<id>[^,]+), [^\\)]+\\) ON DUPLICATE KEY UPDATE.*/Uis', $query, $tabelaAuxiliar);
+            $tabelaAuxiliarId = trim($tabelaAuxiliar['id'], "'");
+            if (!(empty($tabelaAuxiliarId))) {
+                $tabela = $tabelaAuxiliar['tabela'];
+                $tabelaAuxiliarRegistro = mysql_fetch_assoc(mysqli_query("SELECT {$tabelaAuxiliar['tabela']}_Id FROM {$tabelaAuxiliar['tabela']} WHERE {$tabelaAuxiliar['fk']} = '{$tabelaAuxiliarId}' AND {$tabelaAuxiliar['campo']} IS NOT NULL"));
+                if (!(empty($tabelaAuxiliarRegistro))) {
+                    $acao = 'U';
+                    $tabelaAcaoId = $tabelaAuxiliarRegistro["{$tabelaAuxiliar['tabela']}_Id"];
+                }
+            }
+        }
+    }
+    if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+        $h = fopen("/tmp/debug-{$_COOKIE['debug']}", 'a');
+    }
+    if ($executarTriggersPHP) {
+        if ($acao == 'I') {
+            if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'insertBefore' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />";
+                $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'insertBefore' ({$tabela})</span><br />";
+                fwrite($h, $log . "\n");
+            }
+            $g['conf']->triggers($tabela, 'insertBefore');
+            if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'insertBefore' ({$tabela})</span><br />";
+                fwrite($h, $log . "\n");
+            }
+        } else {
+            if ($acao == 'U') {
+                if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                    $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'updateBefore' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />";
+                    $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'updateBefore' ({$tabela}) ({$tabelaAcaoId})</span><br />";
+                    fwrite($h, $log . "\n");
+                }
+                $g['conf']->triggers($tabela, 'updateBefore', $tabelaAcaoId);
+                if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                    $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'updateBefore' ({$tabela})</span><br />";
+                    fwrite($h, $log . "\n");
+                }
+            } else {
+                if ($acao == 'D') {
+                    if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                        $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'deleteBefore' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />";
+                        $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'deleteBefore' ({$tabela}) ({$tabelaAcaoId})</span><br />";
+                        fwrite($h, $log . "\n");
+                    }
+                    $g['conf']->triggers($tabela, 'deleteBefore', $tabelaAcaoId);
+                    if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                        $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'deleteBefore' ({$tabela})</span><br />";
+                        fwrite($h, $log . "\n");
+                    }
+                }
+            }
+        }
+    }
+    $time_start = microtime(true);
+    $retorno = mysqli_query($query);
+    if ($retorno) {
+        if ($acao == 'I') {
+            $g['mysqlLastId'] = mysql_insert_id();
+        }
+        $g['mysqlAffectedRows'] = mysql_affected_rows();
+        $time_end = microtime(true);
+        $time = round($time_end - $time_start, 2);
+        if (in_array($tabela, $g['tabelasCache']) && $acao != 'S') {
+            processarCacheTabela($tabela);
+        }
+        $T162_Extra = '';
+        $debug = debug_backtrace();
+        if (!(!isset($debug[0]))) {
+            if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                if ($time < 1) {
+                    $tempo = "<span style='color: grey;'>{$time}s</span>";
+                } else {
+                    if ($time < 3) {
+                        $tempo = "<span style='color: blue;'>{$time}s</span>";
+                    } else {
+                        $tempo = "<span style='color: red; font-weight: bold;'>{$time}s</span>";
+                    }
+                }
+                if (strpos($debug[0]['file'], "NOTIFICACOES") === false) {
+                    $log = "<span style='color: gray; float: right;'>{$debug[0]['file']}:{$debug[0]['line']}</span><br />({$time}) <span style='color: var(--letra-log);'>{$query}</span><br />";
+                    fwrite($h, $log . "\n");
+                    $_SESSION['debugSqlCounter']++;
+                }
+            }
+            $T162_Extra .= "{$debug[0]['file']}:{$debug[0]['line']}";
+        }
+        unset($debug);
+        if ($executarTriggersPHP) {
+            if ($acao == 'I') {
+                if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                    $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'insertAfter' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />";
+                    $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'insertAfter' ({$tabela}) ({$g['mysqlLastId']})</span><br />";
+                    fwrite($h, $log . "\n");
+                }
+                $g['conf']->triggers($tabela, 'insertAfter', $g['mysqlLastId']);
+                if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                    $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'insertAfter' ({$tabela})</span><br />";
+                    fwrite($h, $log . "\n");
+                }
+            } else {
+                if ($acao == 'U') {
+                    if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                        $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'updateAfter' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />";
+                        $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'updateAfter' ({$tabela}) ({$tabelaAcaoId})</span><br />";
+                        fwrite($h, $log . "\n");
+                    }
+                    $g['conf']->triggers($tabela, 'updateAfter', $tabelaAcaoId);
+                    if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                        $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'updateAfter' ({$tabela})</span><br />";
+                        fwrite($h, $log . "\n");
+                    }
+                } else {
+                    if ($acao == 'D') {
+                        if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                            $log = "<br /><span style='color: blue; font-weight: bold;'>Trigger 'deleteAfter' ativada! ({$tabela})</span><span style='color: gray;'> ({$query})</span><br />";
+                            $log .= "<span style='color: green; font-weight: bold;'>Início trigger 'deleteAfter' ({$tabela}) ({$tabelaAcaoId})</span><br />";
+                            fwrite($h, $log . "\n");
+                        }
+                        $g['conf']->triggers($tabela, 'deleteAfter', $tabelaAcaoId);
+                        if (isset($_COOKIE['debug']) && !empty($_COOKIE['debug'])) {
+                            $log = "<span style='color: green; font-weight: bold;'>Fim trigger 'deleteAfter' ({$tabela})</span><br />";
+                            fwrite($h, $log . "\n");
+                        }
+                    }
+                }
+            }
+        }
+        if ($acao == 'I') {
+            $T162_Registro_Id = $g['mysqlLastId'];
+        }
+        if ($acao != 'S' && (!$g['tabelasAuditoria'][strtoupper($tabela)] || $g['tabelasAuditoria'][strtoupper($tabela)] == 'S')) {
+            $arrayAlterados = array();
+            if ($acao != 'D' && $acao == 'U' && !empty($T162_Registro)) {
+                $T162_Registro_Depois = array();
+                $sql = "SELECT * FROM {$T162_Registro_Tabela} WHERE {$T162_Registro_CampoId} = '{$T162_Registro_Id}';";
+                $resT162RegistroDepois = mysqli_query($sql);
+                if ($resT162RegistroDepois) {
+                    if (mysql_num_rows($resT162RegistroDepois) == 1) {
+                        $T162_Registro_Depois = @mysql_fetch_assoc($resT162RegistroDepois);
+                    }
+                }
+                foreach ($T162_Registro_Depois as $keyDepois => $valueDepois) {
+                    if ($T162_Registro[$keyDepois] != $valueDepois) {
+                        $arrayAlterados[$keyDepois] = array($T162_Registro[$keyDepois], $valueDepois);
+                    }
+                }
+            }
+            if ($acao != 'U' || !empty($arrayAlterados)) {
+                $query = mysql_real_escape_string($query);
+                if ($acao == 'D') {
+                    $arrayAlterados = $T162_Registro;
+                }
+                $arrayAlterados = mysql_real_escape_string(serialize($arrayAlterados), $g['conexaoBancoAuditoria']);
+                $T162_Extra = mysql_real_escape_string($T162_Extra, $g['conexaoBancoAuditoria']);
+                $sql = "INSERT INTO T162 (T162_C007_Id, T162_Acao, T162_Query, T162_DataHora, T162_Tabela, T162_TempoExecucao, T162_Registro_Id, T162_Registro, T162_IP) VALUES ('{$g['usuarioAtual']}', '{$acao}', '{$T162_Extra}', '" . date('Y-m-d H:i:s') . "', '{$tabela}', '{$time}', '{$T162_Registro_Id}', COMPRESS('{$arrayAlterados}'), '{$_SERVER['REMOTE_ADDR']}');";
+                mysqli_query($sql, $g['conexaoBancoAuditoria']);
+                $g['conf']->auditoriaCampos("{$tabela}_Id");
+                if (!(!isset($g['conf']->conf['auditoriaCampos']))) {
+                    foreach ($g['conf']->conf['auditoriaCampos'] as $value) {
+                        if (strpos($value, $tabela) !== false) {
+                            gExplodeAuditoria($value, mysql_insert_id($g['conexaoBancoAuditoria']));
+                        }
+                    }
+                }
+            }
+        }
+        $tmpTimeEnd = microtime(true);
+        $g['time']['sql'] += $tmpTimeEnd - $tmpTimeStart;
+        return $retorno;
+    } else {
+        return $retorno;
+    }
+}
+
+function mysqli_query($query, $conexao = false)
+{
+    global $g, $confUsuario;
+    if (!($g['conexaoBanco'])) {
+        $g['conexaoBanco'] = mysqli_init();
+        if ($g['conexaoBanco']) {
+            $g['conexaoBanco']->options(MYSQLI_OPT_CONNECT_TIMEOUT, 240);
+            $g['conexaoBanco']->options(MYSQLI_OPT_READ_TIMEOUT, 240);
+            $g['conexaoBanco']->real_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
+        } else {
+            die("mysqli_init failed");
+        }
+    }
+    unset($g['conexaoLastQuery']);
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    if (stripos($query, '/* ClickHouse */') !== false) {
+        verificarConexaoClickhouse();
+        if (!(stripos($query, '/* ClickHouse */') !== false && !isset($g['conexaoBancoClickHouse']))) {
+            $conexao = $g['conexaoBancoClickHouse'];
+            $g['conexaoLastQuery'] = $conexao;
+        } else {
+            die('Conexão ClickHouse não configurada (bibliotecas/conexaoBancoClickHouse.php), por favor, contate o suporte técnico.');
+        }
+    }
+    return \mysqli_query($conexao, $query);
+}
+
+function mysql_result($query, $field = 0)
+{
+    global $g;
+    $row = mysql_fetch_array($query);
+    return $row[$field];
+}
+
+function mysql_insert_id($conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_insert_id($conexao);
+    return $retorno;
+}
+
+function mysqli_insert_id($conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_insert_id($conexao);
+    return $retorno;
+}
+
+function mysql_real_escape_string($string, $conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_real_escape_string($conexao, $string);
+    return $retorno;
+}
+
+function mysqli_real_escape_string($string, $conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_real_escape_string($conexao, $string);
+    return $retorno;
+}
+
+function mysql_fetch_assoc($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_assoc($result) : null);
+    return $retorno;
+}
+
+function mysql_fetch_row($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_row($result) : null);
+    return $retorno;
+}
+
+function mysql_num_rows($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0);
+    return $retorno;
+}
+
+function mysql_numrows($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0);
+    return $retorno;
+}
+
+function mysql_free_result($result)
+{
+    global $g;
+    $retorno = \mysqli_free_result($result);
+    return $retorno;
+}
+
+function mysql_error($conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        if ($g['conexaoLastQuery']) {
+            $conexao = $g['conexaoLastQuery'];
+        } else {
+            $conexao = $g['conexaoBanco'];
+        }
+    }
+    $retorno = \mysqli_error($conexao);
+    return $retorno;
+}
+
+function mysqli_error($conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_error($conexao);
+    return $retorno;
+}
+
+function mysql_errno($conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_errno($conexao);
+    return $retorno;
+}
+
+function mysql_data_seek($result, $offset)
+{
+    global $g;
+    $retorno = \mysqli_data_seek($result, $offset);
+    return $retorno;
+}
+
+function mysql_set_charset($string, $conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_set_charset($conexao, $string);
+    return $retorno;
+}
+
+function mysql_fetch_array($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_array($result) : null);
+    return $retorno;
+}
+
+function sql_fetch_array($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_array($result) : null);
+    return $retorno;
+}
+
+function mysql_affected_rows($conexao = false)
+{
+    global $g;
+    if ($conexao === false) {
+        $conexao = $g['conexaoBanco'];
+    }
+    $retorno = \mysqli_affected_rows($conexao);
+    return $retorno;
+}
+
+function mysqli_query_clickHoue($query)
+{
+    global $g;
+    $retorno = \mysqli_query($g['conexaoBancoClickHouse'], $query);
+    return $retorno;
+}
+
+function mysqli_query_clickHouse($query)
+{
+    global $g;
+    $retorno = \mysqli_query($g['conexaoBancoClickHouse'], $query);
+    return $retorno;
+}
+
+function mysqli_insert_id_clickHouse()
+{
+    global $g;
+    $retorno = \mysqli_insert_id($g['conexaoBancoClickHouse']);
+    return $retorno;
+}
+
+function mysqli_error_clickHouse()
+{
+    global $g;
+    $retorno = \mysqli_error($g['conexaoBancoClickHouse']);
+    return $retorno;
+}
+
+function mysqli_fetch_assoc_clickHouse($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_fetch_assoc($result) : null);
+    return $retorno;
+}
+
+function mysqli_num_rows_clickHouse($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0);
+    return $retorno;
+}
+
+function mysqli_numrows_clickHouse($result)
+{
+    global $g;
+    $retorno = ($result instanceof \mysqli_result ? \mysqli_num_rows($result) : 0);
+    return $retorno;
+}
+
+function gRedimensionaImagem($imagem, $largura, $pasta)
+{
+    if ($imagem['type'] == "image/jpeg") {
+        $img = imagecreatefromjpeg($imagem['tmp_name']);
+    } else {
+        if ($imagem['type'] == "image/gif") {
+            $img = imagecreatefromgif($imagem['tmp_name']);
+        } else {
+            if ($imagem['type'] == "image/png") {
+                $img = imagecreatefrompng($imagem['tmp_name']);
+            }
+        }
+    }
+    $x = imagesx($img);
+    $y = imagesy($img);
+    $autura = $largura * $y / $x;
+    $nova = imagecreatetruecolor($largura, $autura);
+    imagecopyresampled($nova, $img, 0, 0, 0, 0, $largura, $autura, $x, $y);
+    imagejpeg($nova, $pasta);
+    imagedestroy($img);
+    imagedestroy($nova);
+}
+
+function gRetornaMes($mes)
+{
+    if (($mes == '01')) {
+        return 'janeiro';
+    } elseif (($mes == '02')) {
+        return 'fevereiro';
+    } elseif (($mes == '03')) {
+        return 'março';
+    } elseif (($mes == '04')) {
+        return 'abril';
+    } elseif (($mes == '05')) {
+        return 'maio';
+    } elseif (($mes == '06')) {
+        return 'junho';
+    } elseif (($mes == '07')) {
+        return 'julho';
+    } elseif (($mes == '08')) {
+        return 'agosto';
+    } elseif (($mes == '09')) {
+        return 'setembro';
+    } elseif (($mes == '10')) {
+        return 'outubro';
+    } elseif (($mes == '11')) {
+        return 'novembro';
+    } elseif (($mes == '12')) {
+        return 'dezembro';
+    }
+}
+
+function gRetornaDiaExtenso($dia)
+{
+    if (($dia == '01')) {
+        return 'primeiro';
+    } elseif (($dia == '02')) {
+        return 'dois';
+    } elseif (($dia == '03')) {
+        return 'três';
+    } elseif (($dia == '04')) {
+        return 'quatro';
+    } elseif (($dia == '05')) {
+        return 'cinco';
+    } elseif (($dia == '06')) {
+        return 'seis';
+    } elseif (($dia == '07')) {
+        return 'sete';
+    } elseif (($dia == '08')) {
+        return 'oito';
+    } elseif (($dia == '09')) {
+        return 'nove';
+    } elseif (($dia == '10')) {
+        return 'dez';
+    } elseif (($dia == '11')) {
+        return 'onze';
+    } elseif (($dia == '12')) {
+        return 'doze';
+    } elseif (($dia == '13')) {
+        return 'treze';
+    } elseif (($dia == '14')) {
+        return 'quatorze';
+    } elseif (($dia == '15')) {
+        return 'quinze';
+    } elseif (($dia == '16')) {
+        return 'dezesseis';
+    } elseif (($dia == '17')) {
+        return 'dezessete';
+    } elseif (($dia == '18')) {
+        return 'dezoito';
+    } elseif (($dia == '19')) {
+        return 'dezenove';
+    } elseif (($dia == '20')) {
+        return 'vinte';
+    } elseif (($dia == '21')) {
+        return 'vinte e um';
+    } elseif (($dia == '22')) {
+        return 'vinte e dois';
+    } elseif (($dia == '23')) {
+        return 'vinte e quatro';
+    } elseif (($dia == '25')) {
+        return 'vinte e cinco';
+    } elseif (($dia == '26')) {
+        return 'vinte e seis';
+    } elseif (($dia == '27')) {
+        return 'vinte e sete';
+    } elseif (($dia == '28')) {
+        return 'vinte e oito';
+    } elseif (($dia == '29')) {
+        return 'vinte e nove';
+    } elseif (($dia == '30')) {
+        return 'trinta';
+    } elseif (($dia == '31')) {
+        return 'trinta e um';
+    }
+}
+
+function gPegaRelacionamento($Entidade, $Id_Entidade, $Excecao = '')
+{
+    if ($Id_Entidade <= 0) {
+        return false;
+    } else {
+        $cSql = mysql_query("show tables");
+        while ($mTabela = mysql_fetch_array($cSql)) {
+            $mTabela[0] = strtoupper($mTabela[0]);
+            if ($mTabela[0] == $Entidade) {
+            }
+            $cSql2 = mysql_query("desc {$mTabela[0]} '%{$Entidade}%'");
+            if ($mCampos = mysql_fetch_array($cSql2)) {
+                while (!(strpos($mCampos[0], "{$Entidade}") !== false)) {
+                }
+                $mT[] = $mTabela[0];
+                $mTC[] = $mCampos[0];
+            }
+        }
+        $x = 0;
+        while ($x < count($mT)) {
+            $cSql = mysql_query("show create table {$mT[$x]}");
+            $mSql = mysql_fetch_array($cSql);
+            $cSql = "select {$mTC[$x]} from {$mT[$x]} where {$mTC[$x]}={$Id_Entidade} limit 0,1";
+            $resultado = mysql_query("{$cSql}");
+            while (!(mysql_num_rows($resultado) > 0)) {
+                $x++;
+            }
+            if (strpos($mSql[1], 'ON DELETE CASCADE') != 0) {
+            } else {
+                while (!(strpos(" " . $Excecao, $mT[$x]) <= 0)) {
+                }
+                return $mT[$x];
+            }
+        }
+    }
+}
+
+function gPegaRelacionamento2($tabela)
+{
+    global $g;
+    if (!(isset($g['cacheRelacionamento']) && isset($g['cacheRelacionamento'][$tabela]))) {
+        $relacionamentos = array();
+        $sql = "SHOW TABLES;";
+        $res = mysql_query($sql);
+        while ($table = mysql_fetch_row($res)) {
+            $table = $table[0];
+            if (strtoupper($table) == $tabela . 'A') {
+            }
+            $sql = "DESC {$table}";
+            $resDesc = mysql_query($sql);
+            if ($column = mysql_fetch_row($resDesc)) {
+                $column = $column[0];
+                while (!preg_match('/^[^_]+_' . preg_quote($tabela, '/') . '_Id$/i', $column)) {
+                }
+                while (!($column != $tabela . '_Id')) {
+                }
+                $relacionamentos[] = $column;
+            }
+        }
+        $g['cacheRelacionamento'][$tabela] = $relacionamentos;
+        return $relacionamentos;
+    } else {
+        return $g['cacheRelacionamento'][$tabela];
+    }
+}
+
+function gMudarC004($tabela, $id, $C004_Id)
+{
+    global $g;
+    mysqli_query("SET AUTOCOMMIT=0");
+    mysqli_query("START TRANSACTION");
+    $mD009AtualizaEstoque = array();
+    $sql = mysqli_query("UPDATE {$tabela} SET {$tabela}_C004_Id = '{$C004_Id}' WHERE {$tabela}_Id = '{$id}'");
+    $erro = mysql_error();
+    if (!$erro) {
+        $sqlTables = mysqli_query("SHOW FULL TABLES");
+        $erro = mysql_error();
+        if (!$erro) {
+            while ($table = mysql_fetch_array($sqlTables)) {
+                $tableType = isset($table[1]) ? strtoupper(trim($table[1])) : '';
+                if ($tableType !== 'BASE TABLE') {
+                }
+                $table = strtoupper($table[0]);
+                $campoRelacionamento = "{$table}_{$tabela}_Id";
+                $sql = mysqli_query("SHOW COLUMNS FROM `{$table}` WHERE Field = '{$campoRelacionamento}'");
+                $erro = mysql_error();
+                while (!$erro) {
+                    while (!mysql_num_rows($sql)) {
+                    }
+                    $sql = mysqli_query("UPDATE {$table} SET {$table}_C004_Id = '{$C004_Id}' WHERE {$table}_{$tabela}_Id = '{$id}'");
+                    $erro = mysql_error();
+                    while (!($erro && !strpos(" {$erro} ", "Unknown"))) {
+                        $campoD009 = "{$table}_D009_Id";
+                        $sql = mysqli_query("SHOW COLUMNS FROM `{$table}` WHERE Field = '{$campoD009}'");
+                        $erro = mysql_error();
+                        while (!$erro) {
+                            while (!mysql_num_rows($sql)) {
+                            }
+                            $sqlTableD009 = mysqli_query("SELECT {$table}_Id, {$table}_D009_Id FROM {$table} WHERE {$table}_{$tabela}_Id = '{$id}'");
+                            $erro = mysql_error();
+                            while (!$erro) {
+                                if ($mSqlTableD009 = mysql_fetch_assoc($sqlTableD009)) {
+                                    $tableD009_Id = $mSqlTableD009["{$table}_Id"];
+                                    $D009_Id = $mSqlTableD009["{$table}_D009_Id"];
+                                    $mD009AtualizaEstoque[$D009_Id] = true;
+                                    $D049 = mysqli_query("SELECT D009_D049_Id,\n\t\t\t\t\t\t\t\t\t\t\t\t\tD001_Codigo_Produto \n\t\t\t\t\t                           FROM D009 \n\t\t\t\t\t\t\t\t   \t      LEFT JOIN D049 ON D049_Id=D009_D049_Id \n\t\t\t\t\t\t\t\t\t\t  LEFT JOIN D001 ON D001_Id=D049_D001_Id\n\t\t\t\t\t\t\t\t\t\t      WHERE D009_Id='{$D009_Id}'");
+                                    $mD049 = mysql_fetch_assoc($D049);
+                                    $erro = mysql_error();
+                                    while (!$erro) {
+                                        $D009 = mysqli_query("SELECT D009_Id, T066_Id FROM D009 LEFT JOIN T066 ON T066_D009_Id=D009_Id WHERE D009_D049_Id='{$mD049['D009_D049_Id']}' AND D009_C004_Id='{$C004_Id}'");
+                                        $mD009 = mysql_fetch_assoc($D009);
+                                        $erro = mysql_error();
+                                        while (!$erro) {
+                                            while (!($mD009['D009_Id'] <= 0)) {
+                                                $sql = mysqli_query("UPDATE {$table} SET {$table}_D009_Id = '{$mD009['D009_Id']}' WHERE {$table}_Id = '{$tableD009_Id}'");
+                                                $erro = mysql_error();
+                                                while (!$erro) {
+                                                    $sql = mysqli_query("UPDATE {$table} SET {$table}_T066_Id = '{$mD009['T066_Id']}' WHERE {$table}_Id = '{$tableD009_Id}'");
+                                                }
+                                                mysqli_query("ROLLBACK");
+                                                return "Erro 9: {$erro}";
+                                            }
+                                            mysqli_query("ROLLBACK");
+                                            return "Erro 9: Não foi encontrado o produto {$mD049['D001_Codigo_Produto']} em {$id}";
+                                        }
+                                        mysqli_query("ROLLBACK");
+                                        return "Erro 8: {$erro}";
+                                    }
+                                    mysqli_query("ROLLBACK");
+                                    return "Erro 7: {$erro}";
+                                }
+                            }
+                            mysqli_query("ROLLBACK");
+                            return "Erro 6: {$erro}";
+                        }
+                        mysqli_query("ROLLBACK");
+                        return "Erro 5: {$erro}";
+                    }
+                    mysqli_query("ROLLBACK");
+                    return "Erro 4: {$erro}";
+                }
+                mysqli_query("ROLLBACK");
+                return "Erro 3: {$erro}";
+            }
+            mysqli_query("COMMIT");
+            mysqli_query("SET AUTOCOMMIT=1");
+            require_once "bibliotecas/classes/CAD002.php";
+            $CAD002 = new CAD002();
+            foreach ($mD009AtualizaEstoque as $D009_Id => $value) {
+                $CAD002->D001_reprocessa_historico(0, $D009_Id, 20, true);
+            }
+            return true;
+        } else {
+            mysqli_query("ROLLBACK");
+            return "Erro 2: {$erro}";
+        }
+    } else {
+        mysqli_query("ROLLBACK");
+        return "Erro 1: {$erro}";
+    }
+}
+
+function gJuntarCodigos($tabela, $antigo, $novo, $tabelasBloqueio = array(), $tabelasRestricao = array(), $executarTriggersPHP = true)
+{
+    $antigo = (int)$antigo;
+    $novo = (int)$novo;
+    $tabela = strtoupper($tabela);
+    if (!($antigo <= 0 || $novo <= 0)) {
+        if (!($antigo == $novo)) {
+            $resShowTables = mysql_query('SHOW FULL TABLES');
+            if ($resShowTables) {
+                while ($showTable = mysql_fetch_array($resShowTables)) {
+                    $tableType = isset($showTable[1]) ? strtoupper(trim($showTable[1])) : '';
+                    if ($tableType !== 'BASE TABLE') {
+                    }
+                    $showTable = strtoupper($showTable[0]);
+                    if (strpos(" {$showTable} ", 'DIM0') || strpos(" {$showTable} ", 'FAC0')) {
+                    }
+                    $resDesc = mysqli_query("DESC `{$showTable}` '%{$tabela}_Id%'");
+                    while ($resDesc) {
+                        if ($desc = mysql_fetch_array($resDesc)) {
+                            $desc = $desc[0];
+                            if ($desc == "{$tabela}_Id") {
+                            }
+                            if (in_array($showTable, $tabelasBloqueio)) {
+                                $resCount = mysql_query("SELECT {$desc} FROM {$showTable} WHERE {$desc} = '{$antigo}'");
+                                while ($resCount) {
+                                    while (!(mysql_num_rows($resCount) > 0)) {
+                                    }
+                                    return "BLOQUEADO-{$showTable}";
+                                }
+                                return 'Erro interno 3';
+                            } else {
+                                $sql = "UPDATE {$showTable} SET {$desc} = '{$novo}' WHERE {$desc} = '{$antigo}'";
+                                $res = mysqli_query($sql);
+                                if (!$res && in_array($showTable, $tabelasRestricao)) {
+                                    mysql_query("DELETE FROM {$showTable} WHERE {$desc} = '{$antigo}'", $executarTriggersPHP);
+                                } else {
+                                    while ($res) {
+                                    }
+                                    return 'Erro interno 4 Erro: ' . mysql_error();
+                                }
+                            }
+                        }
+                    }
+                    return 'Erro interno 22 ' . "DESC `{$showTable}` '%{$tabela}_Id%' " . mysql_error();
+                }
+                $sql = "DELETE FROM {$tabela} WHERE {$tabela}_Id = {$antigo}";
+                $res = mysql_query($sql, $executarTriggersPHP);
+                if ($res) {
+                    return true;
+                } else {
+                    return 'Erro interno 5';
+                }
+            } else {
+                return 'Erro interno 1';
+            }
+        } else {
+            return 'Os códigos não podem ser o mesmo.';
+        }
+    } else {
+        return 'Os dois códigos devem ser preenchidos.';
+    }
+}
+
+function gPegaDiaSemana($data)
+{
+    $ano = substr("{$data}", 0, 4);
+    $mes = substr("{$data}", 5, - 3);
+    $dia = substr("{$data}", 8, 9);
+    $diasemana = date("w", mktime(0, 0, 0, $mes, $dia, $ano));
+    if (($diasemana == "0")) {
+        $diasemana = "Domingo";
+    } elseif (($diasemana == "1")) {
+        $diasemana = "Segunda-Feira";
+    } elseif (($diasemana == "2")) {
+        $diasemana = "Terça-Feira";
+    } elseif (($diasemana == "3")) {
+        $diasemana = "Quarta-Feira";
+    } elseif (($diasemana == "4")) {
+        $diasemana = "Quinta-Feira";
+    } elseif (($diasemana == "5")) {
+        $diasemana = "Sexta-Feira";
+    } elseif (($diasemana == "6")) {
+        $diasemana = "Sábado";
+    }
+    return $diasemana;
+}
+
+function gValidaFeriado($data)
+{
+    $dia = 86400;
+    $datas = array();
+    $datas['pascoa'] = easter_date($ano);
+    $datas['sexta_santa'] = $datas['pascoa'] - 2 * $dia;
+    $datas['carnaval'] = $datas['pascoa'] - 47 * $dia;
+    $datas['corpus_cristi'] = $datas['pascoa'] + 60 * $dia;
+    $feriados = array('01/01', date('d/m', $datas['carnaval']), date('d/m', $datas['sexta_santa']), date('d/m', $datas['pascoa']), '21/04', '01/05', date('d/m', $datas['corpus_cristi']), '08/08', '07/09', '08/09', '12/10', '02/11', '15/11', '25/12');
+    $retorno = false;
+    if (!(!array_search($data, $feriados))) {
+        $retorno = true;
+    }
+    return $retorno;
+}
+
+function gTemPermissao($C029_Id)
+{
+    global $g;
+    if (!isset($g['c029Ids'][$C029_Id])) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function gValorPorExtenso($valor)
+{
+    $singular = array("centavo", "real", "mil", "milhão", "bilhão", "trilhão", "quatrilhão");
+    $plural = array("centavos", "reais", "mil", "milhões", "bilhões", "trilhões", "quatrilhões");
+    $c = array("", "cem", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos");
+    $d = array("", "dez", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa");
+    $d10 = array("dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezesete", "dezoito", "dezenove");
+    $u = array("", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove");
+    $z = 0;
+    $valor = number_format($valor, 2, ".", ".");
+    $inteiro = explode(".", $valor);
+    $i = 0;
+    while ($i < count($inteiro)) {
+        $ii = strlen($inteiro[$i]);
+        if ($ii < 3) {
+            $inteiro[$i] = "0" . $inteiro[$i];
+            $ii++;
+        }
+        $i++;
+    }
+    $fim = count($inteiro) - ($inteiro[count($inteiro) - 1] > 0 ? 1 : 2);
+    $rt = '';
+    $i = 0;
+    while ($i < count($inteiro)) {
+        $valor = $inteiro[$i];
+        $rc = $valor > 100 && $valor < 200 ? "cento" : $c[$valor[0]];
+        $rd = $valor[1] < 2 ? "" : $d[$valor[1]];
+        $ru = $valor > 0 ? $valor[1] == 1 ? $d10[$valor[2]] : $u[$valor[2]] : "";
+        $r = $rc . ($rc && ($rd || $ru) ? " e " : "") . $rd . ($rd && $ru ? " e " : "") . $ru;
+        $t = count($inteiro) - 1 - $i;
+        $r .= $r ? " " . ($valor > 1 ? $plural[$t] : $singular[$t]) : "";
+        if ($valor == "000") {
+            $z++;
+        } else {
+            if ($z > 0) {
+                $z--;
+            }
+        }
+        while (!($t == 1 && $z > 0 && $inteiro[0] > 0)) {
+            while (!$r) {
+                $i++;
+            }
+            $rt = $rt . ($i > 0 && $i <= $fim && $inteiro[0] > 0 && $z < 1 ? $i < $fim ? ", " : " e " : " ") . $r;
+        }
+        $r .= ($z > 1 ? " de " : "") . $plural[$t];
+    }
+    return $rt ? $rt : "zero";
+}
+
+function gJurosSimples($valor, $taxa, $parcelas)
+{
+    $taxa = $taxa / 100;
+    $m = $valor * (1 + $taxa * $parcelas);
+    $valParcela = number_format($m / $parcelas, 2, ",", ".");
+    return $valParcela;
+}
+
+function gJurosCompostos($valor, $taxa, $parcelas)
+{
+    $taxa = $taxa / 100;
+    $valParcela = $valor * pow(1 + $taxa, $parcelas);
+    $valParcela = number_format($valParcela / $parcelas, 2, ",", ".");
+    return $valParcela;
+}
+
+function gJurosCompostosTitulos($valor, $taxa, $parcelas)
+{
+    $taxa = $taxa / 100;
+    $valParcela = $valor * pow(1 + $taxa, $parcelas);
+    return $valParcela;
+}
+
+function gParcelaOriginal($valorFinal, $prazo)
+{
+    global $g;
+    $taxa = $g['c004']['C004_Taxa_Juros'];
+    $taxa = $taxa / 100;
+    $parcelaOriginal = $valorFinal / pow(1 + $taxa, $prazo);
+    return $parcelaOriginal;
+}
+
+function gLimpaTexto($string)
+{
+    return preg_replace("/[^a-z0-9 ]/imsu", ' ', $string);
+}
+
+function gRemoveCaracteresEspeciais($string)
+{
+    return str_replace(" ", " ", preg_replace("/&([a-z])[a-z]+;/i", "\$1", htmlentities(trim($string))));
+}
+
+function gLimpaAcentos($x)
+{
+    $stringSemAcentos = iconv('UTF-8', 'ASCII//TRANSLIT', $x);
+    $x = $stringSemAcentos ? $stringSemAcentos : $x;
+    $novoX = '';
+    $i = 0;
+    while ($i < strlen($x)) {
+        $code = ord($x[$i]);
+        if (!($code == 192)) {
+            if (!($code == 193)) {
+                if (!($code == 194)) {
+                    if (!($code == 195)) {
+                        if (!($code == 196)) {
+                            if (!($code == 197)) {
+                                if (!($code == 198)) {
+                                    if (!($code == 199)) {
+                                        if (!($code == 200)) {
+                                            if (!($code == 201)) {
+                                                if (!($code == 202)) {
+                                                    if (!($code == 203)) {
+                                                        if (!($code == 204)) {
+                                                            if (!($code == 205)) {
+                                                                if (!($code == 206)) {
+                                                                    if (!($code == 207)) {
+                                                                        if (!($code == 210)) {
+                                                                            if (!($code == 211)) {
+                                                                                if (!($code == 212)) {
+                                                                                    if (!($code == 213)) {
+                                                                                        if (!($code == 214)) {
+                                                                                            if (!($code == 217)) {
+                                                                                                if (!($code == 218)) {
+                                                                                                    if (!($code == 219)) {
+                                                                                                        if (!($code == 220)) {
+                                                                                                            if (!($code == 224)) {
+                                                                                                                if (!($code == 225)) {
+                                                                                                                    if (!($code == 226)) {
+                                                                                                                        if (!($code == 227)) {
+                                                                                                                            if (!($code == 228)) {
+                                                                                                                                if (!($code == 229)) {
+                                                                                                                                    if (!($code == 231)) {
+                                                                                                                                        if (!($code == 232)) {
+                                                                                                                                            if (!($code == 233)) {
+                                                                                                                                                if (!($code == 234)) {
+                                                                                                                                                    if (!($code == 235)) {
+                                                                                                                                                        if (!($code == 236)) {
+                                                                                                                                                            if (!($code == 237)) {
+                                                                                                                                                                if (!($code == 238)) {
+                                                                                                                                                                    if (!($code == 239)) {
+                                                                                                                                                                        if (!($code == 242)) {
+                                                                                                                                                                            if (!($code == 243)) {
+                                                                                                                                                                                if (!($code == 244)) {
+                                                                                                                                                                                    if (!($code == 245)) {
+                                                                                                                                                                                        if (!($code == 246)) {
+                                                                                                                                                                                            if (!($code == 249)) {
+                                                                                                                                                                                                if (!($code == 250)) {
+                                                                                                                                                                                                    if (!($code == 251)) {
+                                                                                                                                                                                                        if (!($code == 252)) {
+                                                                                                                                                                                                            $novoX .= $x[$i];
+                                                                                                                                                                                                        } else {
+                                                                                                                                                                                                            $novoX .= 'U';
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                    } else {
+                                                                                                                                                                                                        $novoX .= 'U';
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                } else {
+                                                                                                                                                                                                    $novoX .= 'U';
+                                                                                                                                                                                                }
+                                                                                                                                                                                            } else {
+                                                                                                                                                                                                $novoX .= 'U';
+                                                                                                                                                                                            }
+                                                                                                                                                                                        } else {
+                                                                                                                                                                                            $novoX .= 'O';
+                                                                                                                                                                                        }
+                                                                                                                                                                                    } else {
+                                                                                                                                                                                        $novoX .= 'O';
+                                                                                                                                                                                    }
+                                                                                                                                                                                } else {
+                                                                                                                                                                                    $novoX .= 'O';
+                                                                                                                                                                                }
+                                                                                                                                                                            } else {
+                                                                                                                                                                                $novoX .= 'O';
+                                                                                                                                                                            }
+                                                                                                                                                                        } else {
+                                                                                                                                                                            $novoX .= 'O';
+                                                                                                                                                                        }
+                                                                                                                                                                    } else {
+                                                                                                                                                                        $novoX .= 'I';
+                                                                                                                                                                    }
+                                                                                                                                                                } else {
+                                                                                                                                                                    $novoX .= 'I';
+                                                                                                                                                                }
+                                                                                                                                                            } else {
+                                                                                                                                                                $novoX .= 'I';
+                                                                                                                                                            }
+                                                                                                                                                        } else {
+                                                                                                                                                            $novoX .= 'I';
+                                                                                                                                                        }
+                                                                                                                                                    } else {
+                                                                                                                                                        $novoX .= 'E';
+                                                                                                                                                    }
+                                                                                                                                                } else {
+                                                                                                                                                    $novoX .= 'E';
+                                                                                                                                                }
+                                                                                                                                            } else {
+                                                                                                                                                $novoX .= 'E';
+                                                                                                                                            }
+                                                                                                                                        } else {
+                                                                                                                                            $novoX .= 'E';
+                                                                                                                                        }
+                                                                                                                                    } else {
+                                                                                                                                        $novoX .= 'C';
+                                                                                                                                    }
+                                                                                                                                } else {
+                                                                                                                                    $novoX .= 'A';
+                                                                                                                                }
+                                                                                                                            } else {
+                                                                                                                                $novoX .= 'A';
+                                                                                                                            }
+                                                                                                                        } else {
+                                                                                                                            $novoX .= 'A';
+                                                                                                                        }
+                                                                                                                    } else {
+                                                                                                                        $novoX .= 'A';
+                                                                                                                    }
+                                                                                                                } else {
+                                                                                                                    $novoX .= 'A';
+                                                                                                                }
+                                                                                                            } else {
+                                                                                                                $novoX .= 'A';
+                                                                                                            }
+                                                                                                        } else {
+                                                                                                            $novoX .= 'U';
+                                                                                                        }
+                                                                                                    } else {
+                                                                                                        $novoX .= 'U';
+                                                                                                    }
+                                                                                                } else {
+                                                                                                    $novoX .= 'U';
+                                                                                                }
+                                                                                            } else {
+                                                                                                $novoX .= 'U';
+                                                                                            }
+                                                                                        } else {
+                                                                                            $novoX .= 'O';
+                                                                                        }
+                                                                                    } else {
+                                                                                        $novoX .= 'O';
+                                                                                    }
+                                                                                } else {
+                                                                                    $novoX .= 'O';
+                                                                                }
+                                                                            } else {
+                                                                                $novoX .= 'O';
+                                                                            }
+                                                                        } else {
+                                                                            $novoX .= 'O';
+                                                                        }
+                                                                    } else {
+                                                                        $novoX .= 'I';
+                                                                    }
+                                                                } else {
+                                                                    $novoX .= 'I';
+                                                                }
+                                                            } else {
+                                                                $novoX .= 'I';
+                                                            }
+                                                        } else {
+                                                            $novoX .= 'I';
+                                                        }
+                                                    } else {
+                                                        $novoX .= 'E';
+                                                    }
+                                                } else {
+                                                    $novoX .= 'E';
+                                                }
+                                            } else {
+                                                $novoX .= 'E';
+                                            }
+                                        } else {
+                                            $novoX .= 'E';
+                                        }
+                                    } else {
+                                        $novoX .= 'C';
+                                    }
+                                } else {
+                                    $novoX .= 'A';
+                                }
+                            } else {
+                                $novoX .= 'A';
+                            }
+                        } else {
+                            $novoX .= 'A';
+                        }
+                    } else {
+                        $novoX .= 'A';
+                    }
+                } else {
+                    $novoX .= 'A';
+                }
+            } else {
+                $novoX .= 'A';
+            }
+        } else {
+            $novoX .= 'A';
+        }
+        $i++;
+    }
+    $x = $novoX;
+    $cCharPermitido = '&ABCDEFGHIJLKYMNOPQRSTUVXWZ 1234567890()[]{}.,+_-:/=%?;!@|$"';
+    $n = 0;
+    while ($n < strlen($x)) {
+        $c = substr($x, $n, 1);
+        if (strpos($cCharPermitido, strtoupper($c)) !== FALSE) {
+            $r .= $c;
+        } else {
+            $r .= "";
+        }
+        $n++;
+    }
+    $x = $r;
+    $x = str_replace("&", "&amp;", $x);
+    return $x;
+}
+
+function gLimpaAcentosPuro($x)
+{
+    if (mb_detect_encoding($x) != 'UTF-8') {
+        $x = utf8_encode($x);
+    }
+    $table = array('Š' => 'S', 'š' => 's', 'Đ' => 'Dj', 'đ' => 'dj', 'Ž' => 'Z', 'ž' => 'z', 'Č' => 'C', 'č' => 'c', 'Ć' => 'C', 'ć' => 'c', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y', 'Ŕ' => 'R', 'ŕ' => 'r');
+    return strtr($x, $table);
+}
+
+function gCorrigeAssinatura($string)
+{
+    $string = preg_replace("/<font.*>/imsU", '', $string);
+    $string = preg_replace("/<\\/font>/imsU", '', $string);
+    return $string;
+}
+
+function gTruncar($str, $length = 10, $trailing = '...')
+{
+    if (!(!is_array($str))) {
+        if (!empty($str['campoAtual'])) {
+            $str = $str['campoAtual'];
+        } else {
+            return '';
+        }
+    }
+    if (!empty($str)) {
+        $length -= mb_strlen($trailing);
+        if (mb_strlen($str) > $length) {
+            return mb_substr($str, 0, $length) . $trailing;
+        } else {
+            $res = $str;
+            return $res;
+        }
+    } else {
+        return $str;
+    }
+}
+
+function gRetornaSqlDuplicacao($tabela, $pk)
+{
+    $chave = $tabela . '_Id';
+    $ret = mysql_query("SHOW COLUMNS FROM {$tabela} WHERE FIELD!='{$chave}'");
+    $campos = "";
+    while ($linha = mysql_fetch_assoc($ret)) {
+        $campos .= $linha['Field'] . ',';
+    }
+    $campos = substr($campos, 0, - 1);
+    $sql = "INSERT INTO {$tabela} ({$campos}) SELECT {$campos} FROM {$tabela} WHERE {$chave}={$pk}";
+    return $sql;
+}
+
+function gGerarThumb($src, $dest, $desired_width)
+{
+    if (!(!file_exists($dest))) {
+        unlink($dest);
+    }
+    $source_image = @imagecreatefromjpeg($src);
+    if (!$source_image) {
+        $source_image = imagecreatefrompng($src);
+    }
+    $width = imagesx($source_image);
+    $height = imagesy($source_image);
+    $desired_height = floor($height * ($desired_width / $width));
+    $virtual_image = imagecreatetruecolor($desired_width, $desired_height);
+    imagecopyresampled($virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height);
+    imagejpeg($virtual_image, $dest);
+}
+
+function gDiasUteis($data_ini, $data_fin)
+{
+    $dias = number_format(($data_fin - $data_ini) / 86400, 0);
+    $naoutil = 0;
+    while ($data_ini < $data_fin) {
+        while (!(date("w", $data_ini) == 0 || date("w", $data_ini) == 6)) {
+            $data_ini += 86400;
+        }
+        $naoutil++;
+    }
+    return $dias - $naoutil;
+}
+
+function gModificarFKGlobal($pk, $valor, $novo_valor)
+{
+    $pk = explode('_', $pk);
+    $sql = "SHOW TABLES;";
+    $res = mysql_query($sql);
+    $count = 0;
+    while ($table = mysql_fetch_row($res)) {
+        $table = $table[0];
+        $sql = "DESC {$table};";
+        $resDesc = mysql_query($sql);
+        if ($desc = mysql_fetch_row($resDesc)) {
+            $fk = explode('_', $desc[0]);
+            while (!(isset($fk[2]) && $fk[2] == 'Id' && $fk[1] == $pk[0])) {
+            }
+            $sql = "UPDATE {$fk[0]} SET {$desc[0]} = '{$novo_valor}' WHERE {$desc[0]} = '{$valor}';";
+            $result = mysql_query($sql);
+            while ($result) {
+            }
+            die('Invalid query: ' . mysql_error());
+        }
+    }
+}
+
+function definirClasse($classe)
+{
+    global $g;
+    if (!isset($g)) {
+        eval("namespace hardness;\nclass {$classe} extends {$classe}_ {}");
+        return false;
+    } else {
+        $arquivos = array();
+        $limparConteudo = function($conteudo) {
+            $conteudo = preg_replace('/^\\<\\?(php)?/m', '', $conteudo);
+            $conteudo = str_replace('namespace hardness;', '', $conteudo);
+            $conteudo = preg_replace('/\\?\\>( |\\n)+?\\$/m', '', $conteudo);
+            return $conteudo;
+        };
+        $arquivoIDE = "ide/personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php';
+        $arquivoApps = Apps::getDirAtivos() . "personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php';
+        $arquivoAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php';
+        $arquivoUsuario = "{$g['pathDados']}personalizacaoConf/" . $classe . '.PHP-alterarMetodos.php';
+        $arquivoIDE = file_exists($arquivoIDE) ? file_get_contents($arquivoIDE) : false;
+        $arquivoApps = file_exists($arquivoApps) ? file_get_contents($arquivoApps) : false;
+        $arquivoAppsEditor = file_exists($arquivoAppsEditor) ? file_get_contents($arquivoAppsEditor) : false;
+        $arquivoUsuario = file_exists($arquivoUsuario) ? file_get_contents($arquivoUsuario) : false;
+        $arquivoEmpresaIDE = "ide/personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php';
+        $arquivoEmpresaApps = Apps::getDirAtivos() . "personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php';
+        $arquivoEmpresaAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php';
+        $arquivoEmpresaUsuario = "{$g['pathDados']}personalizacaoConf/" . $g['empresaAtual'] . $classe . '.PHP-alterarMetodos.php';
+        $arquivoEmpresaIDE = file_exists($arquivoEmpresaIDE) ? file_get_contents($arquivoEmpresaIDE) : false;
+        $arquivoEmpresaApps = file_exists($arquivoEmpresaApps) ? file_get_contents($arquivoEmpresaApps) : false;
+        $arquivoEmpresaAppsEditor = file_exists($arquivoEmpresaAppsEditor) ? file_get_contents($arquivoEmpresaAppsEditor) : false;
+        $arquivoEmpresaUsuario = file_exists($arquivoEmpresaUsuario) ? file_get_contents($arquivoEmpresaUsuario) : false;
+        if (!(empty($arquivoIDE))) {
+            $arquivos[] = $arquivoIDE;
+        }
+        if (!(empty($arquivoEmpresaIDE))) {
+            $arquivos[] = $arquivoEmpresaIDE;
+        }
+        if (!$g['modoDesenvolvedor'] && !empty($arquivoApps)) {
+            $arquivoAppsMerge = @unserialize($arquivoApps);
+            if ($arquivoAppsMerge) {
+                foreach ($arquivoAppsMerge as $value) {
+                    $arquivos[] = $value;
+                }
+            } else {
+                $arquivos[] = $arquivoApps;
+            }
+        }
+        if (!$g['modoDesenvolvedor'] && !empty($arquivoEmpresaApps)) {
+            $arquivoAppsMerge = @unserialize($arquivoEmpresaApps);
+            if ($arquivoAppsMerge) {
+                foreach ($arquivoAppsMerge as $value) {
+                    $arquivos[] = $value;
+                }
+            } else {
+                $arquivos[] = $arquivoEmpresaApps;
+            }
+        }
+        if ($g['modoDesenvolvedorApp'] && !empty($arquivoAppsEditor)) {
+            $arquivos[] = $arquivoAppsEditor;
+        }
+        if ($g['modoDesenvolvedorApp'] && !empty($arquivoEmpresaAppsEditor)) {
+            $arquivos[] = $arquivoEmpresaAppsEditor;
+        }
+        if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && !empty($arquivoUsuario)) {
+            $arquivos[] = $arquivoUsuario;
+        }
+        if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && !empty($arquivoEmpresaUsuario)) {
+            $arquivos[] = $arquivoEmpresaUsuario;
+        }
+        if (empty($arquivos)) {
+            eval("namespace hardness;\nclass {$classe} extends {$classe}_ {}");
+        } else {
+            if (count($arquivos) == 1) {
+                log("arquivos <pre>" . htmlentities(print_r($arquivos, true)) . "</pre>");
+                $arquivos[0] = $limparConteudo($arquivos[0]);
+                eval("namespace hardness;\n{$arquivos[0]}");
+            } else {
+                $codigo = "namespace hardness;\n";
+                foreach ($arquivos as $key => $arquivo) {
+                    $arquivo = $limparConteudo($arquivo);
+                    $keyAnterior = $key - 1;
+                    if (count($arquivos) - 1 == $key) {
+                        $arquivo = str_replace("class {$classe} extends {$classe}_", "class {$classe} extends {$classe}_{$keyAnterior}", $arquivo);
+                    } else {
+                        if ($key === 0) {
+                            $arquivo = str_replace("class {$classe} extends {$classe}_", "class {$classe}_{$key} extends {$classe}_", $arquivo);
+                        } else {
+                            $arquivo = str_replace("class {$classe} extends {$classe}_", "class {$classe}_{$key} extends {$classe}_{$keyAnterior}", $arquivo);
+                        }
+                    }
+                    $codigo .= $arquivo . "\n";
+                }
+                eval($codigo);
+            }
+        }
+        return false;
+    }
+}
+
+function incluirMenu()
+{
+    global $g, $menu;
+    $arquivoGlobalIde = "ide/personalizacaoConf/" . 'GLOBAL-menu.php';
+    $arquivoGlobalApps = Apps::getDirAtivos() . "personalizacaoConf/" . 'GLOBAL-menu.php';
+    $arquivoGlobalAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . 'GLOBAL-menu.php';
+    $arquivoGlobalGlobal = "{$g['pathDados']}personalizacaoConf/" . 'GLOBAL-menu.php';
+    $arquivoGlobal = $arquivoGlobalIde;
+    if (!$g['modoDesenvolvedor'] && file_exists($arquivoGlobalApps)) {
+        $arquivoGlobal = $arquivoGlobalApps;
+    }
+    if ($g['modoDesenvolvedorApp'] && file_exists($arquivoGlobalAppsEditor)) {
+        $arquivoGlobal = $arquivoGlobalAppsEditor;
+    }
+    if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arquivoGlobalGlobal)) {
+        $arquivoGlobal = $arquivoGlobalGlobal;
+    }
+    $arquivoEmpresaIde = "ide/personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php';
+    $arquivoEmpresaApps = Apps::getDirAtivos() . "personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php';
+    $arquivoEmpresaAppsEditor = Apps::getDirEditor() . "personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php';
+    $arquivoEmpresaGlobal = "{$g['pathDados']}personalizacaoConf/" . $g['empresaAtual'] . 'GLOBAL-menu.php';
+    $arquivoEmpresa = $arquivoEmpresaIde;
+    if (!$g['modoDesenvolvedor'] && file_exists($arquivoEmpresaApps)) {
+        $arquivoEmpresa = $arquivoEmpresaApps;
+    }
+    if ($g['modoDesenvolvedorApp'] && file_exists($arquivoEmpresaAppsEditor)) {
+        $arquivoEmpresa = $arquivoEmpresaAppsEditor;
+    }
+    if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($arquivoEmpresaGlobal)) {
+        $arquivoEmpresa = $arquivoEmpresaGlobal;
+    }
+    if (!file_exists($arquivoEmpresa)) {
+        if (!file_exists($arquivoGlobal)) {
+            return false;
+        } else {
+            require_once $arquivoGlobal;
+            return true;
+        }
+    } else {
+        require_once $arquivoEmpresa;
+        return true;
+    }
+}
+
+function incluirColunaEditarRestricoes()
+{
+    global $g, $menu;
+    require_once 'configuracoes/_colunaEditarRestricoes.php';
+    $arquivoGlobal = "ide/personalizacaoConf/GLOBAL-colunaEditarRestricoes.php";
+    if (!(!file_exists($arquivoGlobal))) {
+        require_once $arquivoGlobal;
+    }
+    $arquivoEmpresa = "ide/personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php";
+    if (!(!file_exists($arquivoEmpresa))) {
+        require_once $arquivoEmpresa;
+    }
+    $arquivoGlobal = Apps::getDirAtivos() . "personalizacaoConf/GLOBAL-colunaEditarRestricoes.php";
+    if (!$g['modoDesenvolvedor'] && file_exists($arquivoGlobal)) {
+        require_once $arquivoGlobal;
+    }
+    $arquivoEmpresa = Apps::getDirAtivos() . "personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php";
+    if (!$g['modoDesenvolvedor'] && file_exists($arquivoEmpresa)) {
+        require_once $arquivoEmpresa;
+    }
+    $arquivoGlobal = Apps::getDirEditor() . "personalizacaoConf/GLOBAL-colunaEditarRestricoes.php";
+    if ($g['modoDesenvolvedorApp'] && file_exists($arquivoGlobal)) {
+        require_once $arquivoGlobal;
+    }
+    $arquivoEmpresa = Apps::getDirEditor() . "personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php";
+    if ($g['modoDesenvolvedorApp'] && file_exists($arquivoEmpresa)) {
+        require_once $arquivoEmpresa;
+    }
+    if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp']) {
+        $arquivoGlobal = "{$g['pathDados']}personalizacaoConf/GLOBAL-colunaEditarRestricoes.php";
+        if (!(!file_exists($arquivoGlobal))) {
+            require_once $arquivoGlobal;
+        }
+        $arquivoEmpresa = "{$g['pathDados']}personalizacaoConf/{$g['empresaAtual']}GLOBAL-colunaEditarRestricoes.php";
+        if (!(!file_exists($arquivoEmpresa))) {
+            require_once $arquivoEmpresa;
+        }
+    }
+}
+
+function personalizacaoBotoes($md5 = false)
+{
+    global $g, $r_origemFiltro;
+    if (!isset($r_origemFiltro)) {
+        foreach ($GLOBALS as $name => $value) {
+            global ${$name};
+        }
+        $r_grid = preg_replace('/^\\//', '', $g['r_']);
+        $arquivoIde = "ide/personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes';
+        $arquivoApps = Apps::getDirAtivos() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes';
+        $arquivoAppsEditor = Apps::getDirEditor() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes';
+        $arquivoGlobal = "{$g['pathDados']}personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-botoes';
+        $arquivoPerfil = "{$g['pathDados']}personalizacaoGrid/" . $g['C021']['C021_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-botoes';
+        $arquivoUsuario = "{$g['pathDados']}personalizacaoGrid/u" . $g['C007']['C007_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-botoes';
+        if ($g['modoDesenvolvedor']) {
+            $arquivo = $arquivoIde;
+        } else {
+            if ($g['modoDesenvolvedorApp']) {
+                $arquivo = $arquivoIde;
+                $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo;
+                $arquivo = file_exists($arquivoAppsEditor) ? $arquivoAppsEditor : $arquivo;
+            } else {
+                $arquivo = $arquivoIde;
+                $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo;
+                $arquivo = file_exists($arquivoGlobal) ? $arquivoGlobal : $arquivo;
+                $arquivo = file_exists($arquivoPerfil) ? $arquivoPerfil : $arquivo;
+                $arquivo = file_exists($arquivoUsuario) ? $arquivoUsuario : $arquivo;
+            }
+        }
+        if (!file_exists($arquivo)) {
+            return false;
+        } else {
+            include $arquivo;
+            return true;
+        }
+    } else {
+        return true;
+    }
+}
+
+function personalizacaoTotais($md5 = false, $ajax = false)
+{
+    global $g, $r_exibirTotais;
+    if ($ajax && (!isset($r_exibirTotais) || empty($r_exibirTotais))) {
+        echo<<<EOT
 <div class="buttonsBottomTop exibirTotais" style="height: 34px;">
 <img src="/hardness3/static/img/loading.gif" style="width: 24px; height: 24px; margin: 6px; float: left;" />
 <span style="margin: 12px 2px; float: left; color: gray; font-weight: bold;">Carregando totais...</span>
@@ -302,7 +2860,151 @@ goto spanr; jIPAI: $toReplace = $matches[0]; goto Nq58E; yBZ5O: preg_match('/<st
 \tcarregarTotais('{$g['divId']}');
 } </script></div>
 EOT;
-goto EgYId; BFzoc: $arquivoIde = "ide/personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais'; goto HgKCN; S1ANZ: return true; goto Xz7ZV; tXSss: goto OaLQv; goto wHV7P; mfCL3: $r_grid = preg_replace('/^\\//', '', $g['r_']); goto BFzoc; jf_J2: OaLQv: goto dmbUi; miRX0: goto xSI0o; goto SYBz1; PDm24: TAsEX: goto j7kaw; j7kaw: foreach ($GLOBALS as $name => $value) { global ${$name}; LSGDp: } goto Dipms; uhMF0: return false; goto ZO9Q7; kOuEt: xSI0o: goto tXSss; EgYId: return true; goto XFMr3; KNpr2: $arquivo = file_exists($arquivoGlobal) ? $arquivoGlobal : $arquivo; goto h0prE; IjMF8: $arquivoGlobal = "{$g['pathDados']}personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais'; goto dNebP; OIeA_: $arquivo = $arquivoIde; goto jf_J2; h0prE: $arquivo = file_exists($arquivoPerfil) ? $arquivoPerfil : $arquivo; goto xt4qG; dmbUi: if (!file_exists($arquivo)) { goto arRwR; } goto jwYxa; t6nAx: session_write_close(); goto VYagb; aNNcb: $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo; goto NEZ3Q; Xz7ZV: arRwR: goto uhMF0; RinU1: $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo; goto KNpr2; XFMr3: SLIW7: goto ZB2iY; Dipms: I3vgV: goto mfCL3; dNebP: $arquivoPerfil = "{$g['pathDados']}personalizacaoGrid/" . $g['C021']['C021_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-totais'; goto u8ebf; xFUIa: if ($g['modoDesenvolvedor']) { goto UjT8H; } goto fH2wJ; v5u8c: global $g, $r_exibirTotais; goto pt6eD; dnOEL: $arquivoAppsEditor = Apps::getDirEditor() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais'; goto IjMF8; HgKCN: $arquivoApps = Apps::getDirAtivos() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais'; goto dnOEL; Fid3B: $arquivo = $arquivoIde; goto aNNcb; Ft55e: ob_start(); goto PDm24; SYBz1: lKix8: goto Fid3B; ZO9Q7: goto SLIW7; goto cjTos; pt6eD: if ($ajax && (!isset($r_exibirTotais) || empty($r_exibirTotais))) { goto OZiwH; } goto dY5ij; VYagb: ob_end_clean(); goto Ft55e; u8ebf: $arquivoUsuario = "{$g['pathDados']}personalizacaoGrid/u" . $g['C007']['C007_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-totais'; goto xFUIa; wHV7P: UjT8H: goto OIeA_; xt4qG: $arquivo = file_exists($arquivoUsuario) ? $arquivoUsuario : $arquivo; goto miRX0; cjTos: OZiwH: goto sGBEP; OdoQV: $arquivo = $arquivoIde; goto RinU1; NEZ3Q: $arquivo = file_exists($arquivoAppsEditor) ? $arquivoAppsEditor : $arquivo; goto kOuEt; fH2wJ: if ($g['modoDesenvolvedorApp']) { goto lKix8; } goto OdoQV; dY5ij: if (!$ajax) { goto TAsEX; } goto t6nAx; ZB2iY: } function fimTotais() { goto G4ZII; G4ZII: global $g, $r_exibirTotais; goto XQCmf; XQCmf: if (!(isset($r_exibirTotais) && !empty($r_exibirTotais))) { goto KoygI; } goto v8eW0; XnWBt: KoygI: goto nVbJA; v8eW0: die; goto XnWBt; nVbJA: } function log($mensagem, $a = false, $b = false) { goto F3V6l; F3V6l: global $g; goto fyxnX; hBx_M: return true; goto I0moq; pDOFQ: if (!is_array($mensagem)) { goto Z8PDv; } goto PSEEM; fyxnX: if (!(isset($_COOKIE['debuglog']) && !empty($_COOKIE['debuglog']))) { goto qdkgg; } goto dcaMI; VV4XT: fwrite($h, '<span style="color: gray; float: right;">' . $backtrace[0]['file'] . ':' . $backtrace[0]['line'] . '</span><br/><span style="color: var(--letra-log);">' . $mensagem . '</span><br/>'); goto kV6Dy; ZYTCE: qdkgg: goto hBx_M; ZTGps: $h = fopen("/tmp/debuglog-{$_COOKIE['debuglog']}", 'a'); goto pDOFQ; e3LW5: Cd_3x: goto ZTGps; kV6Dy: fclose($h); goto ZYTCE; dcaMI: $backtrace = array(); goto G8mhq; PSEEM: $mensagem = print_r($mensagem, true); goto sEtbj; sEtbj: Z8PDv: goto VV4XT; G8mhq: $backtrace_ = debug_backtrace(); goto FfcoD; FfcoD: foreach ($backtrace_ as $back) { $backtrace[] = array('file' => isset($back['file']) ? $back['file'] : '', 'line' => isset($back['line']) ? $back['line'] : '', 'function' => isset($back['function']) ? $back['function'] : '', 'class' => isset($back['class']) ? $back['class'] : '', 'args' => isset($back['args']) ? $back['args'] : ''); p6VzX: } goto e3LW5; I0moq: } function gErrorHandler($errno, $errstr, $errfile, $errline) { goto iWRFv; nXd9E: $arquivo = '/tmp/gErrorHandler'; goto uCXnz; wqVjI: $array = array(); goto v1D4R; YT1Rm: zx6K1: goto WEo9W; fMkie: iJtHZ: goto IsoO0; eUniR: return false; goto eZYva; Wy2fn: return false; goto cpw1F; GoqXZ: $array = array_slice($array, count($array) - 50); goto zyDO6; zyDO6: hu8pg: goto n4Xdb; v1D4R: goto iJtHZ; goto XFtQz; H7Lu4: if (!($errno == E_DEPRECATED)) { goto rHsgq; } goto eUniR; iWRFv: global $g, $confUsuario; goto a6uga; Vzt4m: if (!(strpos($errstr, 'imap_open()') !== false)) { goto Jv_p2; } goto Wy2fn; pkNvY: QySHn: goto nXd9E; N5du_: ZgPsn: goto H7Lu4; Mid1K: $array = unserialize(file_get_contents($arquivo)); goto fMkie; sy7k9: return false; goto VpFCo; CSIOb: foreach ($backtrace_ as $back) { $backtrace[] = array('file' => isset($back['file']) ? $back['file'] : '', 'line' => isset($back['line']) ? $back['line'] : '', 'function' => isset($back['function']) ? $back['function'] : '', 'class' => isset($back['class']) ? $back['class'] : '', 'args' => isset($back['args']) ? $back['args'] : ''); sPF0x: } goto YT1Rm; cpw1F: Jv_p2: goto XPEDr; YwWky: if (!(strpos($errstr, 'htmlentities(): Invalid multibyte sequence in argument') !== false)) { goto QySHn; } goto eCRZs; hEv1j: $backtrace_ = debug_backtrace(); goto CSIOb; a6uga: $backtrace = array(); goto hEv1j; eCRZs: return false; goto pkNvY; IsoO0: $array[] = $erro; goto KfYsB; n4Xdb: file_put_contents($arquivo, serialize($array)); goto IZ1wm; KfYsB: if (!(count($array) > 50)) { goto hu8pg; } goto GoqXZ; XFtQz: d5kYl: goto Mid1K; we3SL: return false; goto N5du_; VpFCo: zjSgi: goto YwWky; IZ1wm: return false; goto SAOhG; PCisX: if (!($errno == E_NOTICE)) { goto ZgPsn; } goto we3SL; WEo9W: $erro = array('errno' => $errno, 'errstr' => $errstr, 'errfile' => $errfile, 'errline' => $errline, 'dbDatabase' => $confUsuario['dbDatabase'], 'empresaAtual' => $g['empresaAtual'], 'usuarioAtual' => $g['usuarioAtual'], 'timestamp' => time(), 'backtrace' => $backtrace); goto PCisX; uCXnz: if (file_exists($arquivo)) { goto d5kYl; } goto wqVjI; eZYva: rHsgq: goto Vzt4m; XPEDr: if (!(strpos($errstr, 'array_merge(): Argument #2 is not an array') !== false)) { goto zjSgi; } goto sy7k9; SAOhG: } function gExplodeAuditoria($campo, $T162_Id = '') { } function gRepassaRequest($vars = '', $repassarTudo = false) { goto bXJ2B; cbiRQ: fUbnd: goto u0KOk; bXJ2B: foreach ($_REQUEST as $rkey => $rvalue) { goto Btpa7; GRUx3: $vars = '&' . $vars; goto bzAia; nA8_F: $vars = "&{$rkey}=" . urlencode($rvalue) . $vars; goto e51mk; cJMP6: if (!($rkey == 'r' || $rkey == 'ajax' || $rkey == 'acaoId' || $rkey == 'tabela' || $rkey == 'tab' || $rkey == 'divIdRoot' || $rkey == 'divIdParent' || $rkey == 'divId' || $rkey == 'oneWindow' || $rkey == 'titleTab' || $rkey == 'divIdChain' || $rkey == 'divIdParentChain')) { goto I5taM; } goto fU63I; kvCMO: goto XcBl8; goto uH_ZA; rr4Fq: goto XcBl8; goto aoUHr; STMt5: goto Zk9ST; goto wZmfL; bzAia: qESgQ: goto nA8_F; tYIr_: I5taM: goto STMt5; aoUHr: BzAhD: goto bunw5; wZmfL: vI0AM: goto TamzO; bunw5: Zk9ST: goto o3hPt; TamzO: if (!($rkey == 'r' || $rkey == 'ajax' || $rkey == 'divIdRoot' || $rkey == 'divIdParent' || $rkey == 'divId' || $rkey == 'oneWindow' || $rkey == 'titleTab' || $rkey == 'divIdChain' || $rkey == 'divIdParentChain')) { goto BzAhD; } goto rr4Fq; fU63I: goto XcBl8; goto tYIr_; o3hPt: if (!(strpos($vars, "&{$rkey}=") !== false)) { goto vVxlP; } goto kvCMO; IJ7A3: if (!(!empty($vars) && $vars[0] != '&')) { goto qESgQ; } goto GRUx3; uH_ZA: vVxlP: goto IJ7A3; Btpa7: if ($repassarTudo) { goto vI0AM; } goto cJMP6; e51mk: XcBl8: goto CutBS; CutBS: } goto cbiRQ; u0KOk: return $vars; goto OywAy; OywAy: } function gDicionarioTabelas($tabela) { goto fZzNH; fZzNH: $dic = <<<EOT
+        return true;
+    } else {
+        if ($ajax) {
+            session_write_close();
+            ob_end_clean();
+            ob_start();
+        }
+        foreach ($GLOBALS as $name => $value) {
+            global ${$name};
+        }
+        $r_grid = preg_replace('/^\\//', '', $g['r_']);
+        $arquivoIde = "ide/personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais';
+        $arquivoApps = Apps::getDirAtivos() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais';
+        $arquivoAppsEditor = Apps::getDirEditor() . "personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais';
+        $arquivoGlobal = "{$g['pathDados']}personalizacaoGrid/" . ($md5 ? $md5 : md5($r_grid)) . '-totais';
+        $arquivoPerfil = "{$g['pathDados']}personalizacaoGrid/" . $g['C021']['C021_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-totais';
+        $arquivoUsuario = "{$g['pathDados']}personalizacaoGrid/u" . $g['C007']['C007_Id'] . '-' . ($md5 ? $md5 : md5($r_grid)) . '-totais';
+        if ($g['modoDesenvolvedor']) {
+            $arquivo = $arquivoIde;
+        } else {
+            if ($g['modoDesenvolvedorApp']) {
+                $arquivo = $arquivoIde;
+                $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo;
+                $arquivo = file_exists($arquivoAppsEditor) ? $arquivoAppsEditor : $arquivo;
+            } else {
+                $arquivo = $arquivoIde;
+                $arquivo = file_exists($arquivoApps) ? $arquivoApps : $arquivo;
+                $arquivo = file_exists($arquivoGlobal) ? $arquivoGlobal : $arquivo;
+                $arquivo = file_exists($arquivoPerfil) ? $arquivoPerfil : $arquivo;
+                $arquivo = file_exists($arquivoUsuario) ? $arquivoUsuario : $arquivo;
+            }
+        }
+        if (!file_exists($arquivo)) {
+            return false;
+        } else {
+            include $arquivo;
+            return true;
+        }
+    }
+}
+
+function fimTotais()
+{
+    global $g, $r_exibirTotais;
+    if (!(isset($r_exibirTotais) && !empty($r_exibirTotais))) {
+    } else {
+        die;
+    }
+}
+
+function log($mensagem, $a = false, $b = false)
+{
+    global $g;
+    if (isset($_COOKIE['debuglog']) && !empty($_COOKIE['debuglog'])) {
+        $backtrace = array();
+        $backtrace_ = debug_backtrace();
+        foreach ($backtrace_ as $back) {
+            $backtrace[] = array('file' => isset($back['file']) ? $back['file'] : '', 'line' => isset($back['line']) ? $back['line'] : '', 'function' => isset($back['function']) ? $back['function'] : '', 'class' => isset($back['class']) ? $back['class'] : '', 'args' => isset($back['args']) ? $back['args'] : '');
+        }
+        $h = fopen("/tmp/debuglog-{$_COOKIE['debuglog']}", 'a');
+        if (!(!is_array($mensagem))) {
+            $mensagem = print_r($mensagem, true);
+        }
+        fwrite($h, '<span style="color: gray; float: right;">' . $backtrace[0]['file'] . ':' . $backtrace[0]['line'] . '</span><br/><span style="color: var(--letra-log);">' . $mensagem . '</span><br/>');
+        fclose($h);
+    }
+    return true;
+}
+
+function gErrorHandler($errno, $errstr, $errfile, $errline)
+{
+    global $g, $confUsuario;
+    $backtrace = array();
+    $backtrace_ = debug_backtrace();
+    foreach ($backtrace_ as $back) {
+        $backtrace[] = array('file' => isset($back['file']) ? $back['file'] : '', 'line' => isset($back['line']) ? $back['line'] : '', 'function' => isset($back['function']) ? $back['function'] : '', 'class' => isset($back['class']) ? $back['class'] : '', 'args' => isset($back['args']) ? $back['args'] : '');
+    }
+    $erro = array('errno' => $errno, 'errstr' => $errstr, 'errfile' => $errfile, 'errline' => $errline, 'dbDatabase' => $confUsuario['dbDatabase'], 'empresaAtual' => $g['empresaAtual'], 'usuarioAtual' => $g['usuarioAtual'], 'timestamp' => time(), 'backtrace' => $backtrace);
+    if (!($errno == E_NOTICE)) {
+        if (!($errno == E_DEPRECATED)) {
+            if (!(strpos($errstr, 'imap_open()') !== false)) {
+                if (!(strpos($errstr, 'array_merge(): Argument #2 is not an array') !== false)) {
+                    if (!(strpos($errstr, 'htmlentities(): Invalid multibyte sequence in argument') !== false)) {
+                        $arquivo = '/tmp/gErrorHandler';
+                        if (file_exists($arquivo)) {
+                            $array = unserialize(file_get_contents($arquivo));
+                        } else {
+                            $array = array();
+                        }
+                        $array[] = $erro;
+                        if (count($array) > 50) {
+                            $array = array_slice($array, count($array) - 50);
+                        }
+                        file_put_contents($arquivo, serialize($array));
+                        return false;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+function gExplodeAuditoria($campo, $T162_Id = '')
+{
+}
+
+function gRepassaRequest($vars = '', $repassarTudo = false)
+{
+    // Com $repassarTudo falso, acaoId, tabela e tab ficam de fora.
+    // Valor que não é escalar (o formulário chega como array) não entra na query:
+    // no PHP 8 o urlencode recusa array.
+    $excluir = array('r', 'ajax', 'divIdRoot', 'divIdParent', 'divId', 'oneWindow', 'titleTab', 'divIdChain', 'divIdParentChain');
+    if (!$repassarTudo) {
+        $excluir[] = 'acaoId';
+        $excluir[] = 'tabela';
+        $excluir[] = 'tab';
+    }
+    foreach ($_REQUEST as $rkey => $rvalue) {
+        if (in_array($rkey, $excluir) || !is_scalar($rvalue)) {
+            continue;
+        }
+        if (strpos($vars, "&{$rkey}=") !== false) {
+            continue;
+        }
+        if (!empty($vars) && $vars[0] != '&') {
+            $vars = '&' . $vars;
+        }
+        $vars = "&{$rkey}=" . urlencode((string) $rvalue) . $vars;
+    }
+    return $vars;
+}
+
+function gDicionarioTabelas($tabela)
+{
+    $dic = <<<EOT
 c001
 c002
 c003
@@ -832,47 +3534,689 @@ x001
 x002
 x003
 EOT;
-goto OumWm; FIoSJ: wHIfn: goto LkAlV; qQlYD: RNOJh: goto d9mrN; MysDy: goto RNOJh; goto FIoSJ; QhjyZ: $matches[1] = trim($matches[1]); goto tRR1m; RJJ5W: if (isset($matches[1])) { goto SEbG5; } goto Hqo18; sCh84: preg_match("#^{$tabela}(.*)\$#m", $dic, $matches); goto RJJ5W; irwev: SEbG5: goto QhjyZ; tRR1m: if (empty($matches[1])) { goto wHIfn; } goto fvWuc; d9mrN: vGNfD: goto zFHNA; zZUbq: goto vGNfD; goto irwev; OumWm: $tabela = strtolower($tabela); goto sCh84; fvWuc: return $matches[1]; goto MysDy; Hqo18: return strtoupper($tabela); goto zZUbq; LkAlV: return strtoupper($tabela); goto qQlYD; zFHNA: } function gCarregarPrograma($prog, $varRetorno = 'output') { goto Jd14J; MqLZH: $programaGlobalGlobal = "{$g['pathDados']}personalizacaoConf/{$programa}-alterarPrograma.php"; goto BU1Eb; m3ra5: if (file_exists($programaPhp)) { goto aPo38; } goto I10aH; tWb6s: $programaGlobal = $programaEmpresa; goto t_jVm; JQ9R6: if (!($g['modoDesenvolvedorApp'] && file_exists($programaGlobalAppsEditor))) { goto pGzb8; } goto YEtiY; cL2to: oxS_u: goto JQ9R6; Ywr3u: $g['r'][3] = ''; goto tD2T4; RNs7s: $programaAppsEditor = Apps::getDirEditor() . "personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php"; goto Csq8l; bbvGc: SskMB: goto OR1wA; atDtQ: if (file_exists($programaGlobal)) { goto sn3bn; } goto ZDu0Y; uCl19: $programaEmpresa = $programaEmpresaGlobal; goto H_Mrx; Mihic: $g['r_'] = $g['r']; goto U85VU; qIfAM: kCe4q: goto MZp5d; d2DNW: ob_start(); goto IJi1v; d1FMx: CrJik: goto PdWPf; t9cEl: pGzb8: goto zZaHH; PdWPf: $output = ob_get_contents(); goto ezYud; MZp5d: $programaEmpresaIde = "ide/personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php"; goto o2R4E; BD555: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($programaEmpresaGlobal))) { goto H4sDj; } goto uCl19; uaHWf: $tmp = $g['r'][3]; goto Ywr3u; XHCks: $g['r'][3] = $tmp; goto EqUbR; zZSvc: $g['r'] = explode('/', trim($g['r'], '/')); goto aCEwR; t_jVm: RigJC: goto atDtQ; I10aH: die('Erro interno - Por favor contate o suporte técnico.'); goto X2srG; Ntda1: $programaGlobalIde = "ide/personalizacaoConf/{$programa}-alterarPrograma.php"; goto n53tS; H_Mrx: H4sDj: goto lGMWI; BU1Eb: $programaGlobal = $programaGlobalIde; goto N2MeI; X2srG: aPo38: goto d2DNW; R4fYk: $programa = str_replace('/', '-', $programa); goto Ntda1; ryp7s: if (!(!$g['modoDesenvolvedor'] && file_exists($programaApps))) { goto SskMB; } goto OO29T; ezYud: ob_end_clean(); goto WZxDV; o2R4E: $programaApps = Apps::getDirAtivos() . "personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php"; goto RNs7s; OR1wA: if (!($g['modoDesenvolvedorApp'] && file_exists($programaAppsEditor))) { goto FFtzG; } goto BFnFA; bX0jL: $programaGlobalAppsEditor = Apps::getDirEditor() . "personalizacaoConf/{$programa}-alterarPrograma.php"; goto MqLZH; XdfYo: goto CrJik; goto vxUrB; U85VU: $g['r_'] = preg_replace('/^\\//', '', $g['r_']); goto zZSvc; G_qpl: $programaGlobal = $programaGlobalApps; goto cL2to; n53tS: $programaGlobalApps = Apps::getDirAtivos() . "personalizacaoConf/{$programa}-alterarPrograma.php"; goto bX0jL; IJi1v: $programa = trim($g['r_'], '/'); goto R4fYk; BmB9p: $g['r'] = $prog; goto Mihic; BpWvh: $programaEmpresa = $programaEmpresaIde; goto ryp7s; Csq8l: $programaEmpresaGlobal = "{$g['pathDados']}personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php"; goto BpWvh; ZDu0Y: include $programaPhp; goto XdfYo; tD2T4: include $programaPhp; goto WzjFo; N2MeI: if (!(!$g['modoDesenvolvedor'] && file_exists($programaGlobalApps))) { goto oxS_u; } goto G_qpl; MHdzk: FFtzG: goto BD555; zZaHH: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($programaGlobalGlobal))) { goto kCe4q; } goto KQXPS; OO29T: $programaEmpresa = $programaApps; goto bbvGc; vxUrB: sn3bn: goto uaHWf; Jd14J: global $g; goto BmB9p; KQXPS: $programaGlobal = $programaGlobalGlobal; goto qIfAM; EqUbR: include $programaGlobal; goto d1FMx; WZxDV: return ${$varRetorno}; goto VmMWD; QjnTB: ob_start(); goto XHCks; YEtiY: $programaGlobal = $programaGlobalAppsEditor; goto t9cEl; WzjFo: ob_end_clean(); goto QjnTB; lGMWI: if (!file_exists($programaEmpresa)) { goto RigJC; } goto tWb6s; aCEwR: $programaPhp = "prog/{$g['r'][0]}/{$g['r'][1]}/{$g['r'][2]}.php"; goto m3ra5; BFnFA: $programaEmpresa = $programaAppsEditor; goto MHdzk; VmMWD: } function gCodigoEtiqueta($txt) { goto yn7oR; K2vQ8: $i++; goto adwPy; hkPZt: return trim($retorno); goto a4aan; zEp0v: L4wSM: goto kwnIQ; kwnIQ: if (!($i < strlen($txt))) { goto ovXHF; } goto D0nDL; h6LWF: TAKmA: goto K2vQ8; yn7oR: global $g; goto uZ7N9; uZ7N9: $retorno = ''; goto Tmnrw; D0nDL: $retorno .= ord($txt[$i]) . " "; goto h6LWF; Tmnrw: $i = 0; goto zEp0v; GH9S0: ovXHF: goto hkPZt; adwPy: goto L4wSM; goto GH9S0; a4aan: } function getD004($T066_Id) { goto gPA1P; IfRVI: return $tmpD004_Id; goto uU8Iu; zamsS: $res = mysql_query($sql); goto hEGF3; OQtLP: k54ef: goto IfRVI; zYW6y: X16lx: goto L2iOn; gPA1P: $sql = "SELECT T066_D004_Id FROM T066 WHERE T066_Id = '{$T066_Id}'"; goto zamsS; aRHUB: goto k54ef; goto zYW6y; hEGF3: if (mysql_num_rows($res) > 0) { goto X16lx; } goto B8PZ_; B8PZ_: $tmpD004_Id = ''; goto aRHUB; L2iOn: $row = mysql_fetch_assoc($res); goto eoFOa; eoFOa: $tmpD004_Id = $row['T066_D004_Id']; goto OQtLP; uU8Iu: } function reprocessarEmpresaAtual($id) { goto uKaNc; RZM7Z: $g['c029Ids'][53] = true; goto PtQZ6; Uyb1r: $sqlC031 = mysql_query("SELECT C031_C004_Id, C031_Campo, C031_Valor FROM C031 WHERE C031_Campo IN \n\t\t\t\t\t\t\t\t\t('mensagemLiberacaoDeCredito', 'desabilitarCotacaoEmergencia', 'desabilitarCompraEmergencia', 'desabilitarMontagemEmergencia', 'desabilitarServicoEmergencia', 'desabilitarProducaoEmergencia')\n\t\t\t\t\t\t\t\tORDER BY C031_C004_Id;"); goto BEMCX; zA6s4: $g['perfilUsuario'] = $row['C021_Id']; goto JetVM; rfRg_: QygC3: goto hRjx_; swuoj: AWNcp: goto u5iYS; Tuwgp: $g['c004'] = $g['C004'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C004 LEFT JOIN D020 ON D020_Id=C004_D020_Id LEFT JOIN D018 on D018_Id=C004_D018_Id WHERE C004_Id='{$g['empresaAtual']}';")); goto CHpyq; TdR3n: if (!$tmp) { goto ncGQ1; } goto K8n6s; fPCuk: $check = recuperarCacheTabela('C007', array('C007_Id' => $g['usuarioAtual'])); goto Ao7V5; BN3Cv: $tmp = mysql_query("SELECT C030_C029_Id FROM C030 WHERE C030_C021_Id='{$g['perfilUsuario']}' AND C030_Acesso_Liberado = 'S';"); goto TdR3n; TOW6i: $g['c029Ids'] = array(); goto BN3Cv; qjunV: UFaJs: goto mKRQs; kN8be: goto QAYug; goto inI_9; KSac5: $sql = <<<EOT
+    $tabela = strtolower($tabela);
+    preg_match("#^{$tabela}(.*)\$#m", $dic, $matches);
+    if (isset($matches[1])) {
+        $matches[1] = trim($matches[1]);
+        if (empty($matches[1])) {
+            return strtoupper($tabela);
+        } else {
+            return $matches[1];
+        }
+    } else {
+        return strtoupper($tabela);
+    }
+}
+
+function gCarregarPrograma($prog, $varRetorno = 'output')
+{
+    global $g;
+    $g['r'] = $prog;
+    $g['r_'] = $g['r'];
+    $g['r_'] = preg_replace('/^\\//', '', $g['r_']);
+    $g['r'] = explode('/', trim($g['r'], '/'));
+    $programaPhp = "prog/{$g['r'][0]}/{$g['r'][1]}/{$g['r'][2]}.php";
+    if (file_exists($programaPhp)) {
+        ob_start();
+        $programa = trim($g['r_'], '/');
+        $programa = str_replace('/', '-', $programa);
+        $programaGlobalIde = "ide/personalizacaoConf/{$programa}-alterarPrograma.php";
+        $programaGlobalApps = Apps::getDirAtivos() . "personalizacaoConf/{$programa}-alterarPrograma.php";
+        $programaGlobalAppsEditor = Apps::getDirEditor() . "personalizacaoConf/{$programa}-alterarPrograma.php";
+        $programaGlobalGlobal = "{$g['pathDados']}personalizacaoConf/{$programa}-alterarPrograma.php";
+        $programaGlobal = $programaGlobalIde;
+        if (!$g['modoDesenvolvedor'] && file_exists($programaGlobalApps)) {
+            $programaGlobal = $programaGlobalApps;
+        }
+        if ($g['modoDesenvolvedorApp'] && file_exists($programaGlobalAppsEditor)) {
+            $programaGlobal = $programaGlobalAppsEditor;
+        }
+        if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($programaGlobalGlobal)) {
+            $programaGlobal = $programaGlobalGlobal;
+        }
+        $programaEmpresaIde = "ide/personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php";
+        $programaApps = Apps::getDirAtivos() . "personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php";
+        $programaAppsEditor = Apps::getDirEditor() . "personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php";
+        $programaEmpresaGlobal = "{$g['pathDados']}personalizacaoConf/{$g['empresaAtual']}{$programa}-alterarPrograma.php";
+        $programaEmpresa = $programaEmpresaIde;
+        if (!$g['modoDesenvolvedor'] && file_exists($programaApps)) {
+            $programaEmpresa = $programaApps;
+        }
+        if ($g['modoDesenvolvedorApp'] && file_exists($programaAppsEditor)) {
+            $programaEmpresa = $programaAppsEditor;
+        }
+        if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'] && file_exists($programaEmpresaGlobal)) {
+            $programaEmpresa = $programaEmpresaGlobal;
+        }
+        if (!(!file_exists($programaEmpresa))) {
+            $programaGlobal = $programaEmpresa;
+        }
+        if (file_exists($programaGlobal)) {
+            $tmp = $g['r'][3];
+            $g['r'][3] = '';
+            include $programaPhp;
+            ob_end_clean();
+            ob_start();
+            $g['r'][3] = $tmp;
+            include $programaGlobal;
+        } else {
+            include $programaPhp;
+        }
+        $output = ob_get_contents();
+        ob_end_clean();
+        return ${$varRetorno};
+    } else {
+        die('Erro interno - Por favor contate o suporte técnico.');
+    }
+}
+
+function gCodigoEtiqueta($txt)
+{
+    global $g;
+    $retorno = '';
+    $i = 0;
+    while ($i < strlen($txt)) {
+        $retorno .= ord($txt[$i]) . " ";
+        $i++;
+    }
+    return trim($retorno);
+}
+
+function getD004($T066_Id)
+{
+    $sql = "SELECT T066_D004_Id FROM T066 WHERE T066_Id = '{$T066_Id}'";
+    $res = mysql_query($sql);
+    if (mysql_num_rows($res) > 0) {
+        $row = mysql_fetch_assoc($res);
+        $tmpD004_Id = $row['T066_D004_Id'];
+    } else {
+        $tmpD004_Id = '';
+    }
+    return $tmpD004_Id;
+}
+
+function reprocessarEmpresaAtual($id)
+{
+    global $g;
+    $g['empresaAtual'] = $id;
+    $sql = <<<EOT
 \t\tselect C021_Id from C007
 \t\tleft join C019 on C019_C007_Id=C007_Id and C019_C004_Id='{$id}'
 \t\tleft join C021 on C021_Id=C019_C021_Id
 \t\twhere C007_Id = '{$g['usuarioAtual']}'
 \t\tand (C007_D024_Id=0 or C007_D024_Id is null)
 EOT;
-goto kH0OW; kH0OW: $res = mysql_query($sql); goto HdVtR; lQxq0: H685M: goto V1GDa; V1GDa: $check = recuperarCacheTabela('C004', array('C004_Id' => $g['empresaAtual'])); goto sku9u; q2yYE: $g['C031_global'][$rowC031['C031_C004_Id']][$rowC031['C031_Campo']] = $rowC031['C031_Valor']; goto kN8be; shu40: $g['c007'] = $g['C007'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C007 WHERE C007_Id='{$g['usuarioAtual']}';")); goto swuoj; CHpyq: WHdTf: goto fPCuk; K8n6s: HkioB: goto f3O9P; S_olB: gKOdw: goto RPj90; V2cs8: $g['c031'][$rowC031['C031_Campo']] = $rowC031['C031_Valor']; goto Zpcei; BEMCX: QAYug: goto zaAMe; inI_9: r_O9l: goto qjunV; xACkR: if (!($check === false)) { goto H685M; } goto M6ywJ; CC7fz: $sqlC031 = mysql_query("SELECT * FROM C031 WHERE C031_C004_Id = '{$g['empresaAtual']}';"); goto PbLMW; zaAMe: if (!($rowC031 = mysql_fetch_assoc($sqlC031))) { goto r_O9l; } goto y_Q7U; EvaRX: if (!($check === false)) { goto QygC3; } goto Uj_nK; ykMLo: f3ilm: goto ec6gI; M6ywJ: $g['c020'] = $g['C020'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C020 WHERE C020_C004_Id = '{$g['empresaAtual']}';")); goto lQxq0; hRjx_: $check = recuperarCacheTabela('C030', array('C030_C021_Id' => $g['perfilUsuario'], 'C030_Acesso_Liberado' => 'S')); goto yjrNf; H2zVK: goto wGJ8r; goto mfT8Z; PtQZ6: $g['c029Ids'][54] = true; goto a9jon; f3O9P: if (!($row = mysql_fetch_row($tmp))) { goto gKOdw; } goto cxPRa; oYmgj: $g['isRoot'] = true; goto RZM7Z; uKaNc: global $g; goto evQbJ; UsL3w: Wv73G: goto lVx9p; Uj_nK: $g['c021'] = $g['C021'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C021 WHERE C021_Id='{$g['perfilUsuario']}';")); goto rfRg_; sku9u: if (!($check === false)) { goto WHdTf; } goto Tuwgp; mKRQs: if (!($g['c007']['C007_Id'] == 63)) { goto Wv73G; } goto oYmgj; ec6gI: $check = recuperarCacheTabela('C031', array('C031_C004_Id' => $g['empresaAtual'])); goto Ur821; u5iYS: $check = recuperarCacheTabela('C021', array('C021_Id' => $g['perfilUsuario'])); goto EvaRX; cxPRa: $g['c029Ids'][$row[0]] = true; goto avGNi; HdVtR: $row = mysql_fetch_assoc($res); goto zA6s4; yjrNf: if (!($check === false)) { goto f3ilm; } goto TOW6i; mfT8Z: sURF1: goto Uyb1r; Ur821: if (!($check === false)) { goto UFaJs; } goto CC7fz; Ao7V5: if (!($check === false)) { goto AWNcp; } goto shu40; PbLMW: wGJ8r: goto ROKgs; Zpcei: $g['C031'][$rowC031['C031_Campo']] = $rowC031['C031_Valor']; goto H2zVK; avGNi: goto HkioB; goto S_olB; evQbJ: $g['empresaAtual'] = $id; goto KSac5; RPj90: ncGQ1: goto ykMLo; JetVM: $check = recuperarCacheTabela('C020', array('C020_C004_Id' => $g['empresaAtual'])); goto xACkR; y_Q7U: $g['c031_global'][$rowC031['C031_C004_Id']][$rowC031['C031_Campo']] = $rowC031['C031_Valor']; goto q2yYE; a9jon: $g['c029Ids'][84] = true; goto UsL3w; ROKgs: if (!($rowC031 = mysql_fetch_assoc($sqlC031))) { goto sURF1; } goto V2cs8; lVx9p: } function modoModelo($modelo) { goto bPmYd; zh__q: vy038: goto pqXxj; OCHAO: if (!file_exists($file)) { goto PwVvk; } goto T5O7m; WzKJ0: return true; goto YuK0z; oCKv2: return false; goto qXkbe; pqXxj: if (!(isset($r_modoModelo) && $r_modoModelo == $modelo)) { goto G8M6g; } goto WzKJ0; IuGpV: PwVvk: goto zh__q; YAEc4: $dir = $g['pathDadosUsuario'] . 'gridModelo/'; goto CsM8k; YuK0z: G8M6g: goto oCKv2; T5O7m: $r_modoModelo = file_get_contents($file); goto IuGpV; bPmYd: global $r_modoModelo, $g; goto D45c9; Ka43Y: $id = md5($g['r_']); goto YAEc4; D45c9: if (isset($r_modoModelo)) { goto vy038; } goto Ka43Y; CsM8k: $file = $dir . $id; goto OCHAO; qXkbe: } function quebraBr($texto, $tamanho = 70, $char = ';') { goto PUE6s; BImtM: v4a4P: goto YDnUI; vgHP0: $novo .= $texto[$i]; goto CnDBs; Hho8_: p7iNS: goto V86Bm; MT2iJ: $count = 0; goto jz9Ry; Jiw6W: $count = 0; goto I2SGO; zzoJs: $count++; goto yNo4f; V86Bm: OLkUx: goto fKrZU; jz9Ry: $i = 0; goto YeNh5; SWOKw: FuJ4y: goto Jiw6W; YeNh5: fK9JN: goto Jfsbt; Jfsbt: if (!($i < strlen($texto))) { goto sdcIx; } goto zzoJs; CnDBs: goto p7iNS; goto SWOKw; Xw1m7: goto fK9JN; goto sKwhe; UA6M2: return $novo; goto jsoBw; PUE6s: $novo = ''; goto MT2iJ; YDnUI: if ($count > $tamanho && $texto[$i] == ' ') { goto FuJ4y; } goto vgHP0; I2SGO: $novo .= '<br />'; goto Hho8_; Cr_cZ: $count = 0; goto BImtM; sKwhe: sdcIx: goto UA6M2; yNo4f: if (!($texto[$i] == $char)) { goto v4a4P; } goto Cr_cZ; fKrZU: $i++; goto Xw1m7; jsoBw: } function retirarLimit($sql) { $sql = preg_split('#LIMIT [0-9]+\\,#', $sql); return $sql[0]; } function mb_str_pad($input, $pad_length, $pad_string = " ", $pad_style = STR_PAD_RIGHT, $encoding = "UTF-8") { return str_pad($input, strlen($input) - mb_strlen($input, $encoding) + $pad_length, $pad_string, $pad_style); } function registrarLog($param) { goto hiUAc; WN_Yw: $tipoLog = $param[7]; goto RiVTN; RiVTN: $hash = md5(implode("", $param)); goto Q3aYk; Q3aYk: $sql = mysqli_query("SELECT T245_Id FROM T245 WHERE T245_Hash = '{$hash}'", $g['conexaoBancoAuditoria']); goto dI_aB; D1XS3: return true; goto b9FSa; hiUAc: global $g; goto kiFwD; haSOz: $C004_Id = isset($param[2]) ? $param[2] : $g['empresaAtual']; goto nr3_d; NnzMO: $descricao = mysql_real_escape_string($param[4]); goto CBgRm; oNUvf: mysqli_query("INSERT INTO T245 (T245_C007_Id,\n\t\t\t\t\t\t\t\t\t   T245_C004_Id,\n\t\t\t\t\t\t\t\t\t   T245_DataHora,\n\t\t\t\t\t\t\t\t\t   T245_Registro_Id,\n\t\t\t\t\t\t\t\t\t   T245_Tabela,\n\t\t\t\t\t\t\t\t\t   T245_Referencia,\n\t\t\t\t\t\t\t\t\t   T245_Descricao,\n\t\t\t\t\t\t\t\t\t   T245_Log,\n\t\t\t\t\t\t\t\t\t   T245_Flag_Erro,\n\t\t\t\t\t\t\t\t\t   T245_Tipo_Log,\n\t\t\t\t\t\t\t\t\t   T245_Hash\n\t\t\t\t\t\t\t\t\t  ) VALUES (\n\t\t\t\t\t\t\t\t\t  \t'{$g['usuarioAtual']}',\n\t\t\t\t\t\t\t\t\t  \t'{$C004_Id}',\n\t\t\t\t\t\t\t\t\t  \tnow(),\n\t\t\t\t\t\t\t\t\t  \t'{$registroId}',\n\t\t\t\t\t\t\t\t\t  \t'{$tabela}',\n\t\t\t\t\t\t\t\t\t  \t'{$referencia}',\n\t\t\t\t\t\t\t\t\t  \t'{$descricao}',\n\t\t\t\t\t\t\t\t\t  \t'{$log}',\n\t\t\t\t\t\t\t\t\t  \t'{$flagErro}',\n\t\t\t\t\t\t\t\t\t  \t'{$tipoLog}',\n\t\t\t\t\t\t\t\t\t  \t'{$hash}'\n\t\t\t\t\t\t\t\t\t  )", $g['conexaoBancoAuditoria']); goto bfhKy; nr3_d: $referencia = mysql_real_escape_string($param[3]); goto NnzMO; kiFwD: $tabela = $param[0]; goto Cwptg; CBgRm: $log = mysql_real_escape_string($param[5]); goto PBWQ1; PBWQ1: $flagErro = $param[6]; goto WN_Yw; bfhKy: vVSEW: goto D1XS3; dI_aB: if (!(mysql_num_rows($sql) <= 0)) { goto vVSEW; } goto oNUvf; Cwptg: $registroId = $param[1]; goto haSOz; b9FSa: } function secToTime($tempoSegundos) { goto PDkzE; PDkzE: $horas = floor($tempoSegundos / 3600); goto JISM4; OnnU9: return "{$horas}:{$minutos}:{$segundos}"; goto HbF_2; rm74R: $minutos = $minutos == 0 ? '00' : $minutos; goto hz8PI; ZikTI: $horas = $horas == 0 ? '00' : $horas; goto rm74R; VQjO0: $segundos = floor($tempoSegundos % 60); goto ZikTI; hz8PI: $segundos = $segundos == 0 ? '00' : $segundos; goto OnnU9; JISM4: $minutos = floor(($tempoSegundos - $horas * 3600) / 60); goto VQjO0; HbF_2: } function inteliSubstr($text, $length, $end = '...') { goto PPK3e; AulOR: $text = $cut . $end; goto Uppb9; LKNm0: return $text; goto gmJBu; CtITw: wPDrZ: goto AulOR; cpxbB: $cut = substr($cut, 0, strrpos($cut, ' ')); goto CtITw; MD1bR: $cut = substr($text, 0, $length); goto yilmM; Uppb9: dj8H3: goto LKNm0; yilmM: if (!(substr($text, $length, 1) != ' ')) { goto wPDrZ; } goto cpxbB; PPK3e: $text = trim(preg_replace('~(\\s+)~', ' ', strip_tags($text))); goto Bk73k; Bk73k: if (!(strlen($text) > $length)) { goto dj8H3; } goto MD1bR; gmJBu: } function processarCacheTabela($tabela) { goto KAzaC; z5qL5: w8Mx2: goto SvKCJ; nnyjU: apc_delete("cache{$tabela}-{$confUsuario['dbDatabase']}"); goto WNh_3; xhqEm: if (!($rowCache = mysql_fetch_assoc($sqlCache))) { goto nGlkh; } goto Q9X3X; blGYY: if ($tabela == "C004") { goto w8Mx2; } goto RckGK; FeJo3: USHWM: goto jIXbT; FQ9oA: $sqlCache = mysqli_query("SELECT * FROM {$tabela}"); goto kc1xk; b6z4U: goto iuoXq; goto z5qL5; jIXbT: $sqlCache = mysqli_query("SELECT C031_Id, C031_C004_Id, C031_Campo, C031_Valor FROM C031"); goto qxvF1; JZUx9: nGlkh: goto nnyjU; RckGK: if ($tabela == "C031") { goto USHWM; } goto FQ9oA; qxvF1: EKTc0: goto b6z4U; WeNbU: $cache = array(); goto blGYY; kc1xk: goto EKTc0; goto FeJo3; WNh_3: apc_store("cache{$tabela}-{$confUsuario['dbDatabase']}", serialize($cache)); goto a4wtv; Za31A: iuoXq: goto ZLW65; R6hqb: goto D0_VV; goto JZUx9; a4wtv: log("vai dar um store no cache"); goto R_sxY; Q9X3X: $cache[] = $rowCache; goto R6hqb; ZLW65: D0_VV: goto xhqEm; SvKCJ: $sqlCache = mysqli_query("SELECT * FROM C004 LEFT JOIN D020 ON D020_Id=C004_D020_Id LEFT JOIN D018 on D018_Id=C004_D018_Id"); goto Za31A; KAzaC: global $confUsuario; goto WeNbU; R_sxY: } function recuperarCacheTabela($tabela, $parametros, $ignorarCacheVazio = false) { goto bd22E; mciBD: $cache = unserialize($cache); goto na5h1; Wliw6: return false; goto sxcUE; HfNLJ: processarCacheTabela($tabela); goto t_t9y; g9qXS: return true; goto nE7hY; bd22E: global $g, $confUsuario; goto MTeUz; sxcUE: jNMkP: goto NOA9E; MTeUz: $arrayC031 = array('mensagemLiberacaoDeCredito', 'desabilitarCotacaoEmergencia', 'desabilitarCompraEmergencia', 'desabilitarMontagemEmergencia', 'desabilitarServicoEmergencia', 'desabilitarProducaoEmergencia'); goto FhZm7; NOA9E: $cache = apc_fetch("cache{$tabela}-{$confUsuario['dbDatabase']}"); goto bYpPc; na5h1: foreach ($cache as $key => $rowDB) { goto oSpuf; vI24V: $g['c019'][$rowDB['C019_C004_Id']] = true; goto iqZyu; oSpuf: if (!($tabela == 'C031' && in_array($rowDB['C031_Campo'], $arrayC031))) { goto wtazs; } goto a_cR5; M_OhV: $g['C031_global'][$rowDB['C031_C004_Id']][$rowDB['C031_Campo']] = $rowDB['C031_Valor']; goto Nmhqr; Eo3F2: if ($tabela == 'C031') { goto QjnXr; } goto TbzNd; iqZyu: vjq8i: goto n2ODu; KR3sq: ChjSP: goto qpNf8; hl87c: t7Vn3: goto Q2gmP; n2ODu: kZMZo: goto EKbBP; SFt5Y: up2B4: goto TA5qj; ZFRez: goto vjq8i; goto KR3sq; D9FyT: QjnXr: goto p_jfi; bDadE: goto up2B4; goto TAWon; GXTDk: $g[strtoupper($tabela)][$rowDB['C031_Campo']] = $rowDB['C031_Valor']; goto zRIu6; Nmhqr: wtazs: goto br1iw; Q2gmP: if ($tabela == 'C019') { goto ChjSP; } goto Eo3F2; WdEgG: $g['c029Ids'][$rowDB['C030_C029_Id']] = true; goto wIALC; TA5qj: goto M5nDv; goto D9FyT; TAWon: Iz8Ss: goto WdEgG; wIALC: $g['c029Ids'][$rowDB['c030_C029_Id']] = true; goto SFt5Y; zRIu6: M5nDv: goto ZFRez; qpNf8: $g['C019'][$rowDB['C019_C004_Id']] = true; goto vI24V; COh32: $g[strtolower($tabela)] = $g[strtoupper($tabela)] = $rowDB; goto bDadE; a_cR5: $g['c031_global'][$rowDB['C031_C004_Id']][$rowDB['C031_Campo']] = $rowDB['C031_Valor']; goto M_OhV; p_jfi: $g[strtolower($tabela)][$rowDB['C031_Campo']] = $rowDB['C031_Valor']; goto GXTDk; br1iw: foreach ($parametros as $variavel => $valor) { goto k_Kba; W8SeX: goto kZMZo; goto ADuHG; lOLKd: WZjo9: goto SMlmI; k_Kba: if (!($rowDB[$variavel] != $valor)) { goto oxmub; } goto W8SeX; ADuHG: oxmub: goto lOLKd; SMlmI: } goto hl87c; TbzNd: if ($tabela == 'C030') { goto Iz8Ss; } goto COh32; EKbBP: } goto HRAHu; t_t9y: recuperarCacheTabela($tabela, $parametros, true); goto PiD1u; bYpPc: if (!(empty($cache) && $ignorarCacheVazio == false)) { goto t3ltp; } goto HfNLJ; FhZm7: if (in_array($tabela, $g['tabelasCache'])) { goto jNMkP; } goto Wliw6; HRAHu: GJxND: goto g9qXS; xshlJ: t3ltp: goto mciBD; PiD1u: return true; goto xshlJ; nE7hY: } function abreviarNumero($numero) { goto HzYFa; YRyb0: R8uXq: goto uY0C1; fa2a7: foreach ($valores as $valor => $abreviacao) { goto HlRVK; HtdBR: return "<span title=\"{$numero_}\">" . number_format($numero / $valor, 2, '.', '') . " {$abreviacao}</span>"; goto drz5r; HlRVK: if (!($numero > $valor && $numero / $valor > 1)) { goto HIquo; } goto Y9QpA; drz5r: HIquo: goto krdOL; krdOL: PK_U2: goto f5j3C; Y9QpA: $numero_ = gCorrigeNumero($numero); goto HtdBR; f5j3C: } goto YRyb0; uY0C1: return gCorrigeNumero($numero); goto NttMD; HzYFa: $valores = array('1000000000' => 'bi', '1000000' => 'mi', '1000' => 'mil'); goto fa2a7; NttMD: } function msg_alerta($Msg, $Tipo = 'S') { goto CeZF1; skdot: $Msg2 = str_replace('/p', '<BR>', $Msg2); goto PZR68; PZR68: $Msg2 = str_replace('\\t', '', $Msg2); goto oUFta; ZkOtJ: $Msg = str_replace('/p', '\\n', $Msg); goto igAdO; a7wHl: echo $Msg; goto ZzOKv; CeZF1: $Msg2 = $Msg; goto ZkOtJ; igAdO: ?>
+    $res = mysql_query($sql);
+    $row = mysql_fetch_assoc($res);
+    $g['perfilUsuario'] = $row['C021_Id'];
+    $check = recuperarCacheTabela('C020', array('C020_C004_Id' => $g['empresaAtual']));
+    if ($check === false) {
+        $g['c020'] = $g['C020'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C020 WHERE C020_C004_Id = '{$g['empresaAtual']}';"));
+    }
+    $check = recuperarCacheTabela('C004', array('C004_Id' => $g['empresaAtual']));
+    if ($check === false) {
+        $g['c004'] = $g['C004'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C004 LEFT JOIN D020 ON D020_Id=C004_D020_Id LEFT JOIN D018 on D018_Id=C004_D018_Id WHERE C004_Id='{$g['empresaAtual']}';"));
+    }
+    $check = recuperarCacheTabela('C007', array('C007_Id' => $g['usuarioAtual']));
+    if ($check === false) {
+        $g['c007'] = $g['C007'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C007 WHERE C007_Id='{$g['usuarioAtual']}';"));
+    }
+    $check = recuperarCacheTabela('C021', array('C021_Id' => $g['perfilUsuario']));
+    if ($check === false) {
+        $g['c021'] = $g['C021'] = mysql_fetch_assoc(mysql_query("SELECT * FROM C021 WHERE C021_Id='{$g['perfilUsuario']}';"));
+    }
+    $check = recuperarCacheTabela('C030', array('C030_C021_Id' => $g['perfilUsuario'], 'C030_Acesso_Liberado' => 'S'));
+    if ($check === false) {
+        $g['c029Ids'] = array();
+        $tmp = mysql_query("SELECT C030_C029_Id FROM C030 WHERE C030_C021_Id='{$g['perfilUsuario']}' AND C030_Acesso_Liberado = 'S';");
+        if ($tmp) {
+            while ($row = mysql_fetch_row($tmp)) {
+                $g['c029Ids'][$row[0]] = true;
+            }
+        }
+    }
+    $check = recuperarCacheTabela('C031', array('C031_C004_Id' => $g['empresaAtual']));
+    if ($check === false) {
+        $sqlC031 = mysql_query("SELECT * FROM C031 WHERE C031_C004_Id = '{$g['empresaAtual']}';");
+        while ($rowC031 = mysql_fetch_assoc($sqlC031)) {
+            $g['c031'][$rowC031['C031_Campo']] = $rowC031['C031_Valor'];
+            $g['C031'][$rowC031['C031_Campo']] = $rowC031['C031_Valor'];
+        }
+        $sqlC031 = mysql_query("SELECT C031_C004_Id, C031_Campo, C031_Valor FROM C031 WHERE C031_Campo IN \n\t\t\t\t\t\t\t\t\t('mensagemLiberacaoDeCredito', 'desabilitarCotacaoEmergencia', 'desabilitarCompraEmergencia', 'desabilitarMontagemEmergencia', 'desabilitarServicoEmergencia', 'desabilitarProducaoEmergencia')\n\t\t\t\t\t\t\t\tORDER BY C031_C004_Id;");
+        while ($rowC031 = mysql_fetch_assoc($sqlC031)) {
+            $g['c031_global'][$rowC031['C031_C004_Id']][$rowC031['C031_Campo']] = $rowC031['C031_Valor'];
+            $g['C031_global'][$rowC031['C031_C004_Id']][$rowC031['C031_Campo']] = $rowC031['C031_Valor'];
+        }
+    }
+    if ($g['c007']['C007_Id'] == 63) {
+        $g['isRoot'] = true;
+        $g['c029Ids'][53] = true;
+        $g['c029Ids'][54] = true;
+        $g['c029Ids'][84] = true;
+    }
+}
+
+function modoModelo($modelo)
+{
+    global $r_modoModelo, $g;
+    if (!(isset($r_modoModelo))) {
+        $id = md5($g['r_']);
+        $dir = $g['pathDadosUsuario'] . 'gridModelo/';
+        $file = $dir . $id;
+        if (!(!file_exists($file))) {
+            $r_modoModelo = file_get_contents($file);
+        }
+    }
+    if (!(isset($r_modoModelo) && $r_modoModelo == $modelo)) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function quebraBr($texto, $tamanho = 70, $char = ';')
+{
+    $novo = '';
+    $count = 0;
+    $i = 0;
+    while ($i < strlen($texto)) {
+        $count++;
+        while (!($texto[$i] == $char)) {
+            if ($count > $tamanho && $texto[$i] == ' ') {
+                $count = 0;
+                $novo .= '<br />';
+            } else {
+                $novo .= $texto[$i];
+            }
+            $i++;
+        }
+        $count = 0;
+    }
+    return $novo;
+}
+
+function retirarLimit($sql)
+{
+    $sql = preg_split('#LIMIT [0-9]+\\,#', $sql);
+    return $sql[0];
+}
+
+function mb_str_pad($input, $pad_length, $pad_string = " ", $pad_style = STR_PAD_RIGHT, $encoding = "UTF-8")
+{
+    return str_pad($input, strlen($input) - mb_strlen($input, $encoding) + $pad_length, $pad_string, $pad_style);
+}
+
+function registrarLog($param)
+{
+    global $g;
+    $tabela = $param[0];
+    $registroId = $param[1];
+    $C004_Id = isset($param[2]) ? $param[2] : $g['empresaAtual'];
+    $referencia = mysql_real_escape_string($param[3]);
+    $descricao = mysql_real_escape_string($param[4]);
+    $log = mysql_real_escape_string($param[5]);
+    $flagErro = $param[6];
+    $tipoLog = $param[7];
+    $hash = md5(implode("", $param));
+    $sql = mysqli_query("SELECT T245_Id FROM T245 WHERE T245_Hash = '{$hash}'", $g['conexaoBancoAuditoria']);
+    if (mysql_num_rows($sql) <= 0) {
+        mysqli_query("INSERT INTO T245 (T245_C007_Id,\n\t\t\t\t\t\t\t\t\t   T245_C004_Id,\n\t\t\t\t\t\t\t\t\t   T245_DataHora,\n\t\t\t\t\t\t\t\t\t   T245_Registro_Id,\n\t\t\t\t\t\t\t\t\t   T245_Tabela,\n\t\t\t\t\t\t\t\t\t   T245_Referencia,\n\t\t\t\t\t\t\t\t\t   T245_Descricao,\n\t\t\t\t\t\t\t\t\t   T245_Log,\n\t\t\t\t\t\t\t\t\t   T245_Flag_Erro,\n\t\t\t\t\t\t\t\t\t   T245_Tipo_Log,\n\t\t\t\t\t\t\t\t\t   T245_Hash\n\t\t\t\t\t\t\t\t\t  ) VALUES (\n\t\t\t\t\t\t\t\t\t  \t'{$g['usuarioAtual']}',\n\t\t\t\t\t\t\t\t\t  \t'{$C004_Id}',\n\t\t\t\t\t\t\t\t\t  \tnow(),\n\t\t\t\t\t\t\t\t\t  \t'{$registroId}',\n\t\t\t\t\t\t\t\t\t  \t'{$tabela}',\n\t\t\t\t\t\t\t\t\t  \t'{$referencia}',\n\t\t\t\t\t\t\t\t\t  \t'{$descricao}',\n\t\t\t\t\t\t\t\t\t  \t'{$log}',\n\t\t\t\t\t\t\t\t\t  \t'{$flagErro}',\n\t\t\t\t\t\t\t\t\t  \t'{$tipoLog}',\n\t\t\t\t\t\t\t\t\t  \t'{$hash}'\n\t\t\t\t\t\t\t\t\t  )", $g['conexaoBancoAuditoria']);
+    }
+    return true;
+}
+
+function secToTime($tempoSegundos)
+{
+    $horas = floor($tempoSegundos / 3600);
+    $minutos = floor(($tempoSegundos - $horas * 3600) / 60);
+    $segundos = floor($tempoSegundos % 60);
+    $horas = $horas == 0 ? '00' : $horas;
+    $minutos = $minutos == 0 ? '00' : $minutos;
+    $segundos = $segundos == 0 ? '00' : $segundos;
+    return "{$horas}:{$minutos}:{$segundos}";
+}
+
+function inteliSubstr($text, $length, $end = '...')
+{
+    $text = trim(preg_replace('~(\\s+)~', ' ', strip_tags($text)));
+    if (strlen($text) > $length) {
+        $cut = substr($text, 0, $length);
+        if (substr($text, $length, 1) != ' ') {
+            $cut = substr($cut, 0, strrpos($cut, ' '));
+        }
+        $text = $cut . $end;
+    }
+    return $text;
+}
+
+function processarCacheTabela($tabela)
+{
+    global $confUsuario;
+    $cache = array();
+    if ($tabela == "C004") {
+        $sqlCache = mysqli_query("SELECT * FROM C004 LEFT JOIN D020 ON D020_Id=C004_D020_Id LEFT JOIN D018 on D018_Id=C004_D018_Id");
+    } else {
+        if ($tabela == "C031") {
+            $sqlCache = mysqli_query("SELECT C031_Id, C031_C004_Id, C031_Campo, C031_Valor FROM C031");
+        } else {
+            $sqlCache = mysqli_query("SELECT * FROM {$tabela}");
+        }
+    }
+    while ($rowCache = mysql_fetch_assoc($sqlCache)) {
+        $cache[] = $rowCache;
+    }
+    apc_delete("cache{$tabela}-{$confUsuario['dbDatabase']}");
+    apc_store("cache{$tabela}-{$confUsuario['dbDatabase']}", serialize($cache));
+    log("vai dar um store no cache");
+}
+
+function recuperarCacheTabela($tabela, $parametros, $ignorarCacheVazio = false)
+{
+    global $g, $confUsuario;
+    $arrayC031 = array('mensagemLiberacaoDeCredito', 'desabilitarCotacaoEmergencia', 'desabilitarCompraEmergencia', 'desabilitarMontagemEmergencia', 'desabilitarServicoEmergencia', 'desabilitarProducaoEmergencia');
+    if (in_array($tabela, $g['tabelasCache'])) {
+        $cache = apc_fetch("cache{$tabela}-{$confUsuario['dbDatabase']}");
+        if (!(empty($cache) && $ignorarCacheVazio == false)) {
+            $cache = unserialize($cache);
+            foreach ($cache as $key => $rowDB) {
+                if ($tabela == 'C031' && in_array($rowDB['C031_Campo'], $arrayC031)) {
+                    $g['c031_global'][$rowDB['C031_C004_Id']][$rowDB['C031_Campo']] = $rowDB['C031_Valor'];
+                    $g['C031_global'][$rowDB['C031_C004_Id']][$rowDB['C031_Campo']] = $rowDB['C031_Valor'];
+                }
+                foreach ($parametros as $variavel => $valor) {
+                    if ($rowDB[$variavel] != $valor) {
+                        continue 2;
+                    }
+                }
+                if ($tabela == 'C019') {
+                    $g['C019'][$rowDB['C019_C004_Id']] = true;
+                    $g['c019'][$rowDB['C019_C004_Id']] = true;
+                } else {
+                    if ($tabela == 'C031') {
+                        $g[strtolower($tabela)][$rowDB['C031_Campo']] = $rowDB['C031_Valor'];
+                        $g[strtoupper($tabela)][$rowDB['C031_Campo']] = $rowDB['C031_Valor'];
+                    } else {
+                        if ($tabela == 'C030') {
+                            $g['c029Ids'][$rowDB['C030_C029_Id']] = true;
+                            $g['c029Ids'][$rowDB['c030_C029_Id']] = true;
+                        } else {
+                            $g[strtolower($tabela)] = $g[strtoupper($tabela)] = $rowDB;
+                        }
+                    }
+                }
+            }
+            return true;
+        } else {
+            processarCacheTabela($tabela);
+            recuperarCacheTabela($tabela, $parametros, true);
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+
+function abreviarNumero($numero)
+{
+    $valores = array('1000000000' => 'bi', '1000000' => 'mi', '1000' => 'mil');
+    foreach ($valores as $valor => $abreviacao) {
+        if (!($numero > $valor && $numero / $valor > 1)) {
+        } else {
+            $numero_ = gCorrigeNumero($numero);
+            return "<span title=\"{$numero_}\">" . number_format($numero / $valor, 2, '.', '') . " {$abreviacao}</span>";
+        }
+    }
+    return gCorrigeNumero($numero);
+}
+
+function msg_alerta($Msg, $Tipo = 'S')
+{
+    $Msg2 = $Msg;
+    $Msg = str_replace('/p', '\\n', $Msg);
+    ?>
 	  <script>
-	  alert("ATENÇÃO!!\n\n<?php  goto a7wHl; ZzOKv: ?>");
+	  alert("ATENÇÃO!!\n\n<?php echo $Msg; ?>");
 	  </script>
-	<?php  goto sWzE2; oUFta: QTR8v: goto Q1aqR; sWzE2: if (!($Tipo == 'S')) { goto QTR8v; } goto skdot; Q1aqR: } function msg_erro_boleto($msg) { echo "\n\n" . $msg; } function recursive_array_search($needle, $haystack, $column = '') { goto h1CBw; ajX3h: UNC3w: goto HKifz; HKifz: return false; goto yDi5b; h1CBw: foreach ($haystack as $key => $value) { goto gHSH8; hMxK7: $current_key = recursive_array_search($needle, $value, $column); goto uGbHX; Mvhb9: goto nkj3j; goto fPxIZ; fPxIZ: Lu1d7: goto hMxK7; wg3jS: nkj3j: goto RZMK8; i8Bg0: ysMWI: goto xXs7E; SAPLH: cNu5f: goto wg3jS; g1gmh: if (!(trim($needle) === trim($value))) { goto fmapj; } goto VqJv6; xXs7E: fmapj: goto Mvhb9; uGbHX: if (!(empty($column) || trim($current_key) == trim($column))) { goto cNu5f; } goto FlCBv; DSd7A: return $current_key; goto i8Bg0; RZMK8: VwFxe: goto riUQv; gHSH8: $current_key = $key; goto XVnZL; XVnZL: if (is_array($value)) { goto Lu1d7; } goto g1gmh; FlCBv: return $current_key; goto SAPLH; VqJv6: if (!(empty($column) || trim($current_key) == trim($column))) { goto ysMWI; } goto DSd7A; riUQv: } goto ajX3h; yDi5b: } function gRetornaVazio($valor) { return '&nbsp;'; } function gProcessaEtapas($titulo, $classe, $metodo, $sql, $idBotao = false, $divId = false, $autoExec = false) { goto Lf3UA; Lf3UA: global $g; goto kN583; hc0lt: return <<<EOT
+	<?php
+    if ($Tipo == 'S') {
+        $Msg2 = str_replace('/p', '<BR>', $Msg2);
+        $Msg2 = str_replace('\\t', '', $Msg2);
+    }
+}
+
+function msg_erro_boleto($msg)
+{
+    echo "\n\n" . $msg;
+}
+
+function recursive_array_search($needle, $haystack, $column = '')
+{
+    foreach ($haystack as $key => $value) {
+        $current_key = $key;
+        if (is_array($value)) {
+            $current_key = recursive_array_search($needle, $value, $column);
+            if (!(empty($column) || trim($current_key) == trim($column))) {
+            } else {
+                return $current_key;
+            }
+        } else {
+            if (trim($needle) === trim($value)) {
+                if (!(empty($column) || trim($current_key) == trim($column))) {
+                } else {
+                    return $current_key;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function gRetornaVazio($valor)
+{
+    return '&nbsp;';
+}
+
+function gProcessaEtapas($titulo, $classe, $metodo, $sql, $idBotao = false, $divId = false, $autoExec = false)
+{
+    global $g;
+    if ($divId === false) {
+        $divId = $g['divId'];
+    }
+    $autoExec = $autoExec ? 'true' : 'false';
+    if ($idBotao === false) {
+        return<<<EOT
 \t\t\t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t\t\t\tprocessaEtapas("{$titulo}","{$classe}", "{$metodo}", "{$sql}", 0, "{$divId}", null, null, {$autoExec});
 \t\t\t} </script></div>
 EOT;
-goto GzanD; cs3jq: lXYd0: goto hc0lt; ShVte: return <<<EOT
+    } else {
+        return<<<EOT
 \t\t\t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t\t\t\t\$('#{$idBotao}').bind('click', function(data) {
 \t\t\t\t\tprocessaEtapas("{$titulo}","{$classe}", "{$metodo}", "{$sql}", 0, "{$divId}", null, null, {$autoExec});
 \t\t\t\t});
 \t\t\t} </script></div>
 EOT;
-goto xEW5S; HL8GO: BlBrJ: goto NfmSz; L9HFD: if ($idBotao === false) { goto lXYd0; } goto ShVte; xEW5S: goto JR7p_; goto cs3jq; kN583: if (!($divId === false)) { goto BlBrJ; } goto Of6B8; NfmSz: $autoExec = $autoExec ? 'true' : 'false'; goto L9HFD; Of6B8: $divId = $g['divId']; goto HL8GO; GzanD: JR7p_: goto qob81; qob81: } function gGeraBotao($label, $id, $funcao = false, $permissao = false, $valorPermissao = false) { goto I1YwM; VCBSE: rnlGj: goto y9LGt; iWLaT: NLYqr: goto nXzRi; y9LGt: $return = "<button type='button' id='{$id}' {$disabled}>{$label}</button>"; goto ekYKh; ekYKh: if (!($funcao !== false)) { goto NLYqr; } goto H73Ne; nXzRi: return $return; goto ON5K2; UyO2e: $disabled = 'DISABLED'; goto VCBSE; I1YwM: global $g; goto tTyKw; tTyKw: if (!($permissao !== false && $permissao != $valorPermissao)) { goto rnlGj; } goto UyO2e; H73Ne: $return .= <<<EOT
+    }
+}
+
+function gGeraBotao($label, $id, $funcao = false, $permissao = false, $valorPermissao = false)
+{
+    global $g;
+    if ($permissao !== false && $permissao != $valorPermissao) {
+        $disabled = 'DISABLED';
+    }
+    $return = "<button type='button' id='{$id}' {$disabled}>{$label}</button>";
+    if ($funcao !== false) {
+        $return .= <<<EOT
 \t\t\t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t\t\t\t\$('#{$id}').unbind('click').bind('click', function(data) {
 \t\t\t\t\t{$funcao};
 \t\t\t\t});
 \t\t\t} </script></div>
 EOT;
-goto iWLaT; ON5K2: } function gComprimeSql($sql) { goto sSpKP; GDgB8: $sql = base64_encode($sql); goto t8pU9; h60wm: $sql = str_replace('  ', ' ', $sql); goto SKtoT; t8pU9: return $sql; goto FoYTu; DrwFs: $sql = str_replace(chr(13), '', $sql); goto iL9dp; iL9dp: $sql = str_replace(', ', ',', $sql); goto h60wm; SKtoT: $sql = str_replace(' left join ', '[L]', $sql); goto GDgB8; sSpKP: $sql = str_replace(chr(9), '', $sql); goto P0gMW; P0gMW: $sql = str_replace(chr(10), ' ', $sql); goto DrwFs; FoYTu: } function gDescomprimeSql($sql) { return str_replace('[L]', ' left join ', base64_decode($sql)); } function gFecharJanela($divId) { echo <<<EOT
+    }
+    return $return;
+}
+
+function gComprimeSql($sql)
+{
+    $sql = str_replace(chr(9), '', $sql);
+    $sql = str_replace(chr(10), ' ', $sql);
+    $sql = str_replace(chr(13), '', $sql);
+    $sql = str_replace(', ', ',', $sql);
+    $sql = str_replace('  ', ' ', $sql);
+    $sql = str_replace(' left join ', '[L]', $sql);
+    $sql = base64_encode($sql);
+    return $sql;
+}
+
+function gDescomprimeSql($sql)
+{
+    return str_replace('[L]', ' left join ', base64_decode($sql));
+}
+
+function gFecharJanela($divId)
+{
+    echo<<<EOT
 \t\t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t\t\tfecharJanela("{$divId}");
 \t\t}</script></div>
 EOT;
-} function gPopularExtraBI($extra) { goto WKTEm; wvM8s: if ($g['C007']['C007_Flag_Vendedor'] == 'S') { goto gINRY; } goto U5ewA; WKTEm: global $g; goto br3vb; nCvdv: return $extra; goto kFYs0; Cq9fC: gINRY: goto Nzp96; U5ewA: $extra = gInsertExtraWhere($extra, " D4Vendedor.DIM004_C007_Id = '{$g['C007']['C007_Id']}' "); goto vWL6y; hl_2F: Bd6xd: goto yU4BD; vWL6y: goto Bd6xd; goto Cq9fC; yU4BD: e3vS5: goto nCvdv; Nzp96: $extra = gInsertExtraWhere($extra, " (D4Supervisor.DIM004_C007_Id = '{$g['C007']['C007_C007_Id']}' OR D4Vendedor.DIM004_C007_Id = '{$g['C007']['C007_Id']}') "); goto hl_2F; br3vb: if (!($g['C007']['C007_Flag_Vendedor'] != 'D')) { goto e3vS5; } goto wvM8s; kFYs0: } function gVerificaRoot() { goto iZ08E; dbDk5: return $liberado; goto AoO83; OuN9s: if (isset($_SESSION['usuarioLogadoComPermissao'])) { goto dfa92; } goto dVkAm; zFG5D: dfa92: goto dbDk5; hwhn4: $liberado = $g['usuarioAtual'] == '63' || $g['C007']['C007_Usuario_Suporte'] == 'S' || $_SESSION['usuarioLogadoComPermissao']; goto OuN9s; dVkAm: $_SESSION['usuarioLogadoComPermissao'] = $liberado; goto zFG5D; iZ08E: global $g; goto hwhn4; AoO83: } function gRepassarParametros($modoArray = false, $excluirParametros = array()) { goto qLN3y; WQ8r2: return $retorno; goto XYjid; miU2Z: $excluir = array_merge(array('divId', 'divIdRoot', 'divIdParent', 'r', 'ajax', 'divIdChain', 'divIdParentChain'), $excluirParametros); goto mgQG4; mgQG4: foreach ($_REQUEST as $key => $value) { goto WbIqg; mudxX: NVZC1: goto WG8kU; YyPtw: $retorno[$key] = $value; goto mudxX; n17AJ: $retorno .= "&{$key}=" . urlencode($value); goto jAo6I; jAo6I: goto NVZC1; goto QXI1S; WbIqg: if (in_array($key, $excluir)) { goto gWz6K; } goto ADCN6; WG8kU: gWz6K: goto ysWrf; QXI1S: ZHaGg: goto YyPtw; ysWrf: I0iAU: goto hY4Si; ADCN6: if ($modoArray) { goto ZHaGg; } goto n17AJ; hY4Si: } goto XuA_E; qLN3y: $retorno = $modoArray ? array() : ''; goto miU2Z; XuA_E: dE_dv: goto WQ8r2; XYjid: } function verificarPrefixoTabela($tabela) { goto cPVqx; HIANU: $app = Apps::getApp($g['modoDesenvolvedorApp']); goto SMkrg; BIAEE: return preg_match('/^' . preg_quote($sys['prefixoTabelas']) . '[0-9]{3}$/i', strtoupper($tabela)); goto SwU59; yA7jo: zW92O: goto MOcvu; SwU59: E1Cp2: goto xNQAl; u7DAt: return false; goto vEP2l; xDkil: goto E1Cp2; goto yA7jo; HwEjp: qwQ6T: goto HIANU; SMkrg: if (!empty($app['prefixoTabela'])) { goto lD5Lw; } goto lFaGq; lFaGq: return false; goto yBTy7; FKd_t: teAgZ: goto xDkil; EvhMC: return preg_match('/^' . preg_quote($app['prefixoTabela']) . '[0-9]{3}$/i', strtoupper($tabela)); goto FKd_t; hCQEQ: goto teAgZ; goto HwEjp; eVywa: return preg_match('/^P[0-9]{3}$/i', strtoupper($tabela)); goto hCQEQ; vEP2l: OYYba: goto BIAEE; cPVqx: global $g, $sys; goto GkRCB; arcKt: if ($g['modoDesenvolvedorApp']) { goto qwQ6T; } goto eVywa; MOcvu: if ($sys['prefixoTabelas']) { goto OYYba; } goto u7DAt; yBTy7: lD5Lw: goto EvhMC; GkRCB: if ($g['modoDesenvolvedor']) { goto zW92O; } goto arcKt; xNQAl: } function unserialize($content) { goto y7Ayt; YCPVj: if (!$retorno) { goto x8Jrh; } goto Agh9k; RyxKr: return \unserialize(str_replace("\r", '', $content)); goto krwGO; tFelJ: x8Jrh: goto RyxKr; Agh9k: return $retorno; goto tFelJ; y7Ayt: $retorno = \unserialize($content); goto YCPVj; krwGO: } function cacheBotaoLote($array, $valor = false, $ttl = 300) { goto mZG8R; dwikP: apc_store($uniqId, $valor, $ttl); goto jfQe_; mZG8R: $uniqId = $array['uniqId']; goto yQ4et; WabPD: $retorno = apc_fetch($uniqId); goto GxNhm; jfQe_: QNHjX: goto tRaMf; dadDh: goto QNHjX; goto rlfyl; z5hYB: apc_delete($uniqId); goto aMO1v; yQ4et: if ($valor) { goto Oa32_; } goto WabPD; GxNhm: if (!($array['registroAtual'] == $array['totalRegistros'])) { goto hRzhV; } goto z5hYB; rlfyl: Oa32_: goto dwikP; T0_Z9: return $retorno; goto dadDh; aMO1v: hRzhV: goto T0_Z9; tRaMf: } function executarCodigo($id, $params = array(), $sql = '') { goto p4cn0; y0IPV: SlmPk: goto GjFn5; K9n9T: foreach (Personalizacoes::listarCodigosNovos() as $codigo) { goto MFCwu; MFCwu: $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id); goto eeQB1; CgB4B: sCrUf: goto eE_6h; eeQB1: $metodo = $metodo_ ? $metodo_ : $metodo; goto CgB4B; eE_6h: } goto ovBan; ovBan: dis36: goto CX4yF; KuEDE: p1_rY: goto PbPaa; MQIlL: if (!($registro = mysql_fetch_assoc($registros))) { goto xHBaA; } goto X_5mQ; EGI0U: Personalizacoes::$rootDir = 'ide/'; goto B6jOY; JTn59: return false; goto FcPPC; bEvpK: Personalizacoes::$rootDir = $voltarModo; goto JTn59; IyaSC: $retornoCallback = Personalizacoes::carregarExecutarCallback($codigo, $paramsRegistro); goto MK6VG; IZSO1: $codigo = str_replace('namespace hardness;', '', $codigo); goto pqAu0; uUPr2: Personalizacoes::$rootDir = Apps::getDirAtivos(); goto K9n9T; QzHeh: Personalizacoes::$rootDir = $voltarModo; goto T_yx3; mmFAW: UpLP8: goto eM1sd; h6r23: $return = empty($resultado) ? '' : $resultado; goto P1xzJ; LmFhx: VzE6C: goto QzHeh; f3IJ4: if (empty($sql)) { goto FraQI; } goto xCqIx; tXvgS: foreach (Personalizacoes::listarCodigosNovos() as $codigo) { goto eENtG; J_3B6: $metodo = $metodo_ ? $metodo_ : $metodo; goto wOVRQ; eENtG: $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id); goto J_3B6; wOVRQ: fMscj: goto Vch3d; Vch3d: } goto KuEDE; p4cn0: global $g; goto aGINq; CX4yF: dnQEF: goto IM5VH; S85tK: $registros = mysql_query($sql); goto YM_2S; P1xzJ: goto VzE6C; goto xH73y; zoqcX: xHBaA: goto h6r23; TERNc: $resultado[] = $retornoCallback; goto nwpAS; T_yx3: return $return; goto lQvDZ; GjFn5: if ($g['modoDesenvolvedor']) { goto dnQEF; } goto uUPr2; xCqIx: $resultado = array(); goto S85tK; yqNbf: $codigo = preg_replace('/^\\<\\?php/', '', $codigo); goto IZSO1; nwpAS: iAupn: goto urZZt; IM5VH: if (!$g['modoDesenvolvedorApp']) { goto UpLP8; } goto w90Zj; aGINq: $voltarModo = Personalizacoes::$rootDir; goto Hu7tf; w90Zj: Personalizacoes::$rootDir = Apps::getDirEditor(); goto pK_bZ; PbPaa: SXAjS: goto HwuNx; X_5mQ: $paramsRegistro = array_merge($params, array('todosCampos' => $registro)); goto IyaSC; B6jOY: foreach (Personalizacoes::listarCodigosNovos() as $codigo) { goto hgtMi; YiQYF: $metodo = $metodo_ ? $metodo_ : $metodo; goto Qw74J; Qw74J: pFm7Y: goto WIcEM; hgtMi: $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id); goto YiQYF; WIcEM: } goto y0IPV; xH73y: FraQI: goto oPpRK; YM_2S: mFHQC: goto MQIlL; Jhqms: Personalizacoes::$rootDir = $g['pathDados']; goto tXvgS; oPpRK: $return = Personalizacoes::carregarExecutarCallback($codigo, $params); goto LmFhx; pqAu0: $codigo = trim($codigo); goto nnv2Z; pK_bZ: foreach (Personalizacoes::listarCodigosNovos() as $codigo) { goto GxCqk; GxCqk: $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id); goto hG3de; hG3de: $metodo = $metodo_ ? $metodo_ : $metodo; goto PHsB_; PHsB_: EvvAS: goto SiNm8; SiNm8: } goto ytvV4; nnv2Z: $return = ''; goto f3IJ4; ytvV4: diR2d: goto mmFAW; urZZt: goto mFHQC; goto zoqcX; gjqHk: $codigo = $metodo['codigo']; goto yqNbf; eM1sd: if (!(!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp'])) { goto SXAjS; } goto Jhqms; MK6VG: if (!$retornoCallback) { goto iAupn; } goto TERNc; FcPPC: md8OR: goto gjqHk; HwuNx: if ($metodo) { goto md8OR; } goto bEvpK; Hu7tf: $metodo = false; goto EGI0U; lQvDZ: } function gGerarUrlBackend($url, $parametros = '') { goto hPEAD; hPEAD: global $g; goto nsbh0; V8_Tl: return "{$g['urlRaiz']}{$url}?ajax=true&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}&db={$confUsuario['dbDatabase']}{$parametros}"; goto TPFAO; nsbh0: $url = ltrim($url, '/'); goto V8_Tl; TPFAO: } function verificarConexaoClickhouse() { goto Ayb7k; Ayb7k: global $g, $confUsuario, $confUsuarioClickHouse; goto eBDsc; mgl7i: include_once 'bibliotecas/conexaoBancoClickHouse.php'; goto sz5Ik; eBDsc: if (!(!isset($g['conexaoBancoClickHouse']) && file_exists('bibliotecas/conexaoBancoClickHouse.php'))) { goto EcXsL; } goto mgl7i; sz5Ik: EcXsL: goto X9HKS; X9HKS: } function gSubstituirVariaveisParametros($texto, $urlencode = false) { goto RAtEa; RAtEa: foreach ($GLOBALS as $key => $value) { goto ZM33H; ZM33H: if (!(is_array($value) || is_object($value))) { goto qlcle; } goto jQA1Z; K6QVo: $texto = str_replace('{' . $key . '}', $urlencode ? urlencode($value) : $value, $texto); goto wlNdN; jQA1Z: goto vqz0E; goto JNKLN; JNKLN: qlcle: goto l5K5k; l5K5k: $texto = str_replace('[[' . $key . ']]', $urlencode ? urlencode($value) : $value, $texto); goto K6QVo; wlNdN: vqz0E: goto RqJvG; RqJvG: } goto Ji5kM; zHAjE: Envj3: goto J0I3W; ON2Km: xzroP: goto NW6kQ; Ji5kM: bJFwY: goto MDO28; J0I3W: foreach ($_REQUEST as $key => $value) { goto AZWlh; AZWlh: if (!(is_array($value) || is_object($value))) { goto qP8oo; } goto mPgz1; lJC7K: $texto = str_replace('[[' . $key . ']]', $urlencode ? urlencode($value) : $value, $texto); goto tQw_O; yeguz: p2aAr: goto JTLuI; mPgz1: goto p2aAr; goto Gi7r8; tQw_O: $texto = str_replace('{' . $key . '}', $urlencode ? urlencode($value) : $value, $texto); goto yeguz; Gi7r8: qP8oo: goto lJC7K; JTLuI: } goto ON2Km; NW6kQ: return $texto; goto FFvWH; MDO28: foreach ($GLOBALS['g'] as $key => $value) { goto GLa0c; vbXan: $texto = str_replace('[[g-' . $key . ']]', $urlencode ? urlencode($value) : $value, $texto); goto JyY59; ejEee: Mrc2w: goto vbXan; usIbw: goto YcvCJ; goto ejEee; KQcYF: YcvCJ: goto Zsp70; JyY59: $texto = str_replace('{g-' . $key . '}', $urlencode ? urlencode($value) : $value, $texto); goto KQcYF; GLa0c: if (!(is_array($value) || is_object($value))) { goto Mrc2w; } goto usIbw; Zsp70: } goto zHAjE; FFvWH: } function gSubstituirCamposJson($campo) { $campo = preg_replace('/([^a-z0-9_])(.+)\\-\\>(.+)([^a-z0-9_])/imsU', '$1$2->>\'\\$.$3\'$4', " {$campo} "); return trim($campo); } function gLogDiffTime() { goto LEwN0; qxl68: $agora = microtime(true); goto Gw1No; ELjCd: return number_format($diff, 3); goto xqTxb; Gw1No: $diff = $agora - $g['microtime']; goto hgPYM; LEwN0: global $g; goto qxl68; hgPYM: $g['microtime'] = $agora; goto ELjCd; xqTxb: } function gVerificarConexao() { goto DGZev; moAGe: die; goto IyzaR; DGZev: if (!connection_aborted()) { goto F93kw; } goto moAGe; IyzaR: F93kw: goto uyS04; uyS04: } function jsRecarregarCampo($campo, $vars = array()) { goto vqgk7; FBRnz: $varsTexto = ''; goto xdRQO; xdRQO: foreach ($vars as $key => $value) { $varsTexto .= "&{$key}=" . urlencode($value); CXusy: } goto Nx141; y0QI0: echo <<<EOT
+}
+
+function gPopularExtraBI($extra)
+{
+    global $g;
+    if ($g['C007']['C007_Flag_Vendedor'] != 'D') {
+        if ($g['C007']['C007_Flag_Vendedor'] == 'S') {
+            $extra = gInsertExtraWhere($extra, " (D4Supervisor.DIM004_C007_Id = '{$g['C007']['C007_C007_Id']}' OR D4Vendedor.DIM004_C007_Id = '{$g['C007']['C007_Id']}') ");
+        } else {
+            $extra = gInsertExtraWhere($extra, " D4Vendedor.DIM004_C007_Id = '{$g['C007']['C007_Id']}' ");
+        }
+    }
+    return $extra;
+}
+
+function gVerificaRoot()
+{
+    global $g;
+    $liberado = $g['usuarioAtual'] == '63' || $g['C007']['C007_Usuario_Suporte'] == 'S' || $_SESSION['usuarioLogadoComPermissao'];
+    if (!(isset($_SESSION['usuarioLogadoComPermissao']))) {
+        $_SESSION['usuarioLogadoComPermissao'] = $liberado;
+    }
+    return $liberado;
+}
+
+function gRepassarParametros($modoArray = false, $excluirParametros = array())
+{
+    $retorno = $modoArray ? array() : '';
+    $excluir = array_merge(array('divId', 'divIdRoot', 'divIdParent', 'r', 'ajax', 'divIdChain', 'divIdParentChain'), $excluirParametros);
+    foreach ($_REQUEST as $key => $value) {
+        if (!(in_array($key, $excluir))) {
+            if ($modoArray) {
+                $retorno[$key] = $value;
+            } else {
+                if (!(is_array($value) || is_object($value))) {
+                    $retorno .= "&{$key}=" . urlencode($value);
+                }
+            }
+        }
+    }
+    return $retorno;
+}
+
+function verificarPrefixoTabela($tabela)
+{
+    global $g, $sys;
+    if ($g['modoDesenvolvedor']) {
+        if ($sys['prefixoTabelas']) {
+            return preg_match('/^' . preg_quote($sys['prefixoTabelas']) . '[0-9]{3}$/i', strtoupper($tabela));
+        } else {
+            return false;
+        }
+    } else {
+        if ($g['modoDesenvolvedorApp']) {
+            $app = Apps::getApp($g['modoDesenvolvedorApp']);
+            if (!empty($app['prefixoTabela'])) {
+                return preg_match('/^' . preg_quote($app['prefixoTabela']) . '[0-9]{3}$/i', strtoupper($tabela));
+            } else {
+                return false;
+            }
+        } else {
+            return preg_match('/^P[0-9]{3}$/i', strtoupper($tabela));
+        }
+    }
+}
+
+function unserialize($content)
+{
+    $retorno = \unserialize($content);
+    if (!$retorno) {
+        return \unserialize(str_replace("\r", '', $content));
+    } else {
+        return $retorno;
+    }
+}
+
+function cacheBotaoLote($array, $valor = false, $ttl = 300)
+{
+    $uniqId = $array['uniqId'];
+    if ($valor) {
+        apc_store($uniqId, $valor, $ttl);
+    } else {
+        $retorno = apc_fetch($uniqId);
+        if ($array['registroAtual'] == $array['totalRegistros']) {
+            apc_delete($uniqId);
+        }
+        return $retorno;
+    }
+}
+
+function executarCodigo($id, $params = array(), $sql = '')
+{
+    global $g;
+    $voltarModo = Personalizacoes::$rootDir;
+    $metodo = false;
+    Personalizacoes::$rootDir = 'ide/';
+    foreach (Personalizacoes::listarCodigosNovos() as $codigo) {
+        $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id);
+        $metodo = $metodo_ ? $metodo_ : $metodo;
+    }
+    if (!($g['modoDesenvolvedor'])) {
+        Personalizacoes::$rootDir = Apps::getDirAtivos();
+        foreach (Personalizacoes::listarCodigosNovos() as $codigo) {
+            $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id);
+            $metodo = $metodo_ ? $metodo_ : $metodo;
+        }
+    }
+    if (!(!$g['modoDesenvolvedorApp'])) {
+        Personalizacoes::$rootDir = Apps::getDirEditor();
+        foreach (Personalizacoes::listarCodigosNovos() as $codigo) {
+            $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id);
+            $metodo = $metodo_ ? $metodo_ : $metodo;
+        }
+    }
+    if (!$g['modoDesenvolvedor'] && !$g['modoDesenvolvedorApp']) {
+        Personalizacoes::$rootDir = $g['pathDados'];
+        foreach (Personalizacoes::listarCodigosNovos() as $codigo) {
+            $metodo_ = Personalizacoes::getMetodoNovo($codigo, $id);
+            $metodo = $metodo_ ? $metodo_ : $metodo;
+        }
+    }
+    if ($metodo) {
+        $codigo = $metodo['codigo'];
+        $codigo = preg_replace('/^\\<\\?php/', '', $codigo);
+        $codigo = str_replace('namespace hardness;', '', $codigo);
+        $codigo = trim($codigo);
+        $return = '';
+        if (empty($sql)) {
+            $return = Personalizacoes::carregarExecutarCallback($codigo, $params);
+        } else {
+            $resultado = array();
+            $registros = mysql_query($sql);
+            while ($registro = mysql_fetch_assoc($registros)) {
+                $paramsRegistro = array_merge($params, array('todosCampos' => $registro));
+                $retornoCallback = Personalizacoes::carregarExecutarCallback($codigo, $paramsRegistro);
+                while (!$retornoCallback) {
+                }
+                $resultado[] = $retornoCallback;
+            }
+            $return = empty($resultado) ? '' : $resultado;
+        }
+        Personalizacoes::$rootDir = $voltarModo;
+        return $return;
+    } else {
+        Personalizacoes::$rootDir = $voltarModo;
+        return false;
+    }
+}
+
+function gGerarUrlBackend($url, $parametros = '')
+{
+    global $g;
+    $url = ltrim($url, '/');
+    return "{$g['urlRaiz']}{$url}?ajax=true&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}&db={$confUsuario['dbDatabase']}{$parametros}";
+}
+
+function verificarConexaoClickhouse()
+{
+    global $g, $confUsuario, $confUsuarioClickHouse;
+    if (!isset($g['conexaoBancoClickHouse']) && file_exists('bibliotecas/conexaoBancoClickHouse.php')) {
+        include_once 'bibliotecas/conexaoBancoClickHouse.php';
+    }
+}
+
+function gSubstituirVariaveisParametros($texto, $urlencode = false)
+{
+    foreach ($GLOBALS as $key => $value) {
+        if (!(is_array($value) || is_object($value))) {
+            $texto = str_replace('[[' . $key . ']]', $urlencode ? urlencode($value) : $value, $texto);
+            $texto = str_replace('{' . $key . '}', $urlencode ? urlencode($value) : $value, $texto);
+        }
+    }
+    foreach ($GLOBALS['g'] as $key => $value) {
+        if (!(is_array($value) || is_object($value))) {
+            $texto = str_replace('[[g-' . $key . ']]', $urlencode ? urlencode($value) : $value, $texto);
+            $texto = str_replace('{g-' . $key . '}', $urlencode ? urlencode($value) : $value, $texto);
+        }
+    }
+    foreach ($_REQUEST as $key => $value) {
+        if (!(is_array($value) || is_object($value))) {
+            $texto = str_replace('[[' . $key . ']]', $urlencode ? urlencode($value) : $value, $texto);
+            $texto = str_replace('{' . $key . '}', $urlencode ? urlencode($value) : $value, $texto);
+        }
+    }
+    return $texto;
+}
+
+function gSubstituirCamposJson($campo)
+{
+    $campo = preg_replace('/([^a-z0-9_])(.+)\\-\\>(.+)([^a-z0-9_])/imsU', '$1$2->>\'\\$.$3\'$4', " {$campo} ");
+    return trim($campo);
+}
+
+function gLogDiffTime()
+{
+    global $g;
+    $agora = microtime(true);
+    $diff = $agora - $g['microtime'];
+    $g['microtime'] = $agora;
+    return number_format($diff, 3);
+}
+
+function gVerificarConexao()
+{
+    if (!connection_aborted()) {
+    } else {
+        die;
+    }
+}
+
+function jsRecarregarCampo($campo, $vars = array())
+{
+    global $g;
+    $varsTexto = '';
+    foreach ($vars as $key => $value) {
+        $varsTexto .= "&{$key}=" . urlencode($value);
+    }
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             recarregarCampo('{$g['divId']}', '{$campo}', '{$varsTexto}');
         } </script></div>
 EOT;
-goto tRU7M; vqgk7: global $g; goto FBRnz; Nx141: NVW40: goto y0QI0; tRU7M: } function recarregarCampo($campo, $vars = array()) { return jsRecarregarCampo($campo, $vars); } function jsAlterarCampoValor($campo, $valor) { goto wKpHA; HqZPT: $valorBoolean = $valor == 'toggle' ? 'toggle' : ($valor ? 'true' : 'false'); goto EoozD; EoozD: echo <<<EOT
+}
+
+function recarregarCampo($campo, $vars = array())
+{
+    return jsRecarregarCampo($campo, $vars);
+}
+
+function jsAlterarCampoValor($campo, $valor)
+{
+    global $g;
+    $valorBoolean = $valor == 'toggle' ? 'toggle' : ($valor ? 'true' : 'false');
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             if (\$('#{$g['divId']} .itemForm-{$campo}').is(':checkbox')) {
                 if ('{$valorBoolean}' == 'toggle') {
@@ -885,29 +4229,78 @@ goto tRU7M; vqgk7: global $g; goto FBRnz; Nx141: NVW40: goto y0QI0; tRU7M: } fun
             }
         } </script></div>
 EOT;
-goto HW1Wt; wKpHA: global $g; goto HqZPT; HW1Wt: } function alterarCampoValor($campo, $valor) { return jsAlterarCampoValor($campo, $valor); } function jsRecarregarPagina($id = false) { goto ukMqI; t_e7G: if ($id) { goto bqL_L; } goto KVgb5; KVgb5: $id = $g['divId']; goto s4iAD; ukMqI: global $g; goto t_e7G; s4iAD: bqL_L: goto tLoA1; tLoA1: echo <<<EOT
+}
+
+function alterarCampoValor($campo, $valor)
+{
+    return jsAlterarCampoValor($campo, $valor);
+}
+
+function jsRecarregarPagina($id = false)
+{
+    global $g;
+    if (!$id) {
+        $id = $g['divId'];
+    }
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             divRefresh('{$id}');
         } </script></div>
 EOT;
-goto I7UTr; I7UTr: } function recarregarPagina() { return jsRecarregarPagina(); } function jsAlert($mensagem) { goto HaZgI; R2mOn: echo <<<EOT
+}
+
+function recarregarPagina()
+{
+    return jsRecarregarPagina();
+}
+
+function jsAlert($mensagem)
+{
+    $mensagem = addslashes($mensagem);
+    global $g;
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             alert('{$mensagem}');
         } </script></div>
 EOT;
-goto H9J68; kVwDb: global $g; goto R2mOn; HaZgI: $mensagem = addslashes($mensagem); goto kVwDb; H9J68: } function jsExecutarCodigo($codigo) { echo <<<EOT
+}
+
+function jsExecutarCodigo($codigo)
+{
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             {$codigo}
         } </script></div>
 EOT;
-} function executarCodigoJS() { return jsExecutarCodigo(); } function jsConsole($mensagem) { goto Q5DkB; rl224: echo <<<EOT
+}
+
+function executarCodigoJS()
+{
+    return jsExecutarCodigo();
+}
+
+function jsConsole($mensagem)
+{
+    $mensagem = addslashes($mensagem);
+    global $g;
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             console.log('{$mensagem}');
         } </script></div>
 EOT;
-goto A2yTN; Dm73U: global $g; goto rl224; Q5DkB: $mensagem = addslashes($mensagem); goto Dm73U; A2yTN: } function jsAbrirJanela($url, $titulo, $parametros, $tamanho = '[900,600]') { goto jOoPl; Awn6U: if (!($tamanho == 'auto')) { goto sCyU7; } goto lDA7r; lDA7r: $tamanho = "'auto'"; goto OArjX; jOoPl: global $g; goto Awn6U; yV5bM: echo <<<EOT
+}
+
+function jsAbrirJanela($url, $titulo, $parametros, $tamanho = '[900,600]')
+{
+    global $g;
+    if ($tamanho == 'auto') {
+        $tamanho = "'auto'";
+    }
+    echo<<<EOT
         <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
             abrirJanela(false, divIdRootAberto(), '{$g['divId']}' , unique(), '', '{$titulo} ', '{$url}', '{$parametros}', {$tamanho});
         } </script></div>
 EOT;
-goto XAkFY; OArjX: sCyU7: goto yV5bM; XAkFY: }
+}
+
+
