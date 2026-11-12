@@ -13,8 +13,8 @@ case "$(uname -s)" in
     ;;
 esac
 
-export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-fixar-t01}"
-base="${BASE_URL:-http://127.0.0.1:8081}"
+unset COMPOSE_PROJECT_NAME COMPOSE_FILE
+base="${BASE_URL:-http://127.0.0.1:8080}"
 falhou=0
 grade="src/hardness3/prog/cad/cad002/grid_func-js.php"
 backup=""
@@ -98,15 +98,11 @@ fi
 
 if [ "$falhou" -eq 0 ]; then
   echo "Subindo a base de novo"
-  if [ -f .env ]; then
-    reclamar "há .env; subir de novo leria a produção"
-  elif ./subir >"$saida" 2>&1; then
-    :
-  elif grep -q "Falta o .env" "$saida"; then
-    echo "A semeadura parou sem credencial de produção."
-  else
+  if ! ./subir >"$saida" 2>&1; then
     reclamar "subir de novo falhou"
     tail -n 20 "$saida" >&2
+  elif grep -q "Falta o .env" "$saida"; then
+    reclamar "subir de novo tratou a falta de credencial como sucesso"
   fi
   if ! curl -sS --max-time 20 -o "$corpo" "$url_grade"; then
     reclamar "a grade não respondeu depois de subir de novo"

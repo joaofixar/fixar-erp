@@ -15,21 +15,38 @@ case "$(uname -s)" in
     ;;
 esac
 
-export COMPOSE_PROJECT_NAME=fixar-t02
+projeto=fixar-t02
+porta=8082
+unset COMPOSE_FILE
+export COMPOSE_PROJECT_NAME="$projeto"
 unset PRODUCAO_HOST PRODUCAO_PORT PRODUCAO_BANCO PRODUCAO_USUARIO PRODUCAO_SENHA
 
-base="${BASE_URL:-http://127.0.0.1:8082}"
+base="http://127.0.0.1:${porta}"
 usuario="${USUARIO_LOCAL:-fixar}"
 senha="${SENHA_LOCAL:-fixar-local}"
 falhou=0
+override="${raiz}/docker-compose.nascimento.yml"
+
+# O compose commitado publica 8080. O percurso descartável usa outra porta
+# num arquivo que não entra no git, para não esvaziar fixar-erp_db-dados.
+cat > "$override" <<EOF
+services:
+  web:
+    ports: !override
+      - "${porta}:80"
+EOF
+
+compose() {
+  docker compose -p "$projeto" -f docker-compose.yml -f "$override" "$@"
+}
 
 reclamar() {
   echo "FALHOU: $1" >&2
   falhou=1
 }
 
-if [ "$COMPOSE_PROJECT_NAME" != "fixar-t02" ]; then
-  echo "FALHOU: o percurso só pode usar o projeto fixar-t02" >&2
+if [ "$COMPOSE_PROJECT_NAME" != "$projeto" ]; then
+  echo "FALHOU: o percurso só pode usar o projeto ${projeto}" >&2
   exit 1
 fi
 
@@ -38,45 +55,54 @@ if [ -n "${PRODUCAO_HOST:-}${PRODUCAO_BANCO:-}${PRODUCAO_USUARIO:-}${PRODUCAO_SE
   exit 1
 fi
 
-config="$(docker compose -p fixar-t02 config)"
+config="$(compose config)"
 if printf '%s\n' "$config" | grep -q 'fixar-erp_db-dados'; then
   echo "FALHOU: a configuração usa o volume da base que já está nesta máquina" >&2
   exit 1
 fi
-if ! printf '%s\n' "$config" | grep -q 'fixar-t02-db-dados'; then
+if ! printf '%s\n' "$config" | grep -q "${projeto}_db-dados"; then
   echo "FALHOU: o volume descartável não está isolado" >&2
   exit 1
 fi
 if printf '%s\n' "$config" | grep -Eq 'published: "?8080"?|"8080:80"|- "?8080:80"?'; then
-  echo "FALHOU: a porta 8080 continua publicada" >&2
+  echo "FALHOU: o percurso descartável publicaria a porta do stack commitado" >&2
   exit 1
 fi
-if ! printf '%s\n' "$config" | grep -Eq 'published: "?8082"?|"8082:80"|- "?8082:80"?'; then
-  echo "FALHOU: a porta publicada não é 8082" >&2
+if ! printf '%s\n' "$config" | grep -Eq "published: \"?${porta}\"?|\"${porta}:80\"|- \"?${porta}:80\"?"; then
+  echo "FALHOU: a porta publicada não é ${porta}" >&2
   exit 1
 fi
 
-if ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
-  echo "FALHOU: o volume local fixar-erp_db-dados não está presente" >&2
-  exit 1
+volume_local=0
+if docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
+  volume_local=1
 fi
 
 echo "Esvaziando o volume descartável"
-docker compose -p fixar-t02 down -v --remove-orphans >/dev/null
+compose down -v --remove-orphans >/dev/null
 
-if ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
+if [ "$volume_local" -eq 1 ] && ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
   echo "FALHOU: o volume local foi removido" >&2
   exit 1
 fi
-if docker volume inspect fixar-t02-db-dados >/dev/null 2>&1; then
+if docker volume inspect "${projeto}_db-dados" >/dev/null 2>&1; then
   echo "FALHOU: o volume descartável continuou depois de esvaziar" >&2
   exit 1
 fi
 
 echo "Subindo sem credencial de produção"
-./subir
+if python -c "import sys" >/dev/null 2>&1; then
+  py=python
+else
+  py=python3
+fi
+"$py" bin/preparar-base.py
+if ! docker image inspect fixar-erp-web >/dev/null 2>&1; then
+  docker build -t fixar-erp-web ./docker/php
+fi
+compose up -d --no-build --wait
 
-if ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
+if [ "$volume_local" -eq 1 ] && ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
   echo "FALHOU: o volume local sumiu durante a subida" >&2
   exit 1
 fi
@@ -86,7 +112,7 @@ corpo="$(mktemp)"
 biscuits="$(mktemp)"
 saidas="$(mktemp)"
 cabecalhos="$(mktemp)"
-trap 'rm -f "$menu" "$corpo" "$biscuits" "$saidas" "$cabecalhos"' EXIT
+trap 'rm -f "$menu" "$corpo" "$biscuits" "$saidas" "$cabecalhos" "$override"' EXIT
 
 esperar_login() {
   local tentativa
@@ -100,7 +126,7 @@ esperar_login() {
 }
 
 limpar_saidas() {
-  docker compose -p fixar-t02 exec -T web sh -c ': > /tmp/fixar-saidas.log'
+  compose exec -T web sh -c ': > /tmp/fixar-saidas.log'
 }
 
 saida_limpa() {
@@ -345,13 +371,13 @@ echo "Conferindo conexões ao sair"
 saida_limpa "ao sair"
 
 echo "Subindo de novo com o volume já preenchido"
-if ! docker compose -p fixar-t02 up -d --no-build --wait >/dev/null; then
+if ! compose up -d --no-build --wait >/dev/null; then
   reclamar "a segunda subida não ficou pronta"
 fi
-if ! docker volume inspect fixar-t02-db-dados >/dev/null 2>&1; then
+if ! docker volume inspect "${projeto}_db-dados" >/dev/null 2>&1; then
   reclamar "a segunda subida não manteve o volume"
 fi
-if ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
+if [ "$volume_local" -eq 1 ] && ! docker volume inspect fixar-erp_db-dados >/dev/null 2>&1; then
   echo "FALHOU: o volume local sumiu na segunda subida" >&2
   exit 1
 fi
