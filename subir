@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sobe a base local: grava a conexão e o cache, abre o contêiner e semeia o banco.
+# Sobe a base local: grava a conexão e o cache, e abre o contêiner.
 set -euo pipefail
 
 cd "$(dirname "$0")"
