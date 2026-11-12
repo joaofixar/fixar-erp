@@ -1,0 +1,153 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Ação de Click de Linha do GRID
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+	var dbclickPrevent = false;
+	$('#{$g['divId']} .grid tr').unbind('click').unbind('click').bind('click', function(data) {
+			// Previne duplo click (abrir duas janelas)
+			if (dbclickPrevent) { return false; }
+			dbclickPrevent = true;
+			setTimeout(function() { dbclickPrevent = false; }, 500);
+		    // somente executa a ação ao clicar na linha ou na coluna
+			if (data.target.nodeName != 'TD' && data.target.nodeName != 'TR' && !$(data.target).hasClass('editar-linha')) { return true; }
+			// pega o ID da linha
+			var id = $(this).closest('tr').attr('id').split('|');
+			var id = id[2].replace(/T013_Id-/, '');
+		    abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}' ,'{$novoIdTelaForm}', '', 'Editar Nota Fiscal: ' + id, '/est/est004/content/est004ContentEditarNotaFiscal/', '&acaoId=' + encodeURIComponent(id) + '&tabela=T013', [990,550]);
+	});
+	$('#{$g['divId']} .grid .campoEditavel').unbind('click').bind('click', function(event) { return false; });
+} </script></div>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Ação de Click de Linha do GRID (via personalização JS)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+var dbclickPrevent = false; 
+$('#[[divId]] .grid tr').unbind('click').unbind('click').bind('click', function(data) {
+	// Previne duplo click (abrir duas janelas)
+	if (dbclickPrevent) { return false; }
+	dbclickPrevent = true;
+	setTimeout(function() { dbclickPrevent = false; }, 500);
+	// somente executa a ação ao clicar na linha ou na coluna
+	if (data.target.nodeName != 'TD' && data.target.nodeName != 'TR' && !$(data.target).hasClass('editar-linha')) { return true; }
+	// pega o ID da linha
+	var id = chavePrimaria($(this).closest('tr').attr('id'), 'T224_Id');
+	abrirJanela(data, '[[divIdRoot]]', '[[divId]]', unique(), '', 'Editar Ordem de Compra', '/est/est016/content/est016content02/', '&acaoId=' + encodeURIComponent(id) + '&tabela=T224&naoAtualizarLinha=1', [990,605]);  //950 615
+});
+$('#[[divId]] .grid .campoEditavel').unbind('click').bind('click', function(event) { return false; });
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Atualizar linha do Grid PARENT ao fechar a Janela
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if (!isset($r_naoAtualizarLinha)) {
+	echo <<<EOT
+		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+		// recarregar linha ao fechar a janela
+		$("#{$g['divId']}").closest('.ui-dialog-content').bind( "dialogclose", function(data, ui) {
+			divRefresh('{$g['divIdParent']}', true, false, false, '{$r_acaoId}', 'T224_Id');
+		});
+		} </script></div>
+EOT;
+}
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Adicionar thead no grid acima do thead original
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+$primeiraLinhaGridHead = <<<EOT
+<tr>
+	<th colspan="6" class="ui-widget-header ui-corner-all" style="text-align: center; z-index: 2;"></th>
+	<th colspan="3" class="ui-widget-header ui-corner-all" style="text-align: center; z-index: 2;">...</th>
+	<th colspan="1" class="ui-widget-header ui-corner-all" style="text-align: center; z-index: 2;"></th>
+	<th colspan="3" class="ui-widget-header ui-corner-all" style="text-align: center; z-index: 2;">...</th>
+    <th colspan="3" class="ui-widget-header ui-corner-all" style="text-align: center; z-index: 2;">...</th>
+	<th colspan="7" class="ui-widget-header ui-corner-all" style="text-align: center; z-index: 2;"></th>
+</tr>
+EOT;
+$g['smarty']->assign('primeiraLinhaGridHead', $primeiraLinhaGridHead);
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Impressão de Etiquetas
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+[[[ PASSO 1 - Callback ]]
+$retorno = <<<EOT
+<span onclick="$.getJSON('/est/est002/grid/etiquetaSeparacao/?ajax=true&T005=' + encodeURIComponent('{$array['todosCampos']['T005_Id']}') + '&callback=?', function(request) { if (request.code) { netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect'); var exe = window.Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile); exe.initWithPath('C:\\\\hardness\\\\hardnessImprimir.exe'); var run = window.Components.classes['@mozilla.org/process/util;1'].createInstance(Components.interfaces.nsIProcess); run.init(exe); var parameters = [request.data]; run.run(false, parameters, parameters.length); } });">
+	<div class="icone ui-state-default ui-corner-all">
+		<span class="ui-icon ui-icon-tag" title="Imprimir Etiquetas"></span>
+	</div>
+</span>
+EOT;
+return $retorno;
+[[[ PASSO 2 - Ajax ]]]
+$resposta = array('code' => true, 'data' => array());
+$txt = <<<EOT
+
+... código da etiqueta, quebra de linha antes e depois ...
+
+---------(utilizar 9 traços para imprimir várias etiquetas em uma só chamada)
+
+... outra etiqueta ...
+
+EOT;
+$file = "/tmp/est002EtiquetaSeparacao{$confUsuario['dbDatabase']}.txt";
+file_put_contents($file, $txt);
+$resposta['data'] = 'impressaoArquivo-' . base64_encode($file);
+echo $_REQUEST['callback'] . "(" . json_encode($resposta) . ");";
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Filtro AGRUPAMENTO - via personalização
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---
+colunaValor [Agrupar]
+titulo [Agrupar]
+tipo [agrupar]
+exibir []
+campos [array(
+array('title' => 'D082_Marca', 'campoAgrupar' => 'D082_Marca', 'campoMostrar' => 'D082_Marca', 'campoOrdem' => 'ASC', 'campoSelecionado' => true)
+)]
+---
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Filtro SELECT - via personalização
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---
+colunaValor [T001_Flag_Operacao]
+titulo [Operação]
+tipo [select]
+select [array(
+		array('title' => 'Todos', 'value' => ''),
+		array('title' => 'Entrada', 'value' => 'E'),
+		array('title' => 'Saída', 'value' => 'S'),
+		array('title' => 'Balanço', 'value' => 'B'),
+		array('title' => 'Cancelado', 'value' => 'C'),
+		array('title' => 'Não Atualiza Estoque', 'value' => 'N'),
+	)]
+---
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Abrir Segunda TAB automaticamente em vez da primeira
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+$idGrid = uniqid();
+primeira tab: $callback = "setTimeout( function() { $('a[href=\"#{$idGrid}\"]').trigger('click'); }, 100 );";
+tab aberta: $callback = "corrigeGrid('$idGrid');"
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Função JS Callback executada após a montagem do THEAD
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+echo <<<EOT
+	<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+		// o FW chama esta função automáticamente
+		function gridTheadCallback() {
+			// ...
+		}
+	} </script></div>
+EOT;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Retirar do GRID a limitação de número de registros exibidos (colocar no ínicio do grid)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// retira a limitação de números de registros exibidos deste grid
+$g['cacheCount'] = true;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Habilitar modo 'leve' do form (campos vem travados e combos vem apenas com os itens selecionados)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// passar o parâmetro &modoFormLeve=true para o form

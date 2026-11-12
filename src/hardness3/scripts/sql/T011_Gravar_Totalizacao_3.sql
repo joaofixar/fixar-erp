@@ -1,0 +1,7 @@
+CREATE PROCEDURE `T011_Gravar_Totalizacao_3`(xT011_Id int(11))
+BEGIN
+    UPDATE T011
+    SET T011_Valor_Total_Custo=(SELECT SUM(T012_Valor_Total_Custo) FROM T012 WHERE T012_T011_Id=T011_Id)+(SELECT IFNULL(SUM(T210_Valor_Unitario),0) FROM T210 LEFT JOIN T012 ON T012_Id = T210_T012_Id WHERE T012_T011_Id=T011_Id),
+        T011_Valor_Total_Pendente=(SELECT SUM(T012_Quantidade_Falta_Lancar(T012_Id,0)*T012_Valor_Custo_Unitario) FROM T012 WHERE T012_T011_Id=T011_Id)
+    WHERE T011_Id=xT011_Id;
+END;

@@ -1,0 +1,1640 @@
+openapi: 3.0.3
+info:
+  title: Hardness REST API
+  version: v1
+  description: |
+    API REST generica para integracao externa com o ERP.
+
+    - O metodo HTTP define a acao:
+      - `GET` consulta
+      - `POST` insere
+      - `PATCH` atualiza parcialmente
+      - `PUT` nao esta disponivel
+      - `DELETE` nao esta disponivel
+    - O tenant e resolvido exclusivamente pelo host/domínio.
+    - O token deve ser enviado em `X-API-Token: <token>`.
+    - `Authorization: Bearer <token>` continua aceito por compatibilidade, mas `X-API-Token` e o formato oficial recomendado.
+    - O `{id}` da URL sempre representa a **PK real** da tabela.
+    - FKs podem ser usadas em filtros e podem ser enviadas em payloads quando permitidas.
+    - A PK real nao pode ser alterada no payload.
+    - A PK real da tabela entra automaticamente para leitura, schema, `fields`, `filter` e `sort`, mesmo quando a tabela estiver em modo `allow`.
+    - Tabelas internas como `A001` e `A002` sao bloqueadas.
+    - Campos sensiveis podem ser ocultados no schema, resposta e auditoria.
+    - No `/api/docs`, apenas leitura e `/validate` executam de verdade. `POST` e `PATCH` reais ficam documentados, mas a execucao e bloqueada na interface Swagger.
+
+    O acesso às tabelas, campos e operações da API é controlado por política de segurança por cliente.
+
+    Dependendo do ambiente e das permissões liberadas, algumas tabelas, campos ou funcionalidades podem não estar disponíveis.
+
+    Caso precise acesso a alguma estrutura específica, solicite a liberação junto à equipe Hardness.
+
+    Disponibilidade por tabela:
+    - se a tabela estiver liberada, ela pode ser usada nos endpoints documentados da própria tabela, respeitando a política de acesso e as proteções globais da API;
+    - se a tabela não estiver liberada, ela não aparece em `/tables` ou retorna `TABLE_NOT_ALLOWED` ao tentar usar o endpoint específico.
+
+    Disponibilidade por campo:
+    - se o campo estiver liberado, ele pode aparecer no schema, retornar em leitura, ser usado em `fields`, `filter` e `sort`, e também ser enviado em `POST` e `PATCH` quando permitido;
+    - se o campo não estiver liberado, ele pode ser ocultado no schema/resposta ou retornar `FIELD_NOT_ALLOWED`, dependendo da operação.
+externalDocs:
+  description: Postman Collection da API
+  url: /api/docs/postman_collection.json
+servers:
+  - url: /api/v1
+    description: Base path da API
+tags:
+  - name: Infra
+    description: Endpoints publicos de saude e versao.
+  - name: Auth
+    description: Validacao de token e contexto autenticado.
+  - name: Metadata
+    description: Descoberta de tabelas e schema filtrado pela blocklist.
+  - name: Records
+    description: Leitura e escrita validadas usando nomes reais de tabela e campo.
+security:
+  - apiTokenAuth: []
+paths:
+  /health:
+    get:
+      tags: [Infra]
+      summary: Healthcheck da API
+      security: []
+      responses:
+        '200':
+          description: API ativa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessObject'
+              example:
+                success: true
+                data:
+                  status: ok
+                  service: Hardness REST API
+                meta:
+                  request_id: req_01abc
+  /version:
+    get:
+      tags: [Infra]
+      summary: Versao da API
+      security: []
+      responses:
+        '200':
+          description: Versao atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessObject'
+              example:
+                success: true
+                data:
+                  version: v1
+                  base_path: /api/v1
+                  service: Hardness REST API
+                meta:
+                  request_id: req_01abc
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Valida token e retorna contexto autenticado
+      operationId: authMe
+      responses:
+        '200':
+          description: Token autenticado
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  authenticated: true
+                  token:
+                    id: 1
+                    name: Integracao Principal
+                    prefix: hrd_live_abc
+                    status: active
+                  tenant:
+                    database: e998
+                    host: exemplo.hardness.com.br
+                meta:
+                  request_id: req_01abc
+        '401':
+          description: Token ausente ou invalido
+          content:
+            application/json:
+              examples:
+                missing:
+                  value:
+                    success: false
+                    error:
+                      code: TOKEN_MISSING
+                      message: Token nao informado.
+                      details: {}
+                    meta:
+                      request_id: req_01abc
+                invalid:
+                  value:
+                    success: false
+                    error:
+                      code: TOKEN_INVALID
+                      message: Token inválido.
+                      details: {}
+                    meta:
+                      request_id: req_01abc
+        '403':
+          description: Token inativo ou revogado
+          content:
+            application/json:
+              example:
+                success: false
+                error:
+                  code: TOKEN_INACTIVE
+                  message: Token inativo ou revogado.
+                  details: {}
+                meta:
+                  request_id: req_01abc
+  /tables:
+    get:
+      tags: [Metadata]
+      summary: Lista tabelas permitidas
+      operationId: listTables
+      responses:
+        '200':
+          description: Lista filtrada por blocklist estrutural e AccessPolicy. Quando nenhuma tabela estiver liberada, a lista pode voltar vazia.
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  tables:
+                    - name: T005
+                    - name: T006
+                meta:
+                  request_id: req_01abc
+                  count: 2
+  /tables/{table}/schema:
+    get:
+      tags: [Metadata]
+      summary: Retorna o schema filtrado de uma tabela
+      operationId: getSchema
+      parameters:
+        - $ref: '#/components/parameters/TableParam'
+      responses:
+        '200':
+          description: Schema visivel da tabela
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  table: T005
+                  database: e998
+                  primary_key: T005_Id
+                  fields:
+                    - name: T005_Id
+                      data_type: int
+                      nullable: false
+                      default: null
+                      key: PRI
+                      extra: auto_increment
+                      max_length: null
+                      is_primary_key: true
+                      is_auto_increment: true
+                    - name: T005_D024_Id
+                      data_type: int
+                      nullable: false
+                      default: null
+                      key: ""
+                      extra: ""
+                      max_length: null
+                      is_primary_key: false
+                      is_auto_increment: false
+                meta:
+                  request_id: req_01abc
+        '403':
+          $ref: '#/components/responses/TableNotAllowed'
+  /tables/{table}:
+    get:
+      tags: [Records]
+      summary: Lista registros com filtros seguros
+      description: |
+        Consulta registros usando o nome real da tabela e filtros controlados.
+
+        ### 1. Consulta simples (compatibilidade)
+        Consultas antigas continuam funcionando sem nenhuma alteração para os clientes existentes.
+
+        Exemplos compatíveis:
+        - `GET /tables/T005`
+        - `GET /tables/T005?fields=T005_Id,T005_Observacao_1`
+        - `GET /tables/T005?filter[T005_Id][eq]=1`
+        - `GET /tables/T005?sort=T005_Id`
+
+        ### 2. JOIN automático
+        Quando `fields`, `filter` ou `sort` mencionam campos de outra tabela, a API tenta descobrir automaticamente o relacionamento físico no schema.
+
+        Convenção suportada hoje:
+        - `SOURCE_TARGET_Id`
+        - `T005_T003_Id -> T003.T003_Id`
+        - `D009_D001_Id -> D001.D001_Id`
+
+        Exemplo:
+        `GET /api/v1/tables/T005?fields=T005_Id,T003_Id`
+
+        SQL equivalente:
+        ```sql
+        SELECT
+          T005.T005_Id,
+          T003.T003_Id
+        FROM T005
+        LEFT JOIN T003
+          ON T005.T005_T003_Id = T003.T003_Id
+        ```
+
+        O JOIN automático usa sempre `LEFT JOIN`.
+
+        ### 3. Filtros
+        Formato geral:
+        - `filter[Campo][operador]=valor`
+
+        Operadores suportados hoje:
+        - `eq`: igual a
+        - `neq`: diferente de
+        - `gt`: maior que
+        - `gte`: maior ou igual a
+        - `lt`: menor que
+        - `lte`: menor ou igual a
+        - `like`: contém o valor informado
+        - `in`: valor dentro de uma lista separada por vírgula
+        - `between`: valor dentro de um intervalo
+        - `isnull`: verifica se o campo é nulo
+
+        Filtros também podem usar campos de tabelas relacionadas. Quando isso acontece, a API realiza o JOIN necessário automaticamente.
+
+        Exemplos:
+        - `filter[T003_Id][eq]=2321`
+        - `filter[T003_Id][neq]=2321`
+        - `filter[T003_Id][gt]=1000`
+        - `filter[T003_Id][gte]=1000`
+        - `filter[T003_Id][lt]=5000`
+        - `filter[T003_Id][lte]=5000`
+        - `filter[T003_Observacao_1][like]=teste`
+        - `filter[T003_Flag_Perdido][in]=N,S`
+        - `filter[T003_Data_Emissao][between]=2026-01-01,2026-01-31`
+        - `filter[T003_Observacao_2][isnull]=1`
+
+        Exemplo completo:
+        `GET /api/v1/tables/T005?fields=T005_Id,T003_Id&filter[T003_Id][eq]=2321`
+
+        ### 4. Ordenação
+        A ordenação aceita campos da tabela base ou de tabelas relacionadas autorizadas:
+        - `sort=T003_Id` para ascendente
+        - `sort=-T003_Id` para descendente
+
+        Exemplos:
+        - `GET /api/v1/tables/T005?fields=T005_Id,T003_Id&sort=T003_Id`
+        - `GET /api/v1/tables/T005?fields=T005_Id,T003_Id&sort=-T003_Id`
+
+        ### 5. JOIN manual
+        Use `joins` quando:
+        - não existe relacionamento automático suportado pela convenção atual;
+        - deseja sobrescrever o relacionamento automático para uma tabela específica;
+        - precisa de múltiplas condições no `ON`.
+
+        Formato aceito:
+        ```json
+        [
+          {
+            "table": "T013",
+            "type": "left",
+            "conditions": [
+              {
+                "leftField": "T013_Chave_Acesso_Nfe",
+                "operator": "=",
+                "rightField": "RNE001_Chave_Acesso"
+              },
+              {
+                "leftField": "T013_Flag_Cancelada",
+                "operator": "=",
+                "value": "N"
+              }
+            ]
+          }
+        ]
+        ```
+
+        Regras atuais do JOIN manual:
+        - `table`: tabela que será adicionada ao plano;
+        - `type`: atualmente apenas `left`;
+        - `conditions`: lista obrigatória de condições estruturadas;
+        - `leftField`: campo do lado esquerdo da condição;
+        - `rightField`: campo do lado direito quando a condição compara dois campos;
+        - `value`: valor literal quando a condição compara campo com valor;
+        - `operator`: atualmente aceita apenas `=`, `!=`, `>`, `>=`, `<`, `<=`;
+        - SQL textual não é aceito em `on`, `extraCondition`, `expression`, `sql`, `rawSql` ou `raw_sql`.
+
+        Exemplo de SQL equivalente para o JOIN manual acima:
+        ```sql
+        SELECT
+          RNE001.RNE001_Id,
+          RNE001.RNE001_Chave_Acesso,
+          T013.T013_Id,
+          T013.T013_Numero_Nota_Fiscal
+        FROM RNE001
+        LEFT JOIN T013
+          ON (
+            T013.T013_Chave_Acesso_Nfe = RNE001.RNE001_Chave_Acesso
+            AND T013.T013_Flag_Cancelada = :join_1
+          )
+        ```
+
+        ### 6. Override do JOIN automático
+        Se a API já conseguir montar um JOIN automático para uma tabela e a requisição enviar um JOIN manual para essa mesma tabela, o JOIN manual substitui o automático.
+
+        Exemplo:
+        ```json
+        [
+          {
+            "table": "T003",
+            "type": "left",
+            "conditions": [
+              {
+                "leftField": "T003_Id",
+                "operator": "=",
+                "rightField": "T005_T003_Id"
+              },
+              {
+                "leftField": "T003_Flag_Perdido",
+                "operator": "=",
+                "value": "N"
+              }
+            ]
+          }
+        ]
+        ```
+
+        ### 7. Autorização
+        A leitura continua sujeita à mesma política de segurança do cliente:
+        - `Access Policy` controla quais tabelas e campos podem ser lidos;
+        - a blocklist estrutural continua bloqueando tabelas internas;
+        - tabelas explicitamente pedidas em `fields`, `filter`, `sort` ou `joins` são verificadas antes do planejamento;
+        - se a tabela existir mas não estiver liberada, a API retorna `TABLE_NOT_ALLOWED`;
+        - se o campo existir mas não estiver liberado, a API retorna `FIELD_NOT_ALLOWED`.
+
+        Para caminhos automáticos, o planner pode ignorar tabelas intermediárias proibidas. Isso não muda o tratamento de tabelas explicitamente solicitadas pelo cliente.
+
+        ### 8. Erros de consulta
+        Erros mais comuns deste endpoint:
+        - `TABLE_NOT_ALLOWED`: a tabela existe, mas não está liberada para a policy do cliente;
+        - `FIELD_NOT_ALLOWED`: o campo existe, mas não está liberado para leitura;
+        - `FIELD_NOT_FOUND`: o campo informado não existe no schema disponível para a consulta;
+        - `JOIN_TABLE_NOT_FOUND`: a tabela necessária para o planejamento automático não foi encontrada;
+        - `JOIN_PATH_NOT_FOUND`: não existe caminho automático entre a tabela base e a tabela solicitada;
+        - `INVALID_FILTER`: a estrutura do filtro ou o operador enviado é inválido;
+        - `INVALID_SORT`: o parâmetro `sort` está malformado;
+        - `INVALID_JOINS`: o parâmetro `joins` está malformado ou usa opções não suportadas.
+
+        Observação importante:
+        - campo inexistente em `sort` ou `filter` continua retornando `FIELD_NOT_FOUND`;
+        - `INVALID_SORT` e `INVALID_FILTER` são usados quando a estrutura da query é inválida;
+        - o código implementado hoje para JOIN manual inválido é `INVALID_JOINS`.
+
+        ### 9. Paginação
+        - se `limit` não for informado, a API retorna `25` registros por padrão;
+        - o máximo por requisição é `100`;
+        - para buscar mais registros, use `offset`;
+        - a resposta informa a paginação em `meta.pagination`;
+        - se `returned` vier menor que `limit`, normalmente você chegou ao fim da listagem;
+        - se `returned` vier igual a `limit`, pode existir próxima página.
+
+        Exemplo:
+        - página 1: `?limit=100&offset=0`
+        - página 2: `?limit=100&offset=100`
+
+        ### 10. Comportamento de `fields` vazio
+        Quando `fields` não é informado, ou é enviado vazio, a resposta retorna apenas os campos visíveis da tabela base.
+
+        Isso continua valendo mesmo quando filtros, ordenação ou JOINs internos usam tabelas relacionadas.
+
+        Exemplo:
+        `GET /api/v1/tables/T005?filter[T003_Id][eq]=1`
+
+        Nesse caso a API pode usar `T003` internamente para montar a consulta, mas a resposta continua contendo apenas colunas visíveis de `T005`.
+
+        ### Limitações Atuais
+        O comportamento implementado hoje possui as seguintes limitações:
+        - o JOIN automático funciona apenas para relacionamentos no padrão `SOURCE_TARGET_Id`;
+        - relacionamentos com papel ou contexto não entram no planejamento automático;
+        - exemplos que precisam de JOIN manual:
+          - `T084_D024_Destinatario_Id`
+          - `T084_D024_Remetente_Id`
+          - `T005_Pgto_C007_Id`
+          - `T005_Liberou_Alcada_C007_Id`
+        - o JOIN automático utiliza sempre `LEFT JOIN`;
+        - não existe suporte a SQL textual no parâmetro `joins`.
+
+        Exemplos de filtros:
+        - `filter[T005_Id][eq]=999`
+        - `filter[T005_Observacao_1][like]=teste`
+        - `filter[T005_Status][in]=A,F`
+        - `filter[T005_Data][between]=2026-01-01,2026-01-31`
+
+        <details>
+        <summary>Exemplos de consumo</summary>
+
+        **cURL**
+
+        ```bash
+        curl -X GET "http://localhost/api/v1/tables/T005?limit=10" \
+          -H "X-API-Token: hrd_live_xxxxxxxxxxxxx" \
+          -H "Accept: application/json"
+        ```
+
+        **PHP cURL**
+
+        ```php
+        <?php
+        $url = 'http://localhost/api/v1/tables/T005?limit=10';
+
+        $curl = curl_init($url);
+
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'X-API-Token: hrd_live_xxxxxxxxxxxxx',
+                'Accept: application/json'
+            ]
+        ]);
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        echo $response;
+        ```
+
+        **JavaScript / fetch**
+
+        ```javascript
+        fetch('http://localhost/api/v1/tables/T005?limit=10', {
+            method: 'GET',
+            headers: {
+                'X-API-Token': 'hrd_live_xxxxxxxxxxxxx',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => console.log(data));
+        ```
+
+        **Python requests**
+
+        ```python
+        import requests
+
+        url = 'http://localhost/api/v1/tables/T005?limit=10'
+
+        headers = {
+            'X-API-Token': 'hrd_live_xxxxxxxxxxxxx',
+            'Accept': 'application/json'
+        }
+
+        response = requests.get(url, headers=headers)
+
+        print(response.json())
+        ```
+
+        **Filtro por FK**
+
+        ```bash
+        curl -X GET "http://localhost/api/v1/tables/T006?filter[T006_T005_Id][eq]=500" \
+          -H "X-API-Token: hrd_live_xxxxxxxxxxxxx" \
+          -H "Accept: application/json"
+        ```
+
+        **JOIN automático**
+
+        ```bash
+        curl -X GET "http://localhost/api/v1/tables/T005?fields=T005_Id,T003_Id&filter[T003_Id][eq]=2321&sort=-T003_Id" \
+          -H "X-API-Token: hrd_live_xxxxxxxxxxxxx" \
+          -H "Accept: application/json"
+        ```
+
+        **JOIN manual**
+
+        ```bash
+        curl -G "http://localhost/api/v1/tables/RNE001" \
+          -H "X-API-Token: hrd_live_xxxxxxxxxxxxx" \
+          -H "Accept: application/json" \
+          --data-urlencode "fields=RNE001_Id,RNE001_Chave_Acesso,T013_Id,T013_Numero_Nota_Fiscal" \
+          --data-urlencode 'joins=[{"table":"T013","type":"left","conditions":[{"leftField":"T013_Chave_Acesso_Nfe","operator":"=","rightField":"RNE001_Chave_Acesso"},{"leftField":"T013_Flag_Cancelada","operator":"=","value":"N"}]}]'
+        ```
+
+        </details>
+      operationId: listRecords
+      parameters:
+        - $ref: '#/components/parameters/TableParam'
+        - $ref: '#/components/parameters/FieldsParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/FilterParam'
+        - $ref: '#/components/parameters/JoinsParam'
+      x-codeSamples:
+        - lang: cURL
+          label: Listagem simples
+          source: |
+            curl -X GET "http://example.test/api/v1/tables/T005?limit=10" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Accept: application/json"
+        - lang: PHP
+          label: Listagem simples em PHP cURL
+          source: |
+            <?php
+            $ch = curl_init('http://example.test/api/v1/tables/T005?limit=10');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                    'X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx',
+                    'Accept: application/json',
+                ],
+            ]);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            echo $response;
+        - lang: JavaScript
+          label: Listagem simples com fetch
+          source: |
+            const response = await fetch('http://example.test/api/v1/tables/T005?limit=10', {
+              method: 'GET',
+              headers: {
+                'X-API-Token': 'hrd_live_xxxxxxxxxxxxxxxxx',
+                'Accept': 'application/json'
+              }
+            });
+            
+            const data = await response.json();
+            console.log(data);
+        - lang: Python
+          label: Listagem simples com requests
+          source: |
+            import requests
+            
+            response = requests.get(
+                "http://example.test/api/v1/tables/T005?limit=10",
+                headers={
+                    "X-API-Token": "hrd_live_xxxxxxxxxxxxxxxxx",
+                    "Accept": "application/json",
+                },
+                timeout=30,
+            )
+            
+            print(response.json())
+        - lang: cURL
+          label: Filtro por FK
+          source: |
+            curl -X GET "http://example.test/api/v1/tables/T006?filter[T006_T005_Id][eq]=500" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Accept: application/json"
+        - lang: PHP
+          label: Filtro por FK em PHP cURL
+          source: |
+            <?php
+            $url = 'http://example.test/api/v1/tables/T006?filter[T006_T005_Id][eq]=500';
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                    'X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx',
+                    'Accept: application/json',
+                ],
+            ]);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            echo $response;
+        - lang: JavaScript
+          label: Filtro por FK com fetch
+          source: |
+            const response = await fetch(
+              'http://example.test/api/v1/tables/T006?filter[T006_T005_Id][eq]=500',
+              {
+                method: 'GET',
+                headers: {
+                  'X-API-Token': 'hrd_live_xxxxxxxxxxxxxxxxx',
+                  'Accept': 'application/json'
+                }
+              }
+            );
+            
+            const data = await response.json();
+            console.log(data);
+        - lang: Python
+          label: Filtro por FK com requests
+          source: |
+            import requests
+            
+            response = requests.get(
+                "http://example.test/api/v1/tables/T006?filter[T006_T005_Id][eq]=500",
+                headers={
+                    "X-API-Token": "hrd_live_xxxxxxxxxxxxxxxxx",
+                    "Accept": "application/json",
+                },
+                timeout=30,
+            )
+            
+            print(response.json())
+        - lang: cURL
+          label: JOIN automático com filtro e ordenação
+          source: |
+            curl -X GET "http://example.test/api/v1/tables/T005?fields=T005_Id,T003_Id,T003_Observacao_1&filter[T003_Id][eq]=2321&sort=-T003_Id" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Accept: application/json"
+        - lang: cURL
+          label: Compatibilidade com fields vazio
+          source: |
+            curl -X GET "http://example.test/api/v1/tables/T005?filter[T003_Id][eq]=2321" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Accept: application/json"
+        - lang: cURL
+          label: JOIN manual
+          source: |
+            curl -G "http://example.test/api/v1/tables/RNE001" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Accept: application/json" \
+              --data-urlencode "fields=RNE001_Id,RNE001_Chave_Acesso,T013_Id,T013_Numero_Nota_Fiscal" \
+              --data-urlencode 'joins=[{"table":"T013","type":"left","conditions":[{"leftField":"T013_Chave_Acesso_Nfe","operator":"=","rightField":"RNE001_Chave_Acesso"},{"leftField":"T013_Flag_Cancelada","operator":"=","value":"N"}]}]'
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              examples:
+                basic:
+                  value:
+                    success: true
+                    data:
+                      - T005_Id: 999
+                        T005_D024_Id: 123
+                        T005_Observacao_1: Teste
+                    meta:
+                      request_id: req_01abc
+                      pagination:
+                        limit: 25
+                        offset: 0
+                        returned: 1
+                by-fk:
+                  value:
+                    success: true
+                    data:
+                      - T006_Id: 1
+                        T006_T005_Id: 500
+                        T006_Descricao: Item 1
+                      - T006_Id: 2
+                        T006_T005_Id: 500
+                        T006_Descricao: Item 2
+                    meta:
+                      request_id: req_01abc
+                      pagination:
+                        limit: 25
+                        offset: 0
+                        returned: 2
+                automatic-join:
+                  value:
+                    success: true
+                    data:
+                      - T005_Id: 999
+                        T003_Id: 2321
+                        T003_Observacao_1: Orcamento importado
+                    meta:
+                      request_id: req_01abc
+                      pagination:
+                        limit: 25
+                        offset: 0
+                        returned: 1
+                related-filter-with-empty-fields:
+                  value:
+                    success: true
+                    data:
+                      - T005_Id: 999
+                        T005_T003_Id: 2321
+                        T005_Observacao_1: Pedido convertido
+                    meta:
+                      request_id: req_01abc
+                      pagination:
+                        limit: 25
+                        offset: 0
+                        returned: 1
+                manual-join:
+                  value:
+                    success: true
+                    data:
+                      - RNE001_Id: 10
+                        RNE001_Chave_Acesso: "35240600000000000000550010000000011000000001"
+                        T013_Id: 100042
+                        T013_Numero_Nota_Fiscal: "12345"
+                    meta:
+                      request_id: req_01abc
+                      pagination:
+                        limit: 25
+                        offset: 0
+                        returned: 1
+        '400':
+          $ref: '#/components/responses/ListRecordsBadRequest'
+        '403':
+          $ref: '#/components/responses/ListRecordsForbidden'
+        '404':
+          $ref: '#/components/responses/ListRecordsJoinNotFound'
+    post:
+      tags: [Records]
+      summary: Insere registro validado
+      description: |
+        Insere um novo registro usando nomes reais dos campos da tabela.
+
+        Regras principais:
+        - nao aceita campo inexistente;
+        - nao aceita campo bloqueado ou sensivel;
+        - nao permite enviar PK auto increment manualmente;
+        - FKs podem ser enviadas normalmente quando permitidas.
+        - no `/api/docs`, este endpoint permanece documentado com exemplos, mas a execucao real fica bloqueada na interface Swagger.
+
+        <details>
+        <summary>Exemplos de consumo</summary>
+
+        **cURL**
+
+        ```bash
+        curl -X POST "http://localhost/api/v1/tables/T005" \
+          -H "X-API-Token: hrd_live_xxxxxxxxxxxxx" \
+          -H "Content-Type: application/json" \
+          -H "Accept: application/json" \
+          -d '{
+            "T005_D024_Id": 123,
+            "T005_Observacao_1": "Teste"
+          }'
+        ```
+
+        **PHP cURL**
+
+        ```php
+        <?php
+        $url = 'http://localhost/api/v1/tables/T005';
+
+        $payload = [
+            'T005_D024_Id' => 123,
+            'T005_Observacao_1' => 'Teste'
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                'X-API-Token: hrd_live_xxxxxxxxxxxxx',
+                'Content-Type: application/json',
+                'Accept: application/json'
+            ]
+        ]);
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        echo $response;
+        ```
+
+        **JavaScript / fetch**
+
+        ```javascript
+        fetch('http://localhost/api/v1/tables/T005', {
+            method: 'POST',
+            headers: {
+                'X-API-Token': 'hrd_live_xxxxxxxxxxxxx',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                T005_D024_Id: 123,
+                T005_Observacao_1: 'Teste'
+            })
+        })
+        .then(response => response.json())
+        .then(data => console.log(data));
+        ```
+
+        **Python requests**
+
+        ```python
+        import requests
+
+        url = 'http://localhost/api/v1/tables/T005'
+
+        headers = {
+            'X-API-Token': 'hrd_live_xxxxxxxxxxxxx',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        payload = {
+            'T005_D024_Id': 123,
+            'T005_Observacao_1': 'Teste'
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
+
+        print(response.json())
+        ```
+
+        </details>
+      operationId: createRecord
+      parameters:
+        - $ref: '#/components/parameters/TableParam'
+      x-codeSamples:
+        - lang: cURL
+          label: Insert com POST
+          source: |
+            curl -X POST "http://example.test/api/v1/tables/T005" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "T005_D024_Id": 123,
+                "T005_Observacao_1": "Teste"
+              }'
+        - lang: PHP
+          label: Insert com PHP cURL
+          source: |
+            <?php
+            $payload = [
+                'T005_D024_Id' => 123,
+                'T005_Observacao_1' => 'Teste',
+            ];
+            
+            $ch = curl_init('http://example.test/api/v1/tables/T005');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => [
+                    'X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx',
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ],
+            ]);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            echo $response;
+        - lang: JavaScript
+          label: Insert com fetch
+          source: |
+            const response = await fetch('http://example.test/api/v1/tables/T005', {
+              method: 'POST',
+              headers: {
+                'X-API-Token': 'hrd_live_xxxxxxxxxxxxxxxxx',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                T005_D024_Id: 123,
+                T005_Observacao_1: 'Teste'
+              })
+            });
+            
+            const data = await response.json();
+            console.log(data);
+        - lang: Python
+          label: Insert com requests
+          source: |
+            import requests
+            
+            payload = {
+                "T005_D024_Id": 123,
+                "T005_Observacao_1": "Teste",
+            }
+            
+            response = requests.post(
+                "http://example.test/api/v1/tables/T005",
+                headers={
+                    "X-API-Token": "hrd_live_xxxxxxxxxxxxxxxxx",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                json=payload,
+                timeout=30,
+            )
+            
+            print(response.json())
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              insertT005:
+                summary: Insert simples
+                value:
+                  T005_D024_Id: 123
+                  T005_Observacao_1: Teste
+      responses:
+        '201':
+          description: Registro inserido
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  primary_key:
+                    T005_Id: 999
+                  affected_rows: 1
+                meta:
+                  request_id: req_01abc
+        '400':
+          $ref: '#/components/responses/FieldBlocked'
+        '403':
+          $ref: '#/components/responses/AccessPolicyDenied'
+  /tables/{table}/validate:
+    post:
+      tags: [Records]
+      summary: Valida payload sem persistir
+      description: |
+        Valida o payload sem gravar no banco.
+
+        Este endpoint continua executável no `/api/docs`.
+        Use este endpoint para conferir payloads antes de enviar `POST` ou `PATCH` reais.
+      operationId: validatePayload
+      parameters:
+        - $ref: '#/components/parameters/TableParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              T005_D024_Id: 123
+              T005_Observacao_1: Teste
+      responses:
+        '200':
+          description: Payload valido
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  valid: true
+                  table: T005
+                  primary_key: T005_Id
+                  fields:
+                    - T005_D024_Id
+                    - T005_Observacao_1
+                meta:
+                  request_id: req_01abc
+        '400':
+          $ref: '#/components/responses/PrimaryKeyChangeNotAllowed'
+        '403':
+          $ref: '#/components/responses/AccessPolicyDenied'
+  /tables/{table}/{id}:
+    get:
+      tags: [Records]
+      summary: Busca um registro pela PK real
+      description: |
+        O `{id}` da URL sempre representa a PK real da tabela.
+
+        Exemplo:
+        `GET /api/v1/tables/T005/999` busca por `T005_Id = 999`.
+
+        Para consultar por FK, use o endpoint de listagem com filtros:
+        `GET /api/v1/tables/T006?filter[T006_T005_Id][eq]=500`
+
+        Este endpoint sempre tenta retornar no máximo um registro, porque o `{id}` representa a PK real da tabela.
+      operationId: getRecordByPk
+      parameters:
+        - $ref: '#/components/parameters/TableParam'
+        - $ref: '#/components/parameters/RecordIdParam'
+      responses:
+        '200':
+          description: Registro encontrado
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  T005_Id: 999
+                  T005_D024_Id: 123
+                  T005_Observacao_1: Teste
+                meta:
+                  request_id: req_01abc
+        '404':
+          $ref: '#/components/responses/RecordNotFound'
+    patch:
+      tags: [Records]
+      summary: Atualiza parcialmente um registro pela PK real
+      description: |
+        Apenas `PATCH` esta disponivel para atualizacao.
+        `PUT` e `DELETE` nao estao disponiveis nesta API.
+        No `/api/docs`, este endpoint permanece documentado com exemplos, mas a execucao real fica bloqueada na interface Swagger.
+
+        Exemplo:
+        `PATCH /api/v1/tables/T005/999`
+
+        Payload:
+        ```json
+        {
+          "T005_D024_Id": 123,
+          "T005_Observacao_1": "Teste alterado"
+        }
+        ```
+
+        <details>
+        <summary>Exemplos de consumo</summary>
+
+        **cURL**
+
+        ```bash
+        curl -X PATCH "http://localhost/api/v1/tables/T005/999" \
+          -H "X-API-Token: hrd_live_xxxxxxxxxxxxx" \
+          -H "Content-Type: application/json" \
+          -H "Accept: application/json" \
+          -d '{
+            "T005_Observacao_1": "Alterado"
+          }'
+        ```
+
+        **PHP cURL**
+
+        ```php
+        <?php
+        $url = 'http://localhost/api/v1/tables/T005/999';
+
+        $payload = [
+            'T005_Observacao_1' => 'Alterado'
+        ];
+
+        $curl = curl_init($url);
+
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => 'PATCH',
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                'X-API-Token: hrd_live_xxxxxxxxxxxxx',
+                'Content-Type: application/json',
+                'Accept: application/json'
+            ]
+        ]);
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        echo $response;
+        ```
+
+        **JavaScript / fetch**
+
+        ```javascript
+        fetch('http://localhost/api/v1/tables/T005/999', {
+            method: 'PATCH',
+            headers: {
+                'X-API-Token': 'hrd_live_xxxxxxxxxxxxx',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                T005_Observacao_1: 'Alterado'
+            })
+        })
+        .then(response => response.json())
+        .then(data => console.log(data));
+        ```
+
+        **Python requests**
+
+        ```python
+        import requests
+
+        url = 'http://localhost/api/v1/tables/T005/999'
+
+        headers = {
+            'X-API-Token': 'hrd_live_xxxxxxxxxxxxx',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        payload = {
+            'T005_Observacao_1': 'Alterado'
+        }
+
+        response = requests.patch(url, headers=headers, json=payload)
+
+        print(response.json())
+        ```
+
+        </details>
+      operationId: patchRecord
+      parameters:
+        - $ref: '#/components/parameters/TableParam'
+        - $ref: '#/components/parameters/RecordIdParam'
+      x-codeSamples:
+        - lang: cURL
+          label: Update com PATCH
+          source: |
+            curl -X PATCH "http://example.test/api/v1/tables/T005/999" \
+              -H "X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "T005_Observacao_1": "Alterado"
+              }'
+        - lang: PHP
+          label: Update com PHP cURL
+          source: |
+            <?php
+            $payload = [
+                'T005_Observacao_1' => 'Alterado',
+            ];
+            
+            $ch = curl_init('http://example.test/api/v1/tables/T005/999');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CUSTOMREQUEST => 'PATCH',
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => [
+                    'X-API-Token: hrd_live_xxxxxxxxxxxxxxxxx',
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ],
+            ]);
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            echo $response;
+        - lang: JavaScript
+          label: Update com fetch
+          source: |
+            const response = await fetch('http://example.test/api/v1/tables/T005/999', {
+              method: 'PATCH',
+              headers: {
+                'X-API-Token': 'hrd_live_xxxxxxxxxxxxxxxxx',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                T005_Observacao_1: 'Alterado'
+              })
+            });
+            
+            const data = await response.json();
+            console.log(data);
+        - lang: Python
+          label: Update com requests
+          source: |
+            import requests
+            
+            payload = {
+                "T005_Observacao_1": "Alterado",
+            }
+            
+            response = requests.patch(
+                "http://example.test/api/v1/tables/T005/999",
+                headers={
+                    "X-API-Token": "hrd_live_xxxxxxxxxxxxxxxxx",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                json=payload,
+                timeout=30,
+            )
+            
+            print(response.json())
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              patchT005:
+                summary: Update parcial
+                value:
+                  T005_Observacao_1: Alterado
+      responses:
+        '200':
+          description: Registro atualizado
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  primary_key:
+                    T005_Id: 999
+                  affected_rows: 1
+                meta:
+                  request_id: req_01abc
+        '400':
+          $ref: '#/components/responses/PrimaryKeyChangeNotAllowed'
+        '403':
+          $ref: '#/components/responses/AccessPolicyDenied'
+        '404':
+          $ref: '#/components/responses/RecordNotFound'
+components:
+  securitySchemes:
+    apiTokenAuth:
+      type: apiKey
+      in: header
+      name: X-API-Token
+  parameters:
+    TableParam:
+      name: table
+      in: path
+      required: true
+      schema:
+        type: string
+      example: T005
+    RecordIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      example: "999"
+      description: Valor da PK real da tabela.
+    FieldsParam:
+      name: fields
+      in: query
+      required: false
+      schema:
+        type: string
+      example: T005_Id,T005_Observacao_1
+      description: Lista separada por virgula com os campos que devem aparecer na resposta. Pode misturar campos da tabela base e de tabelas relacionadas autorizadas. Se `fields` estiver ausente ou vazio, a resposta volta apenas com os campos visíveis da tabela base.
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Use `Campo` para ascendente ou `-Campo` para descendente. Campos da tabela base e de tabelas relacionadas autorizadas podem ser usados.
+      examples:
+        asc:
+          value: T005_Id
+        desc:
+          value: -T005_Id
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 25
+        maximum: 100
+      example: 50
+      description: Quantidade de registros por página. Se não informado, o padrão é `25`. O valor máximo aceito é `100`.
+    OffsetParam:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 0
+        maximum: 10000
+      example: 0
+      description: Deslocamento da paginação. Use `0` para a primeira página, `100` para a segunda página quando `limit=100`, e assim por diante.
+    FilterParam:
+      name: filter
+      in: query
+      required: false
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties: true
+      description: |
+        Formato geral:
+        `filter[Campo][operador]=valor`
+
+        `Campo` e o nome real da coluna.
+        `operador` define a comparacao.
+        `valor` e o valor filtrado.
+
+        Campos da tabela base e de tabelas relacionadas autorizadas podem ser usados.
+        FKs podem ser usadas normalmente em filtros. Exemplo:
+        `filter[T006_T005_Id][eq]=500`
+
+        Formatos suportados:
+        - `filter[Campo][eq]=valor`
+          igual a `valor`
+        - `filter[Campo][neq]=valor`
+          diferente de `valor`
+        - `filter[Campo][gt]=valor`
+          maior que `valor`
+        - `filter[Campo][gte]=valor`
+          maior ou igual a `valor`
+        - `filter[Campo][lt]=valor`
+          menor que `valor`
+        - `filter[Campo][lte]=valor`
+          menor ou igual a `valor`
+        - `filter[Campo][like]=valor`
+          contem `valor`
+        - `filter[Campo][in]=A,F`
+          valor dentro da lista `A,F`
+        - `filter[Campo][between]=2026-01-01,2026-01-31`
+          valor dentro do intervalo informado
+        - `filter[Campo][isnull]=1`
+          retorna registros onde o campo esta nulo
+      examples:
+        byFk:
+          summary: Filtro por FK
+          value:
+            T006_T005_Id:
+              eq: 500
+        likeText:
+          summary: Contem texto
+          value:
+            T005_Observacao_1:
+              like: teste
+        inStatus:
+          summary: Lista de valores
+          value:
+            T005_Status:
+              in: A,F
+        betweenDate:
+          summary: Intervalo de datas
+          value:
+            T005_Data:
+              between: 2026-01-01,2026-01-31
+    JoinsParam:
+      name: joins
+      in: query
+      required: false
+      schema:
+        type: string
+      example: >-
+        [{"table":"T013","type":"left","conditions":[{"leftField":"T013_Chave_Acesso_Nfe","operator":"=","rightField":"RNE001_Chave_Acesso"},{"leftField":"T013_Flag_Cancelada","operator":"=","value":"N"}]}]
+      description: |
+        JOIN manual opcional. O formato documentado e uma string JSON contendo um array de joins.
+
+        Cada item aceita:
+        - `table`: tabela destino do join;
+        - `type`: atualmente apenas `left`;
+        - `conditions`: lista obrigatoria de condicoes estruturadas.
+
+        Cada condicao aceita:
+        - `leftField`: campo do lado esquerdo;
+        - `operator`: `=`, `!=`, `>`, `>=`, `<`, `<=`;
+        - `rightField`: campo do lado direito quando a condicao compara dois campos; ou
+        - `value`: valor literal quando a condicao compara campo com valor.
+
+        Se uma tabela ja tiver JOIN automatico e `joins` trouxer um JOIN manual para essa mesma tabela, o JOIN manual substitui o automatico.
+  schemas:
+    SuccessObject:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+    ErrorObject:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+  responses:
+    AccessPolicyDenied:
+      description: Tabela ou campo não disponível para a política de acesso do cliente
+      content:
+        application/json:
+          examples:
+            tableNotAllowed:
+              value:
+                success: false
+                error:
+                  code: TABLE_NOT_ALLOWED
+                  message: Table is not allowed
+                  details:
+                    table: T005
+                meta:
+                  request_id: req_01abc
+            fieldNotAllowed:
+              value:
+                success: false
+                error:
+                  code: FIELD_NOT_ALLOWED
+                  message: Campo não permitido.
+                  details:
+                    field: T005_Custo
+                meta:
+                  request_id: req_01abc
+    ListRecordsBadRequest:
+      description: Erros de validacao da consulta de leitura
+      content:
+        application/json:
+          examples:
+            fieldBlocked:
+              value:
+                success: false
+                error:
+                  code: FIELD_BLOCKED
+                  message: Campo bloqueado para filtro.
+                  details:
+                    field: T005_Senha_Interna
+                meta:
+                  request_id: req_01abc
+            fieldNotFound:
+              value:
+                success: false
+                error:
+                  code: FIELD_NOT_FOUND
+                  message: Campo não encontrado.
+                  details:
+                    field: T005_Campo_Inexistente
+                meta:
+                  request_id: req_01abc
+            invalidFilter:
+              value:
+                success: false
+                error:
+                  code: INVALID_FILTER
+                  message: Operador de filtro inválido.
+                  details:
+                    field: T003_Id
+                    operator: contains
+                meta:
+                  request_id: req_01abc
+            invalidSort:
+              value:
+                success: false
+                error:
+                  code: INVALID_SORT
+                  message: Campo de ordenação inválido.
+                  details:
+                    field: ""
+                meta:
+                  request_id: req_01abc
+            invalidJoins:
+              value:
+                success: false
+                error:
+                  code: INVALID_JOINS
+                  message: Join manual inválido.
+                  details:
+                    join_index: 0
+                    blocked_key: on
+                meta:
+                  request_id: req_01abc
+    ListRecordsForbidden:
+      description: Erros de autorizacao por tabela ou campo
+      content:
+        application/json:
+          examples:
+            tableNotAllowed:
+              value:
+                success: false
+                error:
+                  code: TABLE_NOT_ALLOWED
+                  message: Table is not allowed
+                  details:
+                    table: D024
+                meta:
+                  request_id: req_01abc
+            fieldNotAllowed:
+              value:
+                success: false
+                error:
+                  code: FIELD_NOT_ALLOWED
+                  message: Campo não permitido.
+                  details:
+                    field: T005_Observacao_1
+                meta:
+                  request_id: req_01abc
+    ListRecordsJoinNotFound:
+      description: Erros de planejamento automatico de JOIN
+      content:
+        application/json:
+          examples:
+            joinPathNotFound:
+              value:
+                success: false
+                error:
+                  code: JOIN_PATH_NOT_FOUND
+                  message: Não existe caminho entre as tabelas informadas.
+                  details:
+                    base_table: T005
+                    target_table: T013
+                meta:
+                  request_id: req_01abc
+            joinTableNotFound:
+              value:
+                success: false
+                error:
+                  code: JOIN_TABLE_NOT_FOUND
+                  message: Tabela não encontrada para planejamento de join.
+                  details:
+                    table: T999
+                meta:
+                  request_id: req_01abc
+    TokenMissing:
+      description: Token ausente
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: TOKEN_MISSING
+              message: Token nao informado.
+              details: {}
+            meta:
+              request_id: req_01abc
+    TableBlocked:
+      description: Tabela bloqueada pela blocklist estrutural
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: TABLE_BLOCKED
+              message: Tabela bloqueada.
+              details:
+                table: A001
+            meta:
+              request_id: req_01abc
+    TableNotAllowed:
+      description: Tabela não disponível para o cliente autenticado
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: TABLE_NOT_ALLOWED
+              message: Table is not allowed
+              details:
+                table: T005
+            meta:
+              request_id: req_01abc
+    FieldBlocked:
+      description: Campo bloqueado
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: FIELD_BLOCKED
+              message: Campo bloqueado.
+              details:
+                field: T005_Senha_Interna
+            meta:
+              request_id: req_01abc
+    FieldNotAllowed:
+      description: Campo não disponível para a política de acesso do cliente
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: FIELD_NOT_ALLOWED
+              message: Campo não permitido.
+              details:
+                field: T005_Custo
+            meta:
+              request_id: req_01abc
+    RecordNotFound:
+      description: Registro nao encontrado
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: RECORD_NOT_FOUND
+              message: Registro nao encontrado.
+              details: {}
+            meta:
+              request_id: req_01abc
+    PrimaryKeyChangeNotAllowed:
+      description: Tentativa de alterar a PK no payload
+      content:
+        application/json:
+          example:
+            success: false
+            error:
+              code: PRIMARY_KEY_CHANGE_NOT_ALLOWED
+              message: Chave primária não pode ser alterada.
+              details:
+                field: T005_Id
+            meta:
+              request_id: req_01abc

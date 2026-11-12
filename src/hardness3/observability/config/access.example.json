@@ -1,0 +1,11 @@
+{
+  "enabled": false,
+  "tenants": {
+    "client.example.invalid": {
+      "allowed_users": {
+        "182": ["view"],
+        "245": ["view", "full_sql"]
+      }
+    }
+  }
+}

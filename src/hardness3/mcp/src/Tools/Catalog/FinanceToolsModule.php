@@ -1,0 +1,5 @@
+<?php
+declare(strict_types=1);
+namespace HardnessMcp\Tools\Catalog;
+use HardnessMcp\Tools\Finance\Domain\FinanceSummaryRepositoryInterface;use HardnessMcp\Tools\Finance\FinanceCashFlowTool;use HardnessMcp\Tools\Finance\FinanceSummaryHandler;use HardnessMcp\Tools\Finance\FinanceSummaryTool;use HardnessMcp\Tools\Finance\Infrastructure\PdoFinanceSummaryRepository;use HardnessMcp\Tools\ToolInterface;use PDO;
+final class FinanceToolsModule implements ToolModuleInterface {private FinanceSummaryRepositoryInterface $repository;public function __construct(FinanceSummaryRepositoryInterface $repository){$this->repository=$repository;}public static function fromPdo(PDO $pdo):self{return new self(new PdoFinanceSummaryRepository($pdo));} /** @return ToolInterface[] */ public function tools():array{return [new FinanceSummaryTool('receivable',new FinanceSummaryHandler('receivable',$this->repository)),new FinanceSummaryTool('payable',new FinanceSummaryHandler('payable',$this->repository)),new FinanceCashFlowTool($this->repository)];}}

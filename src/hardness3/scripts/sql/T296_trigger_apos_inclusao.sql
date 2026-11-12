@@ -1,0 +1,5 @@
+CREATE TRIGGER `T296_trigger_apos_inclusao` AFTER INSERT ON `T296` FOR EACH ROW BEGIN   
+
+  UPDATE D009 SET D009_Quantidade_OC=D009_Quantidade_OC_3(D009_Id, 0) where D009_Id=NEW.T296_D009_Id;
+ 
+END;

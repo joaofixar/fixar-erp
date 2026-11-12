@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace HardnessMcp\Tools\Commercial\Infrastructure;
+
+use HardnessMcp\Tools\Commercial\Domain\OpportunityRepositoryInterface;
+use PDO;
+
+final class PdoOpportunityRepository implements OpportunityRepositoryInterface
+{
+    private PDO $pdo;
+    public function __construct(PDO $pdo) { $this->pdo = $pdo; }
+    public function find(int $companyId, string $from, string $to, string $type, int $minimumAge, ?int $customerId, ?int $sellerId, ?string $productCode, float $minimumPending, ?array $cursor, int $limit): array
+    {
+        $queries = [];
+        if ($type === 'all' || $type === 'quote_pending_order') $queries[] = $this->quotesQuery($productCode, $minimumAge);
+        if ($type === 'all' || $type === 'order_pending_invoice') $queries[] = $this->ordersQuery($productCode, $minimumAge);
+        $sql = 'SELECT * FROM (' . implode(' UNION ALL ', $queries) . ') opportunities WHERE company_id=:company_id AND issued_at>=:date_from AND issued_at<=:date_to AND age_days>=:minimum_age AND pending_total>=:minimum_pending';
+        $parameters = ['company_id' => $companyId, 'date_from' => $from, 'date_to' => $to, 'minimum_age' => $minimumAge, 'minimum_pending' => $minimumPending]; if ($productCode !== null && $productCode !== '') { if ($type === 'all' || $type === 'quote_pending_order') $parameters['product_code_quote'] = $productCode; if ($type === 'all' || $type === 'order_pending_invoice') $parameters['product_code_order'] = $productCode; }
+        if ($type === 'all' || $type === 'quote_pending_order') $parameters += ['quote_company_id' => $companyId, 'quote_date_from' => $from, 'quote_date_to' => $to];
+        if ($type === 'all' || $type === 'order_pending_invoice') $parameters += ['order_company_id' => $companyId, 'order_date_from' => $from, 'order_date_to' => $to];
+        if ($customerId !== null) { $sql .= ' AND customer_id=:customer_id'; $parameters['customer_id'] = $customerId; }
+        if ($sellerId !== null) { $sql .= ' AND seller_id=:seller_id'; $parameters['seller_id'] = $sellerId; }
+        if ($cursor !== null) { $sql .= " AND ((CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END) > :cursor_priority OR ((CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END) = :cursor_priority AND (pending_total < :cursor_pending OR (pending_total = :cursor_pending AND (issued_at > :cursor_date OR (issued_at = :cursor_date AND (document_id > :cursor_document_id OR (document_id = :cursor_document_id AND opportunity_type > :cursor_type))))))))"; $parameters['cursor_priority'] = $cursor['priority']; $parameters['cursor_pending'] = $cursor['pending_total']; $parameters['cursor_date'] = $cursor['issued_at']; $parameters['cursor_document_id'] = $cursor['document_id']; $parameters['cursor_type'] = $cursor['opportunity_type']; }
+        $sql .= " ORDER BY CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,pending_total DESC,issued_at ASC,document_id ASC,opportunity_type ASC LIMIT :limit";
+        $statement = $this->pdo->prepare($sql); foreach ($parameters as $name => $value) $statement->bindValue(':' . $name, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR); $statement->bindValue(':limit', min($limit, 51), PDO::PARAM_INT); $statement->execute(); return $statement->fetchAll() ?: [];
+    }
+    private function quotesQuery(?string $productCode, int $minimumAge): string
+    {
+        $product = $productCode === null || $productCode === '' ? '' : ' AND EXISTS (SELECT 1 FROM T004 product_filter WHERE product_filter.T004_T003_Id=t003.T003_Id AND product_filter.T004_Codigo_Produto=:product_code_quote AND IFNULL(product_filter.T004_Flag_Cancelado,\'N\')<>\'S\' AND IFNULL(product_filter.T004_Flag_Excluir,2)<>1)';
+        return "SELECT 'quote_pending_order' opportunity_type,t003.T003_Id document_id,t003.T003_C004_Id company_id,t003.T003_Data_Emissao issued_at,DATEDIFF(CURDATE(),t003.T003_Data_Emissao) age_days,t003.T003_D024_Id customer_id,COALESCE(NULLIF(customer.D024_Nome_Fantasia,''),customer.D024_Nome_Empresa) customer_name,t003.T003_C007_Id_Vendedor_Interno seller_id,seller.C007_Nome seller_name,t003.T003_Valor_Total original_total,COALESCE(converted.converted_total,0) progressed_total,GREATEST(t003.T003_Valor_Total-COALESCE(converted.converted_total,0),0) pending_total,CASE WHEN DATEDIFF(CURDATE(),t003.T003_Data_Emissao)>=30 AND GREATEST(t003.T003_Valor_Total-COALESCE(converted.converted_total,0),0)>=1000 THEN 'high' WHEN DATEDIFF(CURDATE(),t003.T003_Data_Emissao)>=14 OR GREATEST(t003.T003_Valor_Total-COALESCE(converted.converted_total,0),0)>=1000 THEN 'medium' ELSE 'low' END priority FROM T003 t003 LEFT JOIN D024 customer ON customer.D024_Id=t003.T003_D024_Id LEFT JOIN C007 seller ON seller.C007_Id=t003.T003_C007_Id_Vendedor_Interno LEFT JOIN (SELECT t004.T004_T003_Id quote_id,SUM(t006.T006_Valor_Total_Preco) converted_total FROM T003 source_quote INNER JOIN T004 t004 ON t004.T004_T003_Id=source_quote.T003_Id INNER JOIN T006 t006 ON t006.T006_T004_Id=t004.T004_Id WHERE source_quote.T003_C004_Id=:quote_company_id AND source_quote.T003_Flag_Status_Orcamento='P' AND source_quote.T003_Data_Emissao>=:quote_date_from AND source_quote.T003_Data_Emissao<=:quote_date_to AND source_quote.T003_Data_Emissao<=DATE_SUB(CURDATE(), INTERVAL {$minimumAge} DAY) AND IFNULL(t006.T006_Flag_Cancelado,'N')<>'S' AND IFNULL(t006.T006_Flag_Excluir,2)<>1 GROUP BY t004.T004_T003_Id) converted ON converted.quote_id=t003.T003_Id WHERE t003.T003_Flag_Status_Orcamento='P'" . $product;
+    }
+    private function ordersQuery(?string $productCode, int $minimumAge): string
+    {
+        $product = $productCode === null || $productCode === '' ? '' : ' AND EXISTS (SELECT 1 FROM T006 product_filter WHERE product_filter.T006_T005_Id=t005.T005_Id AND product_filter.T006_Codigo_Produto=:product_code_order AND IFNULL(product_filter.T006_Flag_Cancelado,\'N\')<>\'S\' AND IFNULL(product_filter.T006_Flag_Excluir,2)<>1)';
+        return "SELECT 'order_pending_invoice' opportunity_type,t005.T005_Id document_id,t005.T005_C004_Id company_id,t005.T005_Data_Emissao issued_at,DATEDIFF(CURDATE(),t005.T005_Data_Emissao) age_days,t005.T005_D024_Id customer_id,COALESCE(NULLIF(customer.D024_Nome_Fantasia,''),customer.D024_Nome_Empresa) customer_name,t005.T005_C007_Id_Vendedor_Interno seller_id,seller.C007_Nome seller_name,t005.T005_Valor_Total_Produtos original_total,COALESCE(invoiced.invoiced_total,0) progressed_total,GREATEST(t005.T005_Valor_Total_Produtos-COALESCE(invoiced.invoiced_total,0),0) pending_total,CASE WHEN DATEDIFF(CURDATE(),t005.T005_Data_Emissao)>=30 AND GREATEST(t005.T005_Valor_Total_Produtos-COALESCE(invoiced.invoiced_total,0),0)>=1000 THEN 'high' WHEN DATEDIFF(CURDATE(),t005.T005_Data_Emissao)>=14 OR GREATEST(t005.T005_Valor_Total_Produtos-COALESCE(invoiced.invoiced_total,0),0)>=1000 THEN 'medium' ELSE 'low' END priority FROM T005 t005 LEFT JOIN D024 customer ON customer.D024_Id=t005.T005_D024_Id LEFT JOIN C007 seller ON seller.C007_Id=t005.T005_C007_Id_Vendedor_Interno LEFT JOIN (SELECT t006.T006_T005_Id order_id,SUM(t008.T008_Valor_Total_Preco) invoiced_total FROM T005 source_order INNER JOIN T006 t006 ON t006.T006_T005_Id=source_order.T005_Id INNER JOIN T008 t008 ON t008.T008_T006_Id=t006.T006_Id INNER JOIN T007 t007 ON t007.T007_Id=t008.T008_T007_Id WHERE source_order.T005_C004_Id=:order_company_id AND source_order.T005_Data_Emissao>=:order_date_from AND source_order.T005_Data_Emissao<=:order_date_to AND source_order.T005_Data_Emissao<=DATE_SUB(CURDATE(), INTERVAL {$minimumAge} DAY) AND IFNULL(t008.T008_Flag_Excluir,'N')<>'S' AND t007.T007_Flag_Entrada_Saida='S' AND t007.T007_Flag_Cancelada='N' AND t007.T007_Numero_Protocolo_Nfe IS NOT NULL AND TRIM(t007.T007_Numero_Protocolo_Nfe)<>'' GROUP BY t006.T006_T005_Id) invoiced ON invoiced.order_id=t005.T005_Id WHERE 1=1" . $product;
+    }
+}

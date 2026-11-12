@@ -1,0 +1,8 @@
+<?php
+$confConnect = array(
+	// Banco de dados
+	'dbHost' => 'localhost',
+	'dbUser' => 'root',
+	'dbPass' => '1234'
+);
+?>

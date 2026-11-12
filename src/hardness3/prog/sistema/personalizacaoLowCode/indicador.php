@@ -1,0 +1,20 @@
+<?php
+ namespace hardness; if ($g['modoDesenvolvedor']) { goto SVHlH; } if (!$g['modoDesenvolvedorApp']) { goto jLNxf; } Personalizacoes::$rootDir = Apps::getDirEditor(); jLNxf: goto CphbP; SVHlH: Personalizacoes::$rootDir = 'ide/'; CphbP: set_time_limit(0); switch ($g['r'][3]) { case 'indicador': goto hJ_E2; f60Xb: $json = json_decode($json, JSON_OBJECT_AS_ARRAY); goto b0Fl9; aCdEX: CzQao: goto NzFwX; ngrbb: goto BxI5s; goto rFSE5; hU4c7: if (!empty($r_indicadorPreVisualizar)) { goto x_aSM; } goto FPjDr; U93t0: $valor = '[[valor]]'; goto ukcrG; YiI1U: goto alcIn; goto yujEE; vQkGz: if ($id == 'editor') { goto EqFwn; } goto w3TPo; ukcrG: NjD7c: goto rbwfM; oQ6cQ: oQC9f: goto xT3BT; Wy_Ox: $valor = $json['valor'] ? $json['valor'] : '-'; goto RzB6K; Q2AyL: goto QVKMY; goto s3vnb; rFSE5: fbvCi: goto KRgf5; nek03: echo $resposta; goto bF24a; FPjDr: die; goto Rdorm; CLSx1: $i++; goto YiI1U; fEgMt: alcIn: goto tp3gO; zegbF: EqFwn: goto hU4c7; UqjlQ: BxI5s: goto CLSx1; tp3gO: if (!($i < 3)) { goto darcl; } goto suzeQ; MmV1j: Personalizacoes::$rootDir = 'ide/'; goto ngrbb; Rdorm: x_aSM: goto B72Wg; RzB6K: $classe = $json['classe'] ? $json['classe'] : 'bi-indicador-padrao'; goto avEMB; KRgf5: goto lEwL1; goto PZh_P; hJ_E2: $i = 0; goto fEgMt; bF24a: goto darcl; goto UqjlQ; avEMB: if (empty($json['sql'])) { goto Ruh3A; } goto FhAKZ; b0cTt: goto fbvCi; goto nrfbH; aaZ7I: if ($i === 1 && !$g['modoDesenvolvedor']) { goto WqibV; } goto SfARS; FhAKZ: $indicadorResultado = mysqli_fetch_array(mysqli_query($json['sql'])); goto a5B4x; b0Fl9: if ($json) { goto CzQao; } goto LUtKS; xT3BT: $nome = $json['nome'] ? $json['nome'] : '-'; goto Wy_Ox; FJnNI: lEwL1: goto Azyrw; w3TPo: $indicador = Personalizacoes::getIndicadorNovo($id); goto rPod3; Wpk4U: Personalizacoes::$rootDir = Apps::getDirAtivos(); goto xROsv; g0atT: if (!($id == 'editor')) { goto c2_Gq; } goto d2Fhd; P1Pdy: $resposta .= <<<EOT
+                <div class="bi-indicador {$classe}">
+                    <div class="label" style="display: flex; justify-content: center;">
+                        <div>{$nome}</div>
+                    </div>
+                    <div class="valor" style="display: flex; justify-content: center;">
+                        <div>{$valor}</div>
+                    </div>
+                <div>
+EOT;
+goto g0atT; RgiPj: Ruh3A: goto P1Pdy; B72Wg: echo <<<EOT
+\t\t\t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+                // Para corrigir um bug onde o editor "se movimenta" ao atualizar a tela
+                setTimeout(function() {
+                    \$('.formEditor-CodigoJsonBI').css('left', '16px');
+                }, 10);                
+\t\t\t} </script></div>
+EOT;
+goto iXJ1e; Lx9kK: if ($i === 0 && !$g['modoDesenvolvedor']) { goto xT0sa; } goto aaZ7I; yujEE: darcl: goto Q2AyL; SfARS: die('Caminho personalizado não encontrado.'); goto b0cTt; PZh_P: xT0sa: goto Wpk4U; xROsv: goto BxI5s; goto FJnNI; JNOue: $json = json_decode($indicador['codigo'], JSON_OBJECT_AS_ARRAY); goto h9cqD; nrfbH: WqibV: goto MmV1j; NzFwX: $resposta .= '<div style="height: 90%; display: flex; align-items: center; justify-content: center;"><div style="width: 311px; height: 65px;">'; goto oQ6cQ; w2fdm: if (!($valor == '-')) { goto NjD7c; } goto U93t0; iXJ1e: $json = apc_fetch("indicador-pre-visualizar-{$r_indicadorPreVisualizar}"); goto f60Xb; hiouF: $resposta = ''; goto vQkGz; iH5Ra: c2_Gq: goto nek03; rbwfM: $valor = str_replace('[[valor]]', $valorResultado, $valor); goto RgiPj; d2Fhd: $resposta .= '</div></div>'; goto iH5Ra; suzeQ: $id = $g['rOriginal'][3]; goto hiouF; rPod3: if ($indicador) { goto ZbMhz; } goto Lx9kK; a5B4x: $valorResultado = number_format($indicadorResultado[0], isset($json['decimais']) ? $json['decimais'] : 2, ',', '.'); goto w2fdm; Azyrw: ZbMhz: goto JNOue; h9cqD: goto oQC9f; goto zegbF; LUtKS: die('<div style="margin: 4px;">Erro ao processar JSON: ' . json_last_error_msg() . '</div>'); goto aCdEX; s3vnb: } uaWGk: QVKMY:

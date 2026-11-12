@@ -1,0 +1,10 @@
+[Unit]
+Description=Schedule Hardness Webhooks bounded retention
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=hardness-webhooks-retention.service
+
+[Install]
+WantedBy=timers.target

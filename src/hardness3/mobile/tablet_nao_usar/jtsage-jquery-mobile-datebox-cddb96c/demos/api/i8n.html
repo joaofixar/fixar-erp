@@ -1,0 +1,87 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>jQueryMobile - DateBox Demos</title>
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css" />
+	<link type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" rel="stylesheet" /> 
+	<link type="text/css" href="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog.min.css" rel="stylesheet" /> 
+	<link type="text/css" href="http://dev.jtsage.com/jQM-DateBox/css/demos.css" rel="stylesheet" /> 
+	
+	<!-- NOTE: Script load order is significant! -->
+	
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script> 
+	<script type="text/javascript" src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/jQM-DateBox/demos/extras.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/gpretty/prettify.js"></script>
+	<link type="text/css" href="http://dev.jtsage.com/gpretty/prettify.css" rel="stylesheet" />
+	<script type="text/javascript">
+		$('div').live('pagecreate', function() {
+			prettyPrint()
+		});
+	</script>
+	
+</head>
+<body>
+<div data-role="page" data-theme="c" id="apiConfig"> 
+	<div data-role="header"> 
+		<h1>jQueryMobile - DateBox</h1>
+		<a href="../../" data-icon="home" data-iconpos="notext">Home</a>
+	</div>
+	<div data-role="content" data-theme="c">
+		<h2>Internationalization</h2>
+		
+		<p>Some internationalization support is complete.  To use, simply link the appropriate file(s) from: <a href="http://dev.jtsage.com/cdn/datebox/i18n/">http://dev.jtsage.com/cdn/datebox/i18n/</a>.  It must be loaded <b>after</b> datebox. Note that the last file loaded will be the "default" language.</p>
+		
+		<h3>Contributing</h3>
+		
+		<p>The contribution system has been moved to gettext - this streamlines the submission process significantly.  You can submit translations at <a href="http://crowdin.net/project/jquery-mobile-datebox">crowdin</a>.</p>
+		
+		<p>If you prefer, the project .pot file is here: <a href="https://github.com/jtsage/jquery-mobile-datebox/blob/master/i18n/po/datebox.pot">datebox.pot</a>
+		
+		<p>Finally, you can generate the following:</p>
+		
+		<pre class="prettyprint">jQuery.extend(jQuery.mobile.datebox.prototype.options.lang, {
+    'en': {
+        setDateButtonLabel: "Set Date",
+        setTimeButtonLabel: "Set Time",
+        setDurationButtonLabel: "Set Duration",
+        calTodayButtonLabel: "Jump to Today",
+        titleDateDialogLabel: "Set Date",
+        titleTimeDialogLabel: "Set Time",
+        daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        daysOfWeekShort: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+        monthsOfYear: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        monthsOfYearShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        durationLabel: ['Days', 'Hours', 'Minutes', 'Seconds'],
+        durationDays: ['Day', 'Days'],
+        tooltip: "Open Date Picker",
+        nextMonth: "Next Month",
+        prevMonth: "Previous Month",
+        timeFormat: 12,
+        headerFormat: '%A, %B %-d, %Y',
+        dateFieldOrder: ['m', 'd', 'y'],
+        timeFieldOrder: ['h', 'i', 'a'],
+        slideFieldOrder: ['y', 'm', 'd'],
+        dateFormat: '%m/%d/%Y',
+        useArabicIndic: false,
+        isRTL: false,
+        calStartDay: 0,
+        clearButton: 'clear'
+    }
+});
+jQuery.extend(jQuery.mobile.datebox.prototype.options, {
+    useLang: 'en'
+});</pre>
+		<p>Multiple languages can be loaded at once, simply change options.useLang (even in realtime) in order to switch the language. See <a href="http://dev.jtsage.com/jQM-DateBox/tests/lang.html" target="_blank">this</a> for an example.</p>
+		<p>If you wish to have your translation included in datebox, either fork your own copy at github and send me a pull request, or simply e-mail me the file <a href="mailto:jtsage+datebox@gmail.com">jtsage+datebox@gmail.com</a>.</p>
+		
+	</div>
+	<div data-role="footer">
+	</div>
+</div>
+</html>

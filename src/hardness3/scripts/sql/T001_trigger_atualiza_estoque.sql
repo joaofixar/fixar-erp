@@ -1,0 +1,3 @@
+CREATE TRIGGER T001_trigger_atualiza_estoque BEFORE INSERT ON `T001` FOR EACH ROW BEGIN
+  SET NEW.T001_Data_Hora_Insercao=NOW();
+END;

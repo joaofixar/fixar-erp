@@ -1,0 +1,160 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>jQueryMobile - DateBox Demos</title>
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css" />
+	<link type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" rel="stylesheet" /> 
+	<link type="text/css" href="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog.min.css" rel="stylesheet" /> 
+	<link type="text/css" href="http://dev.jtsage.com/jQM-DateBox/css/demos.css" rel="stylesheet" /> 
+	
+	<!-- NOTE: Script load order is significant! -->
+	
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script> 
+	<script type="text/javascript" src="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/simpledialog/latest/jquery.mobile.simpledialog.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/jQM-DateBox/demos/extras.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/gpretty/prettify.js"></script>
+	<link type="text/css" href="http://dev.jtsage.com/gpretty/prettify.css" rel="stylesheet" />
+	<script type="text/javascript">
+		$('div').live('pagecreate', function() {
+			prettyPrint()
+		});
+	</script>
+	
+</head>
+<body>
+<div data-role="page" data-theme="c" id="oddIndex"> 
+	<div data-role="header"> 
+		<h1>jQueryMobile - DateBox</h1>
+		<a href="../../" data-icon="home" data-iconpos="notext">Home</a>
+	</div>
+	<div data-role="content" data-theme="c">
+		<div class="content-secondary"> 
+	
+			<div id="jqm-homeheader"> 
+				<h1 id="jqm-logo"><img src="../jquery-logo-db.png" alt="jQuery Mobile Framework :: DateBox" /></h1> 
+				<p>A Date and Time Picker plugin for jQueryMobile</p> 
+				
+			</div> 
+			
+			<div class="optdemos sidebar"></div>
+			
+		</div><!--/content-primary-->	
+		
+		<div class="content-primary"> 
+				<h2>Forced Popup Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="forcepop">Some Date</label><input name="forcepop" type="date" data-role="datebox" id="forcepop" data-options='{"useDialogForceFalse": true}' />
+				</div>
+				
+				<p>You can force the dialog mode off with 'useDialogForceFalse' set to 'true' (this is the default!!)</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"useDialogForceFalse": true}'&gt;</pre>
+				
+				
+				<h2>Forced Dialog Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="forcediag">Some Date</label><input name="forcediag" type="date" data-role="datebox" id="forcediag" data-options='{"useDialogForceTrue": true, "useDialogForceFalse": false}' />
+				</div>
+				
+				<p>You can force the dialog mode on with 'useDialogForceTrue' set to 'true' and 'useDialogForceFalse' set to 'false'</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"useDialogForceTrue": true, "useDialogForceFalse": false}'&gt;</pre>
+				
+				<h2>Fullscreen (non-forced) Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="noforcefull">Some Date</label><input name="noforcefull" type="date" data-role="datebox" id="noforcefull" data-options='{"fullScreen": true}' />
+				</div>
+				
+				<p>On small displays (&lt; 400px wide), this will use the full screen to display the picker, *without* using a dialog - 'fullScreen' set to 'true'</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"fullScreen": true}'&gt;</pre>
+   
+				<h2>Fullscreen (forced) Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="fullscreen">Some Date</label><input name="fullscreen" type="date" data-role="datebox" id="fullscreen" data-options='{"fullScreen": true, "fullScreenAlways": true}' />
+				</div>
+				
+				<p>This will use the full screen to display the picker, *without* using a dialog - 'fullScreen' and 'fullScreenAlways' set to 'true'</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"fullScreen": true, "fullScreenAlways": true}'&gt;</pre>
+  
+				<h2>Centered Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="centerdisp">Some Date</label><input name="centerdisp" type="date" data-role="datebox" id="centerdisp" data-options='{"centerWindow": true}' />
+				</div>
+				
+				<p>You can force DateBox to display centered on the page with 'centerWindow' set to 'true'.</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"centerWindow": true}'&gt;</pre>
+   
+				<h2>Inline Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="forceinline">Some Date</label><input name="forceinline" type="date" data-role="datebox" id="forceinline" data-options='{"useInline": true}' />
+				</div>
+				
+				<p>You can force DateBox to display inline with 'useInline' set to 'true'.</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"useInline": true}'&gt;</pre>
+   
+				<h2>Inline Blind Mode</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="inlineblind">Some Date</label><input name="inlineblind" type="date" data-role="datebox" id="inlineblind" data-options='{"useInline": true, "noButtonFocusMode": true, "useInlineBlind": true}' />
+				</div>
+				
+				<p>You can force DateBox to display inline (with hiding) with 'useInline', 'useInlineBlind', and 'noButtonFocusMode' set to 'true'.</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"useInline": true, "noButtonFocusMode": true, "useInlineBlind": true}'&gt;</pre>
+   
+				<h2>Inline w/o Input</h2>
+				
+				<div data-role="fieldcontain">
+					<label for="useInlineHideInput">Some Date</label><input name="useInlineHideInput" type="date" data-role="datebox" id="useInlineHideInput" data-options='{"useInline": true, "useInlineHideInput": true}' />
+				</div>
+				
+				<p>You can force DateBox to display inline (without the input hiding) with 'useInline' and 'useInlineHideInput' set to 'true'.</p>
+				
+				<pre class="prettyprint">&lt;label for="mydate"&gt;Some Date&lt;/label&gt;
+
+&lt;input name="mydate" id="mydate" type="date" data-role="datebox"
+   data-options='{"useInline": true, "useInlineHideInput": true}'&gt;</pre>
+				
+		</div> 
+		
+	</div>
+	<div data-role="footer">
+	</div>
+</div>
+</html>

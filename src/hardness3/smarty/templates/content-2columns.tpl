@@ -1,0 +1,2 @@
+<div id="{$content1}" class="content content-2columns {if $content1Width} content-2columns-width content-2columns-width-{$content1Width}{/if}" style="width: 49.9%; height: 100%; float: left;"></div>
+<div id="{$content2}" class="content content-2columns content-2columns-last" style="width: 49.9%; height: 100%; float: right;"></div>

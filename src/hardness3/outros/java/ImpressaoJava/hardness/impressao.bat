@@ -1,0 +1,1 @@
+start C:\hardness\impressao.exe "idImpressora" "nomeImpressora" "urlEmpresa"

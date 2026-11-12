@@ -1,0 +1,5 @@
+/*
+    Y. Dados da Cobrança
+    // ----------------------------CAMPOS NÃO IMPLEMENTADOS NO nf3.class - hardness -----------------------------------------//
+    #   ID    Campo   Descrição                                       Tipo    Ocor.       Tam.            Observação
+*/

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173dc4">
+  <title>Dashboard | Hardness</title>
+  <link rel="stylesheet" href="dashboard.css?v=68">
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar" aria-label="Indicadores">
+      <div class="brand"><img src="../static/img/logo_hardness.png" alt="Hardness"></div>
+      <div class="sidebar-heading"><span>Indicadores</span><small id="indicatorCount">0 visões</small></div>
+      <nav class="indicator-menu" id="indicatorMenu"></nav>
+      <div class="sidebar-footer"><span class="status-dot"></span><span>Empresa atual</span></div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div><p class="eyebrow">PAINEL DE INDICADORES</p><h1 id="dashboardTitle">Dashboard</h1></div>
+        <div class="company-brand" id="companyBrand" hidden><img id="companyLogo" src="company-logo.php?v=1" alt="Logo da empresa atual"></div>
+        <div class="topbar-actions"><button class="manage-access" id="manageAccess" type="button" hidden>Gerenciar acessos</button><time id="updatedAt">Carregando…</time><button class="refresh" id="refreshDashboard" type="button" aria-label="Atualizar">↻</button></div>
+      </header>
+
+      <section class="context-header">
+        <div class="context-icon" id="contextIcon" aria-hidden="true"></div>
+        <div class="context-copy"><p class="eyebrow">INDICADOR PERSONALIZADO</p><h2 id="contextTitle">Carregando indicador…</h2><p id="contextSubtitle"></p></div>
+        <div class="indicator-exports" id="indicatorExports" aria-label="Exportar indicador">
+          <span>EXPORTAR</span><button type="button" data-export="csv" disabled>CSV</button><button type="button" data-export="pdf" disabled>PDF</button>
+        </div>
+      </section>
+      <div class="indicator-tabs-row" id="indicatorTabsRow" hidden>
+        <nav class="indicator-tabs" id="indicatorTabs" hidden></nav>
+        <section class="compact-summary" id="indicatorCompactSummary" hidden aria-live="polite"></section>
+      </div>
+
+      <form class="filters" id="indicatorFilters" hidden></form>
+
+      <section class="indicator-loading" id="indicatorLoading" hidden aria-live="polite" aria-busy="true">
+        <div class="indicator-loading-card" role="status">
+          <div><strong>Carregando indicador</strong><small>Consultando e consolidando os dados. Aguarde um momento.</small><span class="indicator-loading-progress" role="progressbar" aria-label="Carregamento em andamento"><i></i></span></div>
+        </div>
+      </section>
+
+      <section class="summary-grid" id="indicatorSummary" aria-live="polite"></section>
+      <section id="indicatorPrimaryList"></section>
+      <section id="indicatorChart"></section>
+      <section id="indicatorCalendar"></section>
+      <section id="indicatorMap"></section>
+      <section id="indicatorList"></section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <div class="access-modal" id="accessModal" hidden role="dialog" aria-modal="true" aria-labelledby="accessModalTitle">
+    <div class="access-dialog">
+      <header><div><p class="eyebrow">DASHBOARD PERSONALIZADO</p><h2 id="accessModalTitle">Gerenciar acessos</h2><p>Defina quais indicadores perfis e usuários podem visualizar.</p></div><button type="button" class="modal-close" id="closeAccessModal" aria-label="Fechar">×</button></header>
+      <div class="access-layout">
+        <aside><nav class="access-tabs" aria-label="Tipo de acesso"><button type="button" class="active" data-access-mode="perfis">Perfis</button><button type="button" data-access-mode="usuarios">Usuários</button></nav><div id="accessSubjectsHeading" class="access-heading">Perfis</div><div id="accessSubjects" class="access-subjects"></div></aside>
+        <section class="access-detail"><div id="accessDetail"></div></section>
+      </div>
+      <footer><span id="accessStatus"></span><button type="button" class="secondary" id="cancelAccess">Cancelar</button><button type="button" class="primary" id="saveAccess">Salvar alterações</button></footer>
+    </div>
+  </div>
+  <div class="indicator-detail-modal" id="indicatorDetailModal" hidden role="dialog" aria-modal="true" aria-labelledby="indicatorDetailTitle">
+    <div class="indicator-detail-dialog">
+      <header><div><p class="eyebrow" id="indicatorDetailEyebrow">DETALHAMENTO</p><h2 id="indicatorDetailTitle">Itens considerados</h2></div><div class="indicator-detail-actions"><button type="button" class="detail-export" id="exportIndicatorDetailPdf" disabled>Exportar PDF</button><button type="button" class="modal-close" id="closeIndicatorDetailModal" aria-label="Fechar">×</button></div></header>
+      <div class="indicator-detail-content" id="indicatorDetailContent"></div>
+    </div>
+  </div>
+  <div class="agenda-modal" id="agendaModal" hidden>
+    <div class="agenda-dialog" role="dialog" aria-modal="true" aria-labelledby="agendaTitle">
+      <header><h2 id="agendaTitle">Incluir agenda</h2><button type="button" class="modal-close" id="closeAgendaModal" aria-label="Fechar agenda">×</button></header>
+      <p id="agendaStatus" role="status" aria-live="polite"></p>
+      <div id="agendaNativeContent" class="agenda-native-content">
+        <div id="agendaSaving" class="agenda-saving" hidden role="status" aria-live="polite">
+          <div class="indicator-loading-card">
+            <strong id="agendaSavingMessage">Carregando agenda…</strong>
+            <span class="indicator-loading-progress" role="progressbar" aria-label="Carregamento em andamento"><i></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="brazil-map.js?v=1"></script>
+  <script src="dashboard.js?v=65"></script>
+  <script src="agenda.js?v=7"></script>
+</body>
+</html>

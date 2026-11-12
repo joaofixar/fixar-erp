@@ -1,0 +1,6 @@
+#!/bin/bash
+GOON=1
+while [ $GOON ]; do
+sudo du -sch /var/lib/mysql/e* | sort -h > /var/www/html/hardness3/scripts/dadosSistema/banco.txt 
+sleep 10
+done

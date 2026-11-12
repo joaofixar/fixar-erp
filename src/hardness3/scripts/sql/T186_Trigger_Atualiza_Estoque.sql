@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS `T186_Trigger_Atualiza_Estoque`;

@@ -1,0 +1,4 @@
+/* Sobrescreve o css do jqueryui.css
+------------------*/
+.ui-widget-header { border: 1px solid #333333; background: #444444 url(/hardness3/static/css/temas/padrao/images/ui-bg_highlight-soft_blue.png) 50% 50% repeat-x; color: #ffffff; font-weight: bold; }
+.ui-widget-header a { color: #ffffff; }

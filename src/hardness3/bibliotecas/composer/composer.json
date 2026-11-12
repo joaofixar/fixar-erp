@@ -1,0 +1,19 @@
+{
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.24",
+        "fabpot/goutte": "^4.0",
+        "picqer/php-barcode-generator": "^2.2",
+        "league/fractal": "^0.20.1",
+        "guzzlehttp/guzzle": "^7.0",
+        "nfephp-org/sped-nfe": "^5.1",
+        "tecnickcom/tcpdf": "6.3.*",
+        "setasign/fpdi": "^2.0",
+        "nfephp-org/sped-da": "^1.1",
+        "illuminate/collections": "8.83.27"
+    },
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    }
+}

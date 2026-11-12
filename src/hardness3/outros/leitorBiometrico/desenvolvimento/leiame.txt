@@ -1,0 +1,3 @@
+nitgen enbsp.rar	// biblioteca SDK utilizada para se comunicar com o leitor (foi utilizado os exemplos)
+synapse39.zip		// biblioteca para comunicação web (http)
+OverbyteIcsV7.zip	// MD5

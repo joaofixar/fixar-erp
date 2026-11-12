@@ -1,0 +1,18 @@
+[Unit]
+Description=Hardness Webhooks bounded retention
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=hardness-webhooks
+Group=hardness-webhooks
+WorkingDirectory=/opt/hardness
+EnvironmentFile=/etc/hardness/webhooks/webhooks.env
+Environment=WEBHOOKS_RETENTION_LIMIT=100
+ExecStart=/usr/bin/php /opt/hardness/webhooks/cli/retention.php
+TimeoutStartSec=10min
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full

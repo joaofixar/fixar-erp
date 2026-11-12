@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "Hardness REST API",
+    "description": "Collection para testar a REST API generica do ERP.",
+    "_postman_id": "d8f5a4be-2ee6-4a17-9a0f-rest-api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://example.test/api/v1"
+    },
+    {
+      "key": "api_token",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{api_token}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "X-API-Token",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health"
+      }
+    },
+    {
+      "name": "Version",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/version"
+      }
+    },
+    {
+      "name": "Auth Me",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/auth/me"
+      }
+    },
+    {
+      "name": "List Tables",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/tables"
+      }
+    },
+    {
+      "name": "Get Schema",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/tables/T005/schema"
+      }
+    },
+    {
+      "name": "List T005",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/tables/T005?sort=-T005_Id&limit=50&offset=0"
+      }
+    },
+    {
+      "name": "Filter by FK",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/tables/T006?filter[T006_T005_Id][eq]=500"
+      }
+    },
+    {
+      "name": "Create T005",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"T005_D024_Id\": 123,\n  \"T005_Observacao_1\": \"Teste\"\n}"
+        },
+        "url": "{{base_url}}/tables/T005"
+      }
+    },
+    {
+      "name": "Patch T005",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"T005_D024_Id\": 123,\n  \"T005_Observacao_1\": \"Teste alterado\"\n}"
+        },
+        "url": "{{base_url}}/tables/T005/999"
+      }
+    }
+  ]
+}

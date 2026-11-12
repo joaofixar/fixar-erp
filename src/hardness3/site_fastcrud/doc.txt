@@ -1,0 +1,54 @@
+1. Copiar e230 para dev_e230
+2. Limpar C004 e C007
+UPDATE `dev_e230`.`c004` SET `C004_Nome_Empresa` = 'EMPRESA' ,`C004_Cnpj` = '' ,`C004_Caminho_Sistema` = 'E000' ,`C004_Banco_Dados` = 'E000' ,`C004_Banco_Configuracao` = 'E000' ,`C004_Nome_Abreviado` = 'EMPRESA' ,`C004_Responsavel_Contato` = '' ,`C004_Telefone` = '' ,`C004_Logradouro` = '' ,`C004_Numero` = '' ,`C004_Bairro` = '' ,`C004_Cep` = '' ,`C004_Ultimo_Numero_Nota_Fiscal_Eletronica` = '' ,`C004_Logo_Marca` = '' ,`C004_Senha_Certificados` = '' ,`C004_Localizacao_Certificados` = '' ,`C004_Certificado_Digital` = '' ,`C004_Menu_Extra_Html` = '' WHERE `C004_Id` = '1'; 
+UPDATE `dev_e230`.`c007` SET `C007_Login` = 'login' ,`C007_Senha` = 'senha' ,`C007_Nome` = 'LOGIN' ,`C007_Primeiro_Nome` = 'LOGIN' ,`C007_Data_Alteracao_Senha` = '' ,`C007_Ultimo_Acesso` = '' WHERE `C007_Id` = '269'; 
+3. Truncates
+TRUNCATE C008;
+TRUNCATE D001;
+TRUNCATE D007;
+TRUNCATE D009;
+TRUNCATE D022;
+TRUNCATE D024;
+TRUNCATE D027;
+TRUNCATE D047;
+TRUNCATE D049;
+TRUNCATE D060;
+TRUNCATE D082;
+TRUNCATE D085;
+TRUNCATE D110;
+TRUNCATE D116;
+TRUNCATE D130;
+TRUNCATE S003;
+TRUNCATE T001;
+TRUNCATE T002;
+TRUNCATE T003;
+TRUNCATE T004;
+TRUNCATE T005;
+TRUNCATE T006;
+TRUNCATE T007;
+TRUNCATE T008;
+TRUNCATE T009;
+TRUNCATE T010;
+TRUNCATE T011;
+TRUNCATE T012;
+TRUNCATE T013;
+TRUNCATE T029;
+TRUNCATE T066;
+TRUNCATE T089;
+TRUNCATE T090;
+TRUNCATE T098;
+TRUNCATE T118;
+TRUNCATE T127;
+TRUNCATE T132;
+TRUNCATE T134;
+TRUNCATE T136;
+TRUNCATE T162;
+TRUNCATE T178;
+TRUNCATE T185;
+TRUNCATE T199;
+TRUNCATE T200;
+TRUNCATE T212;
+TRUNCATE D006;
+5. dump
+6. remover FOREIGN KEY
+7. exportar personalizacoes
