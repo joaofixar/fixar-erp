@@ -1,0 +1,4 @@
+/*
+                Z. Informações Adicionais da NF-e
+                #   ID    Campo   Descrição                                       Tipo    Ocor.       Tam.            Observação
+            */

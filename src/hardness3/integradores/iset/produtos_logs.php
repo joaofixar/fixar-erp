@@ -1,0 +1,22 @@
+<?php
+namespace hardness;
+require_once dirname(__DIR__) . '/layout.php';
+require_once dirname(dirname(__DIR__)) . '/importadores/importador_orcamento_pdf/inc/app.php';
+importador_orcamento_pdf_bootstrap();
+integradores_exigir_permissao(INTEGRADORES_C029_ACESSAR_PAINEL, 'Seu perfil não possui permissão para acessar a integração ISET.');
+global $g;
+$empresaId = isset($g['empresaAtual']) ? (int) $g['empresaAtual'] : 0;
+require_once dirname(dirname(__DIR__)) . '/bibliotecas/webservices/iset/iset.php';
+$sincronizacoes = (new ISET_HISTORICO())->ultimasSincronizacoesProdutos($empresaId);
+integradores_header('ISET - Sincronizações de produtos', 'produtos', 'iset');
+?>
+<?php integradores_iset_produtos_abas('logs'); ?>
+<style>
+.iset-sincronizacoes{min-height:0}.iset-sincronizacoes-tabela{width:100%;border-collapse:collapse;font-size:12px}.iset-sincronizacoes-tabela th,.iset-sincronizacoes-tabela td{padding:11px 8px;border-bottom:1px solid #d6e0ef;text-align:left;vertical-align:top}.iset-sincronizacoes-tabela th{color:#617495;font-size:10px;text-transform:uppercase}.iset-sincronizacoes-acoes{display:flex;flex-wrap:wrap;gap:8px}.iset-sincronizacoes-acoes .integradores-button{margin:0}.iset-sincronizacoes-operacao{font-weight:800}.iset-sincronizacoes-dialog{width:min(1120px,calc(100% - 32px));border:0;border-radius:14px;box-shadow:0 18px 50px rgba(7,34,77,.25)}.iset-sincronizacoes-dialog::backdrop{background:rgba(7,34,77,.3)}.iset-sincronizacoes-detalhes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.iset-sincronizacoes-detalhes h3{margin:0 0 8px}.iset-sincronizacoes-detalhes pre{max-height:460px;margin:0;overflow:auto;padding:14px;border-radius:9px;background:#f3f7fc;white-space:pre-wrap;overflow-wrap:anywhere}@media(max-width:760px){.iset-sincronizacoes-detalhes{grid-template-columns:1fr}.iset-sincronizacoes-tabela{font-size:11px}}
+</style>
+<section class="integradores-card iset-sincronizacoes"><p class="integradores-eyebrow">Histórico de produtos</p><h2>Sincronizações</h2><p>Última sincronização concluída de cada produto elegível para a ISET.</p><table class="iset-sincronizacoes-tabela"><thead><tr><th>Código</th><th>Descrição</th><th>Última sincronização</th><th>Ação</th><th></th></tr></thead><tbody>
+<?php foreach($sincronizacoes as $sincronizacao): ?><tr><td><?php echo integradores_h($sincronizacao['INT005_Codigo_Produto']); ?></td><td><?php echo integradores_h($sincronizacao['INT005_Descricao_Produto']); ?></td><td><?php echo integradores_h(integradores_formatar_data_hora(substr($sincronizacao['INT005_Data_Hora_Sincronizacao'], 0, 10), substr($sincronizacao['INT005_Data_Hora_Sincronizacao'], 11))); ?></td><td class="iset-sincronizacoes-operacao"><?php echo integradores_h($sincronizacao['INT005_Operacao']); ?></td><td><div class="iset-sincronizacoes-acoes"><button class="integradores-button integradores-button--secundario" type="button" data-antes="<?php echo integradores_h($sincronizacao['INT005_Cadastro_Anterior_Json']); ?>" data-depois="<?php echo integradores_h($sincronizacao['INT005_Cadastro_Posterior_Json']); ?>">Ver antes e depois</button></div></td></tr><?php endforeach; ?>
+<?php if(!$sincronizacoes): ?><tr><td colspan="5">Ainda não há sincronizações concluídas para a empresa atual.</td></tr><?php endif; ?></tbody></table></section>
+<dialog class="iset-sincronizacoes-dialog" id="iset-sincronizacoes-dialog"><h2>Cadastro do produto na ISET</h2><div class="iset-sincronizacoes-detalhes"><section><h3>Antes da sincronização</h3><pre id="iset-sincronizacoes-antes"></pre></section><section><h3>Depois da sincronização</h3><pre id="iset-sincronizacoes-depois"></pre></section></div><button class="integradores-button integradores-button--secundario" type="button" onclick="document.getElementById('iset-sincronizacoes-dialog').close()">Fechar</button></dialog>
+<script>document.querySelectorAll('[data-antes]').forEach(function(botao){botao.onclick=function(){function formatar(valor,padrao){if(!valor)return padrao;try{return JSON.stringify(JSON.parse(valor),null,2)}catch(erro){return valor}}document.getElementById('iset-sincronizacoes-antes').textContent=formatar(this.dataset.antes,'Produto não encontrado na ISET antes da sincronização.');document.getElementById('iset-sincronizacoes-depois').textContent=formatar(this.dataset.depois,'Cadastro posterior não disponível.');document.getElementById('iset-sincronizacoes-dialog').showModal()}})</script>
+<?php integradores_footer(); ?>

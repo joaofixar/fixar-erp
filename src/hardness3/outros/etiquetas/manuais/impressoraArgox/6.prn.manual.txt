@@ -1,0 +1,47 @@
+n        // Usar unidade em polegadas 
+M1477    // Comprimento da etiqueta
+O0220    // Avança início da impressão em x comprimento
+V0       // Define a configuração do cortador e dispensador, V0 = sem função de cortador e descascador
+f320     // Avança cabeça de impressão para ajustar ao corte da etiqueta
+D        // Desativa o comando de interação, deve ser enviado antes de carregar imagens gráficas ou fontes, uma vez que algumas imagens ou fontes podem conter sequências de dados que podem ser mal interpretadas
+L        // Inicia o modo impressão etiqueta até comando E
+D11       // Tamanho do pixel, condiguração mínima D11
+A2        // Define o modo lógico de impressão da imagem, Este comando coloca a impressora em operação lógica OR (A2) ou XOR (A1)
+1922A1405130238[[COD]]
+1911A1204040024[[DESTINATARIO]]
+1911A1203660024[[ENDERECO]]
+1911A1201850024[[T-TRANSPORTADORA]]
+1911A1203250024[[BAIRRO]]
+1911A1201460024[[T-CIDADE]]
+1911A1201060024[[T-TELEFONE]]
+1911A1202480024[[CEP]]
+1911A1202870024[[CIDADE]]
+1911A1203260275[[TELEFONE]]
+1911A1201820350[[T-ESTADO]]
+1911A1202860350[[ESTADO]]
+1911A1202470320[[PEDIDOINTERNO]]
+1911A0804280014Destinat�rio
+1911A0802060014Transportadora
+1911A0801690014Cidade
+1911A0803880014Endere�o
+1911A0803480014Bairro
+1911A0803110014Cidade
+1911A0801300015Fone
+1911A0802710014CEP
+1911A0802040340Estado
+1911A0803490333Telefone
+1911A0803090341Estado
+1911A0802700304Pedido Interno
+1922A1400310048[[PESO]]
+1922A1400310206[[VOLUME]]
+1911A1000790252Volume
+1911A1000800092Peso
+1X1100002320001L400001                  // formatação das linhas
+1X1100000790029L173001                    
+1X1100000790205L173001
+1X1100004430001L400001
+1X1100004920001L400001
+1E7303704450100[[CODBARRA]]
+Q0001                                   // Limpa memória impressora (usar sempre no final da impressão)
+E                                       // Fim do modo de formatação e imprimi
+

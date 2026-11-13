@@ -1,0 +1,12 @@
+http://www.zebra.com/us/en/support-downloads/desktop/tlp-2844.html#mainpartabscontainer_c17c=drivers
+
+
+
+													// linha em branco
+N													// início
+q800												// width (valor em dots, cada mm equivale a 8 dots - exemplo: 10cm = 100 * 8 = 800)
+Q480,24												// height,gap (em dots, gap é o espaçamento entre uma etiqueta e outra)
+A150,10,0,3,1,1,N,"TESTE"							// texto - horizontal, vertical, rotação, fonte (página 41 manual)
+B10,10,0,UA0,2,2,152,B,"12345678"					// código de barra - horizontal, vertial, rotação, tipo (página 50 manual)
+G10,10,100,100,"DATA"								// gráfico - horizontal, vertical, width (em cm), length (em cm), data (pegar conteúdo impresso do word, impresso no arquivo)
+P1,1 												// páginas (página 133 manual)

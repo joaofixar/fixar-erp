@@ -1,0 +1,12 @@
+[Unit]
+Description=Schedule Hardness Webhooks short delivery cycles
+
+[Timer]
+OnBootSec=5s
+OnUnitInactiveSec=5s
+AccuracySec=1s
+Persistent=false
+Unit=hardness-webhooks-delivery.service
+
+[Install]
+WantedBy=timers.target

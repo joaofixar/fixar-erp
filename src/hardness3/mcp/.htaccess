@@ -1,0 +1,25 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Only mcp/public/index.php and the ERP-admin static assets are public.
+    # Everything else below this directory is implementation, configuration,
+    # tests or documentation.
+    RewriteRule ^(?:config|docs|src|tests)(?:/|$) - [F,L,NC]
+    RewriteRule ^admin/(?!assets/mcp-admin\.(?:css|js)$) - [F,L,NC]
+    RewriteRule ^(?:README\.md|autoload\.php|composer\.(?:json|lock)|\.env(?:\..*)?|.*\.(?:bak|old|orig|sql|log|zip|tar|tgz|gz))$ - [F,L,NC]
+</IfModule>
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "^\.">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^\.">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>

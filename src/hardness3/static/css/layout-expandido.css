@@ -1,0 +1,57 @@
+#layout {
+    font-family: 'expandido';
+}
+
+/* Grid */
+/*.grid tbody td, .grid thead th, .gridFixo thead th, .gridTheadTh {*/
+.grid tbody td {
+    padding: 1.025rem;
+}
+
+.grid thead th, .gridFixo thead th, .gridTheadTh {
+    padding: 12px !important;
+}
+
+
+/* botões Superiores */
+/*.frameworkBotoes button {
+    padding: 0 .8125rem;
+}*/
+
+
+
+/* Campo Totais */
+.ui-widget-content .total-padrao .valor, .total-padrao .valor {
+    padding: 2px;
+}
+
+
+
+/* Abas */
+/*.ui-tabs .ui-tabs-nav li {
+    padding: 0 .625rem;
+}*/
+
+
+/* Posição Cabeçalho Grid */
+/* .gridThead.ui-sortable {
+    margin-left: 1px;
+    margin-top: 1px;
+    border-bottom: 1px solid var(--fundo);
+    top: 11.625rem !important;
+} */
+
+
+
+/* Posição Grid */
+/* .divToScroll {
+    margin-top: 3.6875rem !important;
+    height: 37.6875rem !important;
+} */
+
+
+
+/* Posição Botão Maximizar Grid */
+/* .gridTheadMaximizar {
+    top: 11.0625rem !important;
+} */

@@ -1,0 +1,51 @@
+/*
+                X. Informações do Transporte da NF-e
+                #   ID    Campo   Descrição                                       Tipo    Ocor.       Tam.            Observação
+                356 X01   transp  Grupo Informações do Transporte                          1-1
+                357 X02  modFrete Modalidade do frete                               N      1-1         1              0=Por conta do emitente;
+                                                                                                                      1=Por conta do destinatário/remetente;
+                                                                                                                      2=Por conta de terceiros;
+                                                                                                                      9=Sem frete. (V2.0)
+                358 X03 transporta Grupo Transportador                                     0-1
+                359 X04 CNPJ      CNPJ do Transportador                             N      0-1        14
+                360 X05 CPF       CPF do Transportador                              N      0-1        11
+                362 X07 IE        Inscrição Estadual do Transportador               C      0-1       2-14             - Inscrição Estadual do transportador contribuinte do ICMS, sem caracteres de formatação (ponto, barra, hífen, etc.);- Não informar a tag para não contribuinte do ICMS, A UF deve ser informada se informado uma IE. (v2.0)
+                363 X08 xEnder    Endereço Completo                                 C      0-1       1-60             
+                364 X09 xMun      Nome do município                                 C      0-1       1-60
+                365 X10 UF        Sigla da UF                                       C      0-1         2              A UF deve ser informada se informado uma IE. (v2.0). Informar "EX" para Exterior.
+                366 X11 retTransp Grupo Retenção ICMS transporte                           0-1
+                367 X12 vServ     Valor do Serviço                                  N      1-1       13v2
+                368 X13 vBCRet    BC da Retenção do ICMS                            N      1-1       13v2
+                369 X14 pICMSRet  Alíquota da Retenção                              N      1-1       3v2-4
+                370 X15 vICMSRet  Valor do ICMS Retido                              N      1-1       13v2
+                371 X16 CFOP      CFOP                                              N      1-1         4              CFOP de Serviço de Transporte (Anexo XIII.03).
+                372 X17 cMunFG    Código do munic gerador do ICMS do transporte     N      1-1         7              Utilizar a Tabela do IBGE (Anexo IX - Tabela de UF, Município e País)
+            372.1 X17.1  -x-      Sequência XML                                            0-1                        Transporte por Veículo, Vagão ou Balsa.
+                373 X18 veicTrans Grupo Veículo Transporte                                 0-1                        Informar o veículo trator (v2.0)
+                374 X19 placa     Placa do Veículo                                  C      1-1         7              Informar em um dos seguintes formatos: XXX9999, XXX999, XX9999 ou XXXX999. Informar a placa em informações complementares quando a placa do veículo tiver lei de formação diversa. (NT 2011/005)
+                375 X20 UF        Sigla da UF                                       C      1-1         2              Informar "EX" se Exterior.
+                376 X21 RNTC      Registro Nacional de Transportador de Carga       C      0-1        1-20
+                377 X22 reboque   Grupo Reboque                                            0-5                        Informar os reboques/Dolly (v2.0)
+                378 X23 placa     Placa do Veículo                                  C      1-1         7              Informar em um dos seguintes formatos: XXX9999, XXX999, XX9999 ou XXXX999. Informar a placa em informações complementares quando a placa do veículo tiver lei de formação diversa. (NT 2011/005)
+                379 X24 UF        Sigla da UF                                       C      1-1         2              Informar "EX" se Exterior.
+                380 X25 RNTC      Registro Nacional de Transportador de Carga       C      0-1        1-20
+              380a X25a vagao     Identificação do vagão                            C      0-1        1-20            (v2.0)
+              380b X25b balsa     Identificação da balsa                            C      0-1        1-20            (v2.0)
+                381 X26 vol       Grupo Volumes                                           0-5000                      (NT 2012/003)
+                382 X27 qVol      Quantidade de volumes transportados               N      0-1       1-15
+                383 X28 esp       Espécie dos volumes transportados                 C      0-1       1-60
+                384 X29 marca     Marca dos volumes transportados                   C      0-1       1-60
+                385 X30 nVol      Numeração dos volumes transportados               C      0-1       1-60
+                386 X31 pesoL     Peso Líquido (em kg)                              N      0-1       12v3
+                387 X32 pesoB     Peso Bruto (em kg)                                N      0-1       12v3
+               387a X33 lacres    Grupo Lacres                                           0-5000                       (NT 2012/003)
+               388  X34 nLacre    Número dos Lacres                                 C      1-1       1-60
+            */
+
+                // 357 - Valida se o campo, Modalidade do frete, está preenchido e seu valor
+                /*if((($dados['freteTotal'] < 0) || ($dados['freteTotal'] > 2)) && ($dados['freteTotal'] != 9) ){
+                    $erros .= "-MODALIDADE DO FRETE deve ser preenchida com: \n\t0-Por conta do emitente;\n\t1-Por conta do destinatário/remetente;\n\t2-Por conta de terceiros;\n\t9-Sem frete. (V2.0) !\n";
+                }*/
+
+                // 366- 372.1 
+                // ----------------------------CAMPOS NÃO IMPLEMENTADOS NO nf3.class - hardness -----------------------------------------//

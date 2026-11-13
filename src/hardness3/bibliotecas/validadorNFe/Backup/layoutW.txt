@@ -1,0 +1,126 @@
+/*
+                W. Total da NF-e
+                #   ID    Campo   Descrição                                       Tipo    Ocor.       Tam.            Observação
+                326 W01   total   Grupo Totais da NF-e                                     1-1                        O grupo de valores totais da NF-e deve ser informado com o somatório do campo correspondente dos itens.
+                327 W02  ICMSTot  Grupo Totais referentes ao ICMS G W01 1-1
+                328 W03    vBC    Base de Cálculo do ICMS                          N       1-1       13v2
+            329.01 W04a vICMSDeson Valor Total do ICMS desonerado                  N       1-1       13v2 
+                330 W05   vBCST   Base de Cálculo do ICMS ST                       N       1-1       13v2
+                331 W06    vST    Valor Total do ICMS ST                           N       1-1       13v2
+                332 W07   vProd   Valor Total dos produtos e serviços              N       1-1       13v2
+                333 W08   vFrete  Valor Total do Frete                             N       1-1       13v2 
+                334 W09   vSeg    Valor Total do Seguro                            N       1-1       13v2
+                335 W10   vDesc   Valor Total do Desconto                          N       1-1       13v2
+                336 W11   vII     Valor Total do II                                N       1-1       13v2
+                337 W12   vIPI    Valor Total do IPI                               N       1-1       13v2
+                338 W13   vPIS    Valor do PIS                                     N       1-1       13v2
+                339 W14   vCOFINS Valor da COFINS                                  N       1-1       13v2
+                340 W15   vOutro  Outras Despesas acessórias                       N       1-1       13v2
+                341 W16   vNF     Valor Total da NF-e                              N       1-1       13v2             Vide validação para este campo na regra de validação W16-xx.
+               341a W16a vTotTrib Valor aproximado total de tributos               N       0-1       13v2             (NT 2013/003)
+            */
+
+                // 328 - Valida se o campo está preenchido e seu tamanho
+                /*if(empty($dados['valorTotalBCICMS'])){
+                    $erros .= "-VALOR BASE DE CÁLCULO ICMS está vazio!\n";
+                }
+
+                // 329 - Valida se o campo está preenchido e seu tamanho
+                if(empty($dados['valorTotalICMS'])){
+                    $erros .= "-VALOR DO ICMS está vazio!\n";
+                }
+
+                // 329.01 - Valida se o campo, Valor Total do ICMS desonerado, está preenchido e seu tamanho
+                if(empty($dados['totalICMSDesonerado'])){
+                    $erros .= "-VALOR TOTAL DO ICMS DESONERADO está vazio!\n";
+                }
+
+                // 330 - Valida se o campo, Base de Cálculo do ICMS ST, está preenchido e seu tamanho
+                //----------------------------------NÃO IMPLEMENTO, DÚVIDA NO CAMPO DA TABELA T003 --------------------------------------
+                //----------------------------------T003?--------------------------------------------------------------------------------
+                //----------------------------------T005_Valor_Base_ICMS_Substituicao----------------------------------------------------
+                //----------------------------------T007_Valor_Base_ICMS_Substituicao--------------------------------------------------//
+                
+                /*if((strlen($dados['']) < 1) || (strlen($dados[''])) > 13){
+                    $erros .= 'O VALOR:'.$dados['totalICMSDesonerado'].'  deve conter entre 1-13 dígitos!\n';
+                }*/
+
+                // 331 - Valida se o campo, Valor Total do ICMS ST, está preenchido e seu tamanho
+                //----------------------------------NÃO IMPLEMENTO, DÚVIDA NO CAMPO DA TABELA T003 --------------------------------------
+                //----------------------------------T003?--------------------------------------------------------------------------------
+                //----------------------------------T005_Valor_ICMS_Substituicao_Retencao------------------------------------------------
+                //----------------------------------T007_Valor_ICMS_Substituicao_Retencao----------------------------------------------//
+                /*if((strlen($dados['']) < 1) || (strlen($dados[''])) > 13){
+                    $erros .= 'O VALOR:'.$dados['totalICMSDesonerado'].'  deve conter entre 1-13 dígitos!\n';
+                }*/
+
+                
+
+                // 332 - Valida se o campo, Valor Total dos produtos e serviços, está preenchido e seu tamanho
+                /*if(empty($dados['totalProdutos'])){
+                    $erros .= "-VALOR TOTAL DOS PRODUTOS está vazio!\n";
+                }
+
+                // 333 - Valida se o campo, Valor Total do Frete, está preenchido e seu tamanho
+                if(empty($dados['valorFrete'])){
+                    $erros .= "-VALOR TOTAL DO FRETE está vazio!\n";
+                }
+
+                // 334 - Valida se o campo, Valor Total do Seguro, está preenchido e seu tamanho
+                //----------------------------------NÃO IMPLEMENTO, DÚVIDA NO CAMPO DA TABELA T003 E T005--------------------------------
+                //----------------------------------T003?--------------------------------------------------------------------------------
+                //----------------------------------T005?--------------------------------------------------------------------------------
+                //----------------------------------T007_Valor_Seguro------------------------------------------------------------------//
+                /*if((strlen($dados['']) < 1) || (strlen($dados[''])) > 13){
+                    $erros .= 'O VALOR :'.$dados[''].'  deve conter entre 1-13 dígitos!\n';
+                }*/
+
+                // 335 - Valida se o campo, Valor Total do Desconto, está preenchido e seu tamanho
+                /*if(empty($dados['valorDesconto'])){
+                    $erros .= "-VALOR TOTAL DE DESCONTO está vazio!\n";
+                }
+
+                // 336 - Valida se o campo, Valor Total do II, está preenchido e seu tamanho
+                //----------------------------------NÃO IMPLEMENTO, DÚVIDA NO CAMPO DA TABELA T003 E T005--------------------------------
+                //----------------------------------T003?--------------------------------------------------------------------------------
+                //----------------------------------T005?--------------------------------------------------------------------------------
+                //----------------------------------T007_Valor_Seguro------------------------------------------------------------------//
+                /*if((strlen($dados['']) < 1) || (strlen($dados[''])) > 13){
+                    $erros .= 'O VALOR:'.$dados[''].'  deve conter entre 1-13 dígitos!\n';
+                }*/
+
+                // 337 - Valida se o campo, Valor Total do IPI, está preenchido e seu tamanho
+                /*if(empty($dados['totalIPI'])){
+                    $erros .= "-VALOR TOTAL DO IPI está vazio!\n";
+                }
+
+                // 338 - Valida se o campo, Valor do PIS, está preenchido e seu tamanho
+                if(empty($dados['totalPIS'])){
+                    $erros .= "-VALOR TOTAL DO PIS está vazio!\n";
+                }
+
+                // 339 - Valida se o campo, Valor da COFINS, está preenchido e seu tamanho
+                if(empty($dados['totalCofins'])){
+                    $erros .= "-VALOR TOTAL DO COFINS está vazio!\n";
+                }
+
+                // 340 - Valida se o campo, Outras Despesas acessórias, está preenchido e seu tamanho
+                if(empty($dados['despesasAcessorias'])){
+                    $erros .= "-VALOR DE OUTRAS DESPESAS está vazio!\n";
+                }
+
+                // 341 - Valida se o campo, Valor Total da NF-e, está preenchido e seu tamanho
+                if(empty($dados['valorTotal'])){
+                    $erros .= "-VALOR TOTAL está vazio!\n";
+                }*/
+
+            /*
+                W01. Total da NF-e / ISSQN
+                 //----------------------------------NÃO IMPLEMENTO, CASO ESPECÍFICO PARA SERVIÇOS--------------------------------------//
+                #   ID    Campo   Descrição                                       Tipo    Ocor.       Tam.            Observação
+            */
+
+            /*
+                W02. Total da NF-e / Retenção de Tributos
+                #   ID    Campo   Descrição                                       Tipo    Ocor.       Tam.            Observação
+            */

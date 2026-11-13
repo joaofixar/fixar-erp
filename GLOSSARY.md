@@ -12,6 +12,10 @@ _Avoid_: filial, cliente, schema
 A empresa em que a base abre. Não tem cliente, produto, orçamento, pedido, nota nem título.
 _Avoid_: produção, cliente
 
+**Aviso**:
+Texto publicado na tela inicial. Grava mesmo sem empresa; a empresa só entra quando a tela de origem indica uma.
+_Avoid_: perfil, notificação
+
 **Cliente**:
 Quem compra da Fixar.
 _Avoid_: empresa, fornecedor

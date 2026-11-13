@@ -1,0 +1,9 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{THE_REQUEST} \s/+hardness3/aplicacoes/balanco/public(?:/[^\s?]*)? [NC]
+    RewriteRule ^(?:index\.php)?$ /balanco/ [R=302,L,NE]
+    RewriteRule ^(.*)$ /balanco/$1 [R=302,L,NE]
+</IfModule>

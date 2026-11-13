@@ -1,0 +1,7 @@
+{
+  "sources": [
+    { "label": "Apache", "path": "/var/log/apache2/error.log" },
+    { "label": "PHP-FPM", "path": "/var/log/php8.1-fpm.log" },
+    { "label": "MySQL", "path": "/var/log/mysql/error.log" }
+  ]
+}

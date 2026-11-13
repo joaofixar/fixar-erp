@@ -1,0 +1,22 @@
+[Unit]
+Description=Hardness Webhooks delivery worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hardness-webhooks
+Group=hardness-webhooks
+WorkingDirectory=/opt/hardness
+EnvironmentFile=/etc/hardness/webhooks/webhooks.env
+Environment=WEBHOOKS_BATCH_SIZE=20
+ExecStart=/bin/sh -c 'while :; do /usr/bin/php /opt/hardness/webhooks/cli/worker.php; sleep 5; done'
+Restart=always
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

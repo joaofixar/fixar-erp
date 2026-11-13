@@ -1,0 +1,1268 @@
+{
+  "habilitado": true,
+  "acessoDiretorAutomatico": true,
+  "titulo": "Painel de Indicadores",
+  "indicadores": [
+    {
+      "id": "faturamento_gerencial",
+      "habilitado": true,
+      "ordem": 1,
+      "titulo": "Faturamento",
+      "subtitulo": "Vendas autorizadas, evolução, clientes e distribuição geográfica",
+      "icone": "money",
+      "cor": "blue",
+      "filtros": [
+        {
+          "id": "dataInicio",
+          "titulo": "Emissão inicial",
+          "tipo": "data",
+          "padrao": "inicio_mes",
+          "obrigatorio": true
+        },
+        {
+          "id": "dataFim",
+          "titulo": "Emissão final",
+          "tipo": "data",
+          "padrao": "hoje",
+          "obrigatorio": true
+        },
+        {
+          "id": "cliente",
+          "titulo": "Cliente",
+          "tipo": "texto",
+          "padrao": ""
+        },
+        {
+          "id": "uf",
+          "titulo": "UF do cliente",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoes": [
+            { "valor": "AC", "titulo": "AC" },
+            { "valor": "AL", "titulo": "AL" },
+            { "valor": "AP", "titulo": "AP" },
+            { "valor": "AM", "titulo": "AM" },
+            { "valor": "BA", "titulo": "BA" },
+            { "valor": "CE", "titulo": "CE" },
+            { "valor": "DF", "titulo": "DF" },
+            { "valor": "ES", "titulo": "ES" },
+            { "valor": "GO", "titulo": "GO" },
+            { "valor": "MA", "titulo": "MA" },
+            { "valor": "MT", "titulo": "MT" },
+            { "valor": "MS", "titulo": "MS" },
+            { "valor": "MG", "titulo": "MG" },
+            { "valor": "PA", "titulo": "PA" },
+            { "valor": "PB", "titulo": "PB" },
+            { "valor": "PR", "titulo": "PR" },
+            { "valor": "PE", "titulo": "PE" },
+            { "valor": "PI", "titulo": "PI" },
+            { "valor": "RJ", "titulo": "RJ" },
+            { "valor": "RN", "titulo": "RN" },
+            { "valor": "RS", "titulo": "RS" },
+            { "valor": "RO", "titulo": "RO" },
+            { "valor": "RR", "titulo": "RR" },
+            { "valor": "SC", "titulo": "SC" },
+            { "valor": "SP", "titulo": "SP" },
+            { "valor": "SE", "titulo": "SE" },
+            { "valor": "TO", "titulo": "TO" }
+          ]
+        }
+      ],
+      "sqlBase": [
+        "SELECT T007_Id AS id, T007_Numero_Nota_Fiscal AS documento, T007_Data_Emissao AS data,",
+        "COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, 'Não informado') AS descricao, COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade,",
+        "CASE WHEN D018_UF IN ('AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO') THEN 'Norte' WHEN D018_UF IN ('AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE') THEN 'Nordeste' WHEN D018_UF IN ('DF', 'GO', 'MT', 'MS') THEN 'Centro-Oeste' WHEN D018_UF IN ('ES', 'MG', 'RJ', 'SP') THEN 'Sudeste' WHEN D018_UF IN ('PR', 'RS', 'SC') THEN 'Sul' ELSE 'Não informado' END AS regiao,",
+        "CASE WHEN T007_Flag_ACP = '6' THEN 'NF-e' WHEN T007_Flag_ACP = '8' THEN 'NFC-e' ELSE 'Outro' END AS tipoDocumento,",
+        "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+        "FROM T007",
+        "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+        "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+        "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+        "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+        "WHERE T007_C004_Id = :empresa",
+        "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+        "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+        "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+        "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+        "AND D006_Flag_Entrada_Saida = 'S'",
+        "AND D006_Flag_Venda_Compra_Outros = 'V'",
+        "AND (:cliente = '' OR COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, '') LIKE CONCAT('%', :cliente, '%'))",
+        "AND (:uf = '' OR D018_UF = :uf)"
+      ],
+      "card": {
+        "titulo": "Faturamento líquido",
+        "descricao": "Total das vendas autorizadas, descontando IPI e frete.",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda"
+      },
+      "composicao": {
+        "habilitada": true,
+        "titulo": "Composição por documento",
+        "campo": "tipoDocumento",
+        "campoValor": "valor",
+        "calculo": "soma",
+        "formato": "moeda",
+        "itens": [
+          { "chave": "NF-e", "rotulo": "NF-e" },
+          { "chave": "NFC-e", "rotulo": "NFC-e" },
+          { "chave": "Outro", "rotulo": "Outros" }
+        ]
+      },
+      "grafico": {
+        "habilitado": true,
+        "titulo": "Evolução do faturamento",
+        "campoData": "data",
+        "campoValor": "valor",
+        "calculo": "soma"
+      },
+      "graficosPorGrupo": {
+        "habilitado": false
+      },
+      "calendarios": [
+        {
+          "id": "faturamento_diario",
+          "titulo": "Faturamento diário — últimos 30 dias",
+          "subtitulo": "Cada dia mostra o valor faturado; este calendário permanece limitado a 30 dias",
+          "periodo": "ultimos_30_dias",
+          "campoData": "data",
+          "campoValor": "valor",
+          "calculo": "soma",
+          "formato": "moeda"
+        }
+      ],
+      "geografia": {
+        "habilitada": true,
+        "titulo": "Faturamento por estado",
+        "campoUf": "uf",
+        "campoCidade": "cidade",
+        "campoCliente": "descricao",
+        "campoValor": "valor",
+        "formato": "moeda"
+      },
+      "listagem": {
+        "habilitada": true,
+        "titulo": "Ranking de clientes",
+        "limite": 500,
+        "agrupamento": {
+          "campo": "descricao",
+          "campoContagem": "id",
+          "campoValor": "valor",
+          "campos": ["uf", "cidade"]
+        },
+        "colunas": [
+          { "campo": "descricao", "titulo": "Cliente" },
+          { "campo": "uf", "titulo": "UF" },
+          { "campo": "cidade", "titulo": "Cidade" },
+          { "campo": "quantidade", "titulo": "Qtd. documentos", "formato": "numero" },
+          { "campo": "valor", "titulo": "Faturamento", "formato": "moeda" },
+          { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+        ],
+        "detalhamento": {
+          "habilitado": true,
+          "modal": true,
+          "campoGrupo": "descricao",
+          "titulo": "Documentos de {grupo}",
+          "limite": 1000,
+          "sqlBase": [
+            "SELECT COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, 'Não informado') AS descricao, T007_Numero_Nota_Fiscal AS documento, T007_Data_Emissao AS data,",
+            "COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade,",
+            "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+            "FROM T007",
+            "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+            "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+            "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+            "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+            "WHERE T007_C004_Id = :empresa",
+            "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+            "AND T007_Flag_Entrada_Saida = 'S'",
+            "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+            "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+            "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+            "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+            "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+            "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+            "AND D006_Flag_Entrada_Saida = 'S'",
+            "AND D006_Flag_Venda_Compra_Outros = 'V'",
+            "AND (:cliente = '' OR COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, '') LIKE CONCAT('%', :cliente, '%'))",
+            "AND (:uf = '' OR D018_UF = :uf)",
+            "ORDER BY T007_Data_Emissao DESC, T007_Numero_Nota_Fiscal DESC"
+          ],
+          "colunas": [
+            { "campo": "documento", "titulo": "Documento" },
+            { "campo": "data", "titulo": "Emissão", "formato": "data" },
+            { "campo": "uf", "titulo": "UF" },
+            { "campo": "cidade", "titulo": "Cidade" },
+            { "campo": "valor", "titulo": "Faturamento", "formato": "moeda" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "funil_comercial",
+      "habilitado": true,
+      "ordem": 2,
+      "titulo": "Funil comercial",
+      "subtitulo": "Orçamentos e pedidos, com situação e conversão operacional",
+      "icone": "chart",
+      "cor": "purple",
+      "filtros": [
+        { "id": "dataInicio", "titulo": "Emissão inicial", "tipo": "data", "padrao": "inicio_mes", "obrigatorio": true },
+        { "id": "dataFim", "titulo": "Emissão final", "tipo": "data", "padrao": "hoje", "obrigatorio": true },
+        { "id": "cliente", "titulo": "Cliente", "tipo": "texto", "padrao": "" }
+      ],
+      "abas": [
+        {
+          "id": "orcamentos",
+          "titulo": "Orçamentos",
+          "subtitulo": "Pendentes sem pedido gerado e convertidos quando já possuem pedido",
+          "sqlBase": [
+            "SELECT T003_Id AS id, T003_Id AS documento, T003_Data_Emissao AS data, COALESCE(D024_Nome_Empresa, T003_Nome_Cliente, 'Não informado') AS descricao, COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade,",
+            "CASE WHEN EXISTS (SELECT 1 FROM T005 WHERE T005_C004_Id = :empresa AND T005_T003_Id = T003_Id) THEN 'Convertido' ELSE 'Pendente' END AS situacao, T003_Valor_Total AS valor",
+            "FROM T003",
+            "LEFT JOIN D024 ON D024_Id = T003_D024_Id",
+            "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+            "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+            "WHERE T003_C004_Id = :empresa",
+            "AND T003_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+            "AND IFNULL(T003_Flag_Perdido, 'N') <> 'S'",
+            "AND (:cliente = '' OR COALESCE(D024_Nome_Empresa, T003_Nome_Cliente, '') LIKE CONCAT('%', :cliente, '%'))"
+          ],
+          "card": {
+            "titulo": "Valor dos orçamentos",
+            "descricao": "Total dos orçamentos válidos no período.",
+            "campo": "valor",
+            "calculo": "soma",
+            "formato": "moeda"
+          },
+          "composicao": {
+            "habilitada": true,
+            "titulo": "Situação dos orçamentos",
+            "campo": "situacao",
+            "campoValor": "valor",
+            "calculo": "soma",
+            "formato": "moeda",
+            "itens": [
+              { "chave": "Pendente", "rotulo": "Pendentes" },
+              { "chave": "Convertido", "rotulo": "Convertidos em pedido" }
+            ]
+          },
+          "grafico": {
+            "habilitado": true,
+            "titulo": "Evolução dos orçamentos",
+            "campoData": "data",
+            "campoValor": "valor",
+            "calculo": "soma"
+          },
+          "graficosPorGrupo": {
+            "habilitado": true,
+            "titulo": "Evolução diária por situação",
+            "campoGrupo": "situacao",
+            "campoData": "data",
+            "campoValor": "valor",
+            "calculo": "soma",
+            "limite": 5
+          },
+          "geografia": {
+            "habilitada": true,
+            "titulo": "Orçamentos por estado",
+            "campoUf": "uf",
+            "campoCidade": "cidade",
+            "campoCliente": "descricao",
+            "campoValor": "valor",
+            "formato": "moeda"
+          },
+          "listagem": {
+            "habilitada": true,
+            "titulo": "Orçamentos por cliente",
+            "limite": 500,
+            "agrupamento": {
+              "campo": "descricao",
+              "campoContagem": "id",
+              "campoValor": "valor",
+              "campos": ["uf"]
+            },
+            "colunas": [
+              { "campo": "descricao", "titulo": "Cliente" },
+              { "campo": "uf", "titulo": "UF" },
+              { "campo": "quantidade", "titulo": "Qtd. orçamentos", "formato": "numero" },
+              { "campo": "valor", "titulo": "Valor", "formato": "moeda" },
+              { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+            ]
+          }
+        },
+        {
+          "id": "pedidos",
+          "titulo": "Pedidos",
+          "subtitulo": "Pendentes sem NF-e e faturados quando já possuem documento vinculado",
+          "sqlBase": [
+            "SELECT T005_Id AS id, T005_Id AS documento, T005_Data_Emissao AS data, COALESCE(D024_Nome_Empresa, 'Não informado') AS descricao, COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade,",
+            "CASE WHEN EXISTS (SELECT 1 FROM T007 WHERE T007_C004_Id = :empresa AND T007_T005_Id = T005_Id AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S' AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S' AND IFNULL(T007_Flag_Denegado, 'N') <> 'S') THEN 'Faturado' ELSE 'Pendente' END AS situacao, T005_Valor_Total AS valor",
+            "FROM T005",
+            "LEFT JOIN D024 ON D024_Id = T005_D024_Id",
+            "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+            "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+            "WHERE T005_C004_Id = :empresa",
+            "AND T005_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+            "AND IFNULL(T005_Flag_Devolucao, 'N') <> 'S'",
+            "AND (:cliente = '' OR COALESCE(D024_Nome_Empresa, '') LIKE CONCAT('%', :cliente, '%'))"
+          ],
+          "card": {
+            "titulo": "Valor dos pedidos",
+            "descricao": "Total dos pedidos válidos no período.",
+            "campo": "valor",
+            "calculo": "soma",
+            "formato": "moeda"
+          },
+          "composicao": {
+            "habilitada": true,
+            "titulo": "Situação dos pedidos",
+            "campo": "situacao",
+            "campoValor": "valor",
+            "calculo": "soma",
+            "formato": "moeda",
+            "itens": [
+              { "chave": "Pendente", "rotulo": "Pendentes" },
+              { "chave": "Faturado", "rotulo": "Faturados" }
+            ]
+          },
+          "grafico": {
+            "habilitado": true,
+            "titulo": "Evolução dos pedidos",
+            "campoData": "data",
+            "campoValor": "valor",
+            "calculo": "soma"
+          },
+          "graficosPorGrupo": {
+            "habilitado": true,
+            "titulo": "Evolução diária por situação",
+            "campoGrupo": "situacao",
+            "campoData": "data",
+            "campoValor": "valor",
+            "calculo": "soma",
+            "limite": 5
+          },
+          "geografia": {
+            "habilitada": true,
+            "titulo": "Pedidos por estado",
+            "campoUf": "uf",
+            "campoCidade": "cidade",
+            "campoCliente": "descricao",
+            "campoValor": "valor",
+            "formato": "moeda"
+          },
+          "listagem": {
+            "habilitada": true,
+            "titulo": "Pedidos por cliente",
+            "limite": 500,
+            "agrupamento": {
+              "campo": "descricao",
+              "campoContagem": "id",
+              "campoValor": "valor",
+              "campos": ["uf"]
+            },
+            "colunas": [
+              { "campo": "descricao", "titulo": "Cliente" },
+              { "campo": "uf", "titulo": "UF" },
+              { "campo": "quantidade", "titulo": "Qtd. pedidos", "formato": "numero" },
+              { "campo": "valor", "titulo": "Valor", "formato": "moeda" },
+              { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "financeiro_gerencial",
+      "habilitado": true,
+      "ordem": 3,
+      "titulo": "Financeiro",
+      "subtitulo": "Contas a receber e a pagar, abertas e baixadas",
+      "icone": "wallet",
+      "cor": "green",
+      "filtros": [
+        { "id": "dataInicio", "titulo": "Data inicial", "tipo": "data", "padrao": "inicio_mes", "obrigatorio": true },
+        { "id": "dataFim", "titulo": "Data final", "tipo": "data", "padrao": "hoje", "obrigatorio": true },
+        {
+          "id": "status",
+          "titulo": "Status",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoes": [
+            { "valor": "aberto", "titulo": "Em aberto" },
+            { "valor": "vencido", "titulo": "Vencido" },
+            { "valor": "vencer", "titulo": "A vencer" },
+            { "valor": "baixado", "titulo": "Baixado" }
+          ]
+        },
+        { "id": "pessoa", "titulo": "Cliente ou fornecedor", "tipo": "texto", "padrao": "" },
+        { "id": "valorMinimo", "titulo": "Valor mínimo", "tipo": "numero", "padrao": 0 }
+      ],
+      "abas": [
+        {
+          "id": "receber",
+          "titulo": "A receber",
+          "sqlBase": [
+            "SELECT T002_Id AS id, T002_Numero_Documento AS documento, T002_Nome_Cliente AS descricao,",
+            "CASE WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE() AND DATEDIFF(CURRENT_DATE(), T002_Data_Vencimento) > 30 THEN 'Vencido acima de 30 dias' WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE() THEN 'Vencido de 1 a 30 dias' WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento = CURRENT_DATE() THEN 'Vence hoje' WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN 'A vencer' ELSE 'Recebido' END AS situacao,",
+            "CASE WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN T002_Data_Vencimento ELSE T002_Data_Recebimento END AS data,",
+            "T002_Data_Vencimento AS dataVencimento, NULLIF(T002_Data_Recebimento, '0000-00-00') AS dataBaixa,",
+            "GREATEST(DATEDIFF(CASE WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN CURRENT_DATE() ELSE T002_Data_Recebimento END, T002_Data_Vencimento), 0) AS diasAtraso,",
+            "CASE WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE() THEN 'S' ELSE 'N' END AS atrasado,",
+            "CASE WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN T002_Valor_Saldo ELSE T002_Valor_Recebido END AS valor,",
+            "CASE WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE() THEN T002_Valor_Saldo ELSE 0 END AS valorVencido,",
+            "CASE WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento >= CURRENT_DATE() THEN T002_Valor_Saldo ELSE 0 END AS valorAVencer,",
+            "CASE WHEN T002_Data_Recebimento IS NOT NULL AND T002_Data_Recebimento <> '0000-00-00' THEN T002_Valor_Recebido ELSE 0 END AS valorBaixado",
+            "FROM T002",
+            "WHERE T002_C004_Id = :empresa",
+            "AND IFNULL(T002_Flag_Cancelada, 'N') <> 'S'",
+            "AND (:pessoa = '' OR T002_Nome_Cliente LIKE CONCAT('%', :pessoa, '%'))",
+            "AND (:status = '' OR (:status = 'aberto' AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00')) OR (:status = 'vencido' AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE()) OR (:status = 'vencer' AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento >= CURRENT_DATE()) OR (:status = 'baixado' AND T002_Data_Recebimento IS NOT NULL AND T002_Data_Recebimento <> '0000-00-00'))",
+            "AND (((T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND (T002_T002_Id_Agrupado IS NULL OR T002_T002_Id_Agrupado <= 0) AND IFNULL(T002_Valor_Saldo, 0) > 0 AND IFNULL(T002_Valor_Saldo, 0) >= :valorMinimo AND T002_Data_Vencimento BETWEEN :dataInicio AND :dataFim) OR (T002_Data_Recebimento IS NOT NULL AND T002_Data_Recebimento <> '0000-00-00' AND IFNULL(T002_Valor_Recebido, 0) > 0 AND IFNULL(T002_Valor_Recebido, 0) >= :valorMinimo AND T002_Data_Recebimento BETWEEN :dataInicio AND :dataFim))"
+          ],
+          "card": {
+            "titulo": "Total selecionado",
+            "descricao": "Soma dos saldos em aberto e valores recebidos conforme os filtros.",
+            "campo": "valor",
+            "calculo": "soma",
+            "formato": "moeda",
+            "compacta": true
+          },
+          "composicao": {
+            "habilitada": true,
+            "titulo": "Saúde da carteira a receber",
+            "campo": "situacao",
+            "campoValor": "valor",
+            "calculo": "soma",
+            "formato": "moeda",
+            "itens": [
+              { "chave": "Vencido acima de 30 dias", "rotulo": "Vencido há mais de 30 dias" },
+              { "chave": "Vencido de 1 a 30 dias", "rotulo": "Vencido de 1 a 30 dias" },
+              { "chave": "Vence hoje", "rotulo": "Vence hoje" },
+              { "chave": "A vencer", "rotulo": "A vencer" },
+              { "chave": "Recebido", "rotulo": "Recebido" }
+            ],
+            "blocos": [
+              {
+                "titulo": "Fluxo da carteira a receber",
+                "itens": ["Vence hoje", "A vencer", "Recebido"]
+              },
+              {
+                "titulo": "Inadimplência a receber",
+                "itens": ["Vencido acima de 30 dias", "Vencido de 1 a 30 dias"]
+              }
+            ]
+          },
+          "grafico": {
+            "habilitado": true,
+            "titulo": "Fluxo por vencimento ou recebimento",
+            "campoData": "data",
+            "campoValor": "valor",
+            "calculo": "soma"
+          },
+          "graficosPorGrupo": {
+            "habilitado": false
+          },
+          "calendarios": [
+            {
+              "id": "agenda_recebimentos",
+              "titulo": "Agenda de recebimentos — próximos 30 dias",
+              "subtitulo": "Cada dia mostra o valor em aberto com vencimento previsto",
+              "periodo": "proximos_30_dias",
+              "campoData": "data",
+              "campoValor": "valor",
+              "calculo": "soma",
+              "formato": "moeda"
+            }
+          ],
+          "listagem": {
+            "habilitada": true,
+            "titulo": "Concentração e risco por cliente",
+            "limite": 500,
+            "agrupamento": {
+              "campo": "descricao",
+              "campoContagem": "id",
+              "campoValor": "valor",
+              "camposSoma": ["valorVencido", "valorAVencer", "valorBaixado"]
+            },
+            "colunas": [
+              { "campo": "descricao", "titulo": "Cliente" },
+              { "campo": "quantidade", "titulo": "Qtd. títulos", "formato": "numero" },
+              { "campo": "valorVencido", "titulo": "Vencido", "formato": "moeda" },
+              { "campo": "valorAVencer", "titulo": "A vencer", "formato": "moeda" },
+              { "campo": "valorBaixado", "titulo": "Recebido", "formato": "moeda" },
+              { "campo": "valor", "titulo": "Total", "formato": "moeda" },
+              { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+            ],
+            "detalhamento": {
+              "habilitado": true,
+              "modal": true,
+              "campoGrupo": "descricao",
+              "titulo": "Títulos de {grupo}",
+              "limite": 2000,
+              "sqlBase": [
+                "SELECT T002_Nome_Cliente AS descricao, T002_Numero_Documento AS documento,",
+                "CASE WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE() THEN 'Vencido' WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento = CURRENT_DATE() THEN 'Vence hoje' WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN 'A vencer' ELSE 'Recebido' END AS situacao,",
+                "T002_Data_Vencimento AS dataVencimento, NULLIF(T002_Data_Recebimento, '0000-00-00') AS dataBaixa,",
+                "GREATEST(DATEDIFF(CASE WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN CURRENT_DATE() ELSE T002_Data_Recebimento END, T002_Data_Vencimento), 0) AS diasAtraso,",
+                "CASE WHEN (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE() THEN 'S' ELSE 'N' END AS atrasado,",
+                "CASE WHEN T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00' THEN T002_Valor_Saldo ELSE T002_Valor_Recebido END AS valor",
+                "FROM T002",
+                "WHERE T002_C004_Id = :empresa",
+                "AND IFNULL(T002_Flag_Cancelada, 'N') <> 'S'",
+                "AND (:pessoa = '' OR T002_Nome_Cliente LIKE CONCAT('%', :pessoa, '%'))",
+                "AND (:status = '' OR (:status = 'aberto' AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00')) OR (:status = 'vencido' AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento < CURRENT_DATE()) OR (:status = 'vencer' AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND T002_Data_Vencimento >= CURRENT_DATE()) OR (:status = 'baixado' AND T002_Data_Recebimento IS NOT NULL AND T002_Data_Recebimento <> '0000-00-00'))",
+                "AND (((T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00') AND (T002_T002_Id_Agrupado IS NULL OR T002_T002_Id_Agrupado <= 0) AND IFNULL(T002_Valor_Saldo, 0) > 0 AND IFNULL(T002_Valor_Saldo, 0) >= :valorMinimo AND T002_Data_Vencimento BETWEEN :dataInicio AND :dataFim) OR (T002_Data_Recebimento IS NOT NULL AND T002_Data_Recebimento <> '0000-00-00' AND IFNULL(T002_Valor_Recebido, 0) > 0 AND IFNULL(T002_Valor_Recebido, 0) >= :valorMinimo AND T002_Data_Recebimento BETWEEN :dataInicio AND :dataFim))",
+                "ORDER BY T002_Data_Vencimento, T002_Numero_Documento"
+              ],
+              "colunas": [
+                { "campo": "documento", "titulo": "Documento" },
+                { "campo": "situacao", "titulo": "Situação" },
+                { "campo": "dataVencimento", "titulo": "Vencimento", "formato": "data" },
+                { "campo": "dataBaixa", "titulo": "Recebimento", "formato": "data" },
+                { "campo": "diasAtraso", "titulo": "Dias de atraso", "formato": "numero" },
+                { "campo": "valor", "titulo": "Valor", "formato": "moeda" }
+              ],
+              "destaqueLinha": { "campo": "atrasado", "valor": "S" }
+            }
+          }
+        },
+        {
+          "id": "pagar",
+          "titulo": "A pagar",
+          "sqlBase": [
+            "SELECT T015_Id AS id, T015_Numero_Documento AS documento, T015_Nome_Cliente AS descricao,",
+            "CASE WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE() AND DATEDIFF(CURRENT_DATE(), T015_Data_Vencimento) > 30 THEN 'Vencido acima de 30 dias' WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE() THEN 'Vencido de 1 a 30 dias' WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento = CURRENT_DATE() THEN 'Vence hoje' WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN 'A vencer' ELSE 'Pago' END AS situacao,",
+            "CASE WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN T015_Data_Vencimento ELSE T015_Data_Pagamento END AS data,",
+            "T015_Data_Vencimento AS dataVencimento, NULLIF(T015_Data_Pagamento, '0000-00-00') AS dataBaixa,",
+            "GREATEST(DATEDIFF(CASE WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN CURRENT_DATE() ELSE T015_Data_Pagamento END, T015_Data_Vencimento), 0) AS diasAtraso,",
+            "CASE WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE() THEN 'S' ELSE 'N' END AS atrasado,",
+            "CASE WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN T015_Valor_Saldo ELSE T015_Valor_Pago END AS valor,",
+            "CASE WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE() THEN T015_Valor_Saldo ELSE 0 END AS valorVencido,",
+            "CASE WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento >= CURRENT_DATE() THEN T015_Valor_Saldo ELSE 0 END AS valorAVencer,",
+            "CASE WHEN T015_Data_Pagamento IS NOT NULL AND T015_Data_Pagamento <> '0000-00-00' THEN T015_Valor_Pago ELSE 0 END AS valorBaixado",
+            "FROM T015",
+            "WHERE T015_C004_Id = :empresa",
+            "AND IFNULL(T015_Flag_Cancelada, 'N') <> 'S'",
+            "AND (:pessoa = '' OR T015_Nome_Cliente LIKE CONCAT('%', :pessoa, '%'))",
+            "AND (:status = '' OR (:status = 'aberto' AND (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00')) OR (:status = 'vencido' AND (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE()) OR (:status = 'vencer' AND (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento >= CURRENT_DATE()) OR (:status = 'baixado' AND T015_Data_Pagamento IS NOT NULL AND T015_Data_Pagamento <> '0000-00-00'))",
+            "AND (((T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND (T015_T015_Id_Agrupado IS NULL OR T015_T015_Id_Agrupado <= 0) AND IFNULL(T015_Valor_Saldo, 0) > 0 AND IFNULL(T015_Valor_Saldo, 0) >= :valorMinimo AND T015_Data_Vencimento BETWEEN :dataInicio AND :dataFim) OR (T015_Data_Pagamento IS NOT NULL AND T015_Data_Pagamento <> '0000-00-00' AND IFNULL(T015_Valor_Pago, 0) > 0 AND IFNULL(T015_Valor_Pago, 0) >= :valorMinimo AND T015_Data_Pagamento BETWEEN :dataInicio AND :dataFim))"
+          ],
+          "card": {
+            "titulo": "Total selecionado",
+            "descricao": "Soma dos saldos em aberto e valores pagos conforme os filtros.",
+            "campo": "valor",
+            "calculo": "soma",
+            "formato": "moeda",
+            "compacta": true
+          },
+          "composicao": {
+            "habilitada": true,
+            "titulo": "Saúde da carteira a pagar",
+            "campo": "situacao",
+            "campoValor": "valor",
+            "calculo": "soma",
+            "formato": "moeda",
+            "itens": [
+              { "chave": "Vencido acima de 30 dias", "rotulo": "Vencido há mais de 30 dias" },
+              { "chave": "Vencido de 1 a 30 dias", "rotulo": "Vencido de 1 a 30 dias" },
+              { "chave": "Vence hoje", "rotulo": "Vence hoje" },
+              { "chave": "A vencer", "rotulo": "A vencer" },
+              { "chave": "Pago", "rotulo": "Pago" }
+            ],
+            "blocos": [
+              {
+                "titulo": "Fluxo da carteira a pagar",
+                "itens": ["Vence hoje", "A vencer", "Pago"]
+              },
+              {
+                "titulo": "Inadimplência a pagar",
+                "itens": ["Vencido acima de 30 dias", "Vencido de 1 a 30 dias"]
+              }
+            ]
+          },
+          "grafico": {
+            "habilitado": true,
+            "titulo": "Fluxo por vencimento ou pagamento",
+            "campoData": "data",
+            "campoValor": "valor",
+            "calculo": "soma"
+          },
+          "graficosPorGrupo": {
+            "habilitado": false
+          },
+          "calendarios": [
+            {
+              "id": "agenda_pagamentos",
+              "titulo": "Agenda de pagamentos — próximos 30 dias",
+              "subtitulo": "Cada dia mostra o valor em aberto com vencimento previsto",
+              "periodo": "proximos_30_dias",
+              "campoData": "data",
+              "campoValor": "valor",
+              "calculo": "soma",
+              "formato": "moeda"
+            }
+          ],
+          "listagem": {
+            "habilitada": true,
+            "titulo": "Concentração e risco por fornecedor",
+            "limite": 500,
+            "agrupamento": {
+              "campo": "descricao",
+              "campoContagem": "id",
+              "campoValor": "valor",
+              "camposSoma": ["valorVencido", "valorAVencer", "valorBaixado"]
+            },
+            "colunas": [
+              { "campo": "descricao", "titulo": "Fornecedor" },
+              { "campo": "quantidade", "titulo": "Qtd. títulos", "formato": "numero" },
+              { "campo": "valorVencido", "titulo": "Vencido", "formato": "moeda" },
+              { "campo": "valorAVencer", "titulo": "A vencer", "formato": "moeda" },
+              { "campo": "valorBaixado", "titulo": "Pago", "formato": "moeda" },
+              { "campo": "valor", "titulo": "Total", "formato": "moeda" },
+              { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+            ],
+            "detalhamento": {
+              "habilitado": true,
+              "modal": true,
+              "campoGrupo": "descricao",
+              "titulo": "Títulos de {grupo}",
+              "limite": 2000,
+              "sqlBase": [
+                "SELECT T015_Nome_Cliente AS descricao, T015_Numero_Documento AS documento,",
+                "CASE WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE() THEN 'Vencido' WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento = CURRENT_DATE() THEN 'Vence hoje' WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN 'A vencer' ELSE 'Pago' END AS situacao,",
+                "T015_Data_Vencimento AS dataVencimento, NULLIF(T015_Data_Pagamento, '0000-00-00') AS dataBaixa,",
+                "GREATEST(DATEDIFF(CASE WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN CURRENT_DATE() ELSE T015_Data_Pagamento END, T015_Data_Vencimento), 0) AS diasAtraso,",
+                "CASE WHEN (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE() THEN 'S' ELSE 'N' END AS atrasado,",
+                "CASE WHEN T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00' THEN T015_Valor_Saldo ELSE T015_Valor_Pago END AS valor",
+                "FROM T015",
+                "WHERE T015_C004_Id = :empresa",
+                "AND IFNULL(T015_Flag_Cancelada, 'N') <> 'S'",
+                "AND (:pessoa = '' OR T015_Nome_Cliente LIKE CONCAT('%', :pessoa, '%'))",
+                "AND (:status = '' OR (:status = 'aberto' AND (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00')) OR (:status = 'vencido' AND (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento < CURRENT_DATE()) OR (:status = 'vencer' AND (T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND T015_Data_Vencimento >= CURRENT_DATE()) OR (:status = 'baixado' AND T015_Data_Pagamento IS NOT NULL AND T015_Data_Pagamento <> '0000-00-00'))",
+                "AND (((T015_Data_Pagamento IS NULL OR T015_Data_Pagamento = '0000-00-00') AND (T015_T015_Id_Agrupado IS NULL OR T015_T015_Id_Agrupado <= 0) AND IFNULL(T015_Valor_Saldo, 0) > 0 AND IFNULL(T015_Valor_Saldo, 0) >= :valorMinimo AND T015_Data_Vencimento BETWEEN :dataInicio AND :dataFim) OR (T015_Data_Pagamento IS NOT NULL AND T015_Data_Pagamento <> '0000-00-00' AND IFNULL(T015_Valor_Pago, 0) > 0 AND IFNULL(T015_Valor_Pago, 0) >= :valorMinimo AND T015_Data_Pagamento BETWEEN :dataInicio AND :dataFim))",
+                "ORDER BY T015_Data_Vencimento, T015_Numero_Documento"
+              ],
+              "colunas": [
+                { "campo": "documento", "titulo": "Documento" },
+                { "campo": "situacao", "titulo": "Situação" },
+                { "campo": "dataVencimento", "titulo": "Vencimento", "formato": "data" },
+                { "campo": "dataBaixa", "titulo": "Pagamento", "formato": "data" },
+                { "campo": "diasAtraso", "titulo": "Dias de atraso", "formato": "numero" },
+                { "campo": "valor", "titulo": "Valor", "formato": "moeda" }
+              ],
+              "destaqueLinha": { "campo": "atrasado", "valor": "S" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "desempenho_representantes",
+      "habilitado": true,
+      "ordem": 4,
+      "titulo": "Representantes",
+      "subtitulo": "Comparativo do faturamento líquido com o ano anterior",
+      "icone": "users",
+      "cor": "cyan",
+      "filtros": [
+        {
+          "id": "representante",
+          "titulo": "Representante",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesCadastro": "representantesAtivos"
+        }
+      ],
+      "sqlBase": [
+        "SELECT T007_Id AS id, T007_Data_Emissao AS data, T007_D021_Id AS representanteId, COALESCE(D021_Nome_Empresa, 'Não informado') AS descricao,",
+        "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+        "FROM T007",
+        "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+        "LEFT JOIN D021 ON D021_Id = T007_D021_Id",
+        "WHERE T007_C004_Id = :empresa",
+        "AND T007_Data_Emissao >= MAKEDATE(YEAR(CURRENT_DATE), 1)",
+        "AND T007_Data_Emissao < MAKEDATE(YEAR(CURRENT_DATE) + 1, 1)",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+        "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+        "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+        "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+        "AND D006_Flag_Venda_Compra_Outros = 'V'",
+        "AND (:representante = '' OR T007_D021_Id = :representante)"
+      ],
+      "comparativoRepresentantes": {
+        "modo": "cadastroAtivo",
+        "sqlBaseAnoBase": [
+          "SELECT T007_Id AS id, T007_Data_Emissao AS data, T007_D021_Id AS representanteId, COALESCE(D021_Nome_Empresa, 'Não informado') AS descricao,",
+          "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+          "FROM T007",
+          "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+          "LEFT JOIN D021 ON D021_Id = T007_D021_Id",
+          "WHERE T007_C004_Id = :empresa",
+          "AND T007_Data_Emissao >= MAKEDATE(YEAR(CURRENT_DATE) - 1, 1)",
+          "AND T007_Data_Emissao < MAKEDATE(YEAR(CURRENT_DATE), 1)",
+          "AND T007_Flag_Entrada_Saida = 'S'",
+          "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+          "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+          "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+          "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+          "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+          "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+          "AND D006_Flag_Venda_Compra_Outros = 'V'",
+          "AND (:representante = '' OR T007_D021_Id = :representante)"
+        ]
+      },
+      "card": {
+        "titulo": "Faturamento líquido no ano",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda"
+      },
+      "grafico": { "habilitado": false },
+      "listagem": { "habilitada": false },
+      "abas": [
+        { "id": "anual", "titulo": "Comparativo anual" },
+        {
+          "id": "mensal",
+          "titulo": "Comparativo mensal",
+          "comparativoRepresentantes": {
+            "modo": "mensal",
+            "sqlBaseAnoBase": [
+              "SELECT T007_Id AS id, T007_Data_Emissao AS data, T007_D021_Id AS representanteId, COALESCE(D021_Nome_Empresa, 'Não informado') AS descricao,",
+              "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+              "FROM T007",
+              "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+              "LEFT JOIN D021 ON D021_Id = T007_D021_Id",
+              "WHERE T007_C004_Id = :empresa",
+              "AND T007_Data_Emissao >= MAKEDATE(YEAR(CURRENT_DATE) - 1, 1)",
+              "AND T007_Data_Emissao < MAKEDATE(YEAR(CURRENT_DATE), 1)",
+              "AND T007_Flag_Entrada_Saida = 'S'",
+              "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+              "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+              "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+              "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+              "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+              "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+              "AND D006_Flag_Venda_Compra_Outros = 'V'",
+              "AND (:representante = '' OR T007_D021_Id = :representante)"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "curva_abc_produtos",
+      "habilitado": true,
+      "ordem": 5,
+      "titulo": "Curva ABC de produtos",
+      "subtitulo": "Ranking, participação acumulada, classes ABC e imagens dos produtos",
+      "icone": "chart",
+      "cor": "orange",
+      "filtros": [
+        { "id": "dataInicio", "titulo": "Emissão inicial", "tipo": "data", "padrao": "inicio_mes", "obrigatorio": true },
+        { "id": "dataFim", "titulo": "Emissão final", "tipo": "data", "padrao": "hoje", "obrigatorio": true },
+        { "id": "produto", "titulo": "Produto ou código", "tipo": "texto", "padrao": "" },
+        { "id": "valorMinimo", "titulo": "Venda mínima por produto", "tipo": "numero", "padrao": 0 }
+      ],
+      "sqlBase": [
+        "SELECT calculado.id, calculado.produtoId, calculado.codigo, calculado.descricao, calculado.imagem, calculado.quantidade, calculado.valor, calculado.precoMedio, calculado.posicao, calculado.percentualAcumulado,",
+        "CASE WHEN calculado.percentualAcumulado <= 80 THEN 'A' WHEN calculado.percentualAcumulado <= 95 THEN 'B' ELSE 'C' END AS classificacao",
+        "FROM (",
+        "SELECT produtos.id, produtos.produtoId, produtos.codigo, produtos.descricao, produtos.imagem, produtos.quantidade, produtos.valor, produtos.precoMedio,",
+        "ROW_NUMBER() OVER (ORDER BY produtos.valor DESC, produtos.codigo) AS posicao,",
+        "CASE WHEN SUM(produtos.valor) OVER () > 0 THEN (SUM(produtos.valor) OVER (ORDER BY produtos.valor DESC, produtos.codigo ROWS UNBOUNDED PRECEDING) / SUM(produtos.valor) OVER ()) * 100 ELSE 0 END AS percentualAcumulado",
+        "FROM (",
+        "SELECT MIN(T008_Id) AS id, COALESCE(D001_Id, T008_D009_Id, T008_Id) AS produtoId, COALESCE(NULLIF(D001_Codigo_Produto, ''), T008_Codigo_Produto, 'Sem código') AS codigo,",
+        "COALESCE(NULLIF(D001_Descricao_Produto, ''), T008_Descricao_Produto, T008_Codigo_Produto, 'Não informado') AS descricao,",
+        "CONCAT('product-image.php?produto=', COALESCE(D001_Id, 0), '&foto=', COALESCE(fotos.fotoId, 0)) AS imagem,",
+        "COALESCE(SUM(T008_Quantidade), 0) AS quantidade, COALESCE(SUM(T008_Valor_Total_Preco), 0) AS valor,",
+        "CASE WHEN SUM(T008_Quantidade) > 0 THEN SUM(T008_Valor_Total_Preco) / SUM(T008_Quantidade) ELSE 0 END AS precoMedio",
+        "FROM T008",
+        "INNER JOIN T007 ON T007_Id = T008_T007_Id AND T007_C004_Id = :empresa",
+        "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+        "LEFT JOIN D009 ON D009_Id = T008_D009_Id",
+        "LEFT JOIN D049 ON D049_Id = D009_D049_Id",
+        "LEFT JOIN D001 ON D001_Id = D049_D001_Id",
+        "LEFT JOIN (SELECT T172_D001_Id AS produtoFotoId, MAX(T172_Id) AS fotoId FROM T172 GROUP BY T172_D001_Id) AS fotos ON fotos.produtoFotoId = D001_Id",
+        "WHERE T008_C004_Id = :empresa",
+        "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+        "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+        "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+        "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+        "AND D006_Flag_Venda_Compra_Outros = 'V'",
+        "AND IFNULL(T008_Flag_Excluir, 'N') <> 'S'",
+        "AND (:produto = '' OR T008_Codigo_Produto LIKE CONCAT('%', :produto, '%') OR COALESCE(D001_Descricao_Produto, T008_Descricao_Produto, '') LIKE CONCAT('%', :produto, '%'))",
+        "GROUP BY COALESCE(D001_Id, T008_D009_Id, T008_Id), D001_Id, COALESCE(NULLIF(D001_Codigo_Produto, ''), T008_Codigo_Produto, 'Sem código'), COALESCE(NULLIF(D001_Descricao_Produto, ''), T008_Descricao_Produto, T008_Codigo_Produto, 'Não informado'), fotos.fotoId",
+        "HAVING COALESCE(SUM(T008_Valor_Total_Preco), 0) >= :valorMinimo",
+        ") AS produtos",
+        ") AS calculado"
+      ],
+      "card": {
+        "titulo": "Faturamento dos produtos",
+        "descricao": "Valor total dos itens considerados na Curva ABC.",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda"
+      },
+      "composicao": {
+        "habilitada": true,
+        "titulo": "Participação por classe ABC",
+        "campo": "classificacao",
+        "campoValor": "valor",
+        "calculo": "soma",
+        "formato": "moeda",
+        "itens": [
+          { "chave": "A", "rotulo": "Classe A — até 80%" },
+          { "chave": "B", "rotulo": "Classe B — de 80% a 95%" },
+          { "chave": "C", "rotulo": "Classe C — acima de 95%" }
+        ]
+      },
+      "grafico": {
+        "habilitado": true,
+        "tipo": "pareto",
+        "titulo": "Curva de Pareto dos produtos",
+        "maxPontos": 60,
+        "campoPosicao": "posicao",
+        "campoCodigo": "codigo",
+        "campoDescricao": "descricao",
+        "campoValor": "valor",
+        "campoAcumulado": "percentualAcumulado",
+        "campoClasse": "classificacao"
+      },
+      "graficosPorGrupo": {
+        "habilitado": false
+      },
+      "listagem": {
+        "habilitada": true,
+        "titulo": "Produtos classificados",
+        "limite": 500,
+        "ordenacao": { "campo": "posicao", "direcao": "ASC" },
+        "colunas": [
+          { "campo": "imagem", "titulo": "Foto", "formato": "imagem", "campoAlt": "descricao" },
+          { "campo": "posicao", "titulo": "Posição", "formato": "numero" },
+          { "campo": "codigo", "titulo": "Código" },
+          { "campo": "descricao", "titulo": "Produto" },
+          { "campo": "quantidade", "titulo": "Quantidade", "formato": "numero" },
+          { "campo": "precoMedio", "titulo": "Preço médio", "formato": "moeda" },
+          { "campo": "valor", "titulo": "Venda", "formato": "moeda" },
+          { "campo": "percentualAcumulado", "titulo": "% acumulado", "formato": "percentual" },
+          { "campo": "classificacao", "titulo": "Classe" }
+        ]
+      }
+    },
+    {
+      "id": "desempenho_vendedores",
+      "habilitado": true,
+      "ordem": 6,
+      "titulo": "Vendedores",
+      "subtitulo": "Faturamento, evolução, carteira de clientes e distribuição geográfica por vendedor",
+      "icone": "users",
+      "cor": "cyan",
+      "filtros": [
+        { "id": "dataInicio", "titulo": "Emissão inicial", "tipo": "data", "padrao": "inicio_mes", "obrigatorio": true },
+        { "id": "dataFim", "titulo": "Emissão final", "tipo": "data", "padrao": "hoje", "obrigatorio": true },
+        {
+          "id": "vendedor",
+          "titulo": "Vendedor",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesSql": [
+            "SELECT DISTINCT C007_Id AS valor, COALESCE(NULLIF(C007_Nome, ''), NULLIF(C007_Primeiro_Nome, ''), 'Não informado') AS titulo",
+            "FROM T007",
+            "INNER JOIN C007 ON C007_Id = COALESCE(NULLIF(T007_C007_Id_Vendedor_Externo, 0), T007_C007_Id_Vendedor_Interno)",
+            "WHERE T007_C004_Id = :empresa",
+            "AND C007_Id > 0",
+            "ORDER BY titulo"
+          ]
+        },
+        { "id": "cliente", "titulo": "Cliente", "tipo": "texto", "padrao": "" },
+        {
+          "id": "uf",
+          "titulo": "UF do cliente",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesSql": [
+            "SELECT DISTINCT D018_UF AS valor, D018_UF AS titulo",
+            "FROM T007",
+            "INNER JOIN D024 ON D024_Id = T007_D024_Id",
+            "INNER JOIN D018 ON D018_Id = D024_D018_Id",
+            "WHERE T007_C004_Id = :empresa",
+            "AND NULLIF(D018_UF, '') IS NOT NULL",
+            "ORDER BY D018_UF"
+          ]
+        }
+      ],
+      "sqlBase": [
+        "SELECT T007_Id AS id, T007_Numero_Nota_Fiscal AS documento, T007_Data_Emissao AS data,",
+        "COALESCE(C007_Id, 0) AS vendedorId, COALESCE(NULLIF(C007_Nome, ''), NULLIF(C007_Primeiro_Nome, ''), 'Não informado') AS vendedor,",
+        "COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, 'Não informado') AS cliente,",
+        "COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade,",
+        "CASE WHEN IFNULL(T007_C007_Id_Vendedor_Externo, 0) > 0 THEN 'Vendedor externo' WHEN IFNULL(T007_C007_Id_Vendedor_Interno, 0) > 0 THEN 'Vendedor interno' ELSE 'Sem vendedor' END AS tipoVendedor,",
+        "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+        "FROM T007",
+        "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+        "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+        "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+        "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+        "LEFT JOIN C007 ON C007_Id = COALESCE(NULLIF(T007_C007_Id_Vendedor_Externo, 0), T007_C007_Id_Vendedor_Interno)",
+        "WHERE T007_C004_Id = :empresa",
+        "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+        "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+        "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+        "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+        "AND D006_Flag_Venda_Compra_Outros = 'V'",
+        "AND (:vendedor = '' OR C007_Id = :vendedor)",
+        "AND (:cliente = '' OR COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, '') LIKE CONCAT('%', :cliente, '%'))",
+        "AND (:uf = '' OR D018_UF = :uf)"
+      ],
+      "card": {
+        "titulo": "Faturamento dos vendedores",
+        "descricao": "Faturamento líquido das NF-e autorizadas no período selecionado.",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda"
+      },
+      "composicao": {
+        "habilitada": true,
+        "titulo": "Origem das vendas",
+        "campo": "tipoVendedor",
+        "campoValor": "valor",
+        "calculo": "soma",
+        "formato": "moeda",
+        "itens": [
+          { "chave": "Vendedor externo", "rotulo": "Vendedor externo" },
+          { "chave": "Vendedor interno", "rotulo": "Vendedor interno" },
+          { "chave": "Sem vendedor", "rotulo": "Sem vendedor informado" }
+        ]
+      },
+      "grafico": {
+        "habilitado": true,
+        "titulo": "Evolução geral das vendas",
+        "campoData": "data",
+        "campoValor": "valor",
+        "calculo": "soma"
+      },
+      "graficosPorGrupo": {
+        "habilitado": true,
+        "exibirGraficoGeral": true,
+        "titulo": "Evolução por vendedor",
+        "campoGrupo": "vendedor",
+        "campoData": "data",
+        "campoValor": "valor",
+        "calculo": "soma",
+        "limite": 6
+      },
+      "calendarios": [
+        {
+          "id": "vendas_vendedores_30_dias",
+          "titulo": "Intensidade de vendas — últimos 30 dias",
+          "subtitulo": "Cada dia mostra o faturamento líquido dos vendedores filtrados",
+          "periodo": "ultimos_30_dias",
+          "campoData": "data",
+          "campoValor": "valor",
+          "calculo": "soma",
+          "formato": "moeda"
+        }
+      ],
+      "geografia": {
+        "habilitada": true,
+        "titulo": "Vendas dos vendedores por estado",
+        "campoUf": "uf",
+        "campoCidade": "cidade",
+        "campoCliente": "cliente",
+        "campoValor": "valor",
+        "formato": "moeda"
+      },
+      "listagem": {
+        "habilitada": true,
+        "titulo": "Ranking dos vendedores",
+        "limite": 500,
+        "agrupamento": {
+          "campo": "vendedor",
+          "campoContagem": "id",
+          "campoValor": "valor"
+        },
+        "colunas": [
+          { "campo": "vendedor", "titulo": "Vendedor" },
+          { "campo": "quantidade", "titulo": "NF-e", "formato": "numero" },
+          { "campo": "valor", "titulo": "Faturamento", "formato": "moeda" },
+          { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+        ],
+        "detalhamento": {
+          "habilitado": true,
+          "modal": true,
+          "campoGrupo": "vendedor",
+          "titulo": "Vendas de {grupo}",
+          "limite": 3000,
+          "sqlBase": [
+            "SELECT COALESCE(NULLIF(C007_Nome, ''), NULLIF(C007_Primeiro_Nome, ''), 'Não informado') AS vendedor,",
+            "T007_Numero_Nota_Fiscal AS documento, T007_Data_Emissao AS data, COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, 'Não informado') AS cliente,",
+            "COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade,",
+            "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor",
+            "FROM T007",
+            "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+            "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+            "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+            "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+            "LEFT JOIN C007 ON C007_Id = COALESCE(NULLIF(T007_C007_Id_Vendedor_Externo, 0), T007_C007_Id_Vendedor_Interno)",
+            "WHERE T007_C004_Id = :empresa",
+            "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+            "AND T007_Flag_Entrada_Saida = 'S'",
+            "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+            "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+            "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+            "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+            "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+            "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+            "AND D006_Flag_Venda_Compra_Outros = 'V'",
+            "AND (:vendedor = '' OR C007_Id = :vendedor)",
+            "AND (:cliente = '' OR COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, '') LIKE CONCAT('%', :cliente, '%'))",
+            "AND (:uf = '' OR D018_UF = :uf)",
+            "ORDER BY T007_Data_Emissao DESC, T007_Numero_Nota_Fiscal DESC"
+          ],
+          "colunas": [
+            { "campo": "documento", "titulo": "NF-e" },
+            { "campo": "data", "titulo": "Emissão", "formato": "data" },
+            { "campo": "cliente", "titulo": "Cliente" },
+            { "campo": "uf", "titulo": "UF" },
+            { "campo": "cidade", "titulo": "Cidade" },
+            { "campo": "valor", "titulo": "Faturamento", "formato": "moeda" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "produtos_por_marca",
+      "habilitado": true,
+      "ordem": 7,
+      "titulo": "Produtos por marca",
+      "subtitulo": "Vendas, estoque atual, produtos, clientes e distribuição geográfica por marca",
+      "icone": "chart",
+      "cor": "purple",
+      "filtros": [
+        { "id": "dataInicio", "titulo": "Emissão inicial", "tipo": "data", "padrao": "inicio_mes", "obrigatorio": true },
+        { "id": "dataFim", "titulo": "Emissão final", "tipo": "data", "padrao": "hoje", "obrigatorio": true },
+        {
+          "id": "marca",
+          "titulo": "Marca",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesSql": [
+            "SELECT DISTINCT D082_Id AS valor, D082_Marca AS titulo",
+            "FROM D009",
+            "INNER JOIN D049 ON D049_Id = D009_D049_Id",
+            "INNER JOIN D082 ON D082_Id = D049_D082_Id",
+            "WHERE D009_C004_Id = :empresa",
+            "AND NULLIF(D082_Marca, '') IS NOT NULL",
+            "AND IFNULL(D082_Flag_Ativo, 'S') <> 'N'",
+            "ORDER BY D082_Marca"
+          ]
+        },
+        { "id": "produto", "titulo": "Produto ou código", "tipo": "texto", "padrao": "" },
+        {
+          "id": "estoque",
+          "titulo": "Estoque atual",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoes": [
+            { "valor": "sem", "titulo": "Sem estoque" },
+            { "valor": "baixo", "titulo": "Estoque baixo — até 10" },
+            { "valor": "normal", "titulo": "Estoque acima de 10" }
+          ]
+        },
+        {
+          "id": "uf",
+          "titulo": "UF do cliente",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesSql": [
+            "SELECT DISTINCT D018_UF AS valor, D018_UF AS titulo",
+            "FROM T007",
+            "INNER JOIN D024 ON D024_Id = T007_D024_Id",
+            "INNER JOIN D018 ON D018_Id = D024_D018_Id",
+            "WHERE T007_C004_Id = :empresa",
+            "AND NULLIF(D018_UF, '') IS NOT NULL",
+            "ORDER BY D018_UF"
+          ]
+        }
+      ],
+      "sqlBase": [
+        "SELECT T008_Id AS id, T007_Numero_Nota_Fiscal AS documento, T007_Data_Emissao AS data,",
+        "COALESCE(D001_Id, T008_D009_Id, T008_Id) AS produtoId, COALESCE(NULLIF(D001_Codigo_Produto, ''), T008_Codigo_Produto, 'Sem código') AS codigo,",
+        "COALESCE(NULLIF(D001_Descricao_Produto, ''), T008_Descricao_Produto, T008_Codigo_Produto, 'Não informado') AS produto,",
+        "COALESCE(D082_Id, 0) AS marcaId, COALESCE(NULLIF(D082_Marca, ''), 'Sem marca') AS marca,",
+        "CONCAT('product-image.php?produto=', COALESCE(D001_Id, 0), '&foto=', COALESCE(fotos.fotoId, 0)) AS imagem,",
+        "COALESCE(T008_Quantidade, 0) AS quantidadeVendida, COALESCE(T008_Valor_Total_Preco, 0) AS valor, COALESCE(D009_Quantidade_Estoque_Liquido, 0) AS saldoEstoque,",
+        "CASE WHEN COALESCE(D009_Quantidade_Estoque_Liquido, 0) <= 0 THEN 'Sem estoque' WHEN COALESCE(D009_Quantidade_Estoque_Liquido, 0) <= 10 THEN 'Estoque baixo' ELSE 'Estoque normal' END AS situacaoEstoque,",
+        "COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, 'Não informado') AS cliente, COALESCE(D018_UF, 'Não informado') AS uf, COALESCE(D020_Nome_Cidade, 'Não informado') AS cidade",
+        "FROM T008",
+        "INNER JOIN T007 ON T007_Id = T008_T007_Id AND T007_C004_Id = :empresa",
+        "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+        "LEFT JOIN D009 ON D009_Id = T008_D009_Id",
+        "LEFT JOIN D049 ON D049_Id = D009_D049_Id",
+        "LEFT JOIN D001 ON D001_Id = D049_D001_Id",
+        "LEFT JOIN D082 ON D082_Id = D049_D082_Id",
+        "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+        "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+        "LEFT JOIN D020 ON D020_Id = D024_D020_Id",
+        "LEFT JOIN (SELECT T172_D001_Id AS produtoFotoId, MAX(T172_Id) AS fotoId FROM T172 GROUP BY T172_D001_Id) AS fotos ON fotos.produtoFotoId = D001_Id",
+        "WHERE T008_C004_Id = :empresa",
+        "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+        "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+        "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+        "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+        "AND D006_Flag_Venda_Compra_Outros = 'V'",
+        "AND IFNULL(T008_Flag_Excluir, 'N') <> 'S'",
+        "AND (:marca = '' OR D082_Id = :marca)",
+        "AND (:produto = '' OR T008_Codigo_Produto LIKE CONCAT('%', :produto, '%') OR COALESCE(D001_Descricao_Produto, T008_Descricao_Produto, '') LIKE CONCAT('%', :produto, '%'))",
+        "AND (:estoque = '' OR (:estoque = 'sem' AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) <= 0) OR (:estoque = 'baixo' AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) > 0 AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) <= 10) OR (:estoque = 'normal' AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) > 10))",
+        "AND (:uf = '' OR D018_UF = :uf)"
+      ],
+      "card": {
+        "titulo": "Faturamento dos produtos",
+        "descricao": "Valor vendido dos produtos e marcas no período selecionado.",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda"
+      },
+      "composicao": {
+        "habilitada": true,
+        "titulo": "Venda por disponibilidade atual",
+        "campo": "situacaoEstoque",
+        "campoValor": "valor",
+        "calculo": "soma",
+        "formato": "moeda",
+        "itens": [
+          { "chave": "Sem estoque", "rotulo": "Produtos sem estoque" },
+          { "chave": "Estoque baixo", "rotulo": "Estoque baixo — até 10" },
+          { "chave": "Estoque normal", "rotulo": "Estoque acima de 10" }
+        ]
+      },
+      "grafico": {
+        "habilitado": true,
+        "titulo": "Evolução geral das vendas de produtos",
+        "campoData": "data",
+        "campoValor": "valor",
+        "calculo": "soma"
+      },
+      "graficosPorGrupo": {
+        "habilitado": true,
+        "exibirGraficoGeral": true,
+        "titulo": "Evolução das vendas por marca",
+        "campoGrupo": "marca",
+        "campoData": "data",
+        "campoValor": "valor",
+        "calculo": "soma",
+        "limite": 6
+      },
+      "calendarios": [
+        {
+          "id": "vendas_marcas_30_dias",
+          "titulo": "Intensidade de vendas — últimos 30 dias",
+          "subtitulo": "Cada dia mostra o valor vendido dos produtos e marcas filtrados",
+          "periodo": "ultimos_30_dias",
+          "campoData": "data",
+          "campoValor": "valor",
+          "calculo": "soma",
+          "formato": "moeda"
+        }
+      ],
+      "geografia": {
+        "habilitada": true,
+        "titulo": "Venda dos produtos por estado",
+        "campoUf": "uf",
+        "campoCidade": "cidade",
+        "campoCliente": "cliente",
+        "campoValor": "valor",
+        "formato": "moeda"
+      },
+      "listagem": {
+        "habilitada": true,
+        "titulo": "Ranking das marcas",
+        "limite": 500,
+        "agrupamento": {
+          "campo": "marca",
+          "campoContagem": "produtoId",
+          "campoValor": "valor",
+          "camposSoma": ["quantidadeVendida"]
+        },
+        "colunas": [
+          { "campo": "marca", "titulo": "Marca" },
+          { "campo": "quantidade", "titulo": "Produtos distintos", "formato": "numero" },
+          { "campo": "quantidadeVendida", "titulo": "Quantidade vendida", "formato": "numero" },
+          { "campo": "valor", "titulo": "Venda", "formato": "moeda" },
+          { "campo": "percentual", "titulo": "% do total", "formato": "percentual" }
+        ],
+        "detalhamento": {
+          "habilitado": true,
+          "modal": true,
+          "campoGrupo": "marca",
+          "titulo": "Produtos vendidos da marca {grupo}",
+          "limite": 3000,
+          "sqlBase": [
+            "SELECT COALESCE(NULLIF(D082_Marca, ''), 'Sem marca') AS marca, CONCAT('product-image.php?produto=', COALESCE(D001_Id, 0), '&foto=', COALESCE(fotos.fotoId, 0)) AS imagem,",
+            "COALESCE(NULLIF(D001_Codigo_Produto, ''), T008_Codigo_Produto, 'Sem código') AS codigo, COALESCE(NULLIF(D001_Descricao_Produto, ''), T008_Descricao_Produto, 'Não informado') AS produto,",
+            "T007_Numero_Nota_Fiscal AS documento, T007_Data_Emissao AS data, COALESCE(D024_Nome_Empresa, T007_Cliente_Razao, 'Não informado') AS cliente,",
+            "COALESCE(T008_Quantidade, 0) AS quantidade, COALESCE(D009_Quantidade_Estoque_Liquido, 0) AS saldoEstoque, COALESCE(T008_Valor_Total_Preco, 0) AS valor",
+            "FROM T008",
+            "INNER JOIN T007 ON T007_Id = T008_T007_Id AND T007_C004_Id = :empresa",
+            "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+            "LEFT JOIN D009 ON D009_Id = T008_D009_Id",
+            "LEFT JOIN D049 ON D049_Id = D009_D049_Id",
+            "LEFT JOIN D001 ON D001_Id = D049_D001_Id",
+            "LEFT JOIN D082 ON D082_Id = D049_D082_Id",
+            "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+            "LEFT JOIN D018 ON D018_Id = D024_D018_Id",
+            "LEFT JOIN (SELECT T172_D001_Id AS produtoFotoId, MAX(T172_Id) AS fotoId FROM T172 GROUP BY T172_D001_Id) AS fotos ON fotos.produtoFotoId = D001_Id",
+            "WHERE T008_C004_Id = :empresa",
+            "AND T007_Data_Emissao BETWEEN :dataInicio AND :dataFim",
+            "AND T007_Flag_Entrada_Saida = 'S'",
+            "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+            "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+            "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+            "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+            "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+            "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+            "AND D006_Flag_Venda_Compra_Outros = 'V'",
+            "AND IFNULL(T008_Flag_Excluir, 'N') <> 'S'",
+            "AND (:marca = '' OR D082_Id = :marca)",
+            "AND (:produto = '' OR T008_Codigo_Produto LIKE CONCAT('%', :produto, '%') OR COALESCE(D001_Descricao_Produto, T008_Descricao_Produto, '') LIKE CONCAT('%', :produto, '%'))",
+            "AND (:estoque = '' OR (:estoque = 'sem' AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) <= 0) OR (:estoque = 'baixo' AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) > 0 AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) <= 10) OR (:estoque = 'normal' AND COALESCE(D009_Quantidade_Estoque_Liquido, 0) > 10))",
+            "AND (:uf = '' OR D018_UF = :uf)",
+            "ORDER BY T007_Data_Emissao DESC, marca, produto"
+          ],
+          "colunas": [
+            { "campo": "imagem", "titulo": "Foto", "formato": "imagem", "campoAlt": "produto" },
+            { "campo": "codigo", "titulo": "Código" },
+            { "campo": "produto", "titulo": "Produto" },
+            { "campo": "documento", "titulo": "NF-e" },
+            { "campo": "data", "titulo": "Emissão", "formato": "data" },
+            { "campo": "cliente", "titulo": "Cliente" },
+            { "campo": "quantidade", "titulo": "Quantidade", "formato": "numero" },
+            { "campo": "saldoEstoque", "titulo": "Estoque atual", "formato": "numero" },
+            { "campo": "valor", "titulo": "Venda", "formato": "moeda" }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+RewriteEngine On
+# URL pública canônica do módulo Balanço. As regras são internas e antecedem
+# o roteador legado, preservando a URL amigável e as demais rotas existentes.
+RewriteCond %{THE_REQUEST} \s/+hardness3/balanco(?:/[^\s?]*)? [NC]
+RewriteRule ^hardness3/balanco/?(.*)$ /balanco/$1 [R=302,L,NE]
+RewriteRule ^balanco/?$ /hardness3/aplicacoes/balanco/public/index.php [END]
+RewriteRule ^balanco/abrir-qr/?$ /hardness3/aplicacoes/balanco/public/abrir-qr.php [END]
+RewriteRule ^balanco/(.*)$ /hardness3/aplicacoes/balanco/public/$1 [END]
+# MCP connection URLs are strict 24-character base64url identifiers. Keep the
+# legacy endpoint and shared OAuth routes below unchanged for existing clients.
+RewriteRule ^mcp/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^mcp/c/[A-Za-z0-9_-]{24}$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^\.well-known/(oauth-protected-resource(?:/mcp)?|oauth-authorization-server|openid-configuration)/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^\.well-known/oauth-protected-resource/mcp/c/[A-Za-z0-9_-]{24}$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^oauth/register/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^oauth/authorize/?$ /hardness3/mcp/public/index.php [END]
+RewriteRule ^oauth/token/?$ /hardness3/mcp/public/index.php [END]
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteRule ^(.*)$ /hardness3/index.php?r=$1 [QSA,B]
+
+# compress text, html, javascript, css, xml:
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript

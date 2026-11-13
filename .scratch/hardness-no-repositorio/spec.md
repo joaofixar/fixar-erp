@@ -91,3 +91,7 @@ O Hardness que já abre entra no repositório, e o contêiner serve esse código
 - Vocabulário: empresa é o CNPJ que opera no ERP; empresa de validação é a empresa em que a base abre, sem cliente, produto, orçamento, pedido, nota nem título; cliente é quem compra da Fixar; fornecedor é quem vende para a Fixar; Hardness é o produto comprado, que a Fixar altera; base é o Hardness em execução na máquina da Fixar; personalização é a regra da Fixar gravada à parte; perfil é o conjunto de permissões de um usuário dentro de uma empresa.
 - O ADR 0003 é a decisão desta spec. Ele substitui, no ADR 0001, o que entra no git e a leitura da produção ao nascer o banco. O ADR 0002 permanece.
 - Onde a spec da base sem personalização discorda deste arquivo, vale o ADR 0003.
+
+## Comments
+
+Concluído em d41015e. O Hardness que sobe está em `src/` e o banco nasce da fotografia local, sem ler a produção.

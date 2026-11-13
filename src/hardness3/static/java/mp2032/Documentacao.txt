@@ -1,0 +1,32 @@
+1. Compilar no Eclipe o projeto Mp2023. Irá gerar dois arquivos:
+Bematech.class
+Mp2032.class
+
+2. Empacotar esses arquivos:
+"C:\Program Files (x86)\Java\jdk1.8.0\bin\jar.exe" cvf Mp2032.jar Mp2032.class Bematech.class
+
+3.Empacotar as DLL que serão utilizadas pelo Mp2023:
+"C:\Program Files (x86)\Java\jdk1.8.0\bin\jar.exe" cvf win32-x86.jar jnidispatch.dll mp2032.dll
+
+4. Criar uma chave auto-assinada:
+http://www.devmedia.com.br/trabalhando-com-applet-auto-assinado-em-java/28660
+(senha 123456)
+# keytool -genkey -keystore newkeystore -alias newalias 
+# keytool -selfcert -keystore newkeystore -alias newalias 
+
+5. Assinar todos os .jar:
+"C:\Program Files (x86)\Java\jdk1.8.0\bin\jarsigner.exe" -keystore newkeystore Mp2032.jar newalias
+"C:\Program Files (x86)\Java\jdk1.8.0\bin\jarsigner.exe" -keystore newkeystore jna.jar newalias
+"C:\Program Files (x86)\Java\jdk1.8.0\bin\jarsigner.exe" -keystore newkeystore win32-x86.jar newalias
+
+6. Arquivos necessários para executar o applet:
+- Mp2032.html (basta executar este aqui)
+- Mp2032.jnlp
+
+Extra:
+https://community.oracle.com/thread/1305658?start=0
+http://docs.oracle.com/javase/tutorial/deployment/applet/deployingApplet.html
+http://comments.gmane.org/gmane.comp.java.jna.user/3204
+
+http://www.guj.com.br/java/290203-resolvidoimprimindo-bematech-nao-fiscal-usb-java-uso-do-modelo-mp-4200th
+http://partners.bematech.com.br/2012/05/edicao-118-instalando-e-configurando-a-interface-usb-dos-modelos-mp-2500-th-e-mp-4200-th/

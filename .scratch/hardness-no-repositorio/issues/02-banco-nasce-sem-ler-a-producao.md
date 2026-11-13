@@ -9,9 +9,13 @@ Orbit: ERPFX-17
 
 **Status:** ready-for-agent
 
-- [ ] Com o volume vazio e sem credencial de produção, o login abre na empresa de validação
-- [ ] A tela de usuários mostra o usuário local
-- [ ] A tela de empresa mostra a empresa de validação
-- [ ] O C.R.M. mostra orçamento, pedido e nota
-- [ ] A subida não conecta na produção
-- [ ] Subir de novo com o volume já preenchido não apaga a base
+- [x] Com o volume vazio e sem credencial de produção, o login abre na empresa de validação
+- [x] A tela de usuários mostra o usuário local
+- [x] A tela de empresa mostra a empresa de validação
+- [x] O C.R.M. mostra orçamento, pedido e nota
+- [x] A subida não conecta na produção
+- [x] Subir de novo com o volume já preenchido não apaga a base
+
+## Comments
+
+Concluído em d41015e. A fotografia local entra em a42b9c9 e a subida deixa de ler a produção. O percurso do volume vazio foi observado de novo em d41015e.

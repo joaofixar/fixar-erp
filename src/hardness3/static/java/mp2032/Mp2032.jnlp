@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="" href="">
+    <information>
+        <title>JNA Applet</title>
+        <vendor>Hardness</vendor>
+    </information>
+    <resources>
+        <j2se version="1.5+"
+              href="http://java.sun.com/products/autodl/j2se" />
+        <jar href="Mp2032.jar" main="true" />
+        <jar href="jna.jar" />
+    </resources>
+      <resources os="Windows" arch="x86">
+         <nativelib href="win32-x86.jar" />
+       </resources>
+    <applet-desc 
+         name="JNA Applet"
+         main-class="Mp2032"
+         width="300"
+         height="300">
+     </applet-desc>
+     <update check="background"/>
+    <security>
+        <all-permissions/>
+    </security>
+</jnlp>   
