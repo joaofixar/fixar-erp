@@ -28,6 +28,10 @@ _Avoid_: cliente, empresa
 O produto comprado, que a Fixar altera. A base abre no comportamento dele.
 _Avoid_: personalização, ERP da Fixar
 
+**Publicação**:
+O Hardness como o vendedor o publica, na linha master do produto. Não é a base e não é a personalização.
+_Avoid_: base, repositório oficial
+
 **Base**:
 O Hardness em execução na máquina da Fixar.
 _Avoid_: repositório, código
