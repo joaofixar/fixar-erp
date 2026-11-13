@@ -628,11 +628,13 @@ function gGeraSelect($tabela, $campoId, $campoTxt, $sqlExtra = '', $first = fals
                         $cTxt .= $cTxt == '' ? $row[trim($value)] : ' - ' . $row[trim($value)];
                     }
                 } else {
-                    while (!stripos($campoTxt, ' as ')) {
-                        $cTxt = $row[$campoTxt];
+                    // Sem " as " o laço não terminava e a entrada estourava o tempo.
+                    $nome = $campoTxt;
+                    if (stripos($nome, ' as ') !== false) {
+                        $partes = preg_split('/as/i', $nome);
+                        $nome = trim($partes[1]);
                     }
-                    $campoTxt = preg_split('/as/i', $campoTxt);
-                    $campoTxt = trim($campoTxt[1]);
+                    $cTxt = $row[trim($nome)];
                 }
                 if ($default > 0 && $default == $row[$campoId]) {
                     $select[] = array('title' => $cTxt, 'value' => $row[$campoId], 'selected' => true);
