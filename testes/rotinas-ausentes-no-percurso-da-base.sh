@@ -3,7 +3,9 @@
 # fotografia. O status pendente volta como pendente, as rotinas da
 # fotografia continuam com a mesma definição, um arquivo que falha fica
 # nomeado e o resto da lista controlada ainda é criado. Rodar o passo de
-# novo não recria rotina que já existe.
+# novo não recria rotina que já existe. Um aviso gravado a partir da lista
+# de empresas fica sem empresa, e editar sem identificador não apaga a
+# empresa que a tela indicou.
 set -euo pipefail
 
 raiz="$(cd "$(dirname "$0")/.." && pwd)"
@@ -103,6 +105,114 @@ descrever_rotinas() {
       || printf '%s\n' "falhou ${nome}" >> "$destino"
     printf '\n' >> "$destino"
   done
+}
+
+# O login fica aqui dentro para não colidir com outro passo do mesmo percurso.
+provar_aviso() {
+  local base="http://127.0.0.1:${porta}"
+  local usuario="${USUARIO_LOCAL:-fixar}"
+  local senha="${SENHA_LOCAL:-fixar-local}"
+  local corpo biscuits texto texto_com aviso empresa id sufixo
+  sufixo="$(date +%s)-$$"
+  texto="jornada-aviso-sem-empresa-${sufixo}"
+  texto_com="jornada-aviso-com-empresa-${sufixo}"
+  corpo="$(mktemp)"
+  biscuits="$(mktemp)"
+
+  entrar_para_o_aviso() {
+    local tentativa envio
+    for tentativa in 1 2 3 4 5 6 7 8 9 10 11 12; do
+      if curl -sS -L --max-time 10 -o "$corpo" -c "$biscuits" -b "$biscuits" "${base}/login"; then
+        break
+      fi
+      if [ "$tentativa" -eq 12 ]; then
+        return 1
+      fi
+      sleep 2
+    done
+    : >"$biscuits"
+    for envio in 1 2 3 4 5 6; do
+      if curl -sS --max-time 30 -o "$corpo" -c "$biscuits" -b "$biscuits" \
+        -d "login=${usuario}" -d "senha=${senha}" \
+        "${base}/hardness3/outros/login/index.php" \
+        && grep -q "location.replace" "$corpo" && grep -q "/erp/" "$corpo" \
+        && curl -sS --max-time 40 -o "$corpo" -c "$biscuits" -b "$biscuits" "${base}/hardness3/erp/"; then
+        return 0
+      fi
+      sleep 2
+    done
+    return 1
+  }
+
+  enviar_aviso() {
+    local texto_aviso="$1"
+    shift
+    curl -sS --max-time 40 -o "$corpo" -c "$biscuits" -b "$biscuits" \
+      --data-urlencode "ajax=true" \
+      --data-urlencode "divId=janela" \
+      --data-urlencode "tab=geral" \
+      --data-urlencode "cad031FormAvisosIndex[internal_sent]=1" \
+      --data-urlencode "cad031FormAvisosIndex[C032_Aviso]=${texto_aviso}" \
+      --data-urlencode "cad031FormAvisosIndex[C032_Flag_Ativo]=S" \
+      --data-urlencode "cad031FormAvisosIndex[C032_Descricao]=" \
+      "$@" \
+      "${base}/cad/cad031/form/cad031FormAvisosIndex/"
+  }
+
+  empresa_gravada() {
+    local filtro="$1"
+    consultar "SELECT CASE WHEN C032_C004_Id IS NULL THEN 'NULL' ELSE CAST(C032_C004_Id AS CHAR) END FROM C032 WHERE ${filtro}"
+  }
+
+  echo "Gravando um aviso a partir da lista de empresas"
+  if ! entrar_para_o_aviso; then
+    reclamar "não foi possível entrar na empresa de validação para gravar o aviso"
+    rm -f "$corpo" "$biscuits"
+    exit 1
+  fi
+
+  if ! enviar_aviso "$texto"; then
+    reclamar "o envio do aviso sem empresa não respondeu"
+    rm -f "$corpo" "$biscuits"
+    exit 1
+  fi
+
+  aviso="$(consultar "SELECT C032_Aviso FROM C032 WHERE C032_Aviso = '${texto}'")"
+  empresa="$(empresa_gravada "C032_Aviso = '${texto}'")"
+  if [ "$aviso" != "$texto" ]; then
+    reclamar "o aviso sem empresa não gravou o texto digitado (veio: ${aviso:-vazio})"
+    tr -d '\r' < "$corpo" | head -c 400 >&2 || true
+    echo >&2
+  elif [ "$empresa" = "1" ]; then
+    reclamar "a empresa da sessão foi gravada no aviso"
+  elif [ "$empresa" != "NULL" ]; then
+    reclamar "a empresa do aviso não ficou vazia (veio: ${empresa:-vazio})"
+  fi
+
+  echo "Editando um aviso sem identificador de empresa"
+  if ! enviar_aviso "$texto_com" --data-urlencode "C004_Id=1"; then
+    reclamar "o envio do aviso com empresa não respondeu"
+  else
+    id="$(consultar "SELECT C032_Id FROM C032 WHERE C032_Aviso = '${texto_com}'")"
+    empresa="$(empresa_gravada "C032_Aviso = '${texto_com}'")"
+    if [ -z "$id" ] || [ "$empresa" != "1" ]; then
+      reclamar "o aviso com empresa não gravou a empresa indicada (id: ${id:-vazio}, empresa: ${empresa:-vazia})"
+      tr -d '\r' < "$corpo" | head -c 400 >&2 || true
+      echo >&2
+    elif ! enviar_aviso "$texto_com" --data-urlencode "acaoId=${id}"; then
+      reclamar "o envio da edição do aviso não respondeu"
+    else
+      empresa="$(empresa_gravada "C032_Id = '${id}'")"
+      if [ "$empresa" != "1" ]; then
+        reclamar "editar sem identificador apagou a empresa já gravada (veio: ${empresa:-vazio})"
+      fi
+    fi
+  fi
+
+  rm -f "$corpo" "$biscuits"
+  if [ "$falhou" -ne 0 ]; then
+    exit 1
+  fi
 }
 
 if ! docker info >/dev/null 2>&1; then
@@ -273,5 +383,7 @@ fi
 if [ "$falhou" -ne 0 ]; then
   exit 1
 fi
+
+provar_aviso
 
 echo "As rotinas ausentes entram no percurso da base."

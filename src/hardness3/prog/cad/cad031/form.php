@@ -1241,6 +1241,11 @@ EOT;
 		 * PARTE 3: Processamento do formulário (se foi enviado)
 		 * E carregamento dos valores (se não foi enviado parametro acaoId)
 		 */
+		// Com identificador, a empresa da requisição entra na gravação. O gerador
+		// lê o campo enviado; sem esta cópia o identificador não vira coluna.
+		if (!$semEmpresa && isset($_REQUEST['cad031FormAvisosIndex']) && is_array($_REQUEST['cad031FormAvisosIndex'])) {
+			$_REQUEST['cad031FormAvisosIndex']['C032_C004_Id'] = $C004_Id;
+		}
 		if ($formCodigo = $form->processarFormulario($form_tabela)) {
 			// Form com erros
 			if ($formCodigo == 1) {
