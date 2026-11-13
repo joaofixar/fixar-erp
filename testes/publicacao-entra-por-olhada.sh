@@ -400,6 +400,22 @@ if [ -n "$(git -C "$erp" branch --list 'publicacao/*')" ]; then
   reclamar "o conflito criou uma branch: $(git -C "$erp" branch)"
 fi
 
+if ! bash "$comando" trazer --sobrescrever --raiz "$erp" --publicacao "$clone" >"$saida" 2>"$erro"; then
+  reclamar "sobrescrever terminou em erro: $(cat "$erro") $(cat "$saida")"
+fi
+if [ "$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/leia.txt")" != "deles" ]; then
+  reclamar "a publicação não ficou no arquivo em conflito: $(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/leia.txt" 2>&1 || true)"
+fi
+if [ "$(git -C "$erp" rev-parse HEAD)" != "$antes_head" ]; then
+  reclamar "sobrescrever trocou o checkout"
+fi
+if [ "$(cat "$erp/src/hardness3/leia.txt")" != "fixar" ]; then
+  reclamar "sobrescrever alterou o Hardness do checkout"
+fi
+if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$sha_ponta" ]; then
+  reclamar "sobrescrever não avançou o ponto"
+fi
+
 rm -f "$saida" "$erro"
 
 if [ "$falhou" -ne 0 ]; then

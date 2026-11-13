@@ -1,15 +1,45 @@
 #!/usr/bin/env bash
 # Olha a publicação e, quando pedido, traz o merge para uma branch nova.
 # Não troca o checkout e não fala com o banco.
+# Sem ação, mostra o passo a passo.
 set -euo pipefail
 
+passos() {
+  cat <<'EOF'
+Publicação do Hardness
+
+1. Ver se chegou algo. Não muda o src.
+
+   bash bin/publicacao olhar
+
+   Lista vazia e volta ao prompt: está na ponta.
+   Linhas com SHA e assunto: a publicação andou.
+
+2. Trazer a ponta. Onde os dois lados mudaram o mesmo arquivo, fica a publicação.
+
+   bash bin/publicacao trazer --sobrescrever
+
+   O comando imprime publicacao/<sha>. O src da base ainda é o antigo.
+
+3. Passar a servir esse código.
+
+   git merge --ff-only publicacao/<sha>
+
+Segredo, personalização e arquivo de outro cliente ficam de fora.
+Rotina nova só entra no banco na próxima subida do contêiner.
+EOF
+}
+
 uso() {
-  echo "Uso: publicacao olhar|trazer [--raiz DIR] [--publicacao DIR] [--ponto SHA]" >&2
+  echo "Uso: publicacao olhar|trazer [--raiz DIR] [--publicacao DIR] [--ponto SHA] [--sobrescrever]" >&2
+  echo >&2
+  passos >&2
   exit 2
 }
 
 if [ $# -lt 1 ]; then
-  uso
+  passos
+  exit 0
 fi
 acao="$1"
 shift
@@ -17,6 +47,7 @@ shift
 raiz=""
 publicacao=""
 ponto=""
+sobrescrever=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --raiz)
@@ -30,6 +61,10 @@ while [ $# -gt 0 ]; do
     --ponto)
       ponto="${2:-}"
       shift 2
+      ;;
+    --sobrescrever)
+      sobrescrever=1
+      shift
       ;;
     *)
       uso
@@ -45,6 +80,11 @@ if [ -z "$publicacao" ]; then
 fi
 
 export GIT_TERMINAL_PROMPT=0
+export GIT_PAGER=cat
+
+aviso() {
+  printf '%s\n' "$*" >&2
+}
 
 nossa_tmp=""
 cmp_tmp=""
@@ -131,10 +171,19 @@ caminho_excluido() {
 arvore_nossa() {
   local destino="$1"
   local modo="${2:-enxuta}"
-  local caminho rel
+  local caminho rel copiados
   git init -q -b master "$destino"
   git -C "$destino" config user.email teste@fixar.local
   git -C "$destino" config user.name Teste
+  copiados=0
+  aviso "Copiando o Hardness versionado."
+  if [ "$modo" = "completa" ]; then
+    git -C "$raiz" archive --format=tar "HEAD:src/hardness3" | tar -C "$destino" -xf -
+    aviso "Árvore copiada. Registrando no git."
+    git -C "$destino" add -A
+    git -C "$destino" commit -q --allow-empty -m "nossa"
+    return
+  fi
   while IFS= read -r -d '' caminho; do
     rel="${caminho#src/hardness3/}"
     if [ "$modo" != "completa" ] && caminho_excluido "$rel"; then
@@ -145,7 +194,12 @@ arvore_nossa() {
     fi
     mkdir -p "$destino/$(dirname -- "$rel")"
     cp -- "$raiz/$caminho" "$destino/$rel"
+    copiados=$((copiados + 1))
+    if [ $((copiados % 1000)) -eq 0 ]; then
+      aviso "Copiados $copiados arquivos."
+    fi
   done < <(git -C "$raiz" ls-files -z -- src/hardness3)
+  aviso "Árvore copiada, $copiados arquivos. Registrando no git."
   git -C "$destino" add -A
   git -C "$destino" commit -q --allow-empty -m "nossa"
 }
@@ -169,20 +223,28 @@ distancia() {
 }
 
 candidatos() {
-  local our_tree commit dist assunto menor
+  local our_tree commit dist assunto menor total vistos
   buscar
   nossa_tmp="$(mktemp -d)"
   cmp_tmp="$(mktemp -d)"
   lista_tmp="$(mktemp)"
   arvore_nossa "$nossa_tmp"
+  aviso "Preparando a comparação com a publicação."
   git init -q -b master "$cmp_tmp"
   git -C "$cmp_tmp" fetch -q --no-tags "$publicacao" 'refs/remotes/origin/master:refs/heads/deles'
   git -C "$cmp_tmp" fetch -q --no-tags "$nossa_tmp" 'HEAD:refs/heads/nossa'
   our_tree="$(git -C "$cmp_tmp" rev-parse 'nossa^{tree}')"
+  total="$(git -C "$cmp_tmp" rev-list --count refs/heads/deles)"
+  vistos=0
+  aviso "Comparando com $total commits. Isso demora e cada linha abaixo é progresso."
   while read -r commit; do
     dist="$(distancia "$commit" "$our_tree" "$cmp_tmp")"
     assunto="$(git -C "$cmp_tmp" log -1 --format='%s' "$commit")"
     printf '%s\t%s\t%s\n' "$dist" "$commit" "$assunto"
+    vistos=$((vistos + 1))
+    if [ $((vistos % 25)) -eq 0 ]; then
+      aviso "Comparados $vistos de $total."
+    fi
   done < <(git -C "$cmp_tmp" rev-list refs/heads/deles) >"$lista_tmp"
   if [ ! -s "$lista_tmp" ]; then
     echo "A publicação não tem commit em master." >&2
@@ -205,20 +267,24 @@ gravar_ponto() {
   fi
   mkdir -p "$raiz/publicacao"
   printf '%s\n' "$completo" >"$raiz/publicacao/ponto"
+  aviso "Ponto gravado: $completo"
 }
 
 buscar() {
+  aviso "Buscando a publicação."
   if ! git -C "$publicacao" fetch origin '+refs/heads/master:refs/remotes/origin/master' >/dev/null 2>&1; then
     echo "Não foi possível buscar a publicação." >&2
     exit 1
   fi
+  aviso "Busca concluída."
 }
 
 listar() {
   local gravado
   gravado="$(head -n 1 "$raiz/publicacao/ponto" | tr -d '[:space:]')"
   buscar
-  git -C "$publicacao" log --reverse --format='%H %s' "${gravado}..origin/master"
+  aviso "Listando os commits depois do ponto."
+  git --no-pager -C "$publicacao" log --reverse --format='%H %s' "${gravado}..origin/master"
 }
 
 olhar() {
@@ -254,6 +320,27 @@ restaurar_exclusoes() {
   } | sort -u)
 }
 
+ficar_com_a_publicacao() {
+  local indice="$1"
+  local caminho modo blob n
+  n=0
+  aviso "Onde os dois mudaram, fica a publicação."
+  while IFS= read -r caminho; do
+    [ -n "$caminho" ] || continue
+    if blob="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" rev-parse -q --verify ":3:${caminho}")"; then
+      modo="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files -u -- "$caminho" | awk '$3 == 3 { print $1; exit }')"
+      GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --add --cacheinfo "${modo:-100644},$blob,$caminho"
+    else
+      GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --force-remove -- "$caminho" || true
+    fi
+    n=$((n + 1))
+    if [ $((n % 50)) -eq 0 ]; then
+      aviso "Publicação aplicada em $n arquivos em conflito."
+    fi
+  done < <(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files -u --format='%(path)' | sort -u)
+  aviso "Publicação aplicada em $n arquivos em conflito."
+}
+
 trazer() {
   local base_sha tip indice merged temp_commit merged_tree parent novo caminho houve
   if [ ! -f "$raiz/publicacao/ponto" ]; then
@@ -261,8 +348,10 @@ trazer() {
     exit 1
   fi
   base_sha="$(head -n 1 "$raiz/publicacao/ponto" | tr -d '[:space:]')"
+  aviso "Ponto de parada: $base_sha"
   buscar
   tip="$(git -C "$publicacao" rev-parse refs/remotes/origin/master)"
+  aviso "Ponta da publicação: $tip"
   if git -C "$raiz" show-ref --verify --quiet "refs/heads/publicacao/$tip"; then
     echo "A branch publicacao/$tip já existe." >&2
     exit 1
@@ -279,8 +368,13 @@ trazer() {
   git -C "$cmp_tmp" fetch -q --no-tags "$nossa_tmp" 'HEAD:refs/heads/nossa'
 
   indice="$cmp_tmp/indice"
+  aviso "Juntando o ponto, o Hardness da Fixar e a ponta."
   GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" read-tree -m refs/heads/base refs/heads/nossa refs/heads/deles
+  aviso "Tirando personalização, segredo e arquivo de outro cliente."
   restaurar_exclusoes "$indice"
+  if [ "$sobrescrever" -eq 1 ]; then
+    ficar_com_a_publicacao "$indice"
+  fi
 
   houve=0
   while IFS= read -r caminho; do
@@ -293,6 +387,7 @@ trazer() {
     exit 1
   fi
 
+  aviso "Gravando a branch. O checkout atual não muda."
   merged="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" write-tree)"
   temp_commit="$(git -C "$cmp_tmp" commit-tree "$merged" -m "mergeado")"
   git -C "$cmp_tmp" update-ref refs/heads/mergeado "$temp_commit"
