@@ -1,0 +1,288 @@
+#!/usr/bin/env bash
+# Olha a publicação e, quando pedido, traz o merge para uma branch nova.
+# Não troca o checkout e não fala com o banco.
+set -euo pipefail
+
+uso() {
+  echo "Uso: publicacao olhar|trazer [--raiz DIR] [--publicacao DIR] [--ponto SHA]" >&2
+  exit 2
+}
+
+if [ $# -lt 1 ]; then
+  uso
+fi
+acao="$1"
+shift
+
+raiz=""
+publicacao=""
+ponto=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --raiz)
+      raiz="${2:-}"
+      shift 2
+      ;;
+    --publicacao)
+      publicacao="${2:-}"
+      shift 2
+      ;;
+    --ponto)
+      ponto="${2:-}"
+      shift 2
+      ;;
+    *)
+      uso
+      ;;
+  esac
+done
+
+if [ -z "$raiz" ]; then
+  raiz="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+if [ -z "$publicacao" ]; then
+  publicacao="//wsl.localhost/Ubuntu-20.04/root/sistema_hardness/hardness3"
+fi
+
+export GIT_TERMINAL_PROMPT=0
+
+nossa_tmp=""
+cmp_tmp=""
+lista_tmp=""
+indice_erp_tmp=""
+ponto_tmp=""
+limpar_temporarios() {
+  if [ -n "$raiz" ]; then
+    git -C "$raiz" update-ref -d refs/fixar/mergeado-tmp >/dev/null 2>&1 || true
+  fi
+  rm -rf "$nossa_tmp" "$cmp_tmp"
+  rm -f "$lista_tmp" "$indice_erp_tmp" "$ponto_tmp"
+}
+trap limpar_temporarios EXIT
+
+caminho_excluido() {
+  local rel="$1"
+  local base baixo
+  case "$rel" in
+    outros/personalizacoes|outros/personalizacoes/*) return 0 ;;
+    bibliotecas/confUsuario.php|bibliotecas/confUsuario.original) return 0 ;;
+    ide/sysConfig.php) return 0 ;;
+    scripts/queueMDFE/conf.php|scripts/queueMDFE/conf.php.original) return 0 ;;
+    scripts/queueNF/conf.original.php) return 0 ;;
+    dados_usuarios|dados_usuarios/*) return 0 ;;
+    smarty/templates_c|smarty/templates_c/*) return 0 ;;
+    smarty/cache|smarty/cache/*) return 0 ;;
+    bibliotecas/tcpdf/cache|bibliotecas/tcpdf/cache/*) return 0 ;;
+    hardness/phpqrcode/cache|hardness/phpqrcode/cache/*) return 0 ;;
+    scripts/backup|scripts/backup/*) return 0 ;;
+    static/css/temas/tema_*_cache.css) return 0 ;;
+    *.p12|*.keystore|*.key|*.crt) return 0 ;;
+  esac
+  base="$(basename "$rel")"
+  baixo="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+  case "$baixo" in
+    *ceigon*|*guimepa*|*eurosul*|*boticario*|*boticário*|*derosso*|*emprefix*|*nacomaq*|*panceri*|*vedapar*)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+arvore_nossa() {
+  local destino="$1"
+  local modo="${2:-enxuta}"
+  local caminho rel
+  git init -q -b master "$destino"
+  git -C "$destino" config user.email teste@fixar.local
+  git -C "$destino" config user.name Teste
+  while IFS= read -r -d '' caminho; do
+    rel="${caminho#src/hardness3/}"
+    if [ "$modo" != "completa" ] && caminho_excluido "$rel"; then
+      continue
+    fi
+    if [ ! -f "$raiz/$caminho" ]; then
+      continue
+    fi
+    mkdir -p "$destino/$(dirname -- "$rel")"
+    cp -- "$raiz/$caminho" "$destino/$rel"
+  done < <(git -C "$raiz" ls-files -z -- src/hardness3)
+  git -C "$destino" add -A
+  git -C "$destino" commit -q --allow-empty -m "nossa"
+}
+
+distancia() {
+  local commit="$1"
+  local our_tree="$2"
+  local repo="$3"
+  local n=0 status caminho
+  while IFS=$'\t' read -r status caminho; do
+    [ -n "${status:-}" ] || continue
+    case "$status" in
+      A*) continue ;;
+    esac
+    if caminho_excluido "$caminho"; then
+      continue
+    fi
+    n=$((n + 1))
+  done < <(git -C "$repo" diff-tree -r --no-renames --name-status "${commit}^{tree}" "$our_tree")
+  printf '%s\n' "$n"
+}
+
+candidatos() {
+  local our_tree commit dist assunto menor mostrados
+  buscar
+  nossa_tmp="$(mktemp -d)"
+  cmp_tmp="$(mktemp -d)"
+  lista_tmp="$(mktemp)"
+  arvore_nossa "$nossa_tmp"
+  git init -q -b master "$cmp_tmp"
+  git -C "$cmp_tmp" fetch -q --no-tags "$publicacao" 'refs/remotes/origin/master:refs/heads/deles'
+  git -C "$cmp_tmp" fetch -q --no-tags "$nossa_tmp" 'HEAD:refs/heads/nossa'
+  our_tree="$(git -C "$cmp_tmp" rev-parse 'nossa^{tree}')"
+  while read -r commit; do
+    dist="$(distancia "$commit" "$our_tree" "$cmp_tmp")"
+    assunto="$(git -C "$cmp_tmp" log -1 --format='%s' "$commit")"
+    printf '%s\t%s\t%s\n' "$dist" "$commit" "$assunto"
+  done < <(git -C "$cmp_tmp" rev-list refs/heads/deles) >"$lista_tmp"
+  if [ ! -s "$lista_tmp" ]; then
+    echo "A publicação não tem commit em master." >&2
+    exit 1
+  fi
+  menor="$(sort -t "$(printf '\t')" -k1,1n -k2,2 "$lista_tmp" | head -n 1 | cut -f1)"
+  mostrados=0
+  while IFS="$(printf '\t')" read -r dist commit assunto; do
+    if [ "$dist" != "$menor" ]; then
+      break
+    fi
+    if [ "$mostrados" -ge 5 ]; then
+      break
+    fi
+    printf 'candidato %s %s %s\n' "$commit" "$dist" "$assunto"
+    mostrados=$((mostrados + 1))
+  done < <(sort -t "$(printf '\t')" -k1,1n -k2,2 "$lista_tmp")
+}
+
+gravar_ponto() {
+  local completo
+  if ! completo="$(git -C "$publicacao" rev-parse --verify "${ponto}^{commit}" 2>/dev/null)"; then
+    echo "O SHA informado não está na publicação." >&2
+    exit 1
+  fi
+  mkdir -p "$raiz/publicacao"
+  printf '%s\n' "$completo" >"$raiz/publicacao/ponto"
+}
+
+buscar() {
+  if ! git -C "$publicacao" fetch origin '+refs/heads/master:refs/remotes/origin/master' >/dev/null 2>&1; then
+    echo "Não foi possível buscar a publicação." >&2
+    exit 1
+  fi
+}
+
+listar() {
+  local gravado
+  gravado="$(head -n 1 "$raiz/publicacao/ponto" | tr -d '[:space:]')"
+  buscar
+  git -C "$publicacao" log --reverse --format='%H %s' "${gravado}..origin/master"
+}
+
+olhar() {
+  if [ -n "$ponto" ]; then
+    gravar_ponto
+    return 0
+  fi
+  if [ -f "$raiz/publicacao/ponto" ]; then
+    listar
+    return 0
+  fi
+  candidatos
+}
+
+restaurar_exclusoes() {
+  local indice="$1"
+  local caminho linha modo blob
+  while IFS= read -r caminho; do
+    [ -n "$caminho" ] || continue
+    if ! caminho_excluido "$caminho"; then
+      continue
+    fi
+    GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --force-remove -- "$caminho" || true
+    if git -C "$cmp_tmp" cat-file -e "refs/heads/nossa:${caminho}" 2>/dev/null; then
+      linha="$(git -C "$cmp_tmp" ls-tree refs/heads/nossa -- "$caminho")"
+      modo="${linha%% *}"
+      blob="$(git -C "$cmp_tmp" rev-parse "refs/heads/nossa:${caminho}")"
+      GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --add --cacheinfo "$modo,$blob,$caminho"
+    fi
+  done < <({
+    GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files --format='%(path)'
+    GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files -u --format='%(path)'
+  } | sort -u)
+}
+
+trazer() {
+  local base_sha tip indice merged temp_commit merged_tree parent novo caminho houve
+  if [ ! -f "$raiz/publicacao/ponto" ]; then
+    echo "Não há ponto gravado." >&2
+    exit 1
+  fi
+  base_sha="$(head -n 1 "$raiz/publicacao/ponto" | tr -d '[:space:]')"
+  buscar
+  tip="$(git -C "$publicacao" rev-parse refs/remotes/origin/master)"
+  if git -C "$raiz" show-ref --verify --quiet "refs/heads/publicacao/$tip"; then
+    echo "A branch publicacao/$tip já existe." >&2
+    exit 1
+  fi
+
+  nossa_tmp="$(mktemp -d)"
+  cmp_tmp="$(mktemp -d)"
+  arvore_nossa "$nossa_tmp" completa
+  git init -q -b master "$cmp_tmp"
+  git -C "$cmp_tmp" config user.email teste@fixar.local
+  git -C "$cmp_tmp" config user.name Teste
+  git -C "$cmp_tmp" fetch -q --no-tags "$publicacao" "${base_sha}:refs/heads/base"
+  git -C "$cmp_tmp" fetch -q --no-tags "$publicacao" 'refs/remotes/origin/master:refs/heads/deles'
+  git -C "$cmp_tmp" fetch -q --no-tags "$nossa_tmp" 'HEAD:refs/heads/nossa'
+
+  indice="$cmp_tmp/indice"
+  GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" read-tree -m refs/heads/base refs/heads/nossa refs/heads/deles
+  restaurar_exclusoes "$indice"
+
+  houve=0
+  while IFS= read -r caminho; do
+    [ -n "$caminho" ] || continue
+    printf 'conflito %s\n' "$caminho"
+    houve=1
+  done < <(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files -u --format='%(path)' | sort -u)
+  if [ "$houve" -eq 1 ]; then
+    echo "O trazer parou sem avançar o ponto." >&2
+    exit 1
+  fi
+
+  merged="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" write-tree)"
+  temp_commit="$(git -C "$cmp_tmp" commit-tree "$merged" -m "mergeado")"
+  git -C "$cmp_tmp" update-ref refs/heads/mergeado "$temp_commit"
+  git -C "$raiz" fetch -q --no-tags "$cmp_tmp" 'refs/heads/mergeado:refs/fixar/mergeado-tmp'
+  merged_tree="$(git -C "$raiz" rev-parse 'refs/fixar/mergeado-tmp^{tree}')"
+
+  indice_erp_tmp="$(mktemp)"
+  ponto_tmp="$(mktemp)"
+  printf '%s\n' "$tip" >"$ponto_tmp"
+  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" read-tree HEAD
+  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" rm -r --cached -q --ignore-unmatch -- src/hardness3
+  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" read-tree --prefix=src/hardness3/ "$merged_tree"
+  blob="$(git -C "$raiz" hash-object -w -- "$ponto_tmp")"
+  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" update-index --add --cacheinfo "100644,$blob,publicacao/ponto"
+  novo_tree="$(GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" write-tree)"
+  parent="$(git -C "$raiz" rev-parse HEAD)"
+  novo="$(git -C "$raiz" commit-tree "$novo_tree" -p "$parent" -m "traz a publicação até $tip")"
+  git -C "$raiz" branch "publicacao/$tip" "$novo"
+  git -C "$raiz" update-ref -d refs/fixar/mergeado-tmp
+  printf '%s\n' "$tip" >"$raiz/publicacao/ponto"
+  printf 'publicacao/%s\n' "$tip"
+}
+
+case "$acao" in
+  olhar) olhar ;;
+  trazer) trazer ;;
+  *) uso ;;
+esac
