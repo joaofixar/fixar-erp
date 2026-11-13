@@ -9,11 +9,13 @@ Orbit: ERPFX-23
 
 **Status:** ready-for-agent
 
-- [ ] Informar um SHA grava o ponto e não copia arquivo do Hardness
-- [ ] A olhada lista os commits posteriores, do mais antigo ao mais novo, com identificador e assunto
-- [ ] Sem commit novo, a olhada termina bem e a lista sai vazia
-- [ ] Busca que falha termina em erro, sem lista vazia de sucesso
-- [ ] A olhada não altera o Hardness versionado, o checkout, a base nem o banco
-- [ ] O clone da publicação permanece em master e a busca não apaga commit local
+- [x] Informar um SHA grava o ponto e não copia arquivo do Hardness
+- [x] A olhada lista os commits posteriores, do mais antigo ao mais novo, com identificador e assunto
+- [x] Sem commit novo, a olhada termina bem e a lista sai vazia
+- [x] Busca que falha termina em erro, sem lista vazia de sucesso
+- [x] A olhada não altera o Hardness versionado, o checkout, a base nem o banco
+- [x] O clone da publicação permanece em master e a busca não apaga commit local
 
 ## Comments
+
+Concluído em 76685a6. A olhada grava o ponto, lista o vão e falha de forma visível quando a busca não responde.

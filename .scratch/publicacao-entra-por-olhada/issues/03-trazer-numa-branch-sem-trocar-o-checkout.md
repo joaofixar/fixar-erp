@@ -9,12 +9,14 @@ Orbit: ERPFX-25
 
 **Status:** ready-for-agent
 
-- [ ] O trazer limpo deixa uma branch nova e não troca o checkout
-- [ ] O que só a publicação mudou entra no resultado
-- [ ] O que só a Fixar mudou permanece
-- [ ] Personalização, segredo e arquivo de outro cliente não entram
-- [ ] Coluna, índice e configuração não mudam, e texto de rotina não é aplicado no banco
-- [ ] Conflito lista os arquivos, não avança o SHA e não deixa a árvore no meio do merge
-- [ ] Merge limpo avança o SHA, e a olhada seguinte sai vazia se a publicação não andou
+- [x] O trazer limpo deixa uma branch nova e não troca o checkout
+- [x] O que só a publicação mudou entra no resultado
+- [x] O que só a Fixar mudou permanece
+- [x] Personalização, segredo e arquivo de outro cliente não entram
+- [x] Coluna, índice e configuração não mudam, e texto de rotina não é aplicado no banco
+- [x] Conflito lista os arquivos, não avança o SHA e não deixa a árvore no meio do merge
+- [x] Merge limpo avança o SHA, e a olhada seguinte sai vazia se a publicação não andou
 
 ## Comments
+
+Concluído em b921203. O trazer limpo deixa a branch nova sem trocar o checkout. Conflito lista o arquivo e não avança o ponto. A exclusão que o gitignore já fazia entrou em b921203.

@@ -9,9 +9,11 @@ Orbit: ERPFX-24
 
 **Status:** ready-for-agent
 
-- [ ] Sem SHA gravado, a olhada mostra candidatos e não copia arquivo
-- [ ] Informar um SHA candidato grava o ponto e não copia arquivo
-- [ ] A olhada seguinte parte do SHA gravado
-- [ ] O Hardness versionado, o checkout, a base e o banco ficam como estavam
+- [x] Sem SHA gravado, a olhada mostra candidatos e não copia arquivo
+- [x] Informar um SHA candidato grava o ponto e não copia arquivo
+- [x] A olhada seguinte parte do SHA gravado
+- [x] O Hardness versionado, o checkout, a base e o banco ficam como estavam
 
 ## Comments
+
+Concluído em 76685a6. Sem ponto gravado, a olhada mostra os commits mais próximos e não copia.
