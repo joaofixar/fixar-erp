@@ -24,12 +24,16 @@ services:
       MARIADB_DATABASE: fixar
       MARIADB_USER: fixar
       MARIADB_PASSWORD: fixar
+    # A marca só aparece depois do passo das rotinas. No volume novo isso
+    # é a inicialização; no volume que já tem dados, é o passo na subida.
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized && test -f /tmp/rotinas-aplicadas"]
       interval: 3s
       timeout: 5s
       retries: 40
-      start_period: 180s
+      start_period: 900s
+    entrypoint: ["/bin/bash", "/subir-com-rotinas.sh"]
+    command: ["mariadbd"]
     networks:
       - interna
       - banco-local
@@ -37,6 +41,7 @@ services:
       - db-dados:/var/lib/mysql
       - ./banco/fotografia.sql:/docker-entrypoint-initdb.d/fotografia.sql:ro
       - ./banco/aplicar-rotinas-ausentes.sh:/docker-entrypoint-initdb.d/zz-rotinas.sh:ro
+      - ./banco/subir-com-rotinas.sh:/subir-com-rotinas.sh:ro
       - ./src/hardness3/scripts/sql:/rotinas/sql:ro
       - ./src/hardness3/scripts/atualizacaoBase-rotinas-lista.php:/rotinas/lista.php:ro
 
