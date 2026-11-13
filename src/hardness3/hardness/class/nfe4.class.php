@@ -213,6 +213,9 @@ class classeNFe extends classeNFeExt  //extends Funcoes
         $cClausula .= " T007A_Tipo_NF_Credito,";
         $cClausula .= " T007A_Tipo_NF_Debito,";
         /*==============================================================*/
+        // Carrega também preferências disponíveis, sem exigir os novos campos
+        // para visualizar o DANFE RTC pela personalização do localhost.
+        $cClausula .= " C004.*, T007A.*, ";
         $cClausula .= " T007A_Ordem_Compra, ";
         $cClausula .= " C020_Data_NFe_SVC_Ativado, ";
         $cClausula .= " C020_Data_NFCe_SVC_Ativado ";
@@ -310,7 +313,9 @@ class classeNFe extends classeNFeExt  //extends Funcoes
         $this->setFormaPagamento('1');
 
         if($this->getModeloNF()=='55'){
-            $this->setTipoDANFE('1'); //-- 1-Retrato/ 2-Paisagem
+            require_once __DIR__ . '/DanfeModelo.php';
+            $modeloDanfe = DanfeModelo::resolver(array_merge($mT007, array('T007_Versao_NFe' => '4.00')));
+            $this->setTipoDANFE($modeloDanfe === DanfeModelo::RTC_HORIZONTAL ? '2' : '1');
         } else {
             $this->setTipoDANFE('4'); //-- 1-Retrato/ 2-Paisagem
         }

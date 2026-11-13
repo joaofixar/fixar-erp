@@ -58,6 +58,7 @@ switch ($g['r'][3]) {
 		$botoesMid = $botoesEsq = $botoesDir = '';
 		if($r_acaoId > 0){
 			$botoesEsq .= '<button type="submit" id="est017ImprimirOrdemProducao_btn">Imprimir</button>';
+			$botoesDir .= '<button type="button" id="est017DuplicarOrdemProducao_btn">Duplicar</button>';
 			$botoesDir .= '<button onclick="fecharJanela(\''.$g['divId'].'\'); return false;" class="btnFechar">Cancelar</button>';
 		}
 		$g['smarty']->assign('botoesEsq', $botoesEsq);
@@ -82,6 +83,27 @@ switch ($g['r'][3]) {
 						},
 					};
 					dialogConfirm('Impressão', 'Selecione o formato da impressão:', buttons);
+				});
+				$('#est017DuplicarOrdemProducao_btn').bind('click', function() {
+					var buttons = {
+						"Duplicar": function() {
+							var dialog = $(this);
+							$.getJSON('/est/est017/grid_func-ajax/duplicarOrdemProducao/?ajax=true&T255_Id=' + encodeURIComponent("{$r_acaoId}") + '&callback=?', function(request) {
+								dialog.dialog("destroy").remove();
+								if (!request.code) {
+									dialogConfirm('Erro', request.data || 'Nao foi possivel duplicar a ordem de producao.');
+									return;
+								}
+								var novoId = unique();
+								fecharJanela('{$g['divId']}');
+								abrirJanela(false, '{$g['divIdRoot']}', '{$g['divId']}', novoId, '', 'Ordem de Producao', '/est/est017/content/est017ContentOrdemProducao/', '&acaoId=' + encodeURIComponent(request.T255_Id), [990, 605]);
+							});
+						},
+						"Fechar": function() {
+							$(this).dialog("destroy").remove();
+						}
+					};
+					dialogConfirm('Duplicar ordem de producao', 'Sera criada uma nova OP com a estrutura da OP atual. Os apontamentos e baixas nao serao copiados.', buttons);
 				});
 			} </script></div>
 EOT;

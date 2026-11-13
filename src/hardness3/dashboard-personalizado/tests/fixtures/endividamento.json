@@ -1,0 +1,161 @@
+{
+  "id": "inadimplencia",
+  "habilitado": true,
+  "ordem": 12,
+  "titulo": "Endividamento",
+  "subtitulo": "Contratos da empresa: valores pagos, saldos em aberto e parcelas por vencimento",
+  "icone": "wallet",
+  "cor": "blue",
+  "filtros": [
+    {
+      "id": "dataInicio",
+      "tipo": "data",
+      "titulo": "Vencimento inicial",
+      "padrao": "inicio_ano",
+      "obrigatorio": true
+    },
+    {
+      "id": "dataFim",
+      "tipo": "data",
+      "titulo": "Vencimento final",
+      "padrao": "fim_ano",
+      "obrigatorio": true
+    }
+  ],
+  "sqlBase": [
+    "SELECT T015_Id AS id, T015_Data_Vencimento AS dataVencimento, T015_Valor_Pago AS valorPago, T015_Valor_Saldo AS valorAberto,",
+    "(T015_Valor_Pago + T015_Valor_Saldo) AS valorComprometido, T015_Valor_Saldo AS valorVencido, 0 AS valorAVencer, T015_Observacao AS conta",
+    "FROM T015 WHERE T015_C004_Id = :empresa AND T015_Data_Vencimento BETWEEN :dataInicio AND :dataFim"
+  ],
+  "card": {
+    "habilitada": true,
+    "titulo": "Pago",
+    "campo": "valorPago",
+    "calculo": "soma",
+    "formato": "moeda",
+    "campoContagem": "id"
+  },
+  "resumos": [
+    {
+      "titulo": "Em aberto",
+      "campo": "valorAberto",
+      "formato": "moeda"
+    },
+    {
+      "titulo": "Vencido",
+      "campo": "valorVencido",
+      "formato": "moeda"
+    },
+    {
+      "titulo": "A vencer",
+      "campo": "valorAVencer",
+      "formato": "moeda"
+    }
+  ],
+  "composicao": {
+    "habilitada": false
+  },
+  "grafico": {
+    "habilitado": true,
+    "tipo": "barras_empilhadas",
+    "titulo": "Parcelas dos contratos por mês de vencimento",
+    "campoData": "dataVencimento",
+    "campoGrupo": "conta",
+    "campoValor": "valorComprometido",
+    "formato": "moeda",
+    "cores": {
+      "Capital Giro": "#4275c5",
+      "Imobilizado - Consorcios": "#f48432",
+      "Imobilizado - Industria": "#9ca3af",
+      "Impostos/PERT": "#eab308"
+    }
+  },
+  "graficosPorGrupo": {
+    "habilitado": false
+  },
+  "listagem": {
+    "habilitada": true,
+    "titulo": "Títulos dos contratos",
+    "cabecalhoFixo": true,
+    "linhasIniciais": 10,
+    "incremento": 10,
+    "sqlBase": [
+      "SELECT T015_Id AS id, T015_Data_Vencimento AS dataVencimento, T015_Valor_Pago AS valorPago, T015_Valor_Saldo AS valorAberto,",
+      "(T015_Valor_Pago + T015_Valor_Saldo) AS valorComprometido, T015_Valor_Saldo AS valorVencido, 0 AS valorAVencer, T015_Observacao AS conta",
+      "FROM T015 WHERE T015_C004_Id = :empresa AND T015_Data_Vencimento BETWEEN :dataInicio AND :dataFim"
+    ],
+    "colunas": [
+      {
+        "campo": "descricao",
+        "titulo": "Credor"
+      },
+      {
+        "campo": "documento",
+        "titulo": "Contrato / documento"
+      },
+      {
+        "campo": "duplicata",
+        "titulo": "Título"
+      },
+      {
+        "campo": "parcela",
+        "titulo": "Parcela"
+      },
+      {
+        "campo": "empresaNome",
+        "titulo": "Empresa"
+      },
+      {
+        "campo": "dataVencimento",
+        "titulo": "Vencimento",
+        "formato": "data"
+      },
+      {
+        "campo": "conta",
+        "titulo": "Conta financeira"
+      },
+      {
+        "campo": "valorPago",
+        "titulo": "Pago",
+        "formato": "moeda"
+      },
+      {
+        "campo": "valorAberto",
+        "titulo": "Em aberto",
+        "formato": "moeda"
+      },
+      {
+        "campo": "valorComprometido",
+        "titulo": "Total considerado",
+        "formato": "moeda"
+      }
+    ],
+    "paginacao": {
+      "habilitada": true,
+      "tamanhoPagina": 50,
+      "campoChave": "id"
+    },
+    "ordenacao": {
+      "campo": "dataVencimento",
+      "direcao": "ASC"
+    },
+    "rotuloQuantidadeSingular": "título",
+    "rotuloQuantidadePlural": "títulos",
+    "rodapeTotais": {
+      "habilitado": true,
+      "titulo": "Total",
+      "campos": [
+        "valorPago",
+        "valorAberto",
+        "valorComprometido"
+      ]
+    },
+    "posicao": "apos_grafico",
+    "observacaoRodape": "Total considerado = valor pago + saldo em aberto. Os cartões e o gráfico abrangem o período de vencimento selecionado."
+  },
+  "secoes": [],
+  "conferencia": {},
+  "apresentacao": {
+    "compacta": true
+  }
+}

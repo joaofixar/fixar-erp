@@ -1,0 +1,30 @@
+-- TASK 74: EXEMPLO MANUAL. NÃO EXECUTAR AUTOMATICAMENTE.
+-- Primeiro rode apenas a seleção, inspecione IDs/recibos/SOAPs e substitua a
+-- lista <IDS_CONFIRMADOS> no UPDATE. Não cria GNRE004 nem apaga auditoria.
+-- O REGEXP é deliberadamente conservador: limita a 400/401 e exclui qualquer
+-- evidência individual 0/1/2. Use backup/transação em janela controlada.
+
+SELECT g.GNRE001_Id,t.GNRE004_Id,q.GNRE005_Id,t.GNRE004_Recibo,
+       q.GNRE005_Ultima_Consulta_Codigo,q.GNRE005_Ultima_Consulta_Descricao,
+       q.GNRE005_Data_Hora_Ultima_Consulta
+FROM GNRE001 g
+JOIN GNRE004 t ON t.GNRE004_GNRE001_Id=g.GNRE001_Id
+JOIN GNRE005 q ON q.GNRE005_GNRE004_Id=t.GNRE004_Id AND q.GNRE005_Recibo=t.GNRE004_Recibo
+WHERE g.GNRE001_Status='F' AND t.GNRE004_Estado='RECEBIDA' AND q.GNRE005_Situacao='FINALIZADA'
+  AND q.GNRE005_Ultima_Consulta_Codigo IN ('400','401')
+  AND q.GNRE005_Ultima_Consulta_SOAP NOT REGEXP 'situacaoGuia[^>]*>[[:space:]]*[012][[:space:]]*<' 
+  AND NOT EXISTS (SELECT 1 FROM GNRE004 newer WHERE newer.GNRE004_GNRE001_Id=t.GNRE004_GNRE001_Id AND newer.GNRE004_Id>t.GNRE004_Id);
+
+-- Após conferência humana da seleção acima, em uma única transação:
+-- START TRANSACTION;
+-- UPDATE GNRE001 g JOIN GNRE004 t ON t.GNRE004_GNRE001_Id=g.GNRE001_Id
+-- JOIN GNRE005 q ON q.GNRE005_GNRE004_Id=t.GNRE004_Id
+-- SET g.GNRE001_Status='P', q.GNRE005_Situacao='PENDENTE',
+--     q.GNRE005_Proxima_Tentativa=DATE_ADD(NOW(),INTERVAL CASE
+--       WHEN t.GNRE004_Tempo_Estimado_Processamento_MS BETWEEN 1000 AND 3600000
+--         THEN GREATEST(60,LEAST(3600,CEILING(t.GNRE004_Tempo_Estimado_Processamento_MS/1000)))
+--       ELSE 3 END SECOND),
+--     q.GNRE005_Data_Hora_Alteracao=NOW()
+-- WHERE q.GNRE005_Id IN (<IDS_CONFIRMADOS>) AND g.GNRE001_Status='F'
+--   AND q.GNRE005_Situacao='FINALIZADA';
+-- COMMIT; -- ou ROLLBACK após nova inspeção.

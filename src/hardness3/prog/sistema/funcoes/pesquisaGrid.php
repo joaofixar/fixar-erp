@@ -217,7 +217,7 @@ EOT;
 							console.log('request etapas:', request);
 							if (request.data == 'jsonEtapas') {
 								var p = typeof request.json === 'string' ? JSON.parse(request.json) : request.json;
-								processaEtapasAsync(p.titulo, p.classe, p.metodo, p.sql, 0, p.divId || $('#{$g['divIdParent']}').attr('id') || '')
+								processaEtapasAsync(p.titulo, p.classe, p.metodo, p.sql, 0, p.divId || $('#{$g['divIdParent']}').attr('id') || '', false, 3)
 									.then(function () {
 										console.log('then executando depois do processaEtapasAsync');
 									})

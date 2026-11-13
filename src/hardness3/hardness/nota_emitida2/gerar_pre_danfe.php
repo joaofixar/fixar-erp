@@ -32,12 +32,15 @@ if (empty($nT007_Id))
 $cClausula  = " select ";
 $cClausula .= " * ";
 $cClausula .= " from T007 ";
+$cClausula .= " left join T007A on T007A_T007_Id=T007_Id ";
 $cClausula .= " left join D006 on D006_Id=T007_D006_Id ";
 $cClausula .= " left join $cBd_Configuracao.C004 on C004_Id=T007_C004_Id ";
 $cClausula .= " left join $cBd_Configuracao.C007 on C007_Id=T007_C007_Id_Vendedor_Interno ";
 $cClausula .= " where T007_Id='$nT007_Id' ";
 $cSql_T007=mysqli_query($cClausula);
 $mT007=mysql_fetch_array($cSql_T007);
+require_once __DIR__ . '/../class/DanfeModelo.php';
+$danfeRTC = DanfeModelo::criarRTC($mT007 ?: array());
 
 if ($mConfig['C020_NFe_Treinamento']=='S' and $mT007['T007_Ambiente_NFe']!='2')
 {
@@ -79,7 +82,7 @@ if($mT007['T007_Versao_NFe'] == '3.10'){
         } else {
         include "../class/nfc400.php";
         }
-    }else{
+    }else if (!$danfeRTC){
         // personaliza��o do danfe
         $danfe = "../../dados_usuarios/{$confUsuario['dbDatabase']}/danfe400.php";
         if (file_exists($danfe)) {
@@ -157,7 +160,7 @@ if (empty($cFase))
 elseif ($cFase==2)
 {
     if ($mT007['T007_Flag_ACP']=="6"){
-        $oDanfe=new danfe();
+        $oDanfe = $danfeRTC ?: new danfe();
 
         $mArq=explode(".",$mT007['C004_Logo_Marca']);
         $nExt=count($mArq)-1;
@@ -165,6 +168,18 @@ elseif ($cFase==2)
 
         $ponteiro=fopen($cArquivo_Destino, "r");
         $oDanfe->xml=fread($ponteiro, filesize($cArquivo_Destino));
+        if ($danfeRTC) {
+            fclose($ponteiro);
+            $oDanfe->visualizacao = 'S';
+            $oDanfe->logomarca = "$Diretorio_Imagens/{$mT007['C004_Id']}_nfe.$cExtensao_Arquivo";
+            $pdfRTC = $oDanfe->gerarPDF();
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="danfe_pre_' . $mT007['T007_Id'] . '.pdf"');
+            echo $pdfRTC;
+            if (file_exists($oNFE->getNomeArquivoXML())) { chmod($oNFE->getNomeArquivoXML(), 0777); }
+            exit;
+        }
+
         $oDanfe->setT007_Id($mT007['T007_Id']);
         $oDanfe->setLinhasPrimeiraPagina(32);
         $oDanfe->setLinhasSegundaPagina(100);

@@ -34,6 +34,59 @@ function Criar_Campo($cCampo,$cTipo)
     }
 }
 
+/**
+ * Cria várias colunas ausentes em uma única alteração de tabela.
+ *
+ * Mantém a idempotência de Criar_Campo(), mas evita uma reconstrução da
+ * tabela para cada coluna em versões antigas do MySQL.
+ *
+ * @param string $cTabela Nome da tabela.
+ * @param array $campos Mapa campo => definição SQL da coluna.
+ */
+function Criar_Campos($cTabela, $campos)
+{
+    global $confUsuario;
+
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $cTabela) || !is_array($campos) || empty($campos)) {
+        return false;
+    }
+
+    $adicoes = array();
+    foreach ($campos as $cCampo => $cTipo) {
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $cCampo) || !is_string($cTipo) || trim($cTipo) === '') {
+            continue;
+        }
+
+        $cCampoEscapado = mysql_real_escape_string($cCampo);
+        $cClausula = "SHOW COLUMNS FROM `{$cTabela}` LIKE '{$cCampoEscapado}'";
+        $cSql = mysql_query($cClausula);
+        $cErro = mysql_error();
+        if (!empty($cErro)) {
+            echo "$cClausula<hr>$cErro";
+            return false;
+        }
+
+        if (mysql_num_rows($cSql) == 0) {
+            $adicoes[] = "ADD `{$cCampo}` " . trim($cTipo);
+        }
+    }
+
+    if (empty($adicoes)) {
+        return true;
+    }
+
+    $cClausula = "ALTER TABLE `{$cTabela}` " . implode(', ', $adicoes);
+    $cSql = mysql_query($cClausula);
+    $cErro = mysql_error();
+    if (!empty($cErro)) {
+        echo "$cClausula<hr>$cErro";
+        return false;
+    }
+
+    apc_delete("cache{$cTabela}-{$confUsuario['dbDatabase']}");
+    return true;
+}
+
 function Alter_Query($query){
 	mysql_query($query);
 }
@@ -534,4 +587,4 @@ HTML;
 
         exit;
     }
-}   
+}

@@ -9,6 +9,15 @@ $CAD002 = new CAD002();
  * Ações
  */
 	switch($g['r'][3]) {
+    case 'salvarTipoDanfe':
+        require_once __DIR__ . '/../../../hardness/class/DanfeModelo.php';
+        $retornoDanfe = ($_SERVER['REQUEST_METHOD'] === 'POST')
+            ? DanfeModelo::salvarPorNota($_POST['T007_Id'] ?? 0, $g['empresaAtual'], $_POST['tipoDanfe'] ?? null)
+            : 'Utilize o botão Salvar tipo de DANFE.';
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(array('code' => $retornoDanfe === true, 'data' => $retornoDanfe === true ? 'Tipo de DANFE salvo.' : $retornoDanfe));
+        exit;
+
 	case 'gerarNFDebitoCreditoAutorizada':
 		require_once('bibliotecas/classes/VEN003.php');
 		$VEN003 = new VEN003();

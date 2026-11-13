@@ -108,4 +108,10 @@ EOT;
 $conf['restricaoIncluirUpdate']['C004_Casas_Decimais_Preco'] = <<<'EOT'
 	$retorno = rRegx('naoVazio', $valor);
 EOT;
-?>
+// A configuração afeta apenas a impressão do DANFE modelo 55 / versão 4.00.
+$conf['restricaoIncluirUpdate']['C004_Tipo_DANFE'] = <<<'EOT'
+    $retorno = in_array($valor, array('V', 'H'), true) ? true : 'Selecione Retrato ou Paisagem para o DANFE RTC.';
+EOT;
+$conf['restricaoIncluirUpdate']['C004_Flag_Usar_DANFE_RTC'] = <<<'EOT'
+    $retorno = in_array($valor, array('N', 'S'), true) ? true : 'Selecione se a empresa utiliza o DANFE RTC.';
+EOT;

@@ -5485,7 +5485,7 @@ EOT;
                     $codigo .= $seqMatches[3];
                     $strComplementar = $seqMatches[2];
                 }
-            } else if ($value[0] == '[' && !preg_match('#^\[SEQ#', $value)) {
+            } else if ($value{0} == '[' && !preg_match('#^\[SEQ#', $value)) {
                 // Encontra as partes do campo [NOME|NÚMERO]
                 preg_match('#^\[([^\|]+)(\|([0-9]))?\]#', $value, $campoMatches);
                 $campo = $campoMatches[1];
@@ -6463,7 +6463,7 @@ EOT;
             $padraoGrade = "";
             preg_match_all('#(\[[^\]]+\]+|[^\[]{1})#', $mascara, $matches);
             foreach ($matches[0] as $key => $value) {
-                if ($value[0] == '[') {
+                if ($value{0} == '[') {
                     $value = explode(",", trim($value, '[]'));                
                     if(empty($value[1])){
                         $padraoGrade .= substr($D001_Codigo_Produto, $value[0]);
@@ -7326,7 +7326,7 @@ EOT;
                 $Custo_Utilizado = 'MA';
             }
 
-        } else if($mD009['D049_Flag_Tipo'] == 'PD'){
+        } else if(in_array($mD009['D049_Flag_Tipo'], array('PD', 'IN'), true)){
             /**********************
             * PRODUTOS PRODUZIDOS *
             **********************/
@@ -8810,6 +8810,10 @@ EOT;
                     D069_Aliquota_PIS,
                     T001_Valor_COFINS,
                     T001_Aliquota_COFINS,
+                    IFNULL(T001A_Valor_CBS,0) AS Reforma_Valor_CBS,
+                    IFNULL(T001A_Valor_IBS,0) AS Reforma_Valor_IBS,
+                    IFNULL(T001A_Aliquota_CBS_Efetiva,0) AS Reforma_Aliquota_CBS,
+                    IFNULL(T001A_Aliquota_IBS_UF_Efetiva,0) + IFNULL(T001A_Aliquota_IBS_Municipal_Efetiva,0) AS Reforma_Aliquota_IBS,
                     D069_Valor_COFINS,
                     D069_Aliquota_COFINS,
                     D009_ICF_1,
@@ -8825,6 +8829,7 @@ EOT;
             JOIN D049 ON D049_Id=D009_D049_Id
             LEFT JOIN D009A ON D009_Id=D009A_D009_Id
             LEFT JOIN T001 ON T001_Id=D009_T001_Id
+            LEFT JOIN T001A ON T001A_T001_Id=T001_Id
             LEFT JOIN D006 ON D006_Id=T001_D006_Id
             LEFT JOIN D069 ON D069_Id=D009_D069_Id
             LEFT JOIN D001 ON D001_Id=D049_D001_Id
@@ -8877,7 +8882,7 @@ EOT;
             }
 
             if($T225_Id > 0){
-                $sqlT014 = mysql_query("SELECT T001_Id, T001_Valor_Custo_Unitario, T001_Valor_Custo_Medio_Unitario, T001_Flag_Atualiza_Custo FROM T014 LEFT JOIN T001 ON T001_T014_Id = T014_Id WHERE T014_T225_Id = '{$T225_Id}' AND T001_Flag_Operacao != 'C'");
+                $sqlT014 = mysql_query("SELECT T001_Id, T001_Valor_Custo_Unitario, T001_Valor_Custo_Medio_Unitario, T001_Flag_Atualiza_Custo, IFNULL(T001A_Valor_CBS,0) AS Reforma_Valor_CBS, IFNULL(T001A_Valor_IBS,0) AS Reforma_Valor_IBS, IFNULL(T001A_Aliquota_CBS_Efetiva,0) AS Reforma_Aliquota_CBS, IFNULL(T001A_Aliquota_IBS_UF_Efetiva,0) + IFNULL(T001A_Aliquota_IBS_Municipal_Efetiva,0) AS Reforma_Aliquota_IBS FROM T014 LEFT JOIN T001 ON T001_T014_Id = T014_Id LEFT JOIN T001A ON T001A_T001_Id = T001_Id WHERE T014_T225_Id = '{$T225_Id}' AND T001_Flag_Operacao != 'C'");
                 if(mysql_num_rows($sqlT014) > 0){
                     log("SELECT T001_Id, T001_Valor_Custo_Unitario FROM T014 LEFT JOIN T001 ON T001_T014_Id = T014_Id WHERE T014_T225_Id = '{$T225_Id}' AND T001_Flag_Operacao != 'C'");
                     $mSqlT014 = mysql_fetch_array($sqlT014);
@@ -8889,11 +8894,15 @@ EOT;
                         $mD009['D009_Valor_Custo_Ultima_Compra'] = $mSqlT014['T001_Valor_Custo_Unitario'];
                     }
                     $T001_Id = $mSqlT014['T001_Id'];
+                    $mD009['Reforma_Valor_CBS'] = $mSqlT014['Reforma_Valor_CBS'];
+                    $mD009['Reforma_Valor_IBS'] = $mSqlT014['Reforma_Valor_IBS'];
+                    $mD009['Reforma_Aliquota_CBS'] = $mSqlT014['Reforma_Aliquota_CBS'];
+                    $mD009['Reforma_Aliquota_IBS'] = $mSqlT014['Reforma_Aliquota_IBS'];
                     $precoUtilizado = 'H';
                     $possuiNFEntrada = true;
                 }
 
-                $sqlT008 = mysql_query("SELECT T001_Id, T001_Valor_Custo_Unitario, T001_Valor_Custo_Medio_Unitario, T001_Flag_Atualiza_Custo FROM T008 LEFT JOIN T055 ON T055_Id=T008_T055_Id LEFT JOIN T001 ON T001_T008_Id=T008_Id WHERE T055_T225_Id = '{$T225_Id}' AND T001_Flag_Operacao != 'C'");
+                $sqlT008 = mysql_query("SELECT T001_Id, T001_Valor_Custo_Unitario, T001_Valor_Custo_Medio_Unitario, T001_Flag_Atualiza_Custo, IFNULL(T001A_Valor_CBS,0) AS Reforma_Valor_CBS, IFNULL(T001A_Valor_IBS,0) AS Reforma_Valor_IBS, IFNULL(T001A_Aliquota_CBS_Efetiva,0) AS Reforma_Aliquota_CBS, IFNULL(T001A_Aliquota_IBS_UF_Efetiva,0) + IFNULL(T001A_Aliquota_IBS_Municipal_Efetiva,0) AS Reforma_Aliquota_IBS FROM T008 LEFT JOIN T055 ON T055_Id=T008_T055_Id LEFT JOIN T001 ON T001_T008_Id=T008_Id LEFT JOIN T001A ON T001A_T001_Id=T001_Id WHERE T055_T225_Id = '{$T225_Id}' AND T001_Flag_Operacao != 'C'");
                 if(mysql_num_rows($sqlT008) > 0){
                     log("SELECT T001_Id, T001_Valor_Custo_Unitario, T001_Valor_Custo_Medio_Unitario, T001_Flag_Atualiza_Custo FROM T008 LEFT JOIN T055 ON T055_Id=T008_T055_Id LEFT JOIN T001 ON T001_T008_Id=T008_Id WHERE T055_T225_Id = '{$T225_Id}' AND T001_Flag_Operacao != 'C'");
                     $mSqlT008 = mysql_fetch_array($sqlT008);
@@ -8905,6 +8914,10 @@ EOT;
                         $mD009['D009_Valor_Custo_Ultima_Compra'] = $mSqlT008['T001_Valor_Custo_Unitario'];
                     }
                     $T001_Id = $mSqlT008['T001_Id'];
+                    $mD009['Reforma_Valor_CBS'] = $mSqlT008['Reforma_Valor_CBS'];
+                    $mD009['Reforma_Valor_IBS'] = $mSqlT008['Reforma_Valor_IBS'];
+                    $mD009['Reforma_Aliquota_CBS'] = $mSqlT008['Reforma_Aliquota_CBS'];
+                    $mD009['Reforma_Aliquota_IBS'] = $mSqlT008['Reforma_Aliquota_IBS'];
                     $precoUtilizado = 'H';
                     $possuiNFEntrada = true;
                 }
@@ -8931,6 +8944,10 @@ EOT;
                     T219_Aliquota_PIS as T001_Aliquota_PIS,
                     T219_Valor_COFINS/T219_Quantidade as T001_Valor_COFINS,
                     T219_Aliquota_COFINS as T001_Aliquota_COFINS,
+                    IFNULL(T219A_Valor_CBS,0) AS Reforma_Valor_CBS,
+                    IFNULL(T219A_Valor_IBS,0) AS Reforma_Valor_IBS,
+                    IFNULL(T219A_Aliquota_CBS_Efetiva,0) AS Reforma_Aliquota_CBS,
+                    IFNULL(T219A_Aliquota_IBS_UF_Efetiva,0) + IFNULL(T219A_Aliquota_IBS_Municipal_Efetiva,0) AS Reforma_Aliquota_IBS,
                     T219_T218_Id,
                     D009_IPV_1,
                     D009_IPV_2,
@@ -8952,6 +8969,7 @@ EOT;
                     T219_Valor_Custo_Medio_Unitario,
                     T219_Valor_Custo_Momento_Compra
                 FROM T219
+                LEFT JOIN T219A ON T219A_T219_Id=T219_Id
                 LEFT JOIN T004 ON T004_Id=T219_T004_Id
                 LEFT JOIN T006 ON T006_Id=T219_T006_Id
                 LEFT JOIN D006 ON D006_Id=T219_D006_Id
@@ -8995,6 +9013,10 @@ EOT;
                     T225_Aliquota_PIS AS T001_Aliquota_PIS,
                     T225_Valor_COFINS/T225_Quantidade AS T001_Valor_COFINS,
                     T225_Aliquota_COFINS AS T001_Aliquota_COFINS,
+                    IFNULL(T225A_Valor_CBS,0) AS Reforma_Valor_CBS,
+                    IFNULL(T225A_Valor_IBS,0) AS Reforma_Valor_IBS,
+                    IFNULL(T225A_Aliquota_CBS_Efetiva,0) AS Reforma_Aliquota_CBS,
+                    IFNULL(T225A_Aliquota_IBS_UF_Efetiva,0) + IFNULL(T225A_Aliquota_IBS_Municipal_Efetiva,0) AS Reforma_Aliquota_IBS,
                     T225_T224_Id,
                     D009_IPV_1,
                     D009_IPV_2,
@@ -9016,6 +9038,7 @@ EOT;
                     T225_Valor_Custo_Medio_Unitario,
                     T225_Valor_Custo_Momento_Compra
                 FROM T225
+                LEFT JOIN T225A ON T225A_T225_Id=T225_Id
                 LEFT JOIN T006 ON T006_T225_Id=T225_Id OR T006_T219_Id=T225_T219_Id
                 LEFT JOIN D006 ON T225_D006_Id=D006_Id
                 JOIN D009 ON D009_Id=T225_D009_Id 
@@ -9051,6 +9074,8 @@ EOT;
                                         D006_Flag_Deb_Crd_ICMS,
                                         D006_Flag_Deb_Crd_PIS,
                                         D006_Flag_Deb_Crd_COFINS,
+                                        D006_Flag_Deb_Crd_CBS,
+                                        D006_Flag_Deb_Crd_IBS,
                                         D006_Percentual_Reducao_ICMS,
                                         D006_Flag_Somar_Fator_ICMS_Dif_Base,
                                         D006_Flag_Substituicao_Tributaria 
@@ -9163,6 +9188,36 @@ EOT;
         $demonstrativo[] = array(
             'campo' => $aliquotaCOFINS . '% COFINS compra',
             'valor' => gCorrigeNumero($cofinsCompra,5),
+            'operacao' => '-'
+        );
+
+        // CBS
+        $cbsCompra = 0;
+        $aliquotaCBSCompra = 0;
+        if ($mD006['D006_Flag_Deb_Crd_CBS'] == 'S' && $mC004['C004_Flag_Isento_ICMS']!=1 && $precoUtilizado != 'T') {
+            $cbsCompra = $mD009['Reforma_Valor_CBS'];
+            $aliquotaCBSCompra = $mD009['Reforma_Aliquota_CBS'];
+        }
+        $preco -= $cbsCompra;
+        log('5 CBS COMPRA: ' . $cbsCompra . ' - ' . $aliquotaCBSCompra);
+        $demonstrativo[] = array(
+            'campo' => number_format($aliquotaCBSCompra, 2, ',', '.') . '% CBS compra',
+            'valor' => gCorrigeNumero($cbsCompra,5),
+            'operacao' => '-'
+        );
+
+        // IBS
+        $ibsCompra = 0;
+        $aliquotaIBSCompra = 0;
+        if ($mD006['D006_Flag_Deb_Crd_IBS'] == 'S' && $mC004['C004_Flag_Isento_ICMS']!=1 && $precoUtilizado != 'T') {
+            $ibsCompra = $mD009['Reforma_Valor_IBS'];
+            $aliquotaIBSCompra = $mD009['Reforma_Aliquota_IBS'];
+        }
+        $preco -= $ibsCompra;
+        log('6 IBS COMPRA: ' . $ibsCompra . ' - ' . $aliquotaIBSCompra);
+        $demonstrativo[] = array(
+            'campo' => number_format($aliquotaIBSCompra, 2, ',', '.') . '% IBS compra',
+            'valor' => gCorrigeNumero($ibsCompra,5),
             'operacao' => '-'
         );
 
@@ -11236,8 +11291,10 @@ EOT;
                 $campos  = "";
                 $valores = "";
                 foreach ($mD009 as $key => $value) {
-                    if ($key == 'D009_Id') {
-                        $D009_Id_Antigo=$value;
+                    if (in_array($key, array('D009_Id', 'D009_Quantidade_Comprar', 'D009_Flag_Cotar', 'D009_C007_Id_Comprar', 'D009_D069_Id', 'D009_Preco_Loja_Real_T001_Id'))) {
+                        if ($key == 'D009_Id') {
+                            $D009_Id_Antigo=$value;
+                        }
                         continue;
                     } else if($key == "D009_D001_Id"){
                         $campos .= $key . ", ";
@@ -11269,7 +11326,7 @@ EOT;
                     $campos  = "";
                     $valores = "";
                     foreach ($mD009A as $key => $value) {
-                        if ($key == 'D009A_Id') {
+                        if (in_array($key, array('D009A_Id', 'D009A_Quantidade_Requisicao'))) {
                             continue;
                         } else if($key == "D009A_D009_Id"){
                             $campos .= $key . ", ";

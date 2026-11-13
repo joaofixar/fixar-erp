@@ -509,5 +509,6 @@ BEGIN
 			   T225_Valor_ICMS_Substituicao_Retencao=T225_Valor_ICMS_Substituicao_Retencao - T225A_Valor_FCP_ST
          WHERE T225A_T225_Id=xT225_Id;
 
+		CALL T225_Gravar_Totalizacao_Reforma(xT225_Id);
 		CALL T224_Gravar_Totalizacao_3(xT224_Id);
 END;

@@ -1,0 +1,72 @@
+{
+  "habilitado": true,
+  "acessoDiretorAutomatico": true,
+  "titulo": "Painel de Indicadores",
+  "indicadores": [
+    {
+      "id": "painel_cotacoes_teste",
+      "habilitado": true,
+      "ordem": 1,
+      "titulo": "Painel de Cotações",
+      "subtitulo": "Orçamentos, pedidos, faturamento e projeção por equipe, vendedor e representante",
+      "icone": "chart",
+      "cor": "blue",
+      "sqlBase": "SELECT 0 AS valor WHERE :empresa > 0",
+      "filtros": [
+        {
+          "id": "vendedor",
+          "titulo": "Vendedor",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoes": []
+        }
+      ],
+      "card": {
+        "habilitada": false
+      },
+      "grafico": {
+        "habilitado": false
+      },
+      "composicao": {
+        "habilitada": false
+      },
+      "listagem": {
+        "habilitada": false
+      },
+      "painelCotacoes": {
+        "habilitado": true,
+        "empresas": "acesso_usuario",
+        "supervisor": "C007_C007_Id",
+        "incluirSupervisorSecundario": false,
+        "clienteProposta": true,
+        "origemIA": true,
+        "clientesExcluidos": [],
+        "meta": null,
+        "calendario": {
+          "feriadosAdicionais": [],
+          "recesso": null
+        },
+        "empresasConfiguradas": [
+          {
+            "id": 1,
+            "rotulo": "Matriz",
+            "clientesTransferencia": [
+              9001
+            ]
+          },
+          {
+            "cnpj": "11222333000181",
+            "rotulo": "Filial de teste",
+            "clientesTransferencia": [
+              9002
+            ],
+            "toneladas": true,
+            "servicosIndustrializacao": [
+              7001
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

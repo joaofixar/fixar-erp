@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173dc4">
   <title>Dashboard | Hardness</title>
-  <link rel="stylesheet" href="dashboard.css?v=68">
+  <link rel="stylesheet" href="dashboard.css?v=105">
+  <link rel="stylesheet" href="analise-sql.css?v=1">
+  <link rel="stylesheet" href="painel-cotacoes.css?v=9">
+  <link rel="stylesheet" href="regioes-carregamento.css?v=1">
+  <link rel="stylesheet" href="regioes-visual.css?v=1">
+  <link rel="stylesheet" href="portal-representantes.css?v=3">
+  <link rel="stylesheet" href="controle-carteira-bancos.css?v=1">
+  <link rel="stylesheet" href="barras-empilhadas.css?v=2">
 </head>
 <body>
   <main class="app-shell">
@@ -20,7 +27,7 @@
       <header class="topbar">
         <div><p class="eyebrow">PAINEL DE INDICADORES</p><h1 id="dashboardTitle">Dashboard</h1></div>
         <div class="company-brand" id="companyBrand" hidden><img id="companyLogo" src="company-logo.php?v=1" alt="Logo da empresa atual"></div>
-        <div class="topbar-actions"><button class="manage-access" id="manageAccess" type="button" hidden>Gerenciar acessos</button><time id="updatedAt">Carregando…</time><button class="refresh" id="refreshDashboard" type="button" aria-label="Atualizar">↻</button></div>
+        <div class="topbar-actions"><button class="manage-access" id="manageAccess" type="button" hidden>Gerenciar acessos</button><button class="manage-access" id="sqlAnalysis" type="button" hidden>Análise SQL</button><time id="updatedAt">Carregando…</time><button class="refresh" id="refreshDashboard" type="button" aria-label="Atualizar">↻</button></div>
       </header>
 
       <section class="context-header">
@@ -83,8 +90,26 @@
       </div>
     </div>
   </div>
+  <script src="analise-sql.js?v=2"></script>
+  <script src="carregamento-progressivo.js?v=5"></script>
   <script src="brazil-map.js?v=1"></script>
-  <script src="dashboard.js?v=65"></script>
+  <script src="carteira-geografia.js?v=1"></script>
+  <script src="regioes-visual.js?v=1"></script>
+  <script src="regioes-mapa.js?v=3"></script>
+  <script src="desempenho-regioes.js?v=6"></script>
+  <script src="analise-comercial.js?v=2"></script>
+  <script src="desempenho-comercial.js?v=23"></script>
+  <script src="painel-cotacoes-model.js?v=8"></script>
+  <script src="painel-cotacoes-goal.js?v=1"></script>
+  <script src="painel-cotacoes.js?v=17"></script>
+  <script src="previsao-caixa.js?v=4"></script>
+  <script src="comparativo-periodos.js?v=1"></script>
+  <script src="filtros-meses-comerciais.js?v=2"></script>
+  <script src="portal-representantes.js?v=4"></script>
+  <script src="controle-carteira-bancos-model.js?v=1"></script>
+  <script src="controle-carteira-bancos.js?v=2"></script>
+  <script src="barras-empilhadas.js?v=2"></script>
+  <script src="dashboard.js?v=112"></script>
   <script src="agenda.js?v=7"></script>
 </body>
 </html>

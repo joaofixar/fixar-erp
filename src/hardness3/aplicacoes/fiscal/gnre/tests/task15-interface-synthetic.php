@@ -1,0 +1,32 @@
+<?php
+declare(strict_types=1);
+function t15(bool $ok,string $message):void { if(!$ok) throw new RuntimeException($message); }
+$root=dirname(__DIR__);
+$controller=(string)file_get_contents($root.'/src/GuidedDraftController.php');
+$flow=(string)file_get_contents($root.'/public/task15-flow.php');
+$ui=(string)file_get_contents($root.'/public/task15-ui.js');
+t15(!preg_match('/value="<\?=gnre_h\([^)]*\)\?><input/', $flow.$ui.(string)file_get_contents($root.'/public/task10-presentation.php')),'atributo hidden malformado.');
+t15(strpos($controller,"GNRE001_Tipo_GNRE")!==false,'tipo oficial não é persistido.');
+t15(strpos($controller,'GNRE001_Data_Pagamento')!==false,'pagamento global não é persistido.');
+t15(strpos($controller,'GNRE003_Data_Vencimento')!==false&&strpos($controller,'GNRE003_Convenio')!==false,'dados do item ausentes.');
+t15(strpos($controller,'GNRE006')!==false&&strpos($controller,'count($out)>10')!==false,'gerenciamento GNRE006 ausente.');
+t15(strpos($flow,'task15_add_document')!==false&&strpos($flow,'task15_delete_document')!==false&&strpos($controller,'GNRE002')!==false,'documento e vínculo ausentes.');
+t15(strpos($flow,'Adicionar valor')!==false&&strpos($ui,"textContent='Remover'")!==false&&strpos($ui,"r.value==='N'")!==false,'linhas dinâmicas e valor N ausentes.');
+t15(strpos($ui,'selectOptions')!==false&&strpos($ui,'extras')!==false,'formulário progressivo oficial ausente.');
+t15(strpos($flow,'gnreTask15Edit')!==false&&strpos($ui,'edit[name]')!==false&&strpos($ui,'edit.recipient_type')!==false&&strpos($ui,'edit.values')!==false,'edição não preserva seleções e valores.');
+t15(strpos($ui,"x.required=flag==='O'")!==false,'convênio O não é obrigatório no navegador.');
+t15(strpos($ui,"agreement(r.fields.agreement||'N')")!==false,'semântica própria do convênio ausente.');
+t15(strpos($ui,"mode==='P'||mode==='PO'")!==false&&strpos($ui,"mode==='T'||mode==='TO'")!==false&&strpos($ui,"r.value==='N'")!==false,'tipos de valor não seguem valorExigido.');
+t15(strpos($flow,'GNRE Simples')!==false&&strpos($flow,'Múltiplos documentos')!==false&&strpos($flow,'Múltiplas receitas')!==false,'três tipos oficiais não são exibidos.');
+t15(strpos($flow,'modelo anterior')!==false,'bloqueio de guia legada ausente.');
+t15(strpos($flow,'$typeCode=(string)$key')!==false&&strpos($flow,'in_array($typeCode,$rules[\'uf_types\']??[],true)')!==false,'tipo oficial deve ser comparado como string.');
+t15(strpos($flow,"'0'=>'GNRE Simples'")!==false&&strpos($flow,"'1'=>'Múltiplos documentos de origem'")!==false&&strpos($flow,"'2'=>'Múltiplas receitas'")!==false,'fixture visual dos três tipos ausente.');
+t15(strpos($flow,'Trocar UF / reiniciar nova guia')!==false&&strpos($controller,'task15_restart_new')!==false&&strpos($controller,'gnre_task15_clear_new_state')!==false,'reinício local da nova guia ausente.');
+t15(strpos($controller,'gnre_task15_has_types')!==false&&strpos($controller,'gnre_task15_drop_cached_rules')!==false&&strpos($controller,'não retornou tipos GNRE habilitados')!==false,'cache sem tipos não é bloqueado.');
+t15(strpos($controller,'FOR UPDATE')!==false&&strpos($controller,'GNRE004')!==false&&strpos($controller,'DELETE FROM GNRE006')!==false&&strpos($controller,'DELETE FROM GNRE003')!==false&&strpos($controller,'DELETE FROM GNRE002')!==false&&strpos($controller,'DELETE FROM GNRE001')!==false,'exclusão transacional de rascunho incompleta.');
+t15(strpos($controller,'mysqli_rollback')!==false&&strpos($controller,'GNRE001_C004_Id')!==false,'rollback ou isolamento por empresa ausente.');
+t15(strpos($controller,"'period'=>'periods'")!==false&&strpos($controller,'Configuração oficial incompleta')!==false,'servidor não bloqueia lista oficial ausente.');
+t15(strpos($controller,'task15_form')!==false&&strpos($flow,'task15_form')!==false,'dados enviados não são preservados após erro.');
+t15(strpos($ui,'incomplete(')!==false&&strpos($ui,"selectOptions('period',r.periods)")!==false&&strpos($ui,'submit.disabled=invalid')!==false,'tela não bloqueia campo oficial obrigatório sem opções.');
+t15(strpos($flow,'data-task15-item')!==false&&strpos($flow,'data-task15-values')!==false,'edição progressiva deve continuar condicionada a regras oficiais.');
+echo "task15 interface synthetic: OK\n";

@@ -1,0 +1,11 @@
+/* Carregamento restrito ao mapa de regiões. */
+.commercial-region-mode { font-size:12px; padding:10px 14px; font-weight:700; }
+.commercial-region-mode.active { background:#edf3ff; border-color:var(--blue); color:var(--blue); }
+.commercial-region-map { position:relative; }
+.commercial-region-map.is-loading > svg { visibility:hidden; }
+.commercial-map-loading { position:absolute; top:0; left:0; width:100%; height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border-radius:12px; background:#f4f8ff; color:var(--navy); }
+.commercial-map-loading small { color:var(--muted); }
+.commercial-map-spinner { width:32px; height:32px; border:3px solid #dfe8f6; border-top-color:var(--blue); border-radius:50%; animation:commercial-map-spin .8s linear infinite; }
+@keyframes commercial-map-spin { to { transform:rotate(360deg); } }
+@media (max-width:1000px) { .commercial-map-loading { height:330px; } }
+@media (prefers-reduced-motion:reduce) { .commercial-map-spinner { animation:none; } }

@@ -1,0 +1,2917 @@
+{
+  "dataInicio": "2026-11-04",
+  "dataFim": "2026-12-18",
+  "diasProjecao": 45,
+  "linhas": [
+    {
+      "portador": "A VISTA",
+      "boleto": "N",
+      "dataCarteira": "2026-11-12",
+      "valor": 6442.5,
+      "quantidade": 2
+    },
+    {
+      "portador": "ANTECIPADO",
+      "boleto": "N",
+      "dataCarteira": "2026-11-25",
+      "valor": 219.41,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-11-15",
+      "valor": 29327.9,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-11-16",
+      "valor": 56692.77,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-11-28",
+      "valor": 99720.14,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 29327.91,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 56692.77,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-12-05",
+      "valor": 28256.63,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-12-08",
+      "valor": 9494.61,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-12-13",
+      "valor": 99720.14,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO (COMERCIAL)",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 390601.25,
+      "quantidade": 10
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-04",
+      "valor": 14954.42,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-05",
+      "valor": 13258.66,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-06",
+      "valor": 89041.72,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-08",
+      "valor": 87911.23,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-09",
+      "valor": 144934.18,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-10",
+      "valor": 31555.78,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-11",
+      "valor": 20477.79,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-12",
+      "valor": 21878.67,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-13",
+      "valor": 42362.13,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-14",
+      "valor": 79638.6,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-15",
+      "valor": 21348.88,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-16",
+      "valor": 75906.05,
+      "quantidade": 19
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-17",
+      "valor": 392676.99,
+      "quantidade": 24
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-18",
+      "valor": 173112.47,
+      "quantidade": 15
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-19",
+      "valor": 140885.68,
+      "quantidade": 20
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-20",
+      "valor": 114451.5,
+      "quantidade": 10
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-22",
+      "valor": 77001.06,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-23",
+      "valor": 153787.86,
+      "quantidade": 11
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-24",
+      "valor": 87456.5,
+      "quantidade": 11
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-25",
+      "valor": 959.81,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-27",
+      "valor": 27792.51,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-28",
+      "valor": 12992.98,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-29",
+      "valor": 18130.28,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 51441.29,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 65634.36,
+      "quantidade": 12
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-02",
+      "valor": 959.81,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-03",
+      "valor": 86693.48,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-04",
+      "valor": 141131.47,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-08",
+      "valor": 87015.49,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-09",
+      "valor": 54329.99,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-14",
+      "valor": 29202.66,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-15",
+      "valor": 145301.64,
+      "quantidade": 13
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-17",
+      "valor": 2398.8,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-18",
+      "valor": 62792.82,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO BANCO DO BRASIL",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 1654317.54,
+      "quantidade": 250
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-06",
+      "valor": 7982.18,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-07",
+      "valor": 54775.41,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-08",
+      "valor": 67819.38,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-09",
+      "valor": 19960.71,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-12",
+      "valor": 17946.5,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-13",
+      "valor": 71215.05,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-15",
+      "valor": 37116.61,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-26",
+      "valor": 17946.5,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-27",
+      "valor": 2896.29,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 53200.6,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 18386.44,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-12-15",
+      "valor": 37116.61,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO BRADESCO",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 29262.54,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-04",
+      "valor": 673220.71,
+      "quantidade": 67
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-05",
+      "valor": 428485.77,
+      "quantidade": 60
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-06",
+      "valor": 210757.0,
+      "quantidade": 30
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-07",
+      "valor": 271665.88,
+      "quantidade": 14
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-08",
+      "valor": 143704.3,
+      "quantidade": 19
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-09",
+      "valor": 178698.08,
+      "quantidade": 27
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-10",
+      "valor": 141897.88,
+      "quantidade": 25
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-11",
+      "valor": 249666.36,
+      "quantidade": 32
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-12",
+      "valor": 348294.63,
+      "quantidade": 52
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-13",
+      "valor": 285801.41,
+      "quantidade": 32
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-14",
+      "valor": 251533.94,
+      "quantidade": 15
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-15",
+      "valor": 108328.97,
+      "quantidade": 11
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-16",
+      "valor": 232646.9,
+      "quantidade": 25
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-17",
+      "valor": 180490.07,
+      "quantidade": 31
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-18",
+      "valor": 153818.68,
+      "quantidade": 26
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-19",
+      "valor": 98678.04,
+      "quantidade": 21
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-20",
+      "valor": 93240.17,
+      "quantidade": 16
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-21",
+      "valor": 37726.5,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-22",
+      "valor": 120497.55,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-23",
+      "valor": 61505.04,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-24",
+      "valor": 170044.25,
+      "quantidade": 27
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-25",
+      "valor": 265327.77,
+      "quantidade": 19
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-26",
+      "valor": 525587.66,
+      "quantidade": 61
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-27",
+      "valor": 747748.44,
+      "quantidade": 71
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-28",
+      "valor": 210707.86,
+      "quantidade": 13
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-29",
+      "valor": 244839.47,
+      "quantidade": 18
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 58439.34,
+      "quantidade": 10
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 265641.69,
+      "quantidade": 47
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-02",
+      "valor": 142914.4,
+      "quantidade": 10
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-03",
+      "valor": 154266.05,
+      "quantidade": 13
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-04",
+      "valor": 224125.85,
+      "quantidade": 23
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-05",
+      "valor": 84577.71,
+      "quantidade": 13
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-06",
+      "valor": 202925.57,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-07",
+      "valor": 327276.92,
+      "quantidade": 10
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-08",
+      "valor": 184679.25,
+      "quantidade": 24
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-09",
+      "valor": 49987.36,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-10",
+      "valor": 82228.29,
+      "quantidade": 17
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-11",
+      "valor": 361429.2,
+      "quantidade": 40
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-12",
+      "valor": 162566.25,
+      "quantidade": 14
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-13",
+      "valor": 138959.04,
+      "quantidade": 7
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-14",
+      "valor": 241684.51,
+      "quantidade": 18
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-15",
+      "valor": 69292.27,
+      "quantidade": 16
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-17",
+      "valor": 51825.78,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-18",
+      "valor": 146809.83,
+      "quantidade": 11
+    },
+    {
+      "portador": "BOLETO CAIXA",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 3240569.73,
+      "quantidade": 302
+    },
+    {
+      "portador": "BOLETO CRESOL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-25",
+      "valor": 2398.8,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO CRESOL",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 17925.11,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-04",
+      "valor": 12760.53,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-06",
+      "valor": 8422.7,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-09",
+      "valor": 22178.79,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-10",
+      "valor": 34867.37,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-11",
+      "valor": 67069.04,
+      "quantidade": 7
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-12",
+      "valor": 26905.0,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-13",
+      "valor": 7981.84,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-14",
+      "valor": 8216.64,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-17",
+      "valor": 2545.3,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-18",
+      "valor": 169295.63,
+      "quantidade": 14
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-19",
+      "valor": 5334.25,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-20",
+      "valor": 39440.1,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-25",
+      "valor": 28545.45,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-26",
+      "valor": 10612.2,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-27",
+      "valor": 1271.88,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-11-29",
+      "valor": 90200.07,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 2398.8,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-02",
+      "valor": 63961.35,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-03",
+      "valor": 3080.33,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-04",
+      "valor": 66209.48,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-05",
+      "valor": 49038.48,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-10",
+      "valor": 12034.45,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-14",
+      "valor": 8216.64,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-16",
+      "valor": 122956.25,
+      "quantidade": 7
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-17",
+      "valor": 3080.33,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-18",
+      "valor": 3000.0,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 02539-0",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 169552.89,
+      "quantidade": 17
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-05",
+      "valor": 7145.45,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-07",
+      "valor": 21347.17,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-09",
+      "valor": 34205.71,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-10",
+      "valor": 53284.87,
+      "quantidade": 7
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-11",
+      "valor": 32252.12,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-12",
+      "valor": 104471.48,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-13",
+      "valor": 13999.93,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-14",
+      "valor": 54085.91,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-16",
+      "valor": 38762.89,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-17",
+      "valor": 29950.04,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-18",
+      "valor": 36437.03,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-19",
+      "valor": 41351.16,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-20",
+      "valor": 50961.41,
+      "quantidade": 7
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-21",
+      "valor": 14361.05,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-23",
+      "valor": 4053.98,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-24",
+      "valor": 57860.53,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-25",
+      "valor": 22630.12,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-27",
+      "valor": 55525.52,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-28",
+      "valor": 25964.47,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-29",
+      "valor": 64958.22,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 13086.94,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 6153.92,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-03",
+      "valor": 19635.98,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-05",
+      "valor": 30922.95,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-06",
+      "valor": 8207.14,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-08",
+      "valor": 6891.87,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-09",
+      "valor": 21265.58,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-10",
+      "valor": 13086.94,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-11",
+      "valor": 6153.92,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-12",
+      "valor": 48837.67,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-16",
+      "valor": 21347.17,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-18",
+      "valor": 6891.87,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ITAU CC 18626-7",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 1241331.52,
+      "quantidade": 196
+    },
+    {
+      "portador": "BOLETO ORINVEST",
+      "boleto": "S",
+      "dataCarteira": "2026-11-04",
+      "valor": 21059.97,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ORINVEST",
+      "boleto": "S",
+      "dataCarteira": "2026-11-11",
+      "valor": 1919.36,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO ORINVEST",
+      "boleto": "S",
+      "dataCarteira": "2026-11-17",
+      "valor": 6889.61,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-04",
+      "valor": 34658.7,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-05",
+      "valor": 2399.3,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-06",
+      "valor": 12800.01,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-09",
+      "valor": 30130.92,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-10",
+      "valor": 31451.6,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-12",
+      "valor": 58564.85,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-13",
+      "valor": 258730.38,
+      "quantidade": 27
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-15",
+      "valor": 16975.07,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-16",
+      "valor": 32089.1,
+      "quantidade": 18
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-17",
+      "valor": 24567.73,
+      "quantidade": 7
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-18",
+      "valor": 32247.62,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-19",
+      "valor": 131699.23,
+      "quantidade": 33
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-20",
+      "valor": 326307.38,
+      "quantidade": 37
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-21",
+      "valor": 172996.45,
+      "quantidade": 15
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-22",
+      "valor": 145017.02,
+      "quantidade": 16
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-23",
+      "valor": 247568.82,
+      "quantidade": 31
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-24",
+      "valor": 105752.22,
+      "quantidade": 27
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-25",
+      "valor": 110421.18,
+      "quantidade": 12
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-26",
+      "valor": 20227.23,
+      "quantidade": 6
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-27",
+      "valor": 71396.89,
+      "quantidade": 20
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-28",
+      "valor": 20389.34,
+      "quantidade": 4
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-29",
+      "valor": 40318.74,
+      "quantidade": 3
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-11-30",
+      "valor": 61056.84,
+      "quantidade": 9
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-01",
+      "valor": 17306.64,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-02",
+      "valor": 46191.89,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-03",
+      "valor": 37035.87,
+      "quantidade": 13
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-04",
+      "valor": 141024.61,
+      "quantidade": 16
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-05",
+      "valor": 2271.5,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-06",
+      "valor": 6345.33,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-07",
+      "valor": 121782.9,
+      "quantidade": 26
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-08",
+      "valor": 70894.16,
+      "quantidade": 16
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-09",
+      "valor": 8569.1,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-10",
+      "valor": 131401.57,
+      "quantidade": 8
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-11",
+      "valor": 20513.05,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-12",
+      "valor": 46191.89,
+      "quantidade": 1
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-13",
+      "valor": 7390.94,
+      "quantidade": 2
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-14",
+      "valor": 40478.74,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-15",
+      "valor": 19447.95,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-17",
+      "valor": 30446.53,
+      "quantidade": 10
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-18",
+      "valor": 93871.89,
+      "quantidade": 5
+    },
+    {
+      "portador": "BOLETO SANTANDER",
+      "boleto": "S",
+      "dataCarteira": "2026-12-19",
+      "valor": 1022759.35,
+      "quantidade": 103
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-11-04",
+      "valor": 901.8,
+      "quantidade": 2
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-11-10",
+      "valor": 4313.01,
+      "quantidade": 1
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-11-12",
+      "valor": 3177.5,
+      "quantidade": 1
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-12-03",
+      "valor": 261.0,
+      "quantidade": 1
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-12-07",
+      "valor": 1207.1,
+      "quantidade": 2
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-12-14",
+      "valor": 3177.5,
+      "quantidade": 1
+    },
+    {
+      "portador": "CARTAO DE CREDITO",
+      "boleto": "N",
+      "dataCarteira": "2026-12-19",
+      "valor": 261.0,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-04",
+      "valor": 29386.92,
+      "quantidade": 3
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-05",
+      "valor": 1782873.7,
+      "quantidade": 8
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-06",
+      "valor": 22041.18,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-07",
+      "valor": 319904.16,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-09",
+      "valor": 10600.0,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-10",
+      "valor": 32087.19,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-11",
+      "valor": 71985.19,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-12",
+      "valor": 1135340.36,
+      "quantidade": 10
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-13",
+      "valor": 322.45,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-14",
+      "valor": 208702.39,
+      "quantidade": 5
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-18",
+      "valor": 151050.65,
+      "quantidade": 3
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-19",
+      "valor": 10058.83,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-20",
+      "valor": 7136.47,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-21",
+      "valor": 171.5,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-22",
+      "valor": 81397.81,
+      "quantidade": 3
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-23",
+      "valor": 508213.79,
+      "quantidade": 10
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-24",
+      "valor": 568093.79,
+      "quantidade": 8
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-25",
+      "valor": 71324.07,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-26",
+      "valor": 11626.45,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-27",
+      "valor": 178031.13,
+      "quantidade": 4
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-28",
+      "valor": 18187.5,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-11-30",
+      "valor": 305779.31,
+      "quantidade": 7
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-01",
+      "valor": 61713.74,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-02",
+      "valor": 170084.88,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-04",
+      "valor": 135302.98,
+      "quantidade": 2
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-06",
+      "valor": 188104.2,
+      "quantidade": 3
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-07",
+      "valor": 1788.23,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-08",
+      "valor": 4.76,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-10",
+      "valor": 7060.2,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-12",
+      "valor": 50735.3,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-13",
+      "valor": 725.4,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-14",
+      "valor": 947384.63,
+      "quantidade": 4
+    },
+    {
+      "portador": "DEPOSITO/TRANSFERENCIA/PIX",
+      "boleto": "N",
+      "dataCarteira": "2026-12-19",
+      "valor": 695482.95,
+      "quantidade": 69
+    },
+    {
+      "portador": "DEVOLUCAO FORNECEDOR",
+      "boleto": "N",
+      "dataCarteira": "2026-11-05",
+      "valor": 12211.29,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEVOLUCAO FORNECEDOR",
+      "boleto": "N",
+      "dataCarteira": "2026-11-10",
+      "valor": 11375.73,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEVOLUCAO FORNECEDOR",
+      "boleto": "N",
+      "dataCarteira": "2026-11-12",
+      "valor": 10543.5,
+      "quantidade": 1
+    },
+    {
+      "portador": "DEVOLUCAO FORNECEDOR",
+      "boleto": "N",
+      "dataCarteira": "2026-11-13",
+      "valor": 991.8,
+      "quantidade": 1
+    },
+    {
+      "portador": "ISENTO",
+      "boleto": "N",
+      "dataCarteira": "2026-12-19",
+      "valor": 1104.88,
+      "quantidade": 2
+    },
+    {
+      "portador": "LEASING / FINAME / FINANCIAMENTOS",
+      "boleto": "N",
+      "dataCarteira": "2026-11-24",
+      "valor": 88423.32,
+      "quantidade": 2
+    }
+  ],
+  "esperado": {
+    "totalCentavos": 3316010156,
+    "garantiaCentavos": 1580000000,
+    "bancos": {
+      "itau": {
+        "saldoInicialCentavos": 24659832,
+        "pontos": [
+          {
+            "data": "2026-11-04",
+            "saldoCentavos": 23383779
+          },
+          {
+            "data": "2026-11-05",
+            "saldoCentavos": 22669234
+          },
+          {
+            "data": "2026-11-06",
+            "saldoCentavos": 21826964
+          },
+          {
+            "data": "2026-11-07",
+            "saldoCentavos": 19692247
+          },
+          {
+            "data": "2026-11-08",
+            "saldoCentavos": 19692247
+          },
+          {
+            "data": "2026-11-09",
+            "saldoCentavos": 14053797
+          },
+          {
+            "data": "2026-11-10",
+            "saldoCentavos": 5238573
+          },
+          {
+            "data": "2026-11-11",
+            "saldoCentavos": -4693543
+          },
+          {
+            "data": "2026-11-12",
+            "saldoCentavos": -17831191
+          },
+          {
+            "data": "2026-11-13",
+            "saldoCentavos": -20029368
+          },
+          {
+            "data": "2026-11-14",
+            "saldoCentavos": -26259623
+          },
+          {
+            "data": "2026-11-15",
+            "saldoCentavos": -26259623
+          },
+          {
+            "data": "2026-11-16",
+            "saldoCentavos": -30135912
+          },
+          {
+            "data": "2026-11-17",
+            "saldoCentavos": -33385446
+          },
+          {
+            "data": "2026-11-18",
+            "saldoCentavos": -53958712
+          },
+          {
+            "data": "2026-11-19",
+            "saldoCentavos": -58627253
+          },
+          {
+            "data": "2026-11-20",
+            "saldoCentavos": -67667404
+          },
+          {
+            "data": "2026-11-21",
+            "saldoCentavos": -69103509
+          },
+          {
+            "data": "2026-11-22",
+            "saldoCentavos": -69103509
+          },
+          {
+            "data": "2026-11-23",
+            "saldoCentavos": -69508907
+          },
+          {
+            "data": "2026-11-24",
+            "saldoCentavos": -75294960
+          },
+          {
+            "data": "2026-11-25",
+            "saldoCentavos": -80412517
+          },
+          {
+            "data": "2026-11-26",
+            "saldoCentavos": -81473737
+          },
+          {
+            "data": "2026-11-27",
+            "saldoCentavos": -87153477
+          },
+          {
+            "data": "2026-11-28",
+            "saldoCentavos": -89749924
+          },
+          {
+            "data": "2026-11-29",
+            "saldoCentavos": -105265753
+          },
+          {
+            "data": "2026-11-30",
+            "saldoCentavos": -106574447
+          },
+          {
+            "data": "2026-12-01",
+            "saldoCentavos": -107429719
+          },
+          {
+            "data": "2026-12-02",
+            "saldoCentavos": -113825854
+          },
+          {
+            "data": "2026-12-03",
+            "saldoCentavos": -116097485
+          },
+          {
+            "data": "2026-12-04",
+            "saldoCentavos": -122718433
+          },
+          {
+            "data": "2026-12-05",
+            "saldoCentavos": -130714576
+          },
+          {
+            "data": "2026-12-06",
+            "saldoCentavos": -131535290
+          },
+          {
+            "data": "2026-12-07",
+            "saldoCentavos": -131535290
+          },
+          {
+            "data": "2026-12-08",
+            "saldoCentavos": -132224477
+          },
+          {
+            "data": "2026-12-09",
+            "saldoCentavos": -134351035
+          },
+          {
+            "data": "2026-12-10",
+            "saldoCentavos": -136863174
+          },
+          {
+            "data": "2026-12-11",
+            "saldoCentavos": -137478566
+          },
+          {
+            "data": "2026-12-12",
+            "saldoCentavos": -142362333
+          },
+          {
+            "data": "2026-12-13",
+            "saldoCentavos": -142362333
+          },
+          {
+            "data": "2026-12-14",
+            "saldoCentavos": -143183997
+          },
+          {
+            "data": "2026-12-15",
+            "saldoCentavos": -143183997
+          },
+          {
+            "data": "2026-12-16",
+            "saldoCentavos": -157614339
+          },
+          {
+            "data": "2026-12-17",
+            "saldoCentavos": -157922372
+          },
+          {
+            "data": "2026-12-18",
+            "saldoCentavos": -158911559
+          }
+        ]
+      },
+      "bradesco": {
+        "saldoInicialCentavos": -6437518,
+        "pontos": [
+          {
+            "data": "2026-11-04",
+            "saldoCentavos": -6437518
+          },
+          {
+            "data": "2026-11-05",
+            "saldoCentavos": -6437518
+          },
+          {
+            "data": "2026-11-06",
+            "saldoCentavos": -7235736
+          },
+          {
+            "data": "2026-11-07",
+            "saldoCentavos": -12713277
+          },
+          {
+            "data": "2026-11-08",
+            "saldoCentavos": -19495215
+          },
+          {
+            "data": "2026-11-09",
+            "saldoCentavos": -21491286
+          },
+          {
+            "data": "2026-11-10",
+            "saldoCentavos": -21491286
+          },
+          {
+            "data": "2026-11-11",
+            "saldoCentavos": -21491286
+          },
+          {
+            "data": "2026-11-12",
+            "saldoCentavos": -23285936
+          },
+          {
+            "data": "2026-11-13",
+            "saldoCentavos": -30407441
+          },
+          {
+            "data": "2026-11-14",
+            "saldoCentavos": -30407441
+          },
+          {
+            "data": "2026-11-15",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-16",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-17",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-18",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-19",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-20",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-21",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-22",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-23",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-24",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-25",
+            "saldoCentavos": -34119102
+          },
+          {
+            "data": "2026-11-26",
+            "saldoCentavos": -35913752
+          },
+          {
+            "data": "2026-11-27",
+            "saldoCentavos": -36203381
+          },
+          {
+            "data": "2026-11-28",
+            "saldoCentavos": -36203381
+          },
+          {
+            "data": "2026-11-29",
+            "saldoCentavos": -36203381
+          },
+          {
+            "data": "2026-11-30",
+            "saldoCentavos": -41523441
+          },
+          {
+            "data": "2026-12-01",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-02",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-03",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-04",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-05",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-06",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-07",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-08",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-09",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-10",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-11",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-12",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-13",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-14",
+            "saldoCentavos": -43362085
+          },
+          {
+            "data": "2026-12-15",
+            "saldoCentavos": -47073746
+          },
+          {
+            "data": "2026-12-16",
+            "saldoCentavos": -47073746
+          },
+          {
+            "data": "2026-12-17",
+            "saldoCentavos": -47073746
+          },
+          {
+            "data": "2026-12-18",
+            "saldoCentavos": -47073746
+          }
+        ]
+      },
+      "caixa": {
+        "saldoInicialCentavos": 362511237,
+        "pontos": [
+          {
+            "data": "2026-11-04",
+            "saldoCentavos": 295189166
+          },
+          {
+            "data": "2026-11-05",
+            "saldoCentavos": 252340589
+          },
+          {
+            "data": "2026-11-06",
+            "saldoCentavos": 231264889
+          },
+          {
+            "data": "2026-11-07",
+            "saldoCentavos": 204098301
+          },
+          {
+            "data": "2026-11-08",
+            "saldoCentavos": 189727871
+          },
+          {
+            "data": "2026-11-09",
+            "saldoCentavos": 171858063
+          },
+          {
+            "data": "2026-11-10",
+            "saldoCentavos": 157668275
+          },
+          {
+            "data": "2026-11-11",
+            "saldoCentavos": 132701639
+          },
+          {
+            "data": "2026-11-12",
+            "saldoCentavos": 97872176
+          },
+          {
+            "data": "2026-11-13",
+            "saldoCentavos": 69292035
+          },
+          {
+            "data": "2026-11-14",
+            "saldoCentavos": 44138641
+          },
+          {
+            "data": "2026-11-15",
+            "saldoCentavos": 33305744
+          },
+          {
+            "data": "2026-11-16",
+            "saldoCentavos": 10041054
+          },
+          {
+            "data": "2026-11-17",
+            "saldoCentavos": -8007953
+          },
+          {
+            "data": "2026-11-18",
+            "saldoCentavos": -23389821
+          },
+          {
+            "data": "2026-11-19",
+            "saldoCentavos": -33257625
+          },
+          {
+            "data": "2026-11-20",
+            "saldoCentavos": -42581642
+          },
+          {
+            "data": "2026-11-21",
+            "saldoCentavos": -46354292
+          },
+          {
+            "data": "2026-11-22",
+            "saldoCentavos": -58404047
+          },
+          {
+            "data": "2026-11-23",
+            "saldoCentavos": -64554551
+          },
+          {
+            "data": "2026-11-24",
+            "saldoCentavos": -81558976
+          },
+          {
+            "data": "2026-11-25",
+            "saldoCentavos": -108091753
+          },
+          {
+            "data": "2026-11-26",
+            "saldoCentavos": -160650519
+          },
+          {
+            "data": "2026-11-27",
+            "saldoCentavos": -235425363
+          },
+          {
+            "data": "2026-11-28",
+            "saldoCentavos": -256496149
+          },
+          {
+            "data": "2026-11-29",
+            "saldoCentavos": -280980096
+          },
+          {
+            "data": "2026-11-30",
+            "saldoCentavos": -286824030
+          },
+          {
+            "data": "2026-12-01",
+            "saldoCentavos": -313388199
+          },
+          {
+            "data": "2026-12-02",
+            "saldoCentavos": -327679639
+          },
+          {
+            "data": "2026-12-03",
+            "saldoCentavos": -343106244
+          },
+          {
+            "data": "2026-12-04",
+            "saldoCentavos": -365518829
+          },
+          {
+            "data": "2026-12-05",
+            "saldoCentavos": -373976600
+          },
+          {
+            "data": "2026-12-06",
+            "saldoCentavos": -394269157
+          },
+          {
+            "data": "2026-12-07",
+            "saldoCentavos": -426996849
+          },
+          {
+            "data": "2026-12-08",
+            "saldoCentavos": -445464774
+          },
+          {
+            "data": "2026-12-09",
+            "saldoCentavos": -450463510
+          },
+          {
+            "data": "2026-12-10",
+            "saldoCentavos": -458686339
+          },
+          {
+            "data": "2026-12-11",
+            "saldoCentavos": -494829259
+          },
+          {
+            "data": "2026-12-12",
+            "saldoCentavos": -511085884
+          },
+          {
+            "data": "2026-12-13",
+            "saldoCentavos": -524981788
+          },
+          {
+            "data": "2026-12-14",
+            "saldoCentavos": -549150239
+          },
+          {
+            "data": "2026-12-15",
+            "saldoCentavos": -556079466
+          },
+          {
+            "data": "2026-12-16",
+            "saldoCentavos": -556079466
+          },
+          {
+            "data": "2026-12-17",
+            "saldoCentavos": -561262044
+          },
+          {
+            "data": "2026-12-18",
+            "saldoCentavos": -575943027
+          }
+        ]
+      },
+      "banco_brasil": {
+        "saldoInicialCentavos": 172373510,
+        "pontos": [
+          {
+            "data": "2026-11-04",
+            "saldoCentavos": 170878068
+          },
+          {
+            "data": "2026-11-05",
+            "saldoCentavos": 169552202
+          },
+          {
+            "data": "2026-11-06",
+            "saldoCentavos": 160648030
+          },
+          {
+            "data": "2026-11-07",
+            "saldoCentavos": 160648030
+          },
+          {
+            "data": "2026-11-08",
+            "saldoCentavos": 151856907
+          },
+          {
+            "data": "2026-11-09",
+            "saldoCentavos": 137363489
+          },
+          {
+            "data": "2026-11-10",
+            "saldoCentavos": 134207911
+          },
+          {
+            "data": "2026-11-11",
+            "saldoCentavos": 132160132
+          },
+          {
+            "data": "2026-11-12",
+            "saldoCentavos": 129972265
+          },
+          {
+            "data": "2026-11-13",
+            "saldoCentavos": 125736052
+          },
+          {
+            "data": "2026-11-14",
+            "saldoCentavos": 117772192
+          },
+          {
+            "data": "2026-11-15",
+            "saldoCentavos": 115637304
+          },
+          {
+            "data": "2026-11-16",
+            "saldoCentavos": 108046699
+          },
+          {
+            "data": "2026-11-17",
+            "saldoCentavos": 68779000
+          },
+          {
+            "data": "2026-11-18",
+            "saldoCentavos": 51467753
+          },
+          {
+            "data": "2026-11-19",
+            "saldoCentavos": 37379185
+          },
+          {
+            "data": "2026-11-20",
+            "saldoCentavos": 25934035
+          },
+          {
+            "data": "2026-11-21",
+            "saldoCentavos": 25934035
+          },
+          {
+            "data": "2026-11-22",
+            "saldoCentavos": 18233929
+          },
+          {
+            "data": "2026-11-23",
+            "saldoCentavos": 2855143
+          },
+          {
+            "data": "2026-11-24",
+            "saldoCentavos": -5890507
+          },
+          {
+            "data": "2026-11-25",
+            "saldoCentavos": -5986488
+          },
+          {
+            "data": "2026-11-26",
+            "saldoCentavos": -5986488
+          },
+          {
+            "data": "2026-11-27",
+            "saldoCentavos": -8765739
+          },
+          {
+            "data": "2026-11-28",
+            "saldoCentavos": -10065037
+          },
+          {
+            "data": "2026-11-29",
+            "saldoCentavos": -11878065
+          },
+          {
+            "data": "2026-11-30",
+            "saldoCentavos": -17022194
+          },
+          {
+            "data": "2026-12-01",
+            "saldoCentavos": -23585630
+          },
+          {
+            "data": "2026-12-02",
+            "saldoCentavos": -23681611
+          },
+          {
+            "data": "2026-12-03",
+            "saldoCentavos": -32350959
+          },
+          {
+            "data": "2026-12-04",
+            "saldoCentavos": -46464106
+          },
+          {
+            "data": "2026-12-05",
+            "saldoCentavos": -46464106
+          },
+          {
+            "data": "2026-12-06",
+            "saldoCentavos": -46464106
+          },
+          {
+            "data": "2026-12-07",
+            "saldoCentavos": -46464106
+          },
+          {
+            "data": "2026-12-08",
+            "saldoCentavos": -55165655
+          },
+          {
+            "data": "2026-12-09",
+            "saldoCentavos": -60598654
+          },
+          {
+            "data": "2026-12-10",
+            "saldoCentavos": -60598654
+          },
+          {
+            "data": "2026-12-11",
+            "saldoCentavos": -60598654
+          },
+          {
+            "data": "2026-12-12",
+            "saldoCentavos": -60598654
+          },
+          {
+            "data": "2026-12-13",
+            "saldoCentavos": -60598654
+          },
+          {
+            "data": "2026-12-14",
+            "saldoCentavos": -63518920
+          },
+          {
+            "data": "2026-12-15",
+            "saldoCentavos": -78049084
+          },
+          {
+            "data": "2026-12-16",
+            "saldoCentavos": -78049084
+          },
+          {
+            "data": "2026-12-17",
+            "saldoCentavos": -78288964
+          },
+          {
+            "data": "2026-12-18",
+            "saldoCentavos": -84568246
+          }
+        ]
+      },
+      "santander": {
+        "saldoInicialCentavos": 305169053,
+        "pontos": [
+          {
+            "data": "2026-11-04",
+            "saldoCentavos": 301703183
+          },
+          {
+            "data": "2026-11-05",
+            "saldoCentavos": 301463253
+          },
+          {
+            "data": "2026-11-06",
+            "saldoCentavos": 300183252
+          },
+          {
+            "data": "2026-11-07",
+            "saldoCentavos": 300183252
+          },
+          {
+            "data": "2026-11-08",
+            "saldoCentavos": 300183252
+          },
+          {
+            "data": "2026-11-09",
+            "saldoCentavos": 297170160
+          },
+          {
+            "data": "2026-11-10",
+            "saldoCentavos": 294025000
+          },
+          {
+            "data": "2026-11-11",
+            "saldoCentavos": 294025000
+          },
+          {
+            "data": "2026-11-12",
+            "saldoCentavos": 288168515
+          },
+          {
+            "data": "2026-11-13",
+            "saldoCentavos": 262295477
+          },
+          {
+            "data": "2026-11-14",
+            "saldoCentavos": 262295477
+          },
+          {
+            "data": "2026-11-15",
+            "saldoCentavos": 260597970
+          },
+          {
+            "data": "2026-11-16",
+            "saldoCentavos": 257389060
+          },
+          {
+            "data": "2026-11-17",
+            "saldoCentavos": 254932287
+          },
+          {
+            "data": "2026-11-18",
+            "saldoCentavos": 251707525
+          },
+          {
+            "data": "2026-11-19",
+            "saldoCentavos": 238537602
+          },
+          {
+            "data": "2026-11-20",
+            "saldoCentavos": 205906864
+          },
+          {
+            "data": "2026-11-21",
+            "saldoCentavos": 188607219
+          },
+          {
+            "data": "2026-11-22",
+            "saldoCentavos": 174105517
+          },
+          {
+            "data": "2026-11-23",
+            "saldoCentavos": 149348635
+          },
+          {
+            "data": "2026-11-24",
+            "saldoCentavos": 138773413
+          },
+          {
+            "data": "2026-11-25",
+            "saldoCentavos": 127731295
+          },
+          {
+            "data": "2026-11-26",
+            "saldoCentavos": 125708572
+          },
+          {
+            "data": "2026-11-27",
+            "saldoCentavos": 118568883
+          },
+          {
+            "data": "2026-11-28",
+            "saldoCentavos": 116529949
+          },
+          {
+            "data": "2026-11-29",
+            "saldoCentavos": 112498075
+          },
+          {
+            "data": "2026-11-30",
+            "saldoCentavos": 106392391
+          },
+          {
+            "data": "2026-12-01",
+            "saldoCentavos": 104661727
+          },
+          {
+            "data": "2026-12-02",
+            "saldoCentavos": 100042538
+          },
+          {
+            "data": "2026-12-03",
+            "saldoCentavos": 96338951
+          },
+          {
+            "data": "2026-12-04",
+            "saldoCentavos": 82236490
+          },
+          {
+            "data": "2026-12-05",
+            "saldoCentavos": 82009340
+          },
+          {
+            "data": "2026-12-06",
+            "saldoCentavos": 81374807
+          },
+          {
+            "data": "2026-12-07",
+            "saldoCentavos": 69196517
+          },
+          {
+            "data": "2026-12-08",
+            "saldoCentavos": 62107101
+          },
+          {
+            "data": "2026-12-09",
+            "saldoCentavos": 61250191
+          },
+          {
+            "data": "2026-12-10",
+            "saldoCentavos": 48110034
+          },
+          {
+            "data": "2026-12-11",
+            "saldoCentavos": 46058729
+          },
+          {
+            "data": "2026-12-12",
+            "saldoCentavos": 41439540
+          },
+          {
+            "data": "2026-12-13",
+            "saldoCentavos": 40700446
+          },
+          {
+            "data": "2026-12-14",
+            "saldoCentavos": 36652572
+          },
+          {
+            "data": "2026-12-15",
+            "saldoCentavos": 34707777
+          },
+          {
+            "data": "2026-12-16",
+            "saldoCentavos": 34707777
+          },
+          {
+            "data": "2026-12-17",
+            "saldoCentavos": 31663124
+          },
+          {
+            "data": "2026-12-18",
+            "saldoCentavos": 22275935
+          }
+        ]
+      },
+      "ouribank": {
+        "saldoInicialCentavos": 2986894,
+        "pontos": [
+          {
+            "data": "2026-11-04",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-05",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-06",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-07",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-08",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-09",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-10",
+            "saldoCentavos": 880897
+          },
+          {
+            "data": "2026-11-11",
+            "saldoCentavos": 688961
+          },
+          {
+            "data": "2026-11-12",
+            "saldoCentavos": 688961
+          },
+          {
+            "data": "2026-11-13",
+            "saldoCentavos": 688961
+          },
+          {
+            "data": "2026-11-14",
+            "saldoCentavos": 688961
+          },
+          {
+            "data": "2026-11-15",
+            "saldoCentavos": 688961
+          },
+          {
+            "data": "2026-11-16",
+            "saldoCentavos": 688961
+          },
+          {
+            "data": "2026-11-17",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-18",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-19",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-20",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-21",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-22",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-23",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-24",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-25",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-26",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-27",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-28",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-29",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-11-30",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-01",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-02",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-03",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-04",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-05",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-06",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-07",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-08",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-09",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-10",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-11",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-12",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-13",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-14",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-15",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-16",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-17",
+            "saldoCentavos": 0
+          },
+          {
+            "data": "2026-12-18",
+            "saldoCentavos": 0
+          }
+        ]
+      }
+    },
+    "totalResumoPlanilhaCentavos": 3303545104
+  },
+  "observacao": "Agregados da aba base de dados, sem clientes ou documentos. A soma geral inclui três portadores que não aparecem no resumo da planilha. O campo boleto desta fixture é inferido pelo nome; em produção vem de D027_Flag_Boleto."
+}

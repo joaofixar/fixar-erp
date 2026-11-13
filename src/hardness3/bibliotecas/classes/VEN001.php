@@ -2103,7 +2103,16 @@ EOT;
                            T003A_Flag_Conversao_Unidade,
                            D024_Flag_Comercial, 
                            D024_Flag_Pre_Cadastro,
-                           T003A_Data_Entrega
+                           T003A_Data_Entrega,
+                           IFNULL(T003A_Valor_Total_Base_CBS_IBS, 0) AS T003A_Valor_Total_Base_CBS_IBS,
+                           IFNULL(T003A_Valor_Total_CBS, 0) AS T003A_Valor_Total_CBS,
+                           IFNULL(T003A_Valor_Total_IBS_Municipal, 0) AS T003A_Valor_Total_IBS_Municipal,
+                           IFNULL(T003A_Valor_Total_IBS_UF, 0) AS T003A_Valor_Total_IBS_UF,
+                           IFNULL(T003A_Valor_Total_IBS, 0) AS T003A_Valor_Total_IBS,
+                           IFNULL(T003A_Valor_Total_Diferimento_CBS, 0) AS T003A_Valor_Total_Diferimento_CBS,
+                           IFNULL(T003A_Valor_Total_Diferimento_IBS_UF, 0) AS T003A_Valor_Total_Diferimento_IBS_UF,
+                           IFNULL(T003A_Valor_Total_Diferimento_IBS_Municipal, 0) AS T003A_Valor_Total_Diferimento_IBS_Municipal,
+                           IFNULL(T003A_Valor_Total_Reforma, 0) AS T003A_Valor_Total_Reforma
                       FROM T003 
                  LEFT JOIN D006 ON D006_Id=T003_D006_Id 
                  LEFT JOIN D024 ON D024_Id=T003_D024_Id 
@@ -2337,12 +2346,35 @@ EOT;
                                            T005A_Flag_Ratear_Frete_Custo,
                                            T005A_Liberou_Alcada_Frete,
                                            T005A_Flag_Conversao_Unidade,
-                                           T005A_D148_Id_Redespacho) 
+                                           T005A_D148_Id_Redespacho,
+                                           T005A_Valor_Total_Base_CBS_IBS,
+                                           T005A_Valor_Total_CBS,
+                                           T005A_Valor_Total_IBS_Municipal,
+                                           T005A_Valor_Total_IBS_UF,
+                                           T005A_Valor_Total_IBS,
+                                           T005A_Valor_Total_Diferimento_CBS,
+                                           T005A_Valor_Total_Diferimento_IBS_UF,
+                                           T005A_Valor_Total_Diferimento_IBS_Municipal,
+                                           T005A_Valor_Total_Reforma)
                                   VALUES ('{$T005_Id}',
                                           '{$orcamento['T003A_Flag_Ratear_Frete_Custo']}',
                                           '{$orcamento['T003A_Liberou_Alcada_Frete']}',
                                           '{$orcamento['T003A_Flag_Conversao_Unidade']}',
-                                          '{$orcamento['T003A_D148_Id_Redespacho']}')");
+                                          '{$orcamento['T003A_D148_Id_Redespacho']}',
+                                          '{$orcamento['T003A_Valor_Total_Base_CBS_IBS']}',
+                                          '{$orcamento['T003A_Valor_Total_CBS']}',
+                                          '{$orcamento['T003A_Valor_Total_IBS_Municipal']}',
+                                          '{$orcamento['T003A_Valor_Total_IBS_UF']}',
+                                          '{$orcamento['T003A_Valor_Total_IBS']}',
+                                          '{$orcamento['T003A_Valor_Total_Diferimento_CBS']}',
+                                          '{$orcamento['T003A_Valor_Total_Diferimento_IBS_UF']}',
+                                          '{$orcamento['T003A_Valor_Total_Diferimento_IBS_Municipal']}',
+                                          '{$orcamento['T003A_Valor_Total_Reforma']}')");
+            $erro = mysql_error();
+            if (!empty($erro)) {
+                mysql_query("ROLLBACK");
+                return '3 Erro ao inserir os dados complementares do pedido: ' . $erro;
+            }
 
             //Insere registro do pedido na tarefa
             //require_once('bibliotecas/classes/ETC017.php');
@@ -2629,7 +2661,44 @@ EOT;
                        T004A_Valor_FCP_ST,                       
                        T004A_Valor_Base_FCP_Dest,
                        T004A_Valor_FCP_Partilha,
-                       T004A_Percentual_Desconto_CFOP 
+                       T004A_Percentual_Desconto_CFOP,
+                       IFNULL(T004A_Situacao_Tributaria_CBS_IBS, '') AS T004A_Situacao_Tributaria_CBS_IBS,
+                       IFNULL(T004A_Classificacao_Tributaria_CBS_IBS, '') AS T004A_Classificacao_Tributaria_CBS_IBS,
+                       IFNULL(T004A_Situacao_Tributaria_CBS_IBS_Regular, '') AS T004A_Situacao_Tributaria_CBS_IBS_Regular,
+                       IFNULL(T004A_Classificacao_Tributaria_CBS_IBS_Regular, '') AS T004A_Classificacao_Tributaria_CBS_IBS_Regular,
+                       IFNULL(T004A_Aliquota_CBS, 0) AS T004A_Aliquota_CBS,
+                       IFNULL(T004A_Percentual_Reducao_CBS, 0) AS T004A_Percentual_Reducao_CBS,
+                       IFNULL(T004A_Aliquota_CBS_Efetiva, 0) AS T004A_Aliquota_CBS_Efetiva,
+                       IFNULL(T004A_Valor_CBS, 0) AS T004A_Valor_CBS,
+                       IFNULL(T004A_Percentual_Diferimento_CBS, 0) AS T004A_Percentual_Diferimento_CBS,
+                       IFNULL(T004A_Valor_Diferimento_CBS, 0) AS T004A_Valor_Diferimento_CBS,
+                       IFNULL(T004A_Aliquota_CBS_Regular, 0) AS T004A_Aliquota_CBS_Regular,
+                       IFNULL(T004A_Percentual_Reducao_CBS_Regular, 0) AS T004A_Percentual_Reducao_CBS_Regular,
+                       IFNULL(T004A_Aliquota_CBS_Efetiva_Regular, 0) AS T004A_Aliquota_CBS_Efetiva_Regular,
+                       IFNULL(T004A_Valor_CBS_Regular, 0) AS T004A_Valor_CBS_Regular,
+                       IFNULL(T004A_Aliquota_IBS_Municipal, 0) AS T004A_Aliquota_IBS_Municipal,
+                       IFNULL(T004A_Percentual_Reducao_IBS_Municipal, 0) AS T004A_Percentual_Reducao_IBS_Municipal,
+                       IFNULL(T004A_Aliquota_IBS_Municipal_Efetiva, 0) AS T004A_Aliquota_IBS_Municipal_Efetiva,
+                       IFNULL(T004A_Valor_IBS_Municipal, 0) AS T004A_Valor_IBS_Municipal,
+                       IFNULL(T004A_Percentual_Diferimento_IBS_Municipal, 0) AS T004A_Percentual_Diferimento_IBS_Municipal,
+                       IFNULL(T004A_Valor_Diferimento_IBS_Municipal, 0) AS T004A_Valor_Diferimento_IBS_Municipal,
+                       IFNULL(T004A_Aliquota_IBS_Municipal_Regular, 0) AS T004A_Aliquota_IBS_Municipal_Regular,
+                       IFNULL(T004A_Percentual_Reducao_IBS_Municipal_Regular, 0) AS T004A_Percentual_Reducao_IBS_Municipal_Regular,
+                       IFNULL(T004A_Aliquota_IBS_Municipal_Efetiva_Regular, 0) AS T004A_Aliquota_IBS_Municipal_Efetiva_Regular,
+                       IFNULL(T004A_Valor_IBS_Municipal_Regular, 0) AS T004A_Valor_IBS_Municipal_Regular,
+                       IFNULL(T004A_Aliquota_IBS_UF, 0) AS T004A_Aliquota_IBS_UF,
+                       IFNULL(T004A_Percentual_Reducao_IBS_UF, 0) AS T004A_Percentual_Reducao_IBS_UF,
+                       IFNULL(T004A_Aliquota_IBS_UF_Efetiva, 0) AS T004A_Aliquota_IBS_UF_Efetiva,
+                       IFNULL(T004A_Valor_IBS_UF, 0) AS T004A_Valor_IBS_UF,
+                       IFNULL(T004A_Percentual_Diferimento_IBS_UF, 0) AS T004A_Percentual_Diferimento_IBS_UF,
+                       IFNULL(T004A_Valor_Diferimento_IBS_UF, 0) AS T004A_Valor_Diferimento_IBS_UF,
+                       IFNULL(T004A_Aliquota_IBS_UF_Regular, 0) AS T004A_Aliquota_IBS_UF_Regular,
+                       IFNULL(T004A_Percentual_Reducao_IBS_UF_Regular, 0) AS T004A_Percentual_Reducao_IBS_UF_Regular,
+                       IFNULL(T004A_Aliquota_IBS_UF_Efetiva_Regular, 0) AS T004A_Aliquota_IBS_UF_Efetiva_Regular,
+                       IFNULL(T004A_Valor_IBS_UF_Regular, 0) AS T004A_Valor_IBS_UF_Regular,
+                       IFNULL(T004A_Valor_Base_CBS_IBS, 0) AS T004A_Valor_Base_CBS_IBS,
+                       IFNULL(T004A_Valor_Total_Reforma, 0) AS T004A_Valor_Total_Reforma,
+                       IFNULL(T004A_Valor_IBS, 0) AS T004A_Valor_IBS
                   FROM T004 
              LEFT JOIN T006 ON T006_T004_Id=T004_Id 
              LEFT JOIN D009 ON D009_Id=T004_D009_Id
@@ -2939,7 +3008,44 @@ EOT;
                                                 T006A_Valor_FCP_ST,                       
                                                 T006A_Valor_Base_FCP_Dest,       
                                                 T006A_Valor_FCP_Partilha,
-                                                T006A_Percentual_Desconto_CFOP) 
+                                                T006A_Percentual_Desconto_CFOP,
+                                                T006A_Situacao_Tributaria_CBS_IBS,
+                                                T006A_Classificacao_Tributaria_CBS_IBS,
+                                                T006A_Situacao_Tributaria_CBS_IBS_Regular,
+                                                T006A_Classificacao_Tributaria_CBS_IBS_Regular,
+                                                T006A_Aliquota_CBS,
+                                                T006A_Percentual_Reducao_CBS,
+                                                T006A_Aliquota_CBS_Efetiva,
+                                                T006A_Valor_CBS,
+                                                T006A_Percentual_Diferimento_CBS,
+                                                T006A_Valor_Diferimento_CBS,
+                                                T006A_Aliquota_CBS_Regular,
+                                                T006A_Percentual_Reducao_CBS_Regular,
+                                                T006A_Aliquota_CBS_Efetiva_Regular,
+                                                T006A_Valor_CBS_Regular,
+                                                T006A_Aliquota_IBS_Municipal,
+                                                T006A_Percentual_Reducao_IBS_Municipal,
+                                                T006A_Aliquota_IBS_Municipal_Efetiva,
+                                                T006A_Valor_IBS_Municipal,
+                                                T006A_Percentual_Diferimento_IBS_Municipal,
+                                                T006A_Valor_Diferimento_IBS_Municipal,
+                                                T006A_Aliquota_IBS_Municipal_Regular,
+                                                T006A_Percentual_Reducao_IBS_Municipal_Regular,
+                                                T006A_Aliquota_IBS_Municipal_Efetiva_Regular,
+                                                T006A_Valor_IBS_Municipal_Regular,
+                                                T006A_Aliquota_IBS_UF,
+                                                T006A_Percentual_Reducao_IBS_UF,
+                                                T006A_Aliquota_IBS_UF_Efetiva,
+                                                T006A_Valor_IBS_UF,
+                                                T006A_Percentual_Diferimento_IBS_UF,
+                                                T006A_Valor_Diferimento_IBS_UF,
+                                                T006A_Aliquota_IBS_UF_Regular,
+                                                T006A_Percentual_Reducao_IBS_UF_Regular,
+                                                T006A_Aliquota_IBS_UF_Efetiva_Regular,
+                                                T006A_Valor_IBS_UF_Regular,
+                                                T006A_Valor_Base_CBS_IBS,
+                                                T006A_Valor_Total_Reforma,
+                                                T006A_Valor_IBS)
                                         VALUES ('{$T006_Id}',
                                                 '{$linha['T004A_Percentual_Reducao_PIS']}',
                                                 '{$linha['T004A_Percentual_Reducao_COFINS']}',
@@ -2955,7 +3061,49 @@ EOT;
                                                 '{$linha['T004A_Valor_FCP_ST']}',                       
                                                 '{$linha['T004A_Valor_Base_FCP_Dest']}',       
                                                 '{$linha['T004A_Valor_FCP_Partilha']}',
-                                                '{$linha['T004A_Percentual_Desconto_CFOP']}')");
+                                                '{$linha['T004A_Percentual_Desconto_CFOP']}',
+                                                '{$linha['T004A_Situacao_Tributaria_CBS_IBS']}',
+                                                '{$linha['T004A_Classificacao_Tributaria_CBS_IBS']}',
+                                                '{$linha['T004A_Situacao_Tributaria_CBS_IBS_Regular']}',
+                                                '{$linha['T004A_Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                                '{$linha['T004A_Aliquota_CBS']}',
+                                                '{$linha['T004A_Percentual_Reducao_CBS']}',
+                                                '{$linha['T004A_Aliquota_CBS_Efetiva']}',
+                                                '{$linha['T004A_Valor_CBS']}',
+                                                '{$linha['T004A_Percentual_Diferimento_CBS']}',
+                                                '{$linha['T004A_Valor_Diferimento_CBS']}',
+                                                '{$linha['T004A_Aliquota_CBS_Regular']}',
+                                                '{$linha['T004A_Percentual_Reducao_CBS_Regular']}',
+                                                '{$linha['T004A_Aliquota_CBS_Efetiva_Regular']}',
+                                                '{$linha['T004A_Valor_CBS_Regular']}',
+                                                '{$linha['T004A_Aliquota_IBS_Municipal']}',
+                                                '{$linha['T004A_Percentual_Reducao_IBS_Municipal']}',
+                                                '{$linha['T004A_Aliquota_IBS_Municipal_Efetiva']}',
+                                                '{$linha['T004A_Valor_IBS_Municipal']}',
+                                                '{$linha['T004A_Percentual_Diferimento_IBS_Municipal']}',
+                                                '{$linha['T004A_Valor_Diferimento_IBS_Municipal']}',
+                                                '{$linha['T004A_Aliquota_IBS_Municipal_Regular']}',
+                                                '{$linha['T004A_Percentual_Reducao_IBS_Municipal_Regular']}',
+                                                '{$linha['T004A_Aliquota_IBS_Municipal_Efetiva_Regular']}',
+                                                '{$linha['T004A_Valor_IBS_Municipal_Regular']}',
+                                                '{$linha['T004A_Aliquota_IBS_UF']}',
+                                                '{$linha['T004A_Percentual_Reducao_IBS_UF']}',
+                                                '{$linha['T004A_Aliquota_IBS_UF_Efetiva']}',
+                                                '{$linha['T004A_Valor_IBS_UF']}',
+                                                '{$linha['T004A_Percentual_Diferimento_IBS_UF']}',
+                                                '{$linha['T004A_Valor_Diferimento_IBS_UF']}',
+                                                '{$linha['T004A_Aliquota_IBS_UF_Regular']}',
+                                                '{$linha['T004A_Percentual_Reducao_IBS_UF_Regular']}',
+                                                '{$linha['T004A_Aliquota_IBS_UF_Efetiva_Regular']}',
+                                                '{$linha['T004A_Valor_IBS_UF_Regular']}',
+                                                '{$linha['T004A_Valor_Base_CBS_IBS']}',
+                                                '{$linha['T004A_Valor_Total_Reforma']}',
+                                                '{$linha['T004A_Valor_IBS']}')");
+                $erro = mysql_error();
+                if (!empty($erro)) {
+                    mysql_query("ROLLBACK");
+                    return '10 Erro ao inserir os dados complementares do item: ' . $erro;
+                }
 
                 //ATUALIZA UMA REQUISIÇÃO JA CRIADA COM T006_Id
                 mysql_query("UPDATE T189 SET T189_T006_Id = '{$T006_Id}', T189_Flag_Status = 'N' WHERE T189_T004_Id = '{$linha['T004_Id']}'");
@@ -3347,7 +3495,7 @@ EOT;
                               LEFT JOIN D009 ON T006_D009_Id=D009_Id 
                               LEFT JOIN D049 ON D009_D049_Id=D049_Id 
                                   WHERE T006_T005_Id = '{$T005_Id}'
-                                    AND D049_Flag_Tipo = 'PD'");
+                                    AND D049_Flag_Tipo IN ('PD', 'IN')");
             if(mysql_num_rows($D049) > 0){
                 require_once('bibliotecas/classes/VEN002.php');
                 $VEN002 = new VEN002();
@@ -3684,7 +3832,26 @@ EOT;
                                       T004A_Percentual_Reducao_COFINS         = '{$Aliquotas['Percentual_Reducao_COFINS']}',
                                       T004A_Percentual_Reducao_Base_DIFAL     = '{$Aliquotas['Percentual_Reducao_Base_DIFAL']}',
                                       T004A_Trib_Interna_UF_Dest_Reducao_Base = '{$Aliquotas['EIP001_Trib_Interna_UF_Dest_Reducao_Base']}',
-                                      T004A_Percentual_FCP                    = '{$Aliquotas['Percentual_FCP']}'
+                                      T004A_Percentual_FCP                    = '{$Aliquotas['Percentual_FCP']}',
+                                      T004A_Situacao_Tributaria_CBS_IBS              = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                                      T004A_Classificacao_Tributaria_CBS_IBS         = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                                      T004A_Aliquota_CBS                             = '{$Aliquotas['Aliquota_CBS']}',
+                                      T004A_Aliquota_IBS_UF                          = '{$Aliquotas['Aliquota_IBS_UF']}',
+                                      T004A_Aliquota_IBS_Municipal                   = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                                      T004A_Percentual_Reducao_CBS                   = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                                      T004A_Percentual_Reducao_IBS_UF                = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                                      T004A_Percentual_Reducao_IBS_Municipal         = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                                      T004A_Percentual_Diferimento_CBS               = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                                      T004A_Percentual_Diferimento_IBS_UF            = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                                      T004A_Percentual_Diferimento_IBS_Municipal     = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                                      T004A_Situacao_Tributaria_CBS_IBS_Regular      = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                                      T004A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                      T004A_Aliquota_CBS_Regular                     = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                                      T004A_Aliquota_IBS_UF_Regular                  = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                                      T004A_Aliquota_IBS_Municipal_Regular           = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                                      T004A_Percentual_Reducao_CBS_Regular           = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                                      T004A_Percentual_Reducao_IBS_UF_Regular        = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                                      T004A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}'
                                 WHERE T004A_T004_Id = '{$T004_Id}'");
 
         
@@ -9102,7 +9269,9 @@ EOT;
                 // Tpo Produto:
                 if ($regras['D137_Produzido_Adquirido'] != "") {               
                     $log .= "Entrou D137_Produzido_Adquirido != '' D137_Id='{$regras['D137_Id']}'<br />";
-                    if ($regras['D137_Produzido_Adquirido'] != $registro['D049_Flag_Tipo']) {
+                    // Industrialização segue as regras fiscais de Produzido.
+                    $tipoProdutoRegra = ($registro['D049_Flag_Tipo'] == 'IN') ? 'PD' : $registro['D049_Flag_Tipo'];
+                    if ($regras['D137_Produzido_Adquirido'] != $tipoProdutoRegra) {
                         $log .= "Entrou CONTINUE D137_Produzido_Adquirido: {$regras['D137_Produzido_Adquirido']} != D137_Produzido_Adquirido: {$D137_Produzido_Adquirido} D137_Id='{$regras['D137_Id']}'<br />";
                         $demonstrativoRegra .= "<b><font color=red>(-)</font> Tipo Produto, no cadastro do produto, </b>não confere com o campo especificado nesta regra CFOP. <br />";
                         /*$arrayDemo[] = array(

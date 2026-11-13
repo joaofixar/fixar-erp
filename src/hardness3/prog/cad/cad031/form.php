@@ -1,5 +1,6 @@
 <?php
 namespace hardness;
+require_once __DIR__ . '/../../../hardness/class/DanfeModelo.php';
 require_once('prog/cad/cad031/form_func-js.php');    
 require_once("bibliotecas/classes/CAD031.php");
 $CAD031 = new CAD031();   
@@ -49,16 +50,15 @@ switch ($g['r'][3]) {
 		// Editor
 		$form_editor = array(
 			'geral' => '{"C004_Flag_Ativo":{"top":421,"left":45.453125,"width":144,"hidden":0},"C004_Nome_Empresa":{"top":7,"left":39,"width":472,"hidden":0},"C004_Nome_Abreviado":{"top":30,"left":34,"width":472,"hidden":0},"C004_D018_Id":{"top":53,"left":100,"width":223,"hidden":0},"C004_D020_Id":{"top":76,"left":81,"width":223,"hidden":0},"C004_Cnpj":{"top":99,"left":86,"width":216,"hidden":0},"C004_Inscricao_Estadual":{"top":122,"left":25,"width":216,"hidden":0},"C004_Inscricao_Municipal":{"top":145,"left":29,"width":216,"hidden":0},"C004_Numero_Suframa":{"top":168,"left":39,"width":216,"hidden":0},"C004_Matriz":{"top":191,"left":85,"width":200,"hidden":0},"C004_Logradouro":{"top":214,"left":68,"width":216,"hidden":0},"C004_Numero":{"top":236.984375,"left":76,"width":60,"hidden":0},"C004_Complemento":{"top":259.984375,"left":55,"width":216,"hidden":0},"C004_Bairro":{"top":282.984375,"left":86,"width":216,"hidden":0},"C004_Cep":{"top":305.984375,"left":95,"width":136,"hidden":0},"C004_DDD_Telefone":{"top":328.984375,"left":80,"width":40,"hidden":0},"C004_Telefone":{"top":328.984375,"left":176,"width":88,"hidden":0},"C004_DDD_Fax":{"top":351.984375,"left":103,"width":40,"hidden":0},"C004_Fax":{"top":351.984375,"left":176,"width":88,"hidden":0},"C004_Site":{"top":374.984375,"left":104,"width":216,"hidden":0},"C004_E_Mail":{"top":397.984375,"left":92,"width":216,"hidden":0}}',
-			'parametros' => '{"C004_Casas_Decimais_Preco":{"top":7,"left":26.84375,"width":35,"hidden":0},"C004_IPV_Padrao":{"top":7,"left":644.125,"width":72,"hidden":0},"C004_Observacao_Fiscal":{"top":30,"left":32.75,"height":60,"width":344,"hidden":0},"C004_IPV_Padrao_Sem_Lucro":{"top":30,"left":593.15625,"width":72,"hidden":0},"C004_Meses_MMF":{"top":30,"left":957.984375,"width":45,"hidden":1},"C004_ICF_Padrao":{"top":53,"left":644.8125,"width":72,"hidden":0},"C004_IPV_Padrao_Demonstrativo":{"top":76,"left":527.390625,"height":154,"width":152,"hidden":0},"C004_CFOP_Venda_Dentro_Estado":{"top":76,"left":887.515625,"width":45,"hidden":1},"C004_Observacao_Promocao":{"top":99,"left":10.828125,"height":62,"width":344,"hidden":0},"C004_CFOP_Venda_Fora_Estado":{"top":99,"left":899.515625,"width":45,"hidden":1},"C004_CFOP_ST_Venda_Fora_Estado":{"top":122,"left":915.90625,"width":45,"hidden":1},"C004_CFOP_ST_Venda_Dentro_Estado":{"top":145,"left":887.90625,"width":45,"hidden":1},"C004_Obs_Reduzido":{"top":168,"left":26,"height":62,"width":344,"hidden":0},"C004_CFOP_CONSUMO_Venda_Dentro_Estado":{"top":168,"left":831.390625,"width":45,"hidden":1},"C004_CFOP_CONSUMO_Venda_Fora_Estado":{"top":214,"left":843.390625,"width":45,"hidden":1},"C004_Observacao_Ordem_Compra":{"top":237,"left":33.53125,"height":85,"width":344,"hidden":0},"C004_Flag_Decimais_Sugestao_Compra":{"top":259.984375,"left":884.09375,"width":200,"hidden":1},"C004_Emite_NF_Caixa":{"top":282.984375,"left":1000.546875,"width":200,"hidden":1},"C004_Observacao_Cotacao":{"top":329,"left":69.6875,"height":85,"width":344,"hidden":0},"C004_Linhas_Obs_Fiscal":{"top":328.984375,"left":1108.546875,"width":45,"hidden":1},"C004_Observacao_Logo":{"top":374.984375,"left":996.9375,"width":220,"hidden":1},"C004_Observao_Cotation":{"top":421,"left":20.796875,"height":85,"width":344,"hidden":0},"C004_Observao_Purchase_Order":{"top":513,"left":20.796875,"height":85,"width":344,"hidden":0}}',
+			'parametros' => '{"C004_Casas_Decimais_Preco":{"top":7,"left":26.84375,"width":35,"hidden":0},"C004_IPV_Padrao":{"top":7,"left":644.125,"width":72,"hidden":0},"C004_Observacao_Fiscal":{"top":30,"left":32.75,"height":60,"width":344,"hidden":0},"C004_IPV_Padrao_Sem_Lucro":{"top":30,"left":593.15625,"width":72,"hidden":0},"C004_Meses_MMF":{"top":30,"left":957.984375,"width":45,"hidden":1},"C004_ICF_Padrao":{"top":53,"left":644.8125,"width":72,"hidden":0},"C004_IPV_Padrao_Demonstrativo":{"top":76,"left":527.390625,"height":154,"width":152,"hidden":0},"C004_CFOP_Venda_Dentro_Estado":{"top":76,"left":887.515625,"width":45,"hidden":1},"C004_Observacao_Promocao":{"top":99,"left":10.828125,"height":62,"width":344,"hidden":0},"C004_CFOP_Venda_Fora_Estado":{"top":99,"left":899.515625,"width":45,"hidden":1},"C004_CFOP_ST_Venda_Fora_Estado":{"top":122,"left":915.90625,"width":45,"hidden":1},"C004_CFOP_ST_Venda_Dentro_Estado":{"top":145,"left":887.90625,"width":45,"hidden":1},"C004_Obs_Reduzido":{"top":168,"left":26,"height":62,"width":344,"hidden":0},"C004_CFOP_CONSUMO_Venda_Dentro_Estado":{"top":168,"left":831.390625,"width":45,"hidden":1},"C004_CFOP_CONSUMO_Venda_Fora_Estado":{"top":214,"left":843.390625,"width":45,"hidden":1},"C004_Observacao_Ordem_Compra":{"top":237,"left":33.53125,"height":85,"width":344,"hidden":0},"C004_Flag_Decimais_Sugestao_Compra":{"top":259.984375,"left":884.09375,"width":200,"hidden":1},"C004_Emite_NF_Caixa":{"top":282.984375,"left":1000.546875,"width":200,"hidden":1},"C004_Observacao_Cotacao":{"top":329,"left":69.6875,"height":85,"width":344,"hidden":0},"C004_Linhas_Obs_Fiscal":{"top":328.984375,"left":1108.546875,"width":45,"hidden":1},"C004_Observacao_Logo":{"top":374.984375,"left":996.9375,"width":220,"hidden":1},"C004_Observao_Cotation":{"top":421,"left":20.796875,"height":85,"width":344,"hidden":0},"C004_Observao_Purchase_Order":{"top":513,"left":20.796875,"height":85,"width":344,"hidden":0},"C004_Invoice_Our_Bank":{"top":237,"left":654.015625,"height":85,"width":344,"hidden":0}}',
 			'impostos' => '{"C004_Flag_Tipo_Preenchimento_Reforma_Tributaria":{"top":375,"left":9.96875,"width":447,"hidden":0},"C004_Flag_Natureza_Pessoa_Juridica":{"top":7,"left":54.84375,"width":300,"hidden":0},"C004_Flag_Tipo_Atividade":{"top":30,"left":110.5625,"width":300,"hidden":0},"C004_Flag_Incidencia_Tributaria":{"top":53,"left":95.8125,"width":300,"hidden":0},"C004_Flag_Metodo_Apropriacao_Credito":{"top":76,"left":27.15625,"width":300,"hidden":0},"C004_Flag_Tipo_Contribuicao":{"top":99,"left":93.71875,"width":300,"hidden":0},"C004_Flag_Escrituracao_Contribuicao":{"top":122,"left":80.6875,"width":300,"hidden":0},"C004_Codigo_Regime_Tributario":{"top":145,"left":175.046875,"width":300,"hidden":0},"C004_Flag_Empresa_Simples":{"top":168,"left":109.984375,"width":300,"hidden":0},"C004_Flag_Isento_ICMS":{"top":190.984375,"left":135.765625,"width":300,"hidden":0},"C004_Flag_Isento_ISS":{"top":213.984375,"left":146,"width":300,"hidden":0},"C004_Flag_Isento_IPI":{"top":236.984375,"left":149.125,"width":300,"hidden":0},"C004_Percentual_PIS":{"top":260,"left":175.34375,"width":56,"hidden":0},"C004_Percentual_COFINS":{"top":283,"left":153.625,"width":56,"hidden":0},"C004_Percentual_IRPJ":{"top":306,"left":170.09375,"width":56,"hidden":0},"C004_Percentual_CSLL":{"top":329,"left":166.265625,"width":56,"hidden":0},"C004_Classificacao_Contribuinte":{"top":352,"left":59.015625,"width":447,"hidden":0}}',
 			'pedidoDeVenda' => '{"C004_PEDVEN_Botao_Liberar_Separacao":{"top":7,"left":12,"width":300,"hidden":0}}',
-			'configuracoes' => '{"C004_Ultimo_Numero_Nota_Fiscal":{"top":283,"left":618.421875,"width":104,"hidden":1},"C004_Caminho_Sistema":{"top":7,"left":44.65625,"width":220,"hidden":0},"C004_Codigo_Agencia_Correios":{"top":7,"left":560.34375,"width":56,"hidden":0},"C004_Ultimo_Numero_Cupom_Fiscal":{"top":237,"left":603.09375,"width":104,"hidden":0},"C004_Banco_Dados":{"top":30,"left":51.390625,"width":70,"hidden":0},"C004_Login_Portal_Postal":{"top":30,"left":575.015625,"width":104,"hidden":0},"C004_Ultimo_Numero_ACP":{"top":214,"left":595.125,"width":104,"hidden":0},"C004_Banco_Configuracao":{"top":53,"left":32.15625,"width":70,"hidden":0},"C004_Senha_Portal_Postal":{"top":53,"left":571.65625,"width":104,"hidden":0},"C004_Ultimo_Numero_Nota_Fiscal_Eletronica":{"top":122,"left":596.703125,"width":104,"hidden":0},"C004_Responsavel_Contato":{"top":76,"left":27.09375,"width":220,"hidden":0},"C004_D024_Id_Hardness":{"top":76,"left":615.234375,"width":104,"hidden":0},"C004_Ultimo_Numero_Serie_NFE":{"top":145,"left":619.671875,"width":104,"hidden":0},"C004_CNAE_Fiscal":{"top":99,"left":78.53125,"width":70,"hidden":0},"CnaeAlerta":{"top":99,"left":225,"width":null,"hidden":0},"C004_Ultimo_Numero_NFCe":{"top":168,"left":589.421875,"width":104,"hidden":0},"C004_Senha_Certificados":{"top":122,"left":46.203125,"width":70,"hidden":0},"btnDownloadCertificado":{"top":120,"left":240,"width":null,"hidden":0},"C004_Ultimo_Numero_Serie_NFCE":{"top":191,"left":612.40625,"width":104,"hidden":0},"uploadArquivoCert":{"top":145,"left":47.890625,"width":333,"hidden":0},"C004_Ambiente_NFe":{"top":168,"left":61.8125,"width":200,"hidden":0},"C004_Versao_NFe":{"top":191,"left":82,"width":200,"hidden":0},"C004_D024_Id":{"top":213.984375,"left":104.78125,"width":222,"hidden":0},"C004_Fuso_Horario":{"top":236.984375,"left":75.640625,"width":244,"hidden":0},"C004_Identificacao_CSC":{"top":259.984375,"left":105.84375,"width":72,"hidden":0},"C004_Codigo_CSC":{"top":282.984375,"left":117.765625,"width":328,"hidden":0},"C004_Ordem_Empresa":{"top":306,"left":60.28125,"width":56,"hidden":0}}',
+			'configuracoes' => '{"C004_Caminho_Sistema":{"top":6.98529052734375,"left":44.669097900390625,"width":220.039216,"hidden":0},"C004_Codigo_Agencia_Correios":{"top":6.98529052734375,"left":560.3860778808594,"width":56.039215999999996,"hidden":0},"C004_Banco_Dados":{"top":29.993865966796875,"left":51.409332275390625,"width":70.03921600000001,"hidden":0},"C004_Login_Portal_Postal":{"top":29.993865966796875,"left":575.0153503417969,"width":104.03921600000001,"hidden":0},"C004_Banco_Configuracao":{"top":52.98712158203125,"left":32.199737548828125,"width":70.03921600000001,"hidden":0},"C004_Senha_Portal_Postal":{"top":52.98712158203125,"left":571.6604919433594,"width":104.03921600000001,"hidden":0},"C004_Responsavel_Contato":{"top":75.99569702148438,"left":27.11395263671875,"width":220.039216,"hidden":0},"C004_D024_Id_Hardness":{"top":75.99569702148438,"left":615.2266540527344,"width":104.03921600000001,"hidden":0},"C004_CNAE_Fiscal":{"top":98.98898315429688,"left":78.53860473632812,"width":70.03921600000001,"hidden":0},"CnaeAlerta":{"top":98.98898315429688,"left":224.99996948242188,"width":null,"hidden":0},"C004_Senha_Certificados":{"top":121.99755859375,"left":46.216278076171875,"width":70.03921600000001,"hidden":0},"btnDownloadCertificado":{"top":119.99081420898438,"left":239.99691772460938,"width":null,"hidden":0},"C004_Ultimo_Numero_Nota_Fiscal_Eletronica":{"top":121.99755859375,"left":596.7065124511719,"width":104.03921600000001,"hidden":0},"uploadArquivoCert":{"top":144.99081420898438,"left":47.931976318359375,"width":333.039216,"hidden":0},"C004_Ultimo_Numero_Serie_NFE":{"top":144.99081420898438,"left":619.6691589355469,"width":104.03921600000001,"hidden":0},"C004_Ambiente_NFe":{"top":167.9993896484375,"left":61.810638427734375,"width":200,"hidden":0},"C004_Ultimo_Numero_NFCe":{"top":167.9993896484375,"left":589.4301452636719,"width":104.03921600000001,"hidden":0},"C004_Versao_NFe":{"top":190.99264526367188,"left":82.00057983398438,"width":200,"hidden":0},"C004_Ultimo_Numero_Serie_NFCE":{"top":190.99264526367188,"left":612.3927917480469,"width":104.03921600000001,"hidden":0},"C004_D024_Id":{"top":213.9705810546875,"left":104.77938842773438,"width":222.039216,"hidden":0},"C004_Ultimo_Numero_ACP":{"top":213.98590087890625,"left":595.1286315917969,"width":104.03921600000001,"hidden":0},"C004_Fuso_Horario":{"top":236.97915649414062,"left":75.65872192382812,"width":244,"hidden":0},"C004_Ultimo_Numero_Cupom_Fiscal":{"top":236.99447631835938,"left":603.1097106933594,"width":104.03921600000001,"hidden":0},"C004_Identificacao_CSC":{"top":259.9724426269531,"left":105.85171508789062,"width":72.03921600000001,"hidden":0},"C004_Codigo_CSC":{"top":282.9809875488281,"left":117.76962280273438,"width":328.039216,"hidden":0},"C004_Ultimo_Numero_Nota_Fiscal":{"top":0,"left":0,"width":104,"hidden":1},"C004_Ordem_Empresa":{"top":351.9914245605469,"left":60.278778076171875,"width":56.039215999999996,"hidden":0},"C004_Tipo_DANFE":{"top":328.9981384277344,"left":17.92279052734375,"width":335,"hidden":0},"C004_Flag_Usar_DANFE_RTC":{"top":305.9895935058594,"left":48.851104736328125,"width":335,"hidden":0}}',
 			'juros' => '{"C004_Taxa_Juros":{"top":7,"left":41,"width":45,"hidden":0},"C004_Parcelas_Isentas_Juros":{"top":30,"left":26,"width":45,"hidden":0},"C004_Tipo_Juros":{"top":53,"left":44,"width":200,"hidden":0}}',
 			'visual' => '{"C004_Menu_Extra_Html":{"top":7,"left":17.640625,"height":77,"width":808,"hidden":0},"C004_Logo_Etiqueta":{"top":145,"left":5.984375,"height":269,"width":808,"hidden":0},"ExemploMenuExtra":{"top":99,"left":81,"width":null,"hidden":0}}',
 			'mdfe' => '{"C004_Flag_Emitente":{"top":7,"left":47.796875,"width":416,"hidden":0},"C004_Flag_Transportador":{"top":30,"left":29.859375,"width":416,"hidden":0},"C004_D172_Id":{"top":53,"left":41.859375,"width":265,"hidden":0},"btnSeguradoraPadrao":{"top":51,"left":432,"width":null,"hidden":0},"C004_D173_Id":{"top":53,"left":527.28125,"width":159,"hidden":1},"C004_D170_Id":{"top":76,"left":64.265625,"width":265,"hidden":0},"btnVeiculoPadrao":{"top":74,"left":432,"width":null,"hidden":0},"C004_Ambiente_MDFe":{"top":99,"left":54.75,"width":160,"hidden":0},"C004_Versao_MDFe":{"top":122,"left":66.96875,"width":54,"hidden":0},"C004_Tipo_Transporte_Padrao":{"top":145,"left":7.234375,"width":288,"hidden":0},"C004_Tipo_Carga_Padrao":{"top":168,"left":30.0625,"width":288,"hidden":0}}',
 			'cte' => '{"C004_RNTRC":{"top":7,"left":55.640625,"width":137,"hidden":0},"C004_Ultimo_Numero_CTe":{"top":30,"left":19.15625,"width":137,"hidden":0},"C004_Ultimo_Numero_Serie_CTe":{"top":53,"left":42.125,"width":137,"hidden":0},"C004_Ambiente_CTe":{"top":76,"left":19.71875,"width":143,"hidden":0},"C004_Versao_CTe":{"top":99,"left":32.453125,"width":54,"hidden":0}}'
 		);
-		
 		if($g['nivelAlcada']==4){
 			$type = 'button';
 		}else{
@@ -145,6 +145,7 @@ switch ($g['r'][3]) {
 					'C004_IPV_Padrao_Demonstrativo' => array('name' => 'C004_IPV_Padrao_Demonstrativo', 'label' => 'Demonstrativo IPV', 'type' => 'textarea', 'style'=>'float:right', 'length' => array(5,5)),
 					'C004_Observao_Cotation' => array('name' => 'C004_Observao_Cotation', 'label' => 'Observação <br/>Cotation<br/>(Important Remarks)', 'type' => 'textarea', 'length' => array(7,60), 'uppercase' => false),
 					'C004_Observao_Purchase_Order' => array('name' => 'C004_Observao_Purchase_Order', 'label' => 'Observação <br/>Purchase Order<br/>(Important Remarks)', 'type' => 'textarea', 'length' => array(7,60), 'uppercase' => false),
+					'C004_Invoice_Our_Bank' => array('name' => 'C004_Invoice_Our_Bank', 'label' => 'Our Bank', 'type' => 'textarea', 'length' => array(6,60), 'uppercase' => false),
 				),
 				'impostos' => array(
 					// Campo normal (do banco)
@@ -295,6 +296,8 @@ switch ($g['r'][3]) {
 							array('title' => '4.00', 'value' => "4.00")
 						)
 					),
+					'C004_Flag_Usar_DANFE_RTC' => array('name' => 'C004_Flag_Usar_DANFE_RTC', 'label' => 'Usar DANFE RTC', 'type' => 'select', 'select' => array(array('title' => 'Não (modelo atual)', 'value' => 'N', 'selected' => true), array('title' => 'Sim', 'value' => 'S')), 'extra' => 'style="width:244px"'),
+					'C004_Tipo_DANFE' => array('name' => 'C004_Tipo_DANFE', 'label' => 'Orientação DANFE RTC', 'type' => 'select', 'select' => \hardness\DanfeModelo::opcoes(), 'extra' => 'style="width:244px"'),
 					'btnDownloadCertificado' => array('name' => 'btnDownloadCertificado', 'type'=> $type, 'value' => 'Download Certificado', 'reject' => true),
 					'C004_Ordem_Empresa' => array('name' => 'C004_Ordem_Empresa', 'label' => 'Ordem empresa', 'type' => 'moeda', 'length' => array(5,5),'casasDecimais' => '0'),
 					'C004_Ultimo_Numero_Nota_Fiscal' => array('name' => 'C004_Ultimo_Numero_Nota_Fiscal', 'label' => 'Último Nº NF'),
@@ -581,7 +584,7 @@ EOT;
 		if (!$formMultiTab) { $g["smarty"]->assign("formId", $formId); }
 		$g['smarty']->display('formEditor.tpl');
 	break;
-	
+
 	case 'cad031FormCadastroLogomarca':
 		global $g;
 		/**
@@ -1177,9 +1180,6 @@ EOT;
 		$enviar_btnId = 'cad031FormAvisosIndexBtn';
 		// Form que será executado ao clicar no botão
 		$enviar_acaoHref = '/cad/cad031/form/cad031FormAvisosIndex/';
-		// A lista de empresas não indica empresa. Sem identificador, o campo fica
-		// de fora do SQL e a coluna grava nulo. String vazia quebra o insert.
-		$semEmpresa = ($C004_Id === false || $C004_Id === '');
 
 		// Editor
 		$form_editor = array(
@@ -1190,7 +1190,7 @@ EOT;
 		$formArray = array(
 			'campos' => array(
 				'geral' => array(
-					'C032_C004_Id' => array('name' => 'C032_C004_Id', 'label' => '', 'type' => 'hidden', 'value' => $C004_Id, 'reject' => $semEmpresa),
+					'C032_C004_Id' => array('name' => 'C032_C004_Id', 'label' => '', 'type' => 'hidden', 'value' => $C004_Id),
 					'C032_Aviso_' => array('name' => 'C032_Aviso_', 'label' => 'Aviso', 'type' => 'textarea', 'length' => array(7,75), 'reject' => true, 'uppercase' => false),
 					'C032_Aviso' => array('name' => 'C032_Aviso', 'type' => 'hidden', 'uppercase' => false),
 					'C032_Flag_Ativo' => array('name' => 'C032_Flag_Ativo', 'label'=>'Aviso está ativo?', 'type' => 'select','select' => 
@@ -1219,11 +1219,6 @@ EOT;
 	 					$('#C032_Aviso').val(myEditor.instanceById('C032_Aviso_').getContent());
 	 				}
 	 			});
-	 			function copiarAvisoParaCampo() {
-	 				if (typeof(myEditor.instanceById('C032_Aviso_')) != 'undefined') {
-	 					$('#C032_Aviso').val(myEditor.instanceById('C032_Aviso_').getContent());
-	 				}
-	 			}
 	 			setTimeout(function() {
 	 				$('.nicEdit-panelContain').css({'border': '1px solid #4297D7', 'background': 'url("/hardness3/static/img/jquery.ui/ui-bg_gloss-wave_55_5c9ccc_500x100.png") repeat-x scroll 50% 50% #5C9CCC'});
 	 				$('.nicEdit-main').height(70).css('overflow', 'auto');
@@ -1232,7 +1227,6 @@ EOT;
 	 				if (myEditor.instanceById('C032_Aviso_') != 'undefined') {
 	 					myEditor.instanceById('C032_Aviso_').setContent($('#C032_Aviso').val());
 	 				}
-	 				$('#cad031FormAvisosIndexBtn').on('mousedown', copiarAvisoParaCampo);
 	 			}, 100);
 	 	    } </script></div>
 EOT;
@@ -1241,22 +1235,23 @@ EOT;
 		 * PARTE 3: Processamento do formulário (se foi enviado)
 		 * E carregamento dos valores (se não foi enviado parametro acaoId)
 		 */
-		// Com identificador, a empresa da requisição entra na gravação. O gerador
-		// lê o campo enviado; sem esta cópia o identificador não vira coluna.
-		if (!$semEmpresa && isset($_REQUEST['cad031FormAvisosIndex']) && is_array($_REQUEST['cad031FormAvisosIndex'])) {
-			$_REQUEST['cad031FormAvisosIndex']['C032_C004_Id'] = $C004_Id;
-		}
 		if ($formCodigo = $form->processarFormulario($form_tabela)) {
 			// Form com erros
 			if ($formCodigo == 1) {
 				echo gGeraAlertMsgErroForm($form);
 			// Form sem erros
 			} else if ($formCodigo == 2) {
-				// Texto do aviso. A imagem fica no formulário cad031FormAvisosImagem.
-				if (!empty($r_acaoId)) {
-					if ($sql = $g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $r_acaoId, $form)) {
-						$alert = gGeraAlertMsg('Operação OK', 'Registro Alterado com Sucesso!', false);
-						echo <<<EOT
+				// Insert ou Update?
+				$arquivo = $form->campoValorEnviado('uploadAviso');
+				if ($arquivo['error'] == UPLOAD_ERR_OK) {
+					$form->campoSetarValor('C032_Imagem', $arquivo['name'], true);
+					if (!empty($r_acaoId)) {
+						// Update
+						if ($sql = $g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $r_acaoId, $form)) {
+							
+							$alert = gGeraAlertMsg('Operação OK', 'Registro Alterado com Sucesso!', false);
+					
+							echo <<<EOT
 								<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 									$("#{$g['divId']}").closest('.ui-dialog-content').bind( "dialogclose", function(data, ui) {
 										setTimeout(function() {
@@ -1264,19 +1259,31 @@ EOT;
 										{$alert}
 	  								});
 									$("#{$g['divId']}").closest('.ui-dialog-content').dialog('close');
+									// O FW atualiza a linha do grid automaticamente, somente recarregar se não for grid
 									if ($('#{$g['divIdParent']}').find('table.grid').length === 0) {
 										divRefresh('{$g['divIdParent']}', true);
 									}
 							} </script></div>
 EOT;
-					}
-				} else if ($sql = $g['sqlAuto']->gerarSQLInsert($form_tabela, $form)) {
-					echo <<<EOT
+						}	
+					} else {
+						
+						// Neste caso, guardamos o nome do arquivo no banco
+						if ($arquivo['error'] == UPLOAD_ERR_OK) {
+							
+							// Neste caso, guardamos o nome do arquivo no banco
+							if ($sql = $g['sqlAuto']->gerarSQLInsert($form_tabela, $form)) {
+								// Gravar o arquivo no disco
+				
+								echo <<<EOT
 		                            <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 								        $("#{$g['divId']}").closest('.ui-dialog-content').dialog('close');
 			                                divRefresh('{$g['divIdParent']}', true);
 		                            } </script></div>
 EOT;
+							}
+						}
+					}
 				}
 			}
 		} else {

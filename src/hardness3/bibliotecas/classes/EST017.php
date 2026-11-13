@@ -243,7 +243,7 @@ class EST017_
                                 from
                                     T261 as T261_soma 
                                 JOIN D001 ON D001_Id = T261_soma.T261_D001_Id_Composicao
-                                JOIN D049 ON D001_Id = D049_D001_Id AND D049_Flag_Tipo = 'PD'
+                                JOIN D049 ON D001_Id = D049_D001_Id AND D049_Flag_Tipo IN ('PD', 'IN')
                                 JOIN D009 ON D049_Id = D009_D049_Id AND D009_C004_Id = 1
                                 JOIN T256 ON T256_Id = T261_soma.T261_T256_Id 
                                 join T255 on T256_T255_Id = T255_Id
@@ -252,7 +252,7 @@ class EST017_
                         FROM 
                             T261 
                                 JOIN D001 ON D001_Id = T261_D001_Id_Composicao
-                                JOIN D049 ON D001_Id = D049_D001_Id AND D049_Flag_Tipo = 'PD'
+                                JOIN D049 ON D001_Id = D049_D001_Id AND D049_Flag_Tipo IN ('PD', 'IN')
                                 JOIN D009 ON D049_Id = D009_D049_Id AND D009_C004_Id = '{$g['empresaAtual']}'
                                 JOIN T256 ON T256_Id = T261_T256_Id AND T256_T255_Id = '{$T255_Id}'";
 
@@ -1184,6 +1184,273 @@ EOT;
         return $email;
     }
 
+    /**
+     * Duplica a estrutura de uma OP, sem reaproveitar apontamentos ou baixas.
+     * As colunas sao obtidas dinamicamente para acompanhar a base/IDE.
+     */
+    public function duplicarOrdemProducao($T255_Id, $gerenciarTransacao = true)
+    {
+        global $g;
+
+        /*
+         * Fluxo da copia:
+         *   T255 -> T255A
+         *     -> T256 -> T256A -> T261 -> T261A
+         *                       -> T262 -> T262A -> T263
+         *     -> T264 -> T264A
+         *
+         * T257/T257A (apontamentos) e T309 (vinculo com pedido) nao entram.
+         */
+        $T255_Id = (int) $T255_Id;
+        $sqlT255 = mysql_query("SELECT * FROM T255 WHERE T255_Id = '{$T255_Id}' LIMIT 1");
+        if ($T255_Id <= 0 || !$sqlT255 || mysql_num_rows($sqlT255) == 0) {
+            return 'Ordem de producao nao encontrada.';
+        }
+        $validacao = $this->validarDuplicacaoOrdemProducao($T255_Id);
+        if ($validacao !== true) {
+            return $validacao;
+        }
+        if ($gerenciarTransacao) {
+            mysqli_query('SET AUTOCOMMIT=0');
+            mysqli_query('START TRANSACTION');
+        }
+
+        // 1. Cabecalho da nova OP.
+        $rowT255 = mysql_fetch_assoc($sqlT255);
+        $novoT255_Id = $this->duplicarRegistroOrdemProducao('T255', $rowT255, array(
+            'T255_Data_Emissao'                 => array('sql' => 'CURRENT_DATE()'),
+            'T255_C004_Id'                      => $g['empresaAtual'],
+            'T255_C007_Id'                      => $g['usuarioAtual'],
+            'T255_Flag_Status'                  => '0',
+            'T255_Quantidade'                   => 0,
+            'T255_Quantidade_Produzida'         => 0,
+            'T255_Quantidade_Saldo'             => 0,
+            'T255_Total_Itens'                  => 0,
+            'T255_Data_Hora_Baixa_Materiais'    => '0000-00-00 00:00:00',
+            'T255_Quantidade_Entrada_Estoque'   => 0
+        ));
+        if ($novoT255_Id === false) {
+            return $this->erroDuplicacaoOrdemProducao('Erro ao gravar o cabecalho da ordem de producao.', $gerenciarTransacao);
+        }
+
+        // 2. Dados complementares do cabecalho.
+        $retorno = $this->duplicarFilhoOrdemProducao('T255A', 'T255A_T255_Id', $T255_Id, $novoT255_Id, array(
+            'T255A_OP_Impressa'                  => 'N',
+            'T255A_Data_Hora'                    => null,
+            'T255A_Usuario'                      => null,
+            'T255A_Data_Simulacao_Estoque'      => array('sql' => 'CURRENT_TIMESTAMP'),
+            'T255A_Liberado_Producao'            => 'N',
+            'T255A_Flag_Cancelamento'            => null,
+            'T255A_Observacao'                   => null,
+            'T255A_Data_Cancelamento'            => '0000-00-00',
+            'T255A_Flag_Baixa_Automatica'        => 'N',
+            'T255A_Observacao_Baixa_Automatica'  => null,
+            'T255A_Flag_Imprimir'                => 'N',
+            'T255A_Sequencial'                   => null,
+            'T255A_Data_Inicio_Producao'         => '0000-00-00',
+            'T255A_Data_Fim_Producao'            => '0000-00-00',
+            'T255A_Peso_Etiqueta'                => null,
+            'T255A_Largura_Trena'                => null,
+            'T255A_Peso_Entrada'                 => null,
+            'T255A_Peso_Tubo'                    => null,
+            'T255A_Peso_Refilo'                  => null,
+            'T255A_Peso_Saida'                   => null
+        ));
+        if ($retorno === false) {
+            return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os dados complementares da ordem de producao.', $gerenciarTransacao);
+        }
+
+        // 3. Itens e toda a estrutura abaixo de cada item.
+        $mapas = array('T256' => array(), 'T261' => array(), 'T262' => array(), 'T264' => array());
+        $sqlT256 = mysql_query("SELECT * FROM T256 WHERE T256_T255_Id = '{$T255_Id}' ORDER BY T256_Id");
+        if (!$sqlT256) {
+            return $this->erroDuplicacaoOrdemProducao('Erro ao consultar os itens da ordem de producao.', $gerenciarTransacao);
+        }
+        while ($rowT256 = mysql_fetch_assoc($sqlT256)) {
+            $novoT256_Id = $this->duplicarRegistroOrdemProducao('T256', $rowT256, array(
+                'T256_T255_Id'                    => $novoT255_Id,
+                'T256_Quantidade_Produzida'       => 0,
+                'T256_Quantidade_Saldo'           => $rowT256['T256_Quantidade'],
+                'T256_Quantidade_Entrada_Estoque' => 0
+            ));
+            if ($novoT256_Id === false) {
+                return $this->erroDuplicacaoOrdemProducao('Erro ao gravar um item da ordem de producao.', $gerenciarTransacao);
+            }
+            $mapas['T256'][$rowT256['T256_Id']] = $novoT256_Id;
+            $retorno = $this->duplicarFilhoOrdemProducao('T256A', 'T256A_T256_Id', $rowT256['T256_Id'], $novoT256_Id, array(
+                'T256A_T256_Id_Op_Pai'            => 0,
+                'T256A_Data_Inicio'               => '0000-00-00',
+                'T256A_Integrado_Apontamento'      => 'N',
+                'T256A_Quantidade_Refugada'       => 0
+            ));
+            if ($retorno === false) {
+                return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os dados complementares de um item.', $gerenciarTransacao);
+            }
+        }
+
+        foreach ($mapas['T256'] as $T256_Id_Origem => $T256_Id_Novo) {
+            $sqlT261 = mysql_query("SELECT * FROM T261 WHERE T261_T256_Id = '{$T256_Id_Origem}' ORDER BY T261_Id");
+            $sqlT262 = mysql_query("SELECT * FROM T262 WHERE T262_T256_Id = '{$T256_Id_Origem}' ORDER BY T262_Id");
+            if (!$sqlT261 || !$sqlT262) {
+                return $this->erroDuplicacaoOrdemProducao('Erro ao consultar composicao ou processos da ordem de producao.', $gerenciarTransacao);
+            }
+            while ($rowT261 = mysql_fetch_assoc($sqlT261)) {
+                $novoT261_Id = $this->duplicarRegistroOrdemProducao('T261', $rowT261, array(
+                    'T261_T256_Id' => $T256_Id_Novo
+                ));
+                if ($novoT261_Id === false) {
+                    return $this->erroDuplicacaoOrdemProducao('Erro ao gravar a composicao da ordem de producao.', $gerenciarTransacao);
+                }
+                $mapas['T261'][$rowT261['T261_Id']] = $novoT261_Id;
+                $retorno = $this->duplicarFilhoOrdemProducao('T261A', 'T261A_T261_Id', $rowT261['T261_Id'], $novoT261_Id, array(
+                    'T261A_T256_Id' => $T256_Id_Novo
+                ));
+                if ($retorno === false) {
+                    return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os dados complementares da composicao.', $gerenciarTransacao);
+                }
+            }
+            while ($rowT262 = mysql_fetch_assoc($sqlT262)) {
+                $novoT262_Id = $this->duplicarRegistroOrdemProducao('T262', $rowT262, array(
+                    'T262_T256_Id' => $T256_Id_Novo
+                ));
+                if ($novoT262_Id === false) {
+                    return $this->erroDuplicacaoOrdemProducao('Erro ao gravar um processo da ordem de producao.', $gerenciarTransacao);
+                }
+                $mapas['T262'][$rowT262['T262_Id']] = $novoT262_Id;
+                $retorno = $this->duplicarFilhoOrdemProducao('T262A', 'T262A_T262_Id', $rowT262['T262_Id'], $novoT262_Id, array(
+                    'T262A_Status'                 => 'A',
+                    'T262A_Quantidade_Produzida'  => 0,
+                    'T262A_Quantidade_Refugada'   => 0
+                ));
+                if ($retorno === false) {
+                    return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os dados complementares de um processo.', $gerenciarTransacao);
+                }
+                $sqlT263 = mysql_query("SELECT * FROM T263 WHERE T263_T262_Id = '{$rowT262['T262_Id']}' ORDER BY T263_Id");
+                if (!$sqlT263) {
+                    return $this->erroDuplicacaoOrdemProducao('Erro ao consultar os materiais de consumo.', $gerenciarTransacao);
+                }
+                while ($rowT263 = mysql_fetch_assoc($sqlT263)) {
+                    if ($this->duplicarRegistroOrdemProducao('T263', $rowT263, array(
+                        'T263_T262_Id' => $novoT262_Id
+                    )) === false) {
+                        return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os materiais de consumo.', $gerenciarTransacao);
+                    }
+                }
+            }
+        }
+
+        // 4. Lista consolidada de materia-prima e material de consumo.
+        $sqlT264 = mysql_query("SELECT * FROM T264 WHERE T264_T255_Id = '{$T255_Id}' ORDER BY T264_Id");
+        if (!$sqlT264) {
+            return $this->erroDuplicacaoOrdemProducao('Erro ao consultar os materiais da ordem de producao.', $gerenciarTransacao);
+        }
+        while ($rowT264 = mysql_fetch_assoc($sqlT264)) {
+            $novoT264_Id = $this->duplicarRegistroOrdemProducao('T264', $rowT264, array(
+                'T264_T255_Id' => $novoT255_Id
+            ));
+            if ($novoT264_Id === false) {
+                return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os materiais da ordem de producao.', $gerenciarTransacao);
+            }
+            $mapas['T264'][$rowT264['T264_Id']] = $novoT264_Id;
+            if ($this->duplicarFilhoOrdemProducao('T264A', 'T264A_T264_Id', $rowT264['T264_Id'], $novoT264_Id) === false) {
+                return $this->erroDuplicacaoOrdemProducao('Erro ao gravar os dados complementares dos materiais.', $gerenciarTransacao);
+            }
+        }
+
+        // 5. Extensoes que pertencem somente a IDE ou ao cliente.
+        $retorno = $this->aposDuplicarOrdemProducao($T255_Id, $novoT255_Id, $mapas);
+        if ($retorno !== true) {
+            return $this->erroDuplicacaoOrdemProducao($retorno, $gerenciarTransacao);
+        }
+        if ($gerenciarTransacao) {
+            mysqli_query('COMMIT');
+            mysqli_query('SET AUTOCOMMIT=1');
+        }
+        return array('T255_Id' => $novoT255_Id);
+    }
+
+    /**
+     * Mantem a acao padrao de duplicar do formulario apontando para a copia
+     * completa da OP, em vez de tentar duplicar apenas o cabecalho T255.
+     */
+    public function duplicar_est017FormCabecalhoOrdemProducao($divId, $divIdRoot, $tabela, $T255_Id)
+    {
+        $retorno = $this->duplicarOrdemProducao($T255_Id);
+        if (!is_array($retorno)) {
+            return "dialogConfirm('Erro', '" . addslashes($retorno) . "');";
+        }
+
+        $novoT255_Id = $retorno['T255_Id'];
+        return "fecharJanela('" . addslashes($divId) . "'); abrirJanela(false, '" . addslashes($divIdRoot) . "', '" . addslashes($divId) . "', unique(), '', 'Ordem de Producao', '/est/est017/content/est017ContentOrdemProducao/', '&acaoId=' + encodeURIComponent('{$novoT255_Id}'), [990,605]);";
+    }
+
+    /** Ganchos para a IDE e para a personalizacao do cliente. */
+    public function validarDuplicacaoOrdemProducao($T255_Id) { return true; }
+    public function aposDuplicarOrdemProducao($T255_Id_Origem, $T255_Id_Novo, $mapas) { return true; }
+
+    protected function duplicarFilhoOrdemProducao($tabela, $campoPai, $idOrigem, $idNovo, $substituicoes = array())
+    {
+        if (!$this->tabelaDuplicacaoOrdemProducaoExiste($tabela)) {
+            return true;
+        }
+        $sql = mysql_query("SELECT * FROM `{$tabela}` WHERE `{$campoPai}` = '" . (int) $idOrigem . "' ORDER BY `{$tabela}_Id`");
+        if (!$sql) {
+            return false;
+        }
+        while ($registro = mysql_fetch_assoc($sql)) {
+            $substituicoes[$campoPai] = $idNovo;
+            if ($this->duplicarRegistroOrdemProducao($tabela, $registro, $substituicoes) === false) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected function tabelaDuplicacaoOrdemProducaoExiste($tabela)
+    {
+        $sql = mysql_query("SHOW TABLES LIKE '" . mysql_real_escape_string($tabela) . "'");
+        return $sql && mysql_num_rows($sql) > 0;
+    }
+
+    protected function duplicarRegistroOrdemProducao($tabela, $registro, $substituicoes = array())
+    {
+        $campoId = $tabela . '_Id';
+        $campos = array();
+        $valores = array();
+        foreach ($registro as $campo => $valor) {
+            if ($campo == $campoId) {
+                continue;
+            }
+            if (array_key_exists($campo, $substituicoes)) {
+                $valor = $substituicoes[$campo];
+            }
+            $campos[] = '`' . $campo . '`';
+            if (is_array($valor) && isset($valor['sql'])) {
+                $valores[] = $valor['sql'];
+            } elseif ($valor === null) {
+                $valores[] = 'NULL';
+            } else {
+                $valores[] = "'" . mysql_real_escape_string($valor) . "'";
+            }
+        }
+        $sql = "INSERT INTO `{$tabela}` (" . implode(', ', $campos) . ') VALUES (' . implode(', ', $valores) . ')';
+        // A duplicacao segue o mesmo padrao do VEN002: insere diretamente para
+        // nao disparar gatilhos PHP de manutencao durante a clonagem estrutural.
+        if (!mysqli_query($sql)) {
+            return false;
+        }
+        return mysql_insert_id();
+    }
+
+    protected function erroDuplicacaoOrdemProducao($mensagem, $gerenciarTransacao)
+    {
+        if ($gerenciarTransacao) {
+            mysqli_query('ROLLBACK');
+            mysqli_query('SET AUTOCOMMIT=1');
+        }
+        return $mensagem;
+    }
+
     public function cancelarOrdemProducao($T255_Id)
     {
         $T255_Id = (int) $T255_Id;
@@ -1364,11 +1631,7 @@ EOT;
         $sqlTabelaP001 = mysql_query("SHOW TABLES LIKE 'P001'");
         if (mysql_num_rows($sqlTabelaP001) > 0) {
             mysql_query("DELETE FROM P001 WHERE P001_T255_Id = '{$T255_Id}'");
-            $erro = mysql_error();
-            if (!empty($erro)) {
-                mysql_query("ROLLBACK");
-                return "Erro ao excluir ordem de produção, por favor entre em contato com o suporte técnico. (11)";
-            }
+
         }
 
         mysql_query("DELETE FROM T255 WHERE T255_Id = '{$T255_Id}'");

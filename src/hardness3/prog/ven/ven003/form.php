@@ -5,11 +5,13 @@ require_once('prog/ven/ven003/form_func-js.php');
 require_once("bibliotecas/classes/ReformaTributaria.php");
 require_once("bibliotecas/classes/VEN001.php");
 require_once("bibliotecas/classes/VEN003.php");
+require_once("bibliotecas/classes/VEN012.php");
 require_once("bibliotecas/classes/CAD002.php");
 require_once('hardness/class/nfe4_eventos.class.php');
 require_once('prog/ven/ven003/grid_func-callback.php');
 $VEN001 = new VEN001();
 $VEN003 = new VEN003();
+$VEN012 = new VEN012();
 $CAD002 = new CAD002();
 $reformaTributaria = new ReformaTributaria();
 
@@ -838,7 +840,7 @@ EOT;
 		$formArray['campos']['geral']['ven003FormBtnLimpar'] = array('name' => 'ven003FormBtnLimpar', 'type' => 'button', 'reload' => false, 'value' => 'Limpar', 'align' => 'right', 'style' => 'float:right;'.($g['usuarioAtual']!=63 ? 'opacity: 0.8;':''), 'reject' => true, 'disabled' => $campoDisabled);
 		$formArray['campos']['geral']['ven003FormDadosNota'] = array('name' => 'ven003FormDadosNota', 'type' => 'button', 'reload' => false, 'value' => 'Dados', 'align' => 'right', 'style' => 'float:right;'.($g['usuarioAtual']!=63 ? 'opacity: 0.8;':''), 'reject' => true, 'disabled' => $campoDisabled);
 
-		$sqlT007 = mysql_query("SELECT T007_Numero_Protocolo_Nfe FROM T007 WHERE T007_Id = '{$r_acaoId}'");
+		$sqlT007 = mysql_query("SELECT T007_Numero_Protocolo_Nfe, T007_Flag_ACP, T007_Versao_NFe, T007A.*, C004.* FROM T007 LEFT JOIN T007A ON T007A_T007_Id = T007_Id LEFT JOIN C004 ON C004_Id = T007_C004_Id WHERE T007_Id = '{$r_acaoId}'");
 		$rowT007 = mysql_fetch_assoc($sqlT007);
 
 		// Só será mostrado o botão download XML caso a nota não tenha protocolo.
@@ -854,6 +856,30 @@ EOT;
 		$formArray['campos']['geral']['ven003FormBtnVars']   = array('name' => 'ven003ContentVarsLayoutDanfe', 'type' => $type, 'reload' => false, 'value' => 'Vars Layout DANFE', 'reject' => true);
 		$formArray['campos']['geral']['ven003FormBtnExcluirNfeTravada']   = array('name' => 'ven003FormBtnExcluirNfeTravada', 'type' => $type, 'reload' => false, 'value' => 'Exluir NFe travada', 'reject' => true);
 		$formArray['campos']['geral']['ven003FormBtnFinalizarEnvioEmail']   = array('name' => 'ven003FormBtnFinalizarEnvioEmail', 'type' => $type, 'reload' => false, 'value' => 'Finalizar envio e-mail', 'reject' => true);
+
+        // Controles nativos do formEditor, com gravação exclusiva da impressão.
+        $temTipoDanfe = $rowT007['T007_Flag_ACP'] == '6' && $rowT007['T007_Versao_NFe'] == '4.00';
+        if ($temTipoDanfe) {
+            require_once __DIR__ . '/../../../hardness/class/DanfeModelo.php';
+            $formArray['campos']['geral']['T007A_Tipo_DANFE'] = array(
+                'name' => 'T007A_Tipo_DANFE', 'label' => 'Tipo de DANFE', 'type' => 'select',
+                'select' => DanfeModelo::opcoes(DanfeModelo::resolver($rowT007)),
+                'selectRefresh' => false, 'reject' => true, 'restricao' => false,
+            );
+            $formArray['campos']['geral']['ven003FormSalvarTipoDanfe'] = array(
+                'name' => 'ven003FormSalvarTipoDanfe', 'type' => 'button', 'value' => 'Salvar',
+                'reload' => false, 'reject' => true, 'restricao' => false,
+            );
+            $formArray['campos']['geral']['ven003FormStatusTipoDanfe'] = array(
+                'name' => 'ven003FormStatusTipoDanfe', 'type' => 'comentario', 'value' => '',
+                'reject' => true, 'restricao' => false, 'extra' => 'role="status"',
+            );
+            $editorDanfe = json_decode($form_editor['geral'], true);
+            $editorDanfe['T007A_Tipo_DANFE'] = array('top' => 168, 'left' => 12.859375, 'width' => 220, 'hidden' => 0);
+            $editorDanfe['ven003FormSalvarTipoDanfe'] = array('top' => 166, 'left' => 320, 'width' => null, 'hidden' => 0);
+            $editorDanfe['ven003FormStatusTipoDanfe'] = array('top' => 170, 'left' => 388, 'width' => null, 'hidden' => 0);
+            $form_editor['geral'] = json_encode($editorDanfe);
+        }
 
 		$form->definirFormularioArray($formArray);
 		
@@ -924,6 +950,17 @@ EOT;
 		 * PARTE 4: Gerar o formulário
 		 */
 		$gerado = gGeraCamposForm($form, $tab, $r_acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk, false, false, false, empty($rowT007['T007_Numero_Protocolo_Nfe']) ? false : true);
+        if ($temTipoDanfe) {
+            // A autorização bloqueia os dados fiscais; somente estes controles
+            // de impressão são gerados habilitados, usando o mesmo componente.
+            foreach ($gerado['table'] as &$campoDanfe) {
+                if (in_array($campoDanfe['id'], array('T007A_Tipo_DANFE', 'ven003FormSalvarTipoDanfe', 'ven003FormStatusTipoDanfe'), true)) {
+                    $campoDanfe['value'] = $form->campoCodigoHTML($campoDanfe['id'], false);
+                }
+            }
+            unset($campoDanfe);
+        }
+
 
 		/**
 		 * PARTE 5: Exibir o formulário
@@ -954,6 +991,28 @@ EOT;
 			} </script></div>
 EOT;
 	
+        if ($temTipoDanfe) {
+            $idNotaDanfe = (int) $r_acaoId;
+            echo <<<HTML
+            <script>
+            $('#{$formId} #ven003FormSalvarTipoDanfe').button().unbind('click.salvarTipoDanfe').bind('click.salvarTipoDanfe', function () {
+                var botao = $(this);
+                botao.button('disable');
+                $('#{$formId} #ven003FormStatusTipoDanfe').text('Salvando...');
+                $.ajax({
+                    url: '/ven/ven003/form_func-ajax/salvarTipoDanfe/?ajax=true',
+                    type: 'POST', dataType: 'json',
+                    data: {T007_Id: {$idNotaDanfe}, tipoDanfe: $('#{$formId} #T007A_Tipo_DANFE').val()}
+                }).done(function (resposta) {
+                    $('#{$formId} #ven003FormStatusTipoDanfe').text(resposta.data);
+                }).fail(function () {
+                    $('#{$formId} #ven003FormStatusTipoDanfe').text('Não foi possível salvar o tipo de DANFE.');
+                }).always(function () { botao.button('enable'); });
+            });
+            </script>
+HTML;
+        }
+
 	break;
 	
 	case 'ven003FormProdutos':
@@ -1924,7 +1983,7 @@ EOT;
 				$sql = "SELECT T008_Flag_Situacao_Tributaria FROM T008 WHERE T008_Id = '{$acaoId}'";
 				$resultado = mysql_query($sql);
 				$row = mysql_fetch_assoc($resultado);
-				$form->campoSetarValor('Codigo_Origem_Mercadoria', $row['T008_Flag_Situacao_Tributaria'][0]);
+				$form->campoSetarValor('Codigo_Origem_Mercadoria', $row['T008_Flag_Situacao_Tributaria']{0});
 				
 				// Mostra erros de formulário uteis ao desenvolvedor
 				if ($processado !== true) {
@@ -1993,21 +2052,37 @@ EOT;
 			$form = new Formulario('ven003FormInutilizar');
 
 			// Definição do Formulário (veja documentação dentro da classe Formulario para ver todas as opções disponiveis)
+			$seriesInutilizacao = array(
+				array('title' => '001 - Normal', 'value' => '1', 'selected' => true),
+				array('title' => '002 - Normal', 'value' => '2'),
+				array('title' => '003 - Normal', 'value' => '3'),
+			);
+
+			$seriesAdicionadas = array('1' => true, '2' => true, '3' => true, '100' => true, '900' => true);
+			$retornoSeries = $VEN012->listarSeriesAdicionaisInutilizacao($g['empresaAtual']);
+
+			if (!empty($retornoSeries['sucesso']) && !empty($retornoSeries['series']) && is_array($retornoSeries['series'])) {
+				foreach ($retornoSeries['series'] as $serie) {
+					$serie = (int) $serie;
+
+					if ($serie <= 0 || isset($seriesAdicionadas[$serie])) {
+						continue;
+					}
+
+					$seriesInutilizacao[] = array('title' => str_pad($serie, 3, '0', STR_PAD_LEFT) . ' - Normal', 'value' => (string) $serie);
+					$seriesAdicionadas[$serie] = true;
+				}
+			}
+
+			$seriesInutilizacao[] = array('title' => '100 - Normal', 'value' => '100');
+			$seriesInutilizacao[] = array('title' => '900 - SCAN', 'value' => '900');
+
 			$formArray = array(
 				'campos' => array(
 					'geral' => array(
 						'T007_Numero_Nota_Fiscal_Inicial' => array('name' => 'T007_Numero_Nota_Fiscal_Inicial','label'=>'Numeração Inicial NF', 'value' => $row['T007_Numero_Nota_Fiscal'], 'type' => 'text','reject' => true, 'length' => array(20,20)),
 						'T007_Numero_Nota_Fiscal_Final' => array('name' => 'T007_Numero_Nota_Fiscal_Final','label'=>'Numeração Final NF', 'value' => $row['T007_Numero_Nota_Fiscal'], 'type' => 'text','reject' => true, 'legth' => array(20,20)),
-						'T007_Serie' => array('name' => 'T007_Serie','label'=>'Série', 'type' => 'select','select' => 
-							array(
-								array('title' => '001 - Normal', 'value' => '1', 'selected' => true),
-								array('title' => '002 - Normal', 'value' => '2'),
-								array('title' => '003 - Normal', 'value' => '3'),
-								array('title' => '100 - Normal', 'value' => '100'),
-								array('title' => '900 - SCAN', 'value' => '900'),
-							),
-						
-						),
+						'T007_Serie' => array('name' => 'T007_Serie','label'=>'Série', 'type' => 'select', 'select' => $seriesInutilizacao),
 						'T007_Flag_ACP' => array('name' => 'T007_Flag_ACP','label'=>'Tipo documento', 'type' => 'select','select' => 
 							array(
 								array('title' => 'NF-e', 'value' => '6', 'selected' => true),
@@ -2046,6 +2121,7 @@ EOT;
 												   WHERE T007_C004_Id='{$g['empresaAtual']}' 
 												     AND T007_Data_Emissao > DATE_ADD(CURDATE(), INTERVAL -60 DAY)
 												     AND T007_Flag_ACP='{$T007_Flag_ACP}' 
+										 AND T007_Serie='{$T007_Serie}'
 												ORDER BY T007_Numero_Nota_Fiscal DESC LIMIT 1;");
 					
 					if(mysql_num_rows($verifica_T007) <= 0){
@@ -2054,6 +2130,7 @@ EOT;
 														FROM T007 
 					   								   WHERE T007_C004_Id='{$g['empresaAtual']}' 
 														 AND T007_Flag_ACP='{$T007_Flag_ACP}' 
+													 AND T007_Serie='{$T007_Serie}'
 													ORDER BY T007_Numero_Nota_Fiscal DESC LIMIT 1;");
 					}
 

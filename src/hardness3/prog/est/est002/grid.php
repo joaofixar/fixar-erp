@@ -16,6 +16,11 @@ require_once('prog/est/est002/grid_func-js.php');
 require_once('prog/est/est002/grid_func-js-retornarExpedicao.php');
 require_once('prog/ven/ven012/grid_func-js.php');
 
+function est002CheckboxSelecionarVolumeMassaGlobal($array) {
+    $T314_Id = (int)$array['todosCampos']['T314_Id'];
+
+    return "<input type='checkbox' class='est002-volume-selecionado' value='{$T314_Id}' title='Selecionar volume' onclick='event.stopPropagation();' />";
+}
 
 switch($g['r'][3]){
 		/**
@@ -955,11 +960,11 @@ EOT;
             array('colunaValor' => 'campoOpcoesAguardandoEntrega2','colunaTitulo' => '', 'colunaTitulo' => 'Pedido','colunaTipo' => 'livre', 'callback' => 'campoOpcoesAguardandoEntrega2', 'style' => 'width:18px; padding: 3px 20px 3px 20px;'),
             array('colunaValor' => 'imprimirMinutaDeDespacho', 'colunaTipo' => 'livre', 'colunaTitulo' => 'Minuta', 'callback' => 'imprimirMinutaDeDespacho', 'style' => 'width:30px; padding: 3px 10px 3px 20px;', 'colunaAlinhar' => 'center',),
             array('colunaValor' => 'impressaoEtiqueta', 'colunaTipo' => 'livre', 'callback' => 'abrirNotificacao', 'callbackParameter' => array('Imprimir Etiquetas', '/sistema/impressao/etiquetas/notafiscal/', 'T007_Id', 'right', false, '', '<span class="ui-icon ui-icon-tag"></span>', 420), 'style' => 'width:18px; padding: 3px 10px 3px 10px;', 'colunaTitulo' => 'IE', 'colunaAlinhar' => 'center', 'colunaExibir' => false),
-            array('colunaValor' => 'coletaEtiquetaCorreio', 'colunaTitulo' => 'Correio', 'colunaTipo' => 'livre', 'callback' => 'correioPostaEtiqueta', 'style' => 'width:18px; padding: 3px 17px;','colunaExibir' => $exibirCorreios, 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'coletaEtiquetaCorreio', 'colunaTitulo' => 'Correio', 'colunaTipo' => 'livre', 'callback' => 'correioPostaEtiqueta', 'style' => 'width:18px; padding: 3px 17px;','colunaExibir' => $exibirCorreios, 'colunaAlinhar' => center),
             array('colunaValor' => '', 'colunaTipo' => 'livre', 'colunaTitulo' => 'Opções', 'callback' => 'campoOpcoesAguardandoEntrega', 'colunaExibir' => false),
             array('colunaValor' => 'T005_Id', 'colunaTitulo' => 'Pedido', 'chavePrimaria' => true),
             array('colunaValor' => 'T007_Id', 'colunaTitulo' => 'T007_Id', 'chavePrimaria' => true, 'colunaExibir' => false),
-            array('colunaValor' => 'T005_T275_Id', 'colunaTitulo' => 'Romaneio', 'callback' => 'retornaImpressaoRomaneio', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'T005_T275_Id', 'colunaTitulo' => 'Romaneio', 'callback' => 'retornaImpressaoRomaneio', 'colunaAlinhar' => center),
             array('colunaValor' => 'T005_Estoque_BOX', 'colunaTitulo' => 'Box'),
             array('colunaValor' => 'T007_Quantidade_Volumes', 'colunaTitulo' => 'Volumes', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),
         	array('colunaValor' => 'UFCliente.D018_UF', 'colunaTitulo' => 'UF','colunaExibir' => $habilitaMDFe),
@@ -1012,7 +1017,7 @@ EOT;
 		
 		$extra = <<<EOT
 			left join T006 on T005_Id=T006_T005_Id
-			left join T007 on T007_T005_Id=T005_Id and T007_Flag_Cancelada!='S'
+			left join T007 on T007_T005_Id=T005_Id and T007_Flag_Cancelada!='S' and T007_Protocolo_Inutilizacao is null
 			left join D024 on D024_Id=T005_D024_Id
 			left join D020 on D020_Id=D024_D020_Id
 			left join D018 as UFCliente on UFCliente.D018_Id=D024_D018_Id
@@ -4186,7 +4191,7 @@ EOT;
             array('colunaValor' => 'T005_Id', 'colunaTitulo' => 'Pedido', 'chavePrimaria' => true),
             array('colunaValor' => 'T007_Id', 'colunaTitulo' => 'T007_Id', 'colunaExibir' => false, 'chavePrimaria' => true),
             array('colunaValor' => 'T005_Estoque_BOX', 'colunaTitulo' => 'Box'),
-            array('colunaValor' => 'T005_T275_Id', 'colunaTitulo' => 'Romaneio', 'callback' => 'retornaImpressaoRomaneio', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'T005_T275_Id', 'colunaTitulo' => 'Romaneio', 'callback' => 'retornaImpressaoRomaneio', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Cliente'),
             array('colunaValor' => 'T005_Data_Emissao', 'colunaTitulo' => 'Emissão', 'callback' => 'gCorrigeData'),
             array('colunaValor' => 'T005_Data_Saida', 'colunaTitulo' => 'Saída', 'callback' => 'gCorrigeData'),
@@ -4234,7 +4239,7 @@ EOT;
 		$from = "T005";
 		
 		$extra = <<<EOT
-			left join T007 on T007_T005_Id=T005_Id and T007_Flag_Cancelada!='S'
+			left join T007 on T007_T005_Id=T005_Id and T007_Flag_Cancelada!='S' and T007_Protocolo_Inutilizacao is null
 			left join D024 on D024_Id=T005_D024_Id
 			left join D020 on D020_Id=D024_D020_Id
 			left join D018 on D018_Id=D024_D018_Id
@@ -4760,8 +4765,7 @@ EOT;
 	case 'est002VolumesConsultaCapa':
 		$grid = array(
             array('colunaValor' => 'T314_Id', 'colunaTitulo' => 'Chave', 'chavePrimaria' => true, 'colunaAlinhar' => 'center', 'colunaExibir' => false),
-            array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'excluirVolume', 'callbackParameter' => array('divJanela' => $_REQUEST['divJanela']), 'style' => 'width:15px;'),
-
+            array('colunaValor' => 'selecionarVolumeMassa', 'colunaTitulo' => 'Sel.', 'colunaTipo' => 'livre', 'callback' => 'est002CheckboxSelecionarVolumeMassaGlobal', 'style' => 'width:35px;'),
             array('colunaValor' => 'T314_Identificador', 'colunaTitulo' => 'Identificador', 'colunaExibir' => false),
             array('colunaValor' => 'T314_Sequencia',     'colunaTitulo' => 'Sequência',     'colunaExibir' => false),
             array('colunaValor' => 'T314_Volume',        'colunaTitulo' => 'Volume',        'colunaAlinhar' => 'left'),
@@ -4779,7 +4783,9 @@ EOT;
 		/**
          * Botões
          */
-        $botoes = array();
+		$botoes = array(
+			array('titulo' => 'Excluir', 'id' => 'est002VolumesConferenciaExcluirSelecionados', 'title' => 'Exclui os volumes marcados')
+		);
 		echo Botoes::processar($botoes);
 
 		// Gera o filtro e acrescenta ao $extra
@@ -4795,6 +4801,48 @@ EOT;
 		*/
 		echo <<<EOT
 			<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+				$('#{$g['divIdRoot']}').data('est002VolumesConsultaDivId', '{$g['divId']}');
+				window.est002VolumesConsultaDivId = '{$g['divId']}';
+				setTimeout(function() {
+					var botaoExcluir = $('#est002VolumesConferenciaExcluirSelecionados');
+					var barraBotoes = botaoExcluir.closest('.frameworkBotoes');
+					var botaoImprimir = barraBotoes.find('button').filter(function() {
+						return $.trim($(this).text()) == 'Imprimir';
+					}).first();
+
+					if (botaoImprimir.length) {
+						botaoExcluir.insertAfter(botaoImprimir);
+					}
+				}, 0);
+				$('#est002VolumesConferenciaExcluirSelecionados').unbind('click').bind('click', function() {
+					var volumesSelecionados = $('#{$g['divId']} .est002-volume-selecionado:checked').map(function() {
+						return $(this).val();
+					}).get();
+
+					if (!volumesSelecionados.length) {
+						dialogConfirm('Atenção', 'Selecione ao menos um volume na aba Volumes.');
+						return false;
+					}
+
+					var buttons = {
+						"Excluir": function() {
+							$('#{$g['divId']}').showLoading();
+							$.getJSON('/est/est002/grid_func-ajax/est002ExcluirVolumesSelecionados/?ajax=true&acaoId=' + encodeURIComponent('{$r_T005_Id}') + '&T314_Ids=' + encodeURIComponent(JSON.stringify(volumesSelecionados)) + '&callback=?', function(request) {
+								$('#{$g['divId']}').hideLoading();
+								if (request.code) {
+									divRefresh('{$g['divId']}', true);
+									dialogConfirm('Volumes excluídos', request.data);
+								} else {
+									dialogConfirm('Erro!', request.data);
+								}
+							});
+							$(this).dialog("destroy").remove();
+						},
+						"Cancelar": function() { $(this).dialog("destroy").remove(); }
+					};
+					dialogConfirm('Excluir volumes?', 'Deseja excluir os volumes selecionados?', buttons);
+					return false;
+				});
 				var dbclickPrevent = false;
 				$('#{$g['divId']} .grid tr').unbind('click').unbind('click').bind('click', function(data) {
 					// Previne duplo click (abrir duas janelas)

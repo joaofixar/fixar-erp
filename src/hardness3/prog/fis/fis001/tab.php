@@ -67,6 +67,7 @@ switch ($g['r'][3]) {
 			array(uniqid(), '/fis/fis001/form/fis001form01/', 'Cofins', "&tab=cofins&acaoId=" . urlencode($_REQUEST['acaoId']) . "&formId=" . urlencode($formId)),
 			array(uniqid(), '/fis/fis001/form/fis001form01/', 'Outros', "&tab=outros&acaoId=" . urlencode($_REQUEST['acaoId']) . "&formId=" . urlencode($formId)),			
 			array(uniqid(), '/fis/fis001/form/fis001form01/', 'Reforma', "&tab=reforma&acaoId=" . urlencode($_REQUEST['acaoId']) . "&formId=" . urlencode($formId)),			
+			array(uniqid(), '/fis/fis001/form/fis001form01/', 'GNRE', "&tab=gnre&acaoId=" . urlencode($_REQUEST['acaoId']) . "&formId=" . urlencode($formId)),
 		);
 		
 		// Processa Tabs

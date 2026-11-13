@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel de Cotações · Hardness</title><link rel="stylesheet" href="dashboard.css?v=105"><link rel="stylesheet" href="painel-cotacoes.css?v=9"></head>
+<body class="cotacoes-standalone">
+<section class="cotacoes-panel" id="cotacoes-main" data-cotacoes-root aria-busy="true">
+  <nav class="indicator-tabs cotacoes-tabs" role="tablist" aria-label="Etapas comerciais">
+    <button class="active" role="tab" aria-selected="true" data-mode="orcamentos">Orçamentos</button>
+    <button role="tab" aria-selected="false" data-mode="pedidos">Pedidos</button>
+    <button role="tab" aria-selected="false" data-mode="notas">Faturamento</button>
+    <button role="tab" aria-selected="false" data-mode="projecao">Projeção do mês</button>
+  </nav>
+  <form id="cotacoes-dates" class="filters cotacoes-filters">
+    <div class="cotacoes-filter-fields">
+      <div class="cotacoes-month-picker">
+        <div class="cotacoes-month-heading"><span class="filter-bar-label">Mês de referência</span><label for="cotacoes-year">Ano <input type="number" id="cotacoes-year" min="1900" step="1" required></label></div>
+        <div id="cotacoes-months" class="cotacoes-months" role="group" aria-label="Mês de referência"></div>
+        <input type="hidden" id="cotacoes-dateFrom"><input type="hidden" id="cotacoes-dateTo">
+        <div class="cotacoes-presets"><span class="filter-bar-label">Período no mês:</span><button type="button" class="preset-btn active" data-preset="month">Mês completo</button><button type="button" class="preset-btn" data-preset="7">Até 7 dias</button><button type="button" class="preset-btn" data-preset="14">Até 14 dias</button><button type="button" class="preset-btn" data-preset="30">Até 30 dias</button></div>
+        <p class="note cotacoes-period-hint" id="cotacoes-periodHint">Os atalhos mostram os últimos dias do mês selecionado. No mês atual, o período termina hoje.</p>
+      </div>
+      <label for="cotacoes-sellerFilter"><span>Vendedor</span><select id="cotacoes-sellerFilter"><option value="all">Todos</option></select></label>
+      <label for="cotacoes-representativeFilter"><span>Representante</span><select id="cotacoes-representativeFilter"><option value="all">Todos</option></select></label>
+      <label for="cotacoes-clientSearch"><span>Cliente</span><input type="search" id="cotacoes-clientSearch" placeholder="Nome ou grupo"></label>
+      <div class="filter-actions"><button class="primary" id="cotacoes-refresh">Aplicar</button><button type="button" class="secondary" id="cotacoes-clearFilters">Limpar</button></div>
+    </div>
+    <div class="filter-bar" id="cotacoes-companyFilter"></div>
+    <div class="filter-bar" id="cotacoes-teamFilter"></div>
+    <p class="note" id="cotacoes-teamNote" hidden></p>
+  </form>
+  <div class="cotacoes-result-header">
+    <div><p class="card-kicker">RESULTADOS COMERCIAIS</p><h3 id="cotacoes-scopeTitle">Visão geral</h3><p id="cotacoes-scopeSub" class="muted"></p></div>
+    <div class="cotacoes-summary-meta"><span id="cotacoes-updatedAt" class="muted" role="status">Carregando…</span><span id="cotacoes-accessLabel" class="muted"></span><div class="cotacoes-exports"><button id="cotacoes-exportCsv" class="preset-btn">CSV</button><button id="cotacoes-print" class="preset-btn">Imprimir / PDF</button></div></div>
+  </div>
+  <div id="cotacoes-error" class="error-box" role="alert" hidden></div>
+  <div id="cotacoes-loading" class="cotacoes-loading" role="status"><span class="indicator-loading-progress"><i></i></span>Consultando os dados do indicador…</div>
+    <section id="cotacoes-salesView" hidden>
+      <div id="cotacoes-kpis" class="kpis commercial-kpis"></div><p id="cotacoes-excludedNote" class="note"></p>
+      <section class="panel wide-card"><div class="panel-head"><div><div class="panel-title" id="cotacoes-chartTitle">Evolução diária</div><div class="panel-sub" id="cotacoes-chartSub"></div></div><div class="range-controls"><div class="metric-toggle"><button data-metric="count" class="active" id="cotacoes-metricCount">Orçamentos</button><button data-metric="value">Valor</button><button data-metric="toneladas" id="cotacoes-metricTons" hidden>Toneladas</button></div></div></div><fieldset class="cotacoes-trend-options" id="cotacoes-trendOptions">
+        <legend>Exibir no gráfico</legend>
+        <label class="ia-toggle"><input type="checkbox" data-trend-criterion="count"><span id="cotacoes-countOption">Orçamentos no período</span></label>
+        <label class="ia-toggle"><input type="checkbox" data-trend-criterion="value"><span id="cotacoes-valueOption">Valor orçado</span></label>
+        <label class="ia-toggle"><input type="checkbox" data-trend-criterion="ticket">Ticket médio</label>
+        <label class="ia-toggle"><input type="checkbox" data-trend-criterion="sellers">Vendedores ativos</label>
+        <label class="ia-toggle" id="cotacoes-iaLabel"><input type="checkbox" id="cotacoes-iaCompare" data-trend-criterion="ia">Feito com IA</label>
+        <label class="ia-toggle"><input type="checkbox" data-trend-criterion="conversion">Taxa de conversão</label>
+        <label class="ia-toggle"><input type="checkbox" data-trend-criterion="closed">Orçamentos fechados</label>
+        <label class="ia-toggle" id="cotacoes-tonsOption" hidden><input type="checkbox" data-trend-criterion="toneladas">Volume de material</label>
+      </fieldset>
+      <fieldset class="cotacoes-comparisons"><legend>Períodos comparativos</legend>
+        <label class="ia-toggle"><input type="checkbox" id="cotacoes-comparePrevious" checked>Período anterior de mesma duração</label>
+        <div class="cotacoes-comparison-add"><label for="cotacoes-compareFrom">De <input type="date" id="cotacoes-compareFrom"></label><label for="cotacoes-compareTo">Até <input type="date" id="cotacoes-compareTo"></label><button type="button" class="preset-btn" id="cotacoes-comparisonAdd">Adicionar período</button></div>
+        <div id="cotacoes-comparisonList" class="cotacoes-comparison-list" aria-label="Períodos adicionados"></div>
+        <p id="cotacoes-comparisonError" class="error" role="alert" hidden></p>
+      </fieldset>
+      <p id="cotacoes-comparisonPeriod" class="note"></p>
+      <p class="note">Linha contínua: período atual. Linhas tracejadas: períodos comparativos, identificados na legenda. Todas as linhas usam os mesmos filtros. Dias úteis alinhados pela posição; passe sobre os pontos para ver a data e o valor. Ticket, vendedores ativos e conversão são calculados por dia. Orçamentos fechados são os que geraram pedido.</p>
+      <p id="cotacoes-comparisonStatus" class="note" role="status" aria-live="polite"></p>
+      <button type="button" class="preset-btn" id="cotacoes-comparisonRetry" hidden>Tentar comparação novamente</button>
+      <div class="cotacoes-trend-stage"><div id="cotacoes-trend" class="chart-wrap" aria-busy="false"></div><div id="cotacoes-trendLoading" class="cotacoes-trend-loading" role="status" aria-live="polite" hidden><span class="cotacoes-trend-spinner" aria-hidden="true"></span><span id="cotacoes-trendLoadingText">Atualizando gráfico…</span></div></div><div id="cotacoes-trendLegend" class="cotacoes-trend-legend" aria-label="Linhas do gráfico"></div></section>
+      <div class="data-grid" style="margin-top:20px">
+        <section class="panel wide-card"><div class="panel-head"><div><div class="panel-title">Ranking do período</div><div id="cotacoes-rankSub" class="panel-sub"></div></div><div class="range-controls"><label class="cotacoes-view" for="cotacoes-groupBy">Agrupar por<select id="cotacoes-groupBy"><option value="vendedor">Vendedores</option><option value="representante">Representantes</option></select></label><button id="cotacoes-clearSeller" class="preset-btn" hidden>Limpar seleção</button></div></div><div class="table-scroll"><table class="comparison-table"><thead><tr><th><button class="link-button" data-sort="name" id="cotacoes-rankName">Vendedor</button></th><th>Equipe</th><th class="num"><button class="link-button" data-sort="count" id="cotacoes-rankCount">Orçamentos</button></th><th class="num"><button class="link-button" data-sort="value">Valor</button></th><th class="num" id="cotacoes-rankIaHead">Via IA</th></tr></thead><tbody id="cotacoes-rankBody"></tbody></table></div></section>
+        <section class="panel wide-card"><div class="panel-head"><div><div class="panel-title" id="cotacoes-clientsTitle">Clientes cotando</div><div class="panel-sub" id="cotacoes-clientsSub"></div></div></div><div class="table-scroll"><table class="comparison-table"><thead><tr><th>Cliente (consolidado)</th><th class="num">Valor</th><th class="num">Documentos</th><th></th></tr></thead><tbody id="cotacoes-clientsBody"></tbody></table></div><div class="pagination" id="cotacoes-clientsPages"></div><p class="note">Cliente da proposta e seu grupo, quando informados; depois grupo ou cliente do documento. Nomes equivalentes entre empresas são consolidados. Cancelados e transferências são excluídos desta listagem; os totais de orçamentos em R$ incluem transferências.</p></section>
+      </div>
+      <div id="cotacoes-analysis" class="commercial-analysis" hidden>
+        <section id="cotacoes-segmentsPanel" class="panel wide-card commercial-analysis-card"><h3>Vendas por distrito</h3><p class="comparison-description">Quantidade, valor e participação na etapa e no período selecionados.</p><div id="cotacoes-segments"></div></section>
+        <section id="cotacoes-cancellationsPanel" class="panel wide-card commercial-analysis-card"><h3>Orçamentos cancelados</h3><p class="comparison-description">Somente cancelamentos com motivo. Revisões substituídas sem motivo não são contabilizadas. Principais motivos do período.</p><div id="cotacoes-cancellations"></div></section>
+      </div>
+      <section id="cotacoes-statusPanel" class="panel wide-card" style="margin-top:20px" hidden><div class="panel-title">Situação dos pedidos</div><div id="cotacoes-statuses" class="status-bars"></div></section>
+      <section id="cotacoes-funnelPanel" class="panel wide-card" style="margin-top:20px"><div class="panel-title">Etapas comerciais no período</div><div id="cotacoes-funnel" class="kpis commercial-kpis" style="margin-top:12px"></div><p class="note">Cada etapa considera sua própria data de emissão. A conversão acompanha os orçamentos filtrados com ao menos um pedido válido vinculado, mesmo que o pedido tenha sido emitido depois do período.</p></section>
+    </section>
+    <section id="cotacoes-projectionView" hidden>
+      <div class="filter-bar"><span class="filter-bar-label">Projeção:</span><button class="filter-chip active" data-projection="current">Mês de referência</button><button class="filter-chip" data-projection="next">Próximo mês</button></div>
+      <div class="filter-bar" id="cotacoes-projectionUnits" hidden><span class="filter-bar-label">Unidade dos pedidos:</span><button class="filter-chip active" data-projection-unit="reais">R$</button><button class="filter-chip" data-projection-unit="toneladas">Toneladas</button></div><p class="note" id="cotacoes-projectionNote"></p><div class="kpis commercial-kpis" id="cotacoes-projectionKpis"></div>
+      <section class="panel wide-card" style="margin-top:20px"><div class="panel-head"><div><div class="panel-title">Pedidos realizados × Projeção</div><div class="panel-sub" id="cotacoes-projectionChartSub"></div></div></div><div class="chart-wrap" id="cotacoes-projectionChart"></div><div class="chart-legend"><span>● Pedidos realizados</span><span>┄ Projeção de fechamento dos pedidos</span><span id="cotacoes-goalLegend" hidden>━ Meta acumulada por dia útil</span></div></section>
+      <section class="panel wide-card" style="margin-top:20px"><div class="panel-title">Cenários de fechamento · Pedidos</div><div id="cotacoes-scenarios" class="projection-cards" style="margin-top:12px"></div></section>
+      <section class="panel wide-card" style="margin-top:20px"><div class="panel-head"><div><div class="panel-title">Projeção de pedidos por vendedor</div><div class="panel-sub">Mesma empresa, equipe e representante selecionados acima.</div></div></div><div class="table-scroll"><table class="comparison-table"><thead><tr><th>Vendedor</th><th class="num">Pedidos realizados</th><th class="num">Projeção provável</th><th class="num">Meta</th><th class="num">Ritmo por dia útil</th></tr></thead><tbody id="cotacoes-projectionSellers"></tbody></table></div></section>
+      <section class="panel wide-card" style="margin-top:20px"><div class="panel-title">Modelos da projeção</div><p class="note">Base histórica, ritmo linear, curva de fechamento e média móvel dos últimos 10 dias úteis, conforme o modelo enviado. Pesos calculados com meses encerrados do escopo selecionado. Sem histórico suficiente, a faixa é apresentada como “Não disponível”. A meta informada é individual e não altera o cálculo da projeção.</p><div id="cotacoes-modelDetails" class="status-bars"></div></section>
+    </section>
+
+  <dialog id="cotacoes-documentDialog" class="cotacoes-document-dialog" aria-labelledby="cotacoes-documentTitle">
+    <header><h3 id="cotacoes-documentTitle">Documento</h3><button type="button" class="secondary" id="cotacoes-documentClose">Fechar</button></header>
+    <p id="cotacoes-documentStatus" role="status" aria-live="polite"></p>
+    <div id="cotacoes-documentContent"></div>
+  </dialog>
+  <dialog id="cotacoes-goalDialog" class="cotacoes-goal-dialog" aria-labelledby="cotacoes-goalTitle">
+    <form id="cotacoes-goalForm">
+      <h3 id="cotacoes-goalTitle">Meta do mês</h3><p id="cotacoes-goalScope" class="note"></p>
+      <label><span id="cotacoes-goalUnit">Valor em R$</span><input id="cotacoes-goalInput" type="text" inputmode="decimal" autocomplete="off" required placeholder="Ex.: 5.000.000,00"></label>
+      <p class="note">Meta individual, salva para este mês e escopo. A linha do gráfico distribui o valor pelos dias úteis.</p>
+      <p id="cotacoes-goalError" class="error" role="alert" hidden></p>
+      <div class="cotacoes-goal-actions"><button id="cotacoes-goalRemove" type="button" class="secondary">Remover meta</button><button id="cotacoes-goalCancel" type="button" class="secondary">Cancelar</button><button id="cotacoes-goalSave" type="submit" class="primary">Salvar</button></div>
+    </form>
+  </dialog>
+</section>
+<script src="carregamento-progressivo.js?v=2"></script><script src="analise-comercial.js?v=2"></script><script src="painel-cotacoes-model.js?v=8"></script><script src="painel-cotacoes-goal.js?v=1"></script><script src="painel-cotacoes.js?v=17"></script>
+</body></html>

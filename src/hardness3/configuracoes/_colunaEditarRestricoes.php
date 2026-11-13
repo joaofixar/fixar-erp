@@ -305,6 +305,9 @@ $g['restricaoCamposEditar'] = array(
 	'D006_Percentual_FCP',  
 	'D006_Percentual_Reducao_ICMS',
 	'D006_Flag_Substituicao_Tributaria',   
+	'D006_Flag_Gera_GNRE_ST',
+	'D006_Flag_Gera_GNRE_DIFAL',
+	'D006_Flag_Gera_GNRE_FCP',
 	'D006_Flag_Deb_Crd_ST',  
 	'D006_ST_MVA',
 	'D006_Flag_ST_VA',   
@@ -621,6 +624,7 @@ $g['restricaoCamposEditar'] = array(
 	'T006_Item_Pedido_Compra',
 
 	'D109_Carga_Horaria',
+	'D109A_Matricula',
 	'D042_Quantidade',
 	'T071_Observacao',
 	'T071_Quantidade',

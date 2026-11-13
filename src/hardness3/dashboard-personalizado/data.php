@@ -6,17 +6,21 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/../bibliotecas/confUsuario.php';
+require_once __DIR__ . '/connection.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/access.php';
 require_once __DIR__ . '/filter-preferences.php';
 require_once __DIR__ . '/custom-indicator-engine.php';
 require_once __DIR__ . '/agenda-action.php';
+require_once __DIR__ . '/cotacoes-documento.php';
 require_once __DIR__ . '/titulo-action.php';
+require_once __DIR__ . '/portal-representantes.php';
+require_once __DIR__ . '/resposta-json.php';
 
 function dashboardResponder($codigo, $dados)
 {
     http_response_code($codigo);
-    echo json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo dashboardRespostaJson(dashboardSqlResposta($codigo, $dados));
     exit;
 }
 
@@ -26,6 +30,8 @@ if ($autorizacao === false) {
 }
 $usuario = $autorizacao['usuario'];
 $empresa = $autorizacao['empresa'];
+$acao = isset($_GET['action']) && is_string($_GET['action']) ? $_GET['action'] : 'configuration';
+dashboardSqlIniciar($autorizacao, $acao, $_GET);
 
 $errosConfiguracao = array();
 $configuracao = dashboardPersonalizadoConfiguracao($empresa, $errosConfiguracao);
@@ -41,7 +47,6 @@ $acessos = dashboardPersonalizadoLerAcessos($empresa, $idsIndicadores);
 $podeGerenciarAcessos = dashboardPersonalizadoPodeGerenciarAcessos($autorizacao, $acessos);
 $indicadoresPermitidos = dashboardPersonalizadoIndicadoresPermitidos($autorizacao, $configuracao, $acessos);
 
-$acao = isset($_GET['action']) ? $_GET['action'] : 'configuration';
 if ($acao === 'configuration') {
     $indicadores = array();
     foreach ($indicadoresPermitidos as $indicador) {
@@ -53,7 +58,7 @@ if ($acao === 'configuration') {
         }
         $filtros = dashboardIndicadorFiltrosSemOpcoesDinamicas(isset($indicador['filtros']) ? $indicador['filtros'] : array());
         $definicaoPublica = dashboardIndicadorDefinicaoPublica($indicador, $filtros);
-        if ($restricao !== false && !empty($definicaoPublica['abas'])) {
+        if ($restricao !== false && !empty($definicaoPublica['abas']) && !dashboardPersonalizadoAbasComerciaisLocais($indicador)) {
             $abaPermitida = dashboardPersonalizadoAbaVendedores($indicador);
             $definicaoPublica['abas'] = array_values(array_filter($definicaoPublica['abas'], function ($aba) use ($abaPermitida) {
                 return isset($aba['id']) && $aba['id'] === $abaPermitida;
@@ -66,6 +71,7 @@ if ($acao === 'configuration') {
         'indicadores' => $indicadores,
         'preferenciasFiltros' => dashboardPersonalizadoLerPreferenciasFiltros($empresa, $usuario),
         'podeGerenciarAcessos' => $podeGerenciarAcessos,
+        'podeAnalisarSql' => dashboardPersonalizadoEhRoot($autorizacao),
         'semAcesso' => empty($indicadores),
     ));
 }
@@ -163,20 +169,27 @@ if ($acao === 'access') {
     }
     mysqli_close($conexaoAcessos);
 
+    $indicadoresGestao = dashboardPersonalizadoIndicadoresGerenciaveis($autorizacao, $configuracao, $acessos);
+    $gestaoLimitada = !dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos);
     $indicadoresComRestricaoVendedor = array();
-    foreach ($configuracao['indicadores'] as $indicador) {
+    $indicadoresComRestricaoEquipe = array();
+    foreach ($indicadoresGestao as $indicador) {
+        if (dashboardCotacoesHabilitado($indicador)) $indicadoresComRestricaoEquipe[$indicador['id']] = true;
         if (dashboardPersonalizadoIndicadorSuportaRestricaoVendedor($indicador)) {
             $indicadoresComRestricaoVendedor[$indicador['id']] = true;
         }
     }
 
     dashboardResponder(200, array(
-        'indicadores' => array_map(function ($indicador) { return array('id' => $indicador['id'], 'titulo' => $indicador['titulo']); }, $configuracao['indicadores']),
+        'indicadores' => array_map(function ($indicador) { return array('id' => $indicador['id'], 'titulo' => $indicador['titulo']); }, $indicadoresGestao),
         'perfis' => $perfis,
         'usuarios' => $usuarios,
         'vendedores' => $vendedores,
         'indicadoresComRestricaoVendedor' => $indicadoresComRestricaoVendedor,
-        'acessos' => $acessos,
+        'indicadoresComRestricaoEquipe' => $indicadoresComRestricaoEquipe,
+        'acessos' => $gestaoLimitada ? dashboardPersonalizadoAcessosVisiveis($acessos, $indicadoresGestao) : $acessos,
+        'edicaoLimitada' => $gestaoLimitada,
+        'usuarioAtual' => (int) $usuario,
         'root' => dashboardPersonalizadoEhRoot($autorizacao),
     ));
 }
@@ -246,21 +259,30 @@ if ($acao === 'saveAccess') {
                 dashboardResponder(422, array('error' => 'Selecione um vendedor válido para a restrição individual.'));
             }
             $restricoesUsuario[$indicadorId] = array('vendedorId' => $vendedorId, 'vendedorNome' => $vendedoresValidos[$vendedorId]);
+            if (isset($restricao['escopo']) && $restricao['escopo'] === 'equipe') {
+                if (!dashboardCotacoesHabilitado($indicadorConfigurado)) dashboardResponder(422, array('error' => 'Este indicador não permite acesso por equipe.'));
+                $restricoesUsuario[$indicadorId]['escopo'] = 'equipe';
+            }
             if (!in_array($indicadorId, $indicadoresUsuario, true)) {
                 $indicadoresUsuario[] = $indicadorId;
             }
         }
-        if (!empty($indicadoresUsuario) || !empty($restricoesUsuario)) {
-            $novoAcesso['usuarios'][$usuarioId] = array('indicadores' => array_values($indicadoresUsuario), 'restricoes' => $restricoesUsuario);
+        $gestorUsuario = dashboardPersonalizadoEhRoot($autorizacao)
+            ? isset($regra['gestor']) && $regra['gestor'] === true
+            : !empty($acessos['usuarios'][$usuarioId]['gestor']);
+        if (!empty($indicadoresUsuario) || !empty($restricoesUsuario) || $gestorUsuario || !dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos)) {
+            $novoAcesso['usuarios'][$usuarioId] = array('indicadores' => array_values($indicadoresUsuario), 'restricoes' => $restricoesUsuario, 'gestor' => $gestorUsuario);
         }
     }
+    $novoAcesso = dashboardPersonalizadoMesclarAcessosGestor($autorizacao, $configuracao, $acessos, $novoAcesso, $erroGestao);
+    if ($novoAcesso === false) dashboardResponder(403, array('error' => $erroGestao));
     if (!dashboardPersonalizadoSalvarAcessos($empresa, $novoAcesso)) {
         dashboardResponder(500, array('error' => 'Não foi possível salvar os acessos.'));
     }
     dashboardResponder(200, array('ok' => true));
 }
 
-if ($acao !== 'indicator' && $acao !== 'agendaContext' && $acao !== 'titleContext') {
+if ($acao !== 'indicator' && $acao !== 'portalRepresentativeAction' && $acao !== 'commercialClientHistory' && $acao !== 'commercialOrderPdf' && $acao !== 'agendaContext' && $acao !== 'titleContext' && $acao !== 'cotacoesDocumentContext' && $acao !== 'saveCotacoesGoal' && $acao !== 'saveCashForecast' && $acao !== 'saveBankGuarantees') {
     dashboardResponder(404, array('error' => 'Consulta não disponível.'));
 }
 
@@ -279,9 +301,26 @@ if ($indicadorSelecionado === null) {
 $restricaoUsuario = dashboardPersonalizadoRestricaoUsuarioIndicador($autorizacao, $acessos, $indicadorId);
 $entradaIndicador = $_GET;
 
+if ($acao === 'saveCotacoesGoal') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') dashboardResponder(405, array('error' => 'Método não permitido.'));
+    if (!dashboardCotacoesHabilitado($indicadorSelecionado)) dashboardResponder(403, array('error' => 'Este indicador não permite metas de projeção.'));
+    if (strpos(isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '', 'application/json') !== 0) dashboardResponder(415, array('error' => 'Formato de envio inválido.'));
+    if (!empty($_SERVER['HTTP_ORIGIN'])) {
+        if (!dashboardCotacoesMetaOrigemValida($_SERVER['HTTP_ORIGIN'], isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '')) dashboardResponder(403, array('error' => 'Origem do envio inválida.'));
+    }
+    $metaEntrada = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($metaEntrada) || !array_key_exists('valor', $metaEntrada)) dashboardResponder(422, array('error' => 'Informe o valor da meta.'));
+    $chaveMeta = dashboardCotacoesMetaChave($metaEntrada, $erroMeta);
+    if ($chaveMeta === false) dashboardResponder(422, array('error' => $erroMeta));
+    // Empresa e usuário sempre vêm da autorização; nunca do corpo da requisição.
+    $metaSalva = dashboardCotacoesMetaSalvar(dashboardCotacoesMetaArquivo($empresa, $usuario, $indicadorId), $chaveMeta, $metaEntrada['valor'], $erroMeta);
+    if ($metaSalva === false) dashboardResponder(422, array('error' => $erroMeta));
+    dashboardResponder(200, $metaSalva);
+}
+
 if (!empty($indicadorSelecionado['abas']) && is_array($indicadorSelecionado['abas'])) {
     $abaId = isset($_GET['tab']) ? (string) $_GET['tab'] : '';
-    if ($restricaoUsuario !== false) {
+    if ($restricaoUsuario !== false && !dashboardPersonalizadoAbasComerciaisLocais($indicadorSelecionado)) {
         $abaPermitida = dashboardPersonalizadoAbaVendedores($indicadorSelecionado);
         if ($abaPermitida === '' || ($abaId !== '' && $abaId !== $abaPermitida)) {
             dashboardResponder(403, array('error' => 'Esta aba não está liberada para o seu usuário.'));
@@ -292,7 +331,11 @@ if (!empty($indicadorSelecionado['abas']) && is_array($indicadorSelecionado['aba
     $abaEncontrada = false;
     foreach ($indicadorSelecionado['abas'] as $aba) {
         if ($abaId === '' || (isset($aba['id']) && $aba['id'] === $abaId)) {
-            $indicadorSelecionado = array_merge($indicadorSelecionado, $aba);
+            if (dashboardPersonalizadoAbasComerciaisLocais($indicadorSelecionado)) {
+                $indicadorSelecionado['_abaComercial'] = $aba['id'];
+            } else {
+                $indicadorSelecionado = array_merge($indicadorSelecionado, $aba);
+            }
             $abaEncontrada = true;
             break;
         }
@@ -304,35 +347,150 @@ $indicadorSelecionado = dashboardPersonalizadoAplicarRestricaoUsuario($indicador
 if ($indicadorSelecionado === false) {
     dashboardResponder(403, array('error' => $erroRestricao));
 }
+dashboardSqlContexto($indicadorSelecionado, $entradaIndicador);
+if (dashboardPortalRepresentantesHabilitado($indicadorSelecionado) || $acao === 'portalRepresentativeAction') {
+    if (!dashboardPortalRepresentantesHabilitado($indicadorSelecionado) || $restricaoUsuario !== false) dashboardResponder(403, array('error' => 'Gestão do portal indisponível neste indicador.'));
+    try {
+        if (!dashboardPortalRepresentantesDisponivel()) dashboardResponder(503, array('error' => 'Instale ou atualize o Portal do Representante nesta instalação para gerenciar os acessos.'));
+        // A autorização assinada do dashboard não inicia a sessão interna do ERP.
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start(array('read_and_close' => true));
+        if ($acao === 'portalRepresentativeAction') {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') dashboardResponder(405, array('error' => 'Método não permitido.'));
+            if (strpos(isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '', 'application/json') !== 0) dashboardResponder(415, array('error' => 'Formato de envio inválido.'));
+            if (!empty($_SERVER['HTTP_ORIGIN']) && !dashboardCotacoesMetaOrigemValida($_SERVER['HTTP_ORIGIN'], isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '')) dashboardResponder(403, array('error' => 'Origem do envio inválida.'));
+            dashboardResponder(200, dashboardPortalRepresentantesAcao($autorizacao, $confUsuario,
+                json_decode(file_get_contents('php://input'), true), $_SERVER['REQUEST_METHOD'], $indicadorId));
+        }
+        if ($acao !== 'indicator') dashboardResponder(404, array('error' => 'Consulta não disponível.'));
+        $conexaoPortal = dashboardPersonalizadoConectarLeitura($confUsuario, null, false);
+        if (!$conexaoPortal) throw new RepresentantePortalErro('Não foi possível consultar o cadastro.', 503);
+        mysqli_set_charset($conexaoPortal, 'utf8');
+        @mysqli_query($conexaoPortal, 'SET SESSION MAX_EXECUTION_TIME=5000');
+        @mysqli_query($conexaoPortal, 'START TRANSACTION READ ONLY');
+        try { $portal = dashboardPortalRepresentantesCarregar($conexaoPortal, $indicadorSelecionado, $autorizacao, $confUsuario, $_SESSION, $indicadorId); }
+        finally { mysqli_close($conexaoPortal); }
+        dashboardResponder(200, array('indicador' => dashboardIndicadorDefinicaoPublica($indicadorSelecionado, array()),
+            'portalRepresentantes' => $portal, 'card' => array('valor' => 0, 'formato' => 'numero'),
+            'updatedAt' => (new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')))->format('d/m/Y H:i')));
+    } catch (RepresentantePortalErro $erroPortal) { dashboardResponder($erroPortal->status, array('error' => $erroPortal->getMessage())); }
+    catch (\Throwable $erroPortal) { dashboardResponder(503, array('error' => 'Não foi possível consultar os acessos do portal. Tente novamente.')); }
+}
+if (dashboardCotacoesHabilitado($indicadorSelecionado)) $indicadorSelecionado['_cotacoesUsuario'] = (int) $usuario;
 
-if ($acao === 'agendaContext' || $acao === 'titleContext') {
+if ($acao === 'saveBankGuarantees') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') dashboardResponder(405, array('error' => 'Método não permitido.'));
+    if (!dashboardCarteiraBancosHabilitado($indicadorSelecionado) || $restricaoUsuario !== false) dashboardResponder(403, array('error' => 'Edição de garantias indisponível para este acesso.'));
+    if (strpos(isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '', 'application/json') !== 0) dashboardResponder(415, array('error' => 'Formato de envio inválido.'));
+    if (!empty($_SERVER['HTTP_ORIGIN']) && !dashboardCotacoesMetaOrigemValida($_SERVER['HTTP_ORIGIN'], isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '')) dashboardResponder(403, array('error' => 'Origem do envio inválida.'));
+    $bancosGarantia = dashboardCarteiraBancosConfig($indicadorSelecionado, $erroGarantias);
+    if ($bancosGarantia === false) dashboardResponder(422, array('error' => $erroGarantias));
+    $garantiasSalvas = dashboardCarteiraBancosSalvar(dashboardCarteiraBancosArquivo($empresa, $indicadorId), $bancosGarantia,
+        json_decode(file_get_contents('php://input'), true), $usuario, $erroGarantias);
+    if ($garantiasSalvas === false) dashboardResponder(422, array('error' => $erroGarantias));
+    dashboardResponder(200, $garantiasSalvas);
+}
+
+if ($acao === 'saveCashForecast') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') dashboardResponder(405, array('error' => 'Método não permitido.'));
+    if (!dashboardCaixaPrevisaoHabilitada($indicadorSelecionado) || $restricaoUsuario !== false) dashboardResponder(403, array('error' => 'Previsão manual indisponível para este acesso.'));
+    if (strpos(isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '', 'application/json') !== 0) dashboardResponder(415, array('error' => 'Formato de envio inválido.'));
+    if (!empty($_SERVER['HTTP_ORIGIN']) && !dashboardCotacoesMetaOrigemValida($_SERVER['HTTP_ORIGIN'], isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '')) dashboardResponder(403, array('error' => 'Origem do envio inválida.'));
+    $entradaPrevisao = json_decode(file_get_contents('php://input'), true);
+    $salvo = dashboardCaixaPrevisaoSalvar(dashboardCaixaPrevisaoArquivo($empresa, $indicadorId), $entradaPrevisao, $erroPrevisao);
+    if ($salvo === false) dashboardResponder(422, array('error' => $erroPrevisao));
+    dashboardResponder(200, $salvo);
+}
+
+if ($acao === 'indicator') dashboardFiltrosCacheContexto(
+    hash('sha256', $confUsuario['dbHost'] . '|' . $confUsuario['dbDatabase']),
+    $autorizacao, $acessos, $indicadorSelecionado
+);
+
+if ($acao === 'agendaContext' || $acao === 'titleContext' || $acao === 'cotacoesDocumentContext' || $acao === 'commercialClientHistory' || $acao === 'commercialOrderPdf') {
     if (session_status() !== PHP_SESSION_ACTIVE) session_start(array('read_and_close' => true));
     if (!dashboardAgendaSessaoValida($autorizacao, isset($_SESSION) ? $_SESSION : array())) {
         dashboardResponder(403, array('error' => 'A sessão do ERP mudou ou expirou. Reabra o dashboard pela empresa atual do sistema.'));
     }
 }
 
-$conexao = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
+// Abertura de telas e emissão de tickets exigem as permissões atuais do ERP.
+$inicioConexao = microtime(true);
+$conexao = dashboardPersonalizadoConectarLeitura(
+    $confUsuario,
+    isset($confUsuarioEspelhado) ? $confUsuarioEspelhado : null,
+    ($acao === 'indicator' || $acao === 'commercialClientHistory') && dashboardPersonalizadoIndicadorUsaEspelho($indicadorSelecionado)
+);
+if (!empty($GLOBALS['dashboardSql'])) $GLOBALS['dashboardSql']['relatorio']['tempoConexaoMs'] = round((microtime(true) - $inicioConexao) * 1000, 2);
 if (!$conexao) {
     dashboardResponder(503, array('error' => 'Não foi possível consultar os dados do dashboard.'));
 }
 mysqli_set_charset($conexao, 'utf8');
-@mysqli_query($conexao, 'SET SESSION MAX_EXECUTION_TIME=5000');
+@mysqli_query($conexao, 'SET SESSION MAX_EXECUTION_TIME=15000');
 @mysqli_query($conexao, 'START TRANSACTION READ ONLY');
 
 $erro = '';
-if ($acao === 'titleContext') {
+if ($acao === 'indicator' && !empty($indicadorSelecionado['desempenhoComercial']['habilitado'])) {
+    // CSV/PDF geram sua tabela no endpoint de exportação; a tela usa apenas o componente comercial.
+    $indicadorSelecionado['_comercialSomenteVisual'] = true;
+}
+try {
+    if ($acao === 'indicator' && dashboardCargaHabilitada($indicadorSelecionado)
+        && (!empty($entradaIndicador['carregarProgressivo']) || (dashboardAbcClientesLotesHabilitado($indicadorSelecionado) && !empty($entradaIndicador['cargaToken'])))) {
+        dashboardCargaInicializar($conexao,$autorizacao,$indicadorSelecionado,$entradaIndicador,hash('sha256',$confUsuario['dbHost'].'|'.$confUsuario['dbDatabase']));
+    }
+if ($acao === 'commercialOrderPdf') {
+    $resultado = dashboardComercialPedidoImpressao($conexao, $indicadorSelecionado, $autorizacao, $entradaIndicador, $erro);
+} elseif ($acao === 'commercialClientHistory') {
+    $resultado = dashboardComercialHistoricoCliente($conexao, $indicadorSelecionado, $empresa, $entradaIndicador, $erro);
+} elseif ($acao === 'cotacoesDocumentContext') {
+    $resultado = dashboardCotacoesDocumentoContexto($conexao, $indicadorSelecionado, $autorizacao, $_SESSION, $entradaIndicador, $erro);
+} elseif ($acao === 'titleContext') {
     $resultado = dashboardTituloContexto($conexao, $indicadorSelecionado, $autorizacao, $_SESSION, $entradaIndicador, $confUsuario, $erro);
 } else {
     $resultado = $acao === 'agendaContext'
         ? dashboardAgendaContexto($conexao, $indicadorSelecionado, $autorizacao, $_SESSION, $entradaIndicador, $erro)
         : dashboardIndicadorExecutar($conexao, $indicadorSelecionado, $empresa, $entradaIndicador, $erro);
 }
+    if (dashboardCargaAtiva()) {
+        if ($resultado !== false && empty($GLOBALS['dashboardCarga']['estado']['semSnapshot'])) $resultado['cargaToken'] = $GLOBALS['dashboardCarga']['token'];
+        dashboardCargaFinalizar($resultado !== false);
+    }
+} catch (DashboardCargaPendente $e) {
+    $progresso=$GLOBALS['dashboardCarga']['progresso'];dashboardCargaFinalizar();
+    @mysqli_rollback($conexao);mysqli_close($conexao);
+    dashboardResponder(202,array('carregamento'=>$progresso));
+} catch (\RuntimeException $e) {
+    dashboardSqlExcecao($e);
+    dashboardCargaFinalizar();@mysqli_rollback($conexao);mysqli_close($conexao);
+    dashboardResponder(422,array('error'=>$e->getMessage()));
+} catch (\Throwable $e) {
+    dashboardSqlExcecao($e);
+    dashboardCargaFinalizar();@mysqli_rollback($conexao);mysqli_close($conexao);
+    dashboardResponder(500, array('error' => 'Não foi possível concluir o indicador.'));
+}
 @mysqli_rollback($conexao);
 mysqli_close($conexao);
 
 if ($resultado === false) {
     dashboardResponder(422, array('error' => $erro));
+}
+
+if ($acao === 'commercialOrderPdf') {
+    $motorDocumento = dirname(__DIR__) . '/portal-representante/documentos.php';
+    if (!is_file($motorDocumento)) dashboardResponder(503, array('error'=>'O motor de impressão precisa ser atualizado.'));
+    require_once $motorDocumento;
+    if (!function_exists(__NAMESPACE__ . '\\portalRepresentanteDocumentoDisponibilidadePdf'))
+        dashboardResponder(503, array('error'=>'O motor de impressão precisa ser atualizado.'));
+    try {
+        $pdf = portalRepresentanteDocumentoDisponibilidadePdf($confUsuario,
+            array('empresa'=>(int) $empresa,'painel'=>array('impressoes'=>array('disponibilidadePedido'=>$resultado['tela']))), $resultado);
+    } catch (\Throwable $e) {
+        dashboardResponder(503, array('error'=>'Não foi possível preparar a impressão de disponibilidade agora. Tente novamente.'));
+    }
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="disponibilidade-pedido-' . (int) $resultado['id'] . '.pdf"');
+    header('X-Content-Type-Options: nosniff');
+    echo $pdf; exit;
 }
 
 $resultado['updatedAt'] = date('d/m/Y H:i');

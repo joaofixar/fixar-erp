@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TConfigUf xmlns="http://www.gnre.pe.gov.br">
+  <ambiente>2</ambiente><uf>PR</uf><situacaoConsulta><codigo>450</codigo><descricao>OK</descricao></situacaoConsulta>
+  <receitas><receita codigo="100101" descricao="Fixture XSD">
+    <exigeDetalhamentoReceita campo="detalhamentoReceita">N</exigeDetalhamentoReceita>
+    <exigeProduto campo="produto">N</exigeProduto>
+    <exigePeriodoReferencia campo="referencia">N</exigePeriodoReferencia>
+    <valorExigido>P</valorExigido>
+    <exigeDocumentoOrigem campo="documentoOrigem">N</exigeDocumentoOrigem>
+    <exigeContribuinteDestinatario>N</exigeContribuinteDestinatario>
+    <exigeCamposAdicionais campo="camposExtras">N</exigeCamposAdicionais>
+    <tiposGnre><tipoGnre>0</tipoGnre></tiposGnre><aceitaPgPix>N</aceitaPgPix>
+  </receita></receitas>
+  <versoesXml><versao>2.00</versao></versoesXml><tiposGnreDaUF><tipoGnre>0</tipoGnre></tiposGnreDaUF>
+  <enderecoObr><emitCpf>N</emitCpf><emitCnpj>N</emitCnpj></enderecoObr>
+</TConfigUf>

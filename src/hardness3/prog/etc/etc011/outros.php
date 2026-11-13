@@ -400,13 +400,22 @@ EOT;
 			$exibirAtalhoIntegradores = !empty($g['c029Ids'][304]);
 			$exibirAtalhoMcp = !empty($g['c029Ids'][306]) && isset($g['nivelAlcada']) && (int) $g['nivelAlcada'] === 4;
 			$exibirAtalhoWebhooks = !empty($g['c029Ids'][307]);
+			// A GNRE reutiliza a permissão C029 310 já validada pela própria
+			// aplicação em C019/C030 a cada requisição.
+			$exibirAtalhoGnre = !empty($g['c029Ids'][310]);
+			$atalhoGnreUrl = '/hardness3/aplicacoes/fiscal/gnre/public/?view=list&amp;gnre_company=' . (int) $g['empresaAtual'];
+			// Painel de consulta: disponível a todo usuário autenticado, sem C029.
+			$exibirAtalhoReformaTributaria = true;
+			// 308 libera a entrada operacional; 203 é o pré-requisito PCP já
+			// exigido pelo próprio módulo antes de aceitar a sessão.
+			$exibirAtalhoApontamento = !empty($g['c029Ids'][203]) && !empty($g['c029Ids'][308]);
 		$html .= <<<HTML
 			<div id="atalhosAcessoInicio">
 				<style>
 					#atalhosAcessoInicio { --atalhos-acesso-direita: 32px; --atalhos-acesso-inferior: 32px; --atalhos-acesso-espacamento: 16px; position: fixed; right: var(--atalhos-acesso-direita); bottom: var(--atalhos-acesso-inferior); z-index: 1000000; display: flex; flex-direction: column; align-items: flex-end; gap: var(--atalhos-acesso-espacamento); }
 				</style>
 HTML;
-		if ($exibirAtalhoIntegradores || $exibirAtalhoMcp || $exibirAtalhoWebhooks) {
+		if ($exibirAtalhoIntegradores || $exibirAtalhoMcp || $exibirAtalhoWebhooks || $exibirAtalhoApontamento || $exibirAtalhoGnre || $exibirAtalhoReformaTributaria) {
 			$html .= <<<HTML
 				<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0">
 HTML;
@@ -437,6 +446,26 @@ HTML;
 		require_once 'painel-personalizado/atalho.php';
 		$html .= painelPersonalizadoAtalhoInicio();
 
+		if ($exibirAtalhoApontamento) {
+			$html .= <<<HTML
+				<a class="atalho-apontamento-pcp" href="/apontamento/" target="_blank" rel="noopener noreferrer" title="Abrir Apontamento de Produção em uma nova aba">
+					<span class="atalho-apontamento-pcp__icone material-symbols-outlined" aria-hidden="true">precision_manufacturing</span>
+					<span class="atalho-apontamento-pcp__texto"><strong>Apontamento PCP</strong><small>Produção</small></span>
+					<span class="atalho-apontamento-pcp__seta material-symbols-outlined" aria-hidden="true">open_in_new</span>
+				</a>
+				<style>
+					.atalho-apontamento-pcp { display: inline-flex; align-items: center; gap: 14px; min-width: 260px; padding: 18px 21px; border: 1px solid #2860dc; border-radius: 12px; background: #fff; box-shadow: 0 12px 30px rgba(25,55,100,.16); color: #07224d; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+					.atalho-apontamento-pcp:hover { transform: translateY(-2px); background: #edf3ff; box-shadow: 0 16px 34px rgba(25,55,100,.22); color: #07224d; }
+					.atalho-apontamento-pcp:focus { outline: 3px solid rgba(40,96,220,.28); outline-offset: 3px; }
+					.atalho-apontamento-pcp__icone { display: flex; align-items: center; justify-content: center; width: 43px; height: 43px; border-radius: 10px; background: #eaf0ff; color: #2860dc; font-size: 24px; }
+					.atalho-apontamento-pcp__texto { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+					.atalho-apontamento-pcp__texto strong { color: #07224d; font-size: 19px; font-weight: 800; letter-spacing: .01em; line-height: 1.1; }
+					.atalho-apontamento-pcp__texto small { color: #617495; font-size: 12px; font-weight: 600; }
+					.atalho-apontamento-pcp__seta { color: #2860dc; font-size: 23px; line-height: 1; }
+				</style>
+			HTML;
+		}
+
 		if ($exibirAtalhoIntegradores) {
 			$html .= <<<HTML
 				<a class="atalho-integradores" href="/hardness3/integradores/" target="_blank" rel="noopener noreferrer" title="Abrir painel de integrações em uma nova aba">
@@ -452,6 +481,46 @@ HTML;
 					.atalho-integradores__texto strong { color: #07224d; font-size: 19px; font-weight: 800; letter-spacing: .01em; line-height: 1.1; }
 					.atalho-integradores__texto small { color: #617495; font-size: 12px; font-weight: 600; }
 					.atalho-integradores__seta { color: #2860dc; font-size: 23px; line-height: 1; }
+				</style>
+			HTML;
+		}
+
+		if ($exibirAtalhoGnre) {
+			$html .= <<<HTML
+				<a class="atalho-gnre" href="{$atalhoGnreUrl}" target="_blank" rel="noopener noreferrer" title="Abrir GNRE em uma nova aba">
+					<span class="atalho-gnre__icone material-symbols-outlined" aria-hidden="true">receipt_long</span>
+					<span class="atalho-gnre__texto"><strong>GNRE</strong><small>Guias estaduais</small></span>
+					<span class="atalho-gnre__seta material-symbols-outlined" aria-hidden="true">open_in_new</span>
+				</a>
+				<style>
+					.atalho-gnre { display: inline-flex; align-items: center; gap: 14px; min-width: 260px; padding: 18px 21px; border: 1px solid #2860dc; border-radius: 12px; background: #fff; box-shadow: 0 12px 30px rgba(25,55,100,.16); color: #07224d; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+					.atalho-gnre:hover { transform: translateY(-2px); background: #edf3ff; box-shadow: 0 16px 34px rgba(25,55,100,.22); color: #07224d; }
+					.atalho-gnre:focus { outline: 3px solid rgba(40,96,220,.28); outline-offset: 3px; }
+					.atalho-gnre__icone { display: flex; align-items: center; justify-content: center; width: 43px; height: 43px; border-radius: 10px; background: #eaf0ff; color: #2860dc; font-size: 24px; }
+					.atalho-gnre__texto { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+					.atalho-gnre__texto strong { color: #07224d; font-size: 19px; font-weight: 800; letter-spacing: .01em; line-height: 1.1; }
+					.atalho-gnre__texto small { color: #617495; font-size: 12px; font-weight: 600; }
+					.atalho-gnre__seta { color: #2860dc; font-size: 23px; line-height: 1; }
+				</style>
+			HTML;
+		}
+
+		if ($exibirAtalhoReformaTributaria) {
+			$html .= <<<HTML
+				<a class="atalho-reforma-tributaria" href="/hardness3/aplicacoes/fiscal/reformaTributaria/public/" target="_blank" rel="noopener noreferrer" title="Abrir Painel da Reforma Tributária em uma nova aba">
+					<span class="atalho-reforma-tributaria__icone material-symbols-outlined" aria-hidden="true">account_tree</span>
+					<span class="atalho-reforma-tributaria__texto"><strong>Reforma Tributária</strong><small>Recursos e evolução</small></span>
+					<span class="atalho-reforma-tributaria__seta material-symbols-outlined" aria-hidden="true">open_in_new</span>
+				</a>
+				<style>
+					.atalho-reforma-tributaria { display: inline-flex; align-items: center; gap: 14px; min-width: 260px; padding: 18px 21px; border: 1px solid #2860dc; border-radius: 12px; background: #fff; box-shadow: 0 12px 30px rgba(25,55,100,.16); color: #07224d; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+					.atalho-reforma-tributaria:hover { transform: translateY(-2px); background: #edf3ff; box-shadow: 0 16px 34px rgba(25,55,100,.22); color: #07224d; }
+					.atalho-reforma-tributaria:focus { outline: 3px solid rgba(40,96,220,.28); outline-offset: 3px; }
+					.atalho-reforma-tributaria__icone { display: flex; align-items: center; justify-content: center; width: 43px; height: 43px; border-radius: 10px; background: #eaf0ff; color: #2860dc; font-size: 24px; }
+					.atalho-reforma-tributaria__texto { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+					.atalho-reforma-tributaria__texto strong { color: #07224d; font-size: 19px; font-weight: 800; letter-spacing: .01em; line-height: 1.1; }
+					.atalho-reforma-tributaria__texto small { color: #617495; font-size: 12px; font-weight: 600; }
+					.atalho-reforma-tributaria__seta { color: #2860dc; font-size: 23px; line-height: 1; }
 				</style>
 			HTML;
 		}

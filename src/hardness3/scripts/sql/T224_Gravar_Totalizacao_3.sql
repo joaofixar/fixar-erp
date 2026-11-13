@@ -145,4 +145,6 @@ BEGIN
               T224A_Valor_Base_FCP=xT225A_Valor_Base_FCP,
               T224A_Valor_FCP=xT225A_Valor_FCP
         WHERE T224A_T224_Id=xT224_Id;
+
+    CALL T224_Gravar_Totalizacao_3_Reforma(xT224_Id);
 END;

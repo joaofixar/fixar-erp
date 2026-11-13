@@ -284,6 +284,6 @@ BEGIN
                T219_Valor_ST = T219_Valor_ST - T219A_Valor_FCP_ST
          WHERE T219A_T219_Id=xT219_Id;
 
+        CALL T219_Gravar_Totalizacao_Reforma(xT219_Id);
         CALL T218_Gravar_Totalizacao_3(xT218_Id);
 END;
-

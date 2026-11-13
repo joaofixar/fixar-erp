@@ -48,6 +48,8 @@ if(!empty($T007_Id)){
 $cSql_T007 = mysqli_query($cClausula);
 $mT007 = mysql_fetch_array($cSql_T007);
 $cErro = mysql_error();
+require_once __DIR__ . '/../class/DanfeModelo.php';
+$danfeRTC = DanfeModelo::criarRTC($mT007 ?: array());
 
 $modelo = ($mT007['T007_Flag_ACP'] == '6') ? '55' : '65';
 
@@ -125,7 +127,7 @@ if ($mT007['T007_Versao_Nfe']=='4.00'){
 		} else {
 			include "../class/nfc400.php";
 		}
-	}else{
+	}else if (!$danfeRTC){
 	    // personalização do danfe
 		$danfe = "../../dados_usuarios/$Banco_Dados/danfe400.php";
 		if (file_exists($danfe)) {
@@ -188,7 +190,7 @@ if ($mT007['T007_Flag_ACP']=="6")
 	}
 	$cAno_Mes_NFe=substr($mT007['T007_Data_Emissao'],0,7);
 	
-	$oDanfe=new danfe();	
+	$oDanfe = $danfeRTC ?: new danfe();
 	$cArquivo=$Diretorio_NFe."/xml/autorizado/{$cAno_Mes_NFe}/".$mT007['T007_Numero_Protocolo_Nfe'].".xml";
 	if (!file_exists($cArquivo))
 	{
@@ -205,6 +207,17 @@ if ($mT007['T007_Flag_ACP']=="6")
 
 	$ponteiro=fopen($cArquivo, "r");
 	$oDanfe->xml=fread($ponteiro, filesize($cArquivo));
+    if ($danfeRTC) {
+        fclose($ponteiro);
+        $oDanfe->logomarca = "$Diretorio_Imagens/{$mT007['C004_Id']}.$cExtensao_Arquivo";
+        $pdfRTC = $oDanfe->gerarPDF();
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="danfe_' . $mT007['T007_Numero_Protocolo_Nfe'] . '.pdf"');
+        echo $pdfRTC;
+        mysqli_query("UPDATE T007 SET T007_Flag_Impresso='S' WHERE T007_Id='{$mT007['T007_Id']}'");
+        exit;
+    }
+
 	$oDanfe->setT007_Id($mT007['T007_Id']);
 	$oDanfe->setLinhasPrimeiraPagina(32);
 	$oDanfe->setLinhasSegundaPagina(100);

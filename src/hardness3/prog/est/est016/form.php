@@ -351,6 +351,93 @@ EOT;
 		/**
 		 * Formulário Produtos
 		 */
+	case 'est016FormMoeda':
+		$tab = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : 'geral';
+		$T224_Id = isset($_REQUEST['T224_Id']) ? (int) $_REQUEST['T224_Id'] : (isset($_REQUEST['acaoId']) ? (int) $_REQUEST['acaoId'] : 0);
+		$formId = uniqid();
+		$T224A = mysql_query("SELECT T224A_Id FROM T224A WHERE T224A_T224_Id = '{$T224_Id}'");
+		$mT224A = mysql_fetch_assoc($T224A);
+		if (empty($mT224A['T224A_Id'])) {
+			mysql_query("INSERT INTO T224A (T224A_T224_Id) VALUES ('{$T224_Id}')");
+			$T224A_Id = mysql_insert_id();
+		} else {
+			$T224A_Id = $mT224A['T224A_Id'];
+		}
+
+		$form_tabela = 'T224A';
+		$form_campo_pk = 'T224A_Id';
+		$enviar_btnId = 'est016FormMoedaBtn';
+		$enviar_acaoHref = '/est/est016/form/est016FormMoeda/';
+
+		$form_editor = array(
+			'geral' => '{"T224A_D044_Id":{"top":7,"left":73,"width":150,"hidden":0},"T224A_Cotacao_Moeda":{"top":30,"left":14,"width":110,"hidden":0},"est016FormMoedaBtn":{"top":74,"left":144,"width":null,"hidden":0}}',
+		);
+
+		$form = new Formulario('est016FormMoeda');
+		$formArray = array(
+			'campos' => array(
+				'geral' => array(
+					'T224A_D044_Id' => array(
+						'name' => 'T224A_D044_Id',
+						'label' => 'Moeda',
+						'type' => 'select',
+						'select' => gGeraSelect('D044', 'D044_Id', 'D044_Moeda,D044_Simbolo', 'ORDER BY D044_Moeda')
+					),
+					'T224A_Cotacao_Moeda' => array(
+						'name' => 'T224A_Cotacao_Moeda',
+						'label' => 'Cotação da Moeda',
+						'type' => 'moeda',
+						'align' => 'right',
+						'length' => array(10, 10)
+					),
+					'est016FormMoedaBtn' => array(
+						'name' => 'est016FormMoedaBtn',
+						'type' => 'submit',
+						'reload' => false,
+						'value' => 'Alterar',
+						'align' => 'right',
+						'style' => 'float:right;',
+						'reject' => true
+					),
+				)
+			)
+		);
+		$form->definirFormularioArray($formArray);
+
+		if ($formCodigo = $form->processarFormulario($form_tabela)) {
+			if ($formCodigo == 1) {
+				echo gGeraAlertMsgErroForm($form);
+			} else if ($formCodigo == 2 && !empty($T224A_Id)) {
+				$D044_Id = (int) $form->campoValorEnviado('T224A_D044_Id');
+				$cotacao = gCorrigeNumeroInverte($form->campoValorEnviado('T224A_Cotacao_Moeda'));
+				if ($D044_Id > 1 && $cotacao <= 0) {
+					echo gGeraAlertMsg('Cotação obrigatória', 'Informe uma cotação maior que zero para a moeda estrangeira.');
+				} else if ($g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $T224A_Id, $form)) {
+					echo gGeraAlertMsg('Operação OK', 'Moeda alterada com sucesso!');
+					echo <<<EOT
+					<div class="divHidden"><script type="text/javascript">if (typeof jQuery != 'undefined') { divRefresh('{$g['divId']}'); }</script></div>
+EOT;
+				}
+			}
+		} else if (!empty($T224A_Id)) {
+			$processado = $form->carregarValoresCampos($form_tabela, $form_campo_pk, $T224A_Id);
+			if ($processado !== true) {
+				reset($form->formArray['campos']);
+				if ($tab == key($form->formArray['campos'])) {
+					echo $processado;
+				}
+			}
+		}
+
+		$gerado = gGeraCamposForm($form, $tab, $T224_Id, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk);
+		$g['smarty']->assign('formularioID', $form->formularioID());
+		$g['smarty']->assign('table', $gerado['table']);
+		$g['smarty']->assign('form_tabela', $form_tabela);
+		echo $gerado['pagina'];
+		$g['smarty']->assign('formId', $formId);
+		$g['smarty']->display('formEditor.tpl');
+	break;
+
 	case 'est016form02':
 		$g['smarty']->assign('navSql', "T224_C004_Id = '{$g['empresaAtual']}'");
 		echo <<<EOT
@@ -4218,7 +4305,7 @@ EOT;
         
         //form editor
         $form_editor = array(
-            'geral' => '{"linha3":{"top":7,"left":54,"width":null,"hidden":0},"linha":{"top":50,"left":27,"width":null,"hidden":1},"D006_Id":{"top":76,"left":31,"width":319,"hidden":0},"est016FormAtualizarCFOP_btn":{"top":74,"left":416,"width":null,"hidden":0},"linha2":{"top":119,"left":27,"width":null,"hidden":1},"est016FormAtualizarCFOPRegras":{"top":143,"left":32,"width":null,"hidden":0}}',
+            'geral' => '{"linha":{"top":7,"left":26.99139404296875,"width":null,"hidden":0},"D006_Id":{"top":33,"left":30.86700439453125,"width":319,"hidden":0},"est016FormAtualizarCFOP_btn":{"top":31,"left":415.99261474609375,"width":null,"hidden":0},"est016FormAtualizarCFOPRegras":{"top":76,"left":31.969970703125,"width":null,"hidden":0},"linha4":{"top":110,"left":26.99139404296875,"width":null,"hidden":0},"opcaoIPI":{"top":148,"left":61.6881103515625,"width":13,"hidden":0},"opcaoNCM":{"top":148,"left":178.00244140625,"width":13,"hidden":0},"opcaoICMS":{"top":171,"left":48.33026123046875,"width":13,"hidden":0},"opcaoUnidade":{"top":171,"left":108.532470703125,"width":13,"hidden":0},"opcaoST":{"top":194,"left":61.5042724609375,"width":13,"hidden":0},"opcaoPISCofins":{"top":217,"left":15.4718017578125,"width":13,"hidden":0},"opcaoPeso":{"top":194,"left":121.982177734375,"width":13,"hidden":0}}',
         );
 
 		$descricaoCFOP  = ($g['C031']['descricaoCFOPExibida'] == 'P') ? 'D006_Descricao' : 'IF(D006_Descricao_Comercial !="",D006_Descricao_Comercial,D006_Descricao) as D006_Descricao';
@@ -4236,27 +4323,54 @@ EOT;
 		);
 
 		$formArray['campos']['geral']['est016FormAtualizarCFOP_btn'] = array('name' => 'est016FormAtualizarCFOP_btn', 'type'=>'submit', 'reload' => false, 'value' => 'Atualizar', 'align' => 'right', 'style' => 'float:right;', 'reject' => true);
-		$formArray['campos']['geral']['linha'] = array('name' => 'linha', 'type'=>'titulo', 'value' => '', 'label' => 'Atualizar os itens do orçamento com a CFOP:', 'reject' => true);
-		$formArray['campos']['geral']['linha2'] = array('name' => 'linha2', 'type'=>'titulo', 'value' => '', 'label' => 'Atualizar as CFOPs de acordo com as regras:', 'reject' => true);
-		$formArray['campos']['geral']['linha3'] = array('name' => 'linha3', 'type'=>'comentario', 'value' => 'Atenção: Ao escolher uma das opções, a CFOP e as <br />aliquotas dos itens deste orçamento serão alterados.', 'label' => '', 'reject' => true, 'style' => 'color: #FF0000; font-size: 12px;');
+		$formArray['campos']['geral']['linha'] = array('name' => 'linha', 'type'=>'titulo', 'value' => '', 'label' => 'Atualizar manualmente:', 'reject' => true);
+		$opcoesSelecionadas = json_decode($r_opcoes, true);
+		if (!is_array($opcoesSelecionadas)) $opcoesSelecionadas = array();
+		$formArray['campos']['geral']['linha4'] = array('name' => 'linha4', 'type'=>'titulo', 'value' => '', 'label' => 'Após atualizar a CFOP, atualizar também:', 'reject' => true);
+		$camposAtualizacao = array('opcaoIPI' => array('ipi', 'IPI'), 'opcaoICMS' => array('icms', 'ICMS'), 'opcaoST' => array('st', 'ST'), 'opcaoPISCofins' => array('pisCofins', 'PIS/COFINS'), 'opcaoNCM' => array('ncm', 'NCM'), 'opcaoUnidade' => array('unidade', 'Unidade de medida'), 'opcaoPeso' => array('peso', 'Peso do produto'));
+		foreach ($camposAtualizacao as $nome => $dados) {
+			$marcado = !isset($opcoesSelecionadas[$dados[0]]) || $opcoesSelecionadas[$dados[0]] !== false;
+			$formArray['campos']['geral'][$nome] = array('name' => $nome, 'label' => $dados[1], 'type' => 'checkbox', 'checked' => $marcado ? 'checked' : false, 'reject' => true);
+		}
+		$formArray['campos']['geral']['opcoes'] = array('name' => 'opcoes', 'type' => 'hidden', 'reject' => true);
 		$formArray['campos']['geral']['est016FormAtualizarCFOPRegras'] = array('name' => 'est016FormAtualizarCFOPRegras', 'type'=>'button', 'reload' => false, 'value' => 'Aplicar regras CFOP', 'align' => 'right', 'style' => 'float:right;', 'reject' => true);
 		$form->definirFormularioArray($formArray);
-		
+		$opcoesAtualizacao = json_encode(json_decode($r_opcoes, true));
+		if ($opcoesAtualizacao === 'null' || $opcoesAtualizacao === false) {
+			$opcoesAtualizacao = '{}';
+		}
+
 		echo <<<EOT
-		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {		
+		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+			var opcoesAtualizacao = {$opcoesAtualizacao};
+			function est016OpcoesAtualizacaoCFOP() {
+				return {
+					ipi: $('#opcaoIPI').is(':checked'),
+					icms: $('#opcaoICMS').is(':checked'),
+					st: $('#opcaoST').is(':checked'),
+					pisCofins: $('#opcaoPISCofins').is(':checked'),
+					ncm: $('#opcaoNCM').is(':checked'),
+					unidade: $('#opcaoUnidade').is(':checked'),
+					peso: $('#opcaoPeso').is(':checked')
+				};
+			}
+			$('#est016FormAtualizarCFOP_btn').unbind('click.opcoesAtualizacao').bind('click.opcoesAtualizacao', function() {
+				$('#opcoes').val(JSON.stringify(est016OpcoesAtualizacaoCFOP()));
+			});
 			$('#est016FormAtualizarCFOPRegras').unbind('click').bind('click', function(data) {
 				idProgressBar = dialogAlert('Processando CFOP e alíquotas',"<span id='progressBar'><b><br>0% Processando CFOP</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-				$.getJSON('/est/est016/form_func-ajax/atualizarCFOP/?ajax=true&T224_Id=' + encodeURIComponent("{$r_T224_Id}") + '&callback=?', function(request) {
+				$.getJSON('/est/est016/form_func-ajax/atualizarCFOP/?ajax=true&T224_Id=' + encodeURIComponent("{$r_T224_Id}") + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
 					if (request.code) {
 						T224_Id = {$r_T224_Id};
+						opcoesAtualizacao = est016OpcoesAtualizacaoCFOP();
 						$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br>' + '<b>0% Processando alíquotas</b></br>');
-						est016AtualizarAliquotasCFOPGeralLoop(idProgressBar,T224_Id,1); 
+						est016AtualizarAliquotasCFOPGeralLoop(idProgressBar,T224_Id,1,opcoesAtualizacao);
 
-						function est016AtualizarAliquotasCFOPGeralLoop(idProgressBar, T224_Id, inicio){
-			                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
+						function est016AtualizarAliquotasCFOPGeralLoop(idProgressBar, T224_Id, inicio, opcoes){
+				                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
 			                    if (request.concluido == 0) {
 			                    	$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br><b>' + request.percentual + '<b>% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
-			                    	est016AtualizarAliquotasCFOPGeralLoop(idProgressBar,T224_Id,0);
+				                    est016AtualizarAliquotasCFOPGeralLoop(idProgressBar,T224_Id,0,opcoes);
 			                    }else{
 			                    	if (request.code) {
 			                    		$('#dc-' + idProgressBar).dialog("destroy").remove();
@@ -4301,21 +4415,22 @@ EOT;
 						T224_Id = {$r_T224_Id};	
 						idProgressBar = dialogAlert('Processando CFOP e alíquotas',"<span id='progressBar'><b><br>0% Processando CFOP</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
 
-						$.getJSON('/est/est016/form_func-ajax/atualizarCFOPManual/?ajax=true&T224_Id=' + T224_Id + '&D006_Id=' + {$D006_Id}  + '&callback=?', function(request) {
+						$.getJSON('/est/est016/form_func-ajax/atualizarCFOPManual/?ajax=true&T224_Id=' + T224_Id + '&D006_Id=' + {$D006_Id} + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
 							if(request.code){
+								opcoesAtualizacao = est016OpcoesAtualizacaoCFOP();
 								$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br>' + '<b>0% Processando alíquotas</b></br>');
-								est016AtualizarAliquotaCFOPLoop(idProgressBar,T224_Id, 1); 
+								est016AtualizarAliquotaCFOPLoop(idProgressBar,T224_Id, 1, opcoesAtualizacao);
 							}else{
 								$(this).dialog("destroy").remove(); 
 			                    dialogConfirm('Erro!', request.data);
 							}
 						});
 
-	            		function est016AtualizarAliquotaCFOPLoop(idProgressBar, T224_Id, inicio){
-			                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
+						function est016AtualizarAliquotaCFOPLoop(idProgressBar, T224_Id, inicio, opcoes){
+			                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
 			                    if (request.concluido == 0) {
 			                    	$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br><b>' + request.percentual + '<b>% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
-			                    	est016AtualizarAliquotaCFOPLoop(idProgressBar,T224_Id,0);
+				                    est016AtualizarAliquotaCFOPLoop(idProgressBar,T224_Id,0,opcoes);
 			                    }else{
 			                    	if(request.code){
 			                   			$('#dc-' + idProgressBar).dialog("destroy").remove();

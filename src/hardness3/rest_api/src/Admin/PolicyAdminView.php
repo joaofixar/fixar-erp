@@ -26,7 +26,7 @@ class PolicyAdminView
         $isLocalhostAccess = ($context['is_localhost_access'] ?? '') === '1';
         $lockMessageHtml = $isLocalhostAccess
             ? '<div class="api-rest-lock-localhost-message">Senha não necessária no localhost.</div>'
-            : '<input type="text" class="js-api-rest-password api-rest-password-input" name="api_rest_unlock_key" placeholder="Senha master" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" readonly="readonly" data-lpignore="true" data-1p-ignore="true" />';
+            : '<input type="password" class="js-api-rest-password api-rest-password-input" name="api_rest_unlock_key" placeholder="Sua senha de acesso" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly="readonly" data-lpignore="true" data-1p-ignore="true" />';
         $localhostJsFlag = $isLocalhostAccess ? 'true' : 'false';
 
         return <<<HTML
@@ -40,7 +40,7 @@ class PolicyAdminView
 			#{$containerId} .api-rest-lock p { margin: 0 0 12px; color: #4b5563; font-size: 13px; }
 			#{$containerId} .api-rest-lock-meta { margin: 8px 0 0; color: #6b7280; font-size: 12px; }
 			#{$containerId} .api-rest-lock-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-			#{$containerId} .api-rest-lock-controls input[type=text] { border: 1px solid #c7ced6; border-radius: 4px; padding: 6px 8px; min-width: 240px; }
+			#{$containerId} .api-rest-lock-controls input[type=password] { border: 1px solid #c7ced6; border-radius: 4px; padding: 6px 8px; min-width: 240px; }
 			#{$containerId} .api-rest-lock-localhost-message { display: inline-block; color: #166534; background: #dcfce7; font-size: 13px; padding: 6px 10px; min-width: 240px; border-radius: 4px; text-align: center; }
 			#{$containerId} .api-rest-docs-link { display: inline-flex; align-items: center; }
 			#{$containerId} .api-rest-docs-link button {
@@ -117,7 +117,7 @@ class PolicyAdminView
 			<div class="api-policy-feedback"></div>
 			<div class="api-rest-lock js-api-rest-lock" autocomplete="off">
 				<h3>Confirmação adicional</h3>
-				<p>Informe a senha master para liberar esta área administrativa da API.</p>
+				<p>Informe sua senha de acesso para liberar esta área administrativa da API.</p>
 				<div class="api-rest-decoy" aria-hidden="true">
 					<input type="text" tabindex="-1" autocomplete="username" />
 					<input type="password" tabindex="-1" autocomplete="current-password" />
@@ -353,7 +353,7 @@ class PolicyAdminView
 							} else if (xhr.responseText) {
 								message = String(xhr.responseText).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').substr(0, 220);
 							}
-							if (message.indexOf('senha master') !== -1 || message.indexOf('liberar esta área') !== -1) {
+							if (message.indexOf('senha de acesso') !== -1 || message.indexOf('liberar esta área') !== -1) {
 								setRestApiAccess(false, 0, 15);
 							}
 							showFeedback('error', message);
@@ -369,9 +369,9 @@ class PolicyAdminView
 
 				function unlockRestApi() {
 					var root = getRoot();
-					var password = $.trim(root.find('.js-api-rest-password').val());
+					var password = root.find('.js-api-rest-password').val();
 					if (!isLocalhostAccess && !password) {
-						showFeedback('error', 'Informe a senha master para continuar.');
+						showFeedback('error', 'Informe sua senha de acesso para continuar.');
 						return;
 					}
 

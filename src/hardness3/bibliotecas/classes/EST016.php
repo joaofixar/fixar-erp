@@ -202,6 +202,44 @@ EOT;
             'Corpo' => "<font style='font-size:16px'>Olá,<br /><br />A data de entrega prevista para a Ordem de Compra <b>{$T224_Id}</b> é <b>{$dataEntregaFormatada}</b>.<br /><br />Pedimos, por gentileza, a confirmação do atendimento do prazo. A ordem de compra segue anexada.</font>"
         );
     }
+
+    /**
+     * Retorna a moeda definida no cabeçalho da ordem de compra.
+     * Os valores da OC permanecem armazenados em R$; a conversão é usada
+     * exclusivamente na apresentação ao fornecedor.
+     */
+    public function dadosMoedaOrdemCompra($T224)
+    {
+        $dados = array(
+            'estrangeira' => false,
+            'simbolo' => 'R$',
+            'cotacao' => 1
+        );
+
+        $D044_Id = isset($T224['T224A_D044_Id']) ? (int) $T224['T224A_D044_Id'] : 1;
+        $cotacao = isset($T224['T224A_Cotacao_Moeda']) ? (float) $T224['T224A_Cotacao_Moeda'] : 0;
+
+        if ($D044_Id <= 1) {
+            return $dados;
+        }
+
+        $D044 = mysql_query("SELECT D044_Moeda, D044_Simbolo FROM D044 WHERE D044_Id = '{$D044_Id}'");
+        $mD044 = mysql_fetch_array($D044);
+        if (empty($mD044) || $cotacao <= 0) {
+            return $dados;
+        }
+
+        $dados['estrangeira'] = true;
+        $dados['simbolo'] = !empty($mD044['D044_Simbolo']) ? $mD044['D044_Simbolo'] : $mD044['D044_Moeda'];
+        $dados['cotacao'] = $cotacao;
+        return $dados;
+    }
+
+    public function converterValorMoedaOrdemCompra($valor, $dadosMoeda)
+    {
+        $valor = (float) $valor;
+        return !empty($dadosMoeda['estrangeira']) ? $valor / $dadosMoeda['cotacao'] : $valor;
+    }
     
     /**
      * montarEmailPdf - Retorna os dados para ser enviado o e-mail
@@ -257,6 +295,7 @@ EOT;
         LEFT JOIN D020 ON D020_Id=D024_D020_Id
         LEFT JOIN D018 ON D018_Id=D024_D018_Id 
         LEFT JOIN D022 ON D022_Id=T224_D022_Id
+        LEFT JOIN T224A ON T224A_T224_Id=T224_Id
         LEFT JOIN C007 AS comprador ON comprador.C007_Id=T224_C007_Id_Vendedor_Interno
         LEFT JOIN C007 AS analista ON analista.C007_Id=T224_Liberou_Alcada_C007_Id
         WHERE T224_Id='{$T224_Id}';
@@ -264,6 +303,8 @@ EOT;
         
         $T224  = mysql_query($T224);
         $mT224 = mysql_fetch_array($T224);
+        $dadosMoeda = $this->dadosMoedaOrdemCompra($mT224);
+        $simboloMoeda = $dadosMoeda['simbolo'];
         
         
         $T225 = <<<EOT
@@ -530,10 +571,10 @@ EOT;
                 Quant
               </td>
               <td align="right" style="background:lightblue" class="tdTitulo">
-                Unitário R\$
+                Unitário {$simboloMoeda}
               </td>
               <td align="right" style="background:lightblue" class="tdTitulo">
-                Total R\$
+                Total {$simboloMoeda}
               </td>
               <td align="center" style="background:lightblue" class="tdTitulo">
                 IPI %
@@ -545,7 +586,7 @@ EOT;
                 MVA
               </td>
               <td align="right" style="background:lightblue" class="tdTituloR">
-                ST R\$
+                ST {$simboloMoeda}
               </td>
             </tr>
 EOT;
@@ -556,13 +597,13 @@ EOT;
         while ($mT225 = mysql_fetch_array($T225)) {
             
             $mT225['T225_Quantidade']                        = gCorrigeNumero($mT225['T225_Quantidade']);
-            $mT225['T225_Valor_Preco_Sem_Desconto_Unitario'] = number_format($mT225['T225_Valor_Preco_Sem_Desconto_Unitario'], 5, ',', '.');
-            $mT225['T225_Valor_Total_Preco']                 = gCorrigeNumero($mT225['T225_Valor_Total_Preco']);
+            $mT225['T225_Valor_Preco_Sem_Desconto_Unitario'] = number_format($this->converterValorMoedaOrdemCompra($mT225['T225_Valor_Preco_Sem_Desconto_Unitario'], $dadosMoeda), 5, ',', '.');
+            $mT225['T225_Valor_Total_Preco']                 = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT225['T225_Valor_Total_Preco'], $dadosMoeda));
             $mT225['T225_Aliquota_IPI']                      = gCorrigeNumero($mT225['T225_Aliquota_IPI']);
-            $mT225['T225_Valor_IPI']                         = gCorrigeNumero($mT225['T225_Valor_IPI']);
+            $mT225['T225_Valor_IPI']                         = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT225['T225_Valor_IPI'], $dadosMoeda));
             $mT225['T225_Aliquota_ICMS']                     = number_format($mT225['T225_Aliquota_ICMS'], 0);
-            $mT225['T225_Valor_ICMS']                        = gCorrigeNumero($mT225['T225_Valor_ICMS']);
-            $mT225['T225_Valor_ICMS_Substituicao_Retencao']  = gCorrigeNumero($mT225['T225_Valor_ICMS_Substituicao_Retencao']);
+            $mT225['T225_Valor_ICMS']                        = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT225['T225_Valor_ICMS'], $dadosMoeda));
+            $mT225['T225_Valor_ICMS_Substituicao_Retencao']  = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT225['T225_Valor_ICMS_Substituicao_Retencao'], $dadosMoeda));
             $mT225['T225_ST_VA_Ajustada']                    = gCorrigeNumero($mT225['T225_ST_VA_Ajustada']);
             $valorTotalFCP += $mT225['T225A_Valor_FCP_ST'];
             $observacaoItem                                  = '<font></font>';
@@ -665,20 +706,20 @@ EOT;
         /**
          * PDF - TOTAIS
          */
-        $mT224['T224_Valor_Total_Produtos']             = gCorrigeNumero($mT224['T224_Valor_Total_Produtos']);
-        $mT224['T224_Valor_Frete']                      = gCorrigeNumero($mT224['T224_Valor_Frete']);
-        $mT224['T224_Valor_Total_IPI']                  = gCorrigeNumero($mT224['T224_Valor_Total_IPI']);
-        $mT224['T224_Valor_Total_ICMS']                 = gCorrigeNumero($mT224['T224_Valor_Total_ICMS']);
-        $mT224['T224_Valor_Total']                      = gCorrigeNumero($mT224['T224_Valor_Total']);
+        $mT224['T224_Valor_Total_Produtos']             = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_Total_Produtos'], $dadosMoeda));
+        $mT224['T224_Valor_Frete']                      = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_Frete'], $dadosMoeda));
+        $mT224['T224_Valor_Total_IPI']                  = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_Total_IPI'], $dadosMoeda));
+        $mT224['T224_Valor_Total_ICMS']                 = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_Total_ICMS'], $dadosMoeda));
+        $mT224['T224_Valor_Total']                      = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_Total'], $dadosMoeda));
         $mT224['T224_Data_Entrega']                     = gCorrigeData($mT224['T224_Data_Entrega']);
-        $mT224['T224_Valor_ICMS_Substituicao_Retencao'] = gCorrigeNumero($mT224['T224_Valor_ICMS_Substituicao_Retencao']);
-        $mT224['T224_Valor_Desconto_Manual']            = gCorrigeNumero($mT224['T224_Valor_Desconto_Manual']);
+        $mT224['T224_Valor_ICMS_Substituicao_Retencao'] = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_ICMS_Substituicao_Retencao'], $dadosMoeda));
+        $mT224['T224_Valor_Desconto_Manual']            = gCorrigeNumero($this->converterValorMoedaOrdemCompra($mT224['T224_Valor_Desconto_Manual'], $dadosMoeda));
         
         $html .= <<<EOT
       <table class="tabela" cellspacing="0px" cellpadding="4px">
         <tr>
           <td align="left" width="105">Pagamento: </td><td align="left" width="330" style="border-right:2px solid black"><b>{$mT224['T224_Prazos_Pagamentos']}</b></td>
-          <td align="left" width="105">Valor produtos: </td><td  align="left" width="100"><b>R$ {$mT224['T224_Valor_Total_Produtos']}</b></td>
+          <td align="left" width="105">Valor produtos: </td><td  align="left" width="100"><b>{$simboloMoeda} {$mT224['T224_Valor_Total_Produtos']}</b></td>
         </tr>
 EOT;
         switch ($mT224['T224_Flag_Frete']) {
@@ -702,23 +743,23 @@ EOT;
         $html .= <<<EOT
         <tr>
           <td align="left" width="105">Frete: </td><td align="left" style="border-right:2px solid black"><b>{$T224_Frete}</b></td>
-          <td align="left" width="105">Valor IPI: </td><td  align="left"><b>R$ {$mT224['T224_Valor_Total_IPI']}</b></td>
+          <td align="left" width="105">Valor IPI: </td><td  align="left"><b>{$simboloMoeda} {$mT224['T224_Valor_Total_IPI']}</b></td>
         </tr>
         <tr>
           <td align="left" width="105">Transportadora: </td><td align="left" style="border-right:2px solid black"><b>{$mT224['D022_Nome_Empresa']}</b></td>
-          <td align="left" width="105">Valor frete: </td><td  align="left"><b>R$ {$mT224['T224_Valor_Frete']}</b></td>
+          <td align="left" width="105">Valor frete: </td><td  align="left"><b>{$simboloMoeda} {$mT224['T224_Valor_Frete']}</b></td>
         </tr>
         <tr>
           <td align="left" width="105"></td><td align="left" width="330" style="border-right:2px solid black"></td>
-          <td align="left" width="105">Valor ST: </td><td align="left"><b>R$ {$mT224['T224_Valor_ICMS_Substituicao_Retencao']}</b></td>
+          <td align="left" width="105">Valor ST: </td><td align="left"><b>{$simboloMoeda} {$mT224['T224_Valor_ICMS_Substituicao_Retencao']}</b></td>
         </tr>
 EOT;
         if($valorTotalFCP > 0){
-            $valorTotalFCP = gCorrigeNumero($valorTotalFCP);
+            $valorTotalFCP = gCorrigeNumero($this->converterValorMoedaOrdemCompra($valorTotalFCP, $dadosMoeda));
             $html .= <<<EOT
                 <tr>
                     <td align="left" width="105"></td><td align="left" width="330" style="border-right:2px solid black"></td>
-                    <td align="left" width="105">Valor FCP ST: </td><td align="left"><b>R$ {$valorTotalFCP}</b></td>
+                    <td align="left" width="105">Valor FCP ST: </td><td align="left"><b>{$simboloMoeda} {$valorTotalFCP}</b></td>
                 </tr>
 EOT;
         }
@@ -726,15 +767,15 @@ EOT;
         $html .= <<<EOT
         <tr>
           <td align="left" width="105"></td><td align="left" width="330" style="border-right:2px solid black"></td>
-          <td align="left" width="105">Desconto: </td><td align="left"><b>R$ {$mT224['T224_Valor_Desconto_Manual']}</b></td>
+          <td align="left" width="105">Desconto: </td><td align="left"><b>{$simboloMoeda} {$mT224['T224_Valor_Desconto_Manual']}</b></td>
         </tr>
         <tr>
           <td align="left" width="105"></td><td align="left" width="330" style="border-right:2px solid black"></td>
-          <td align="left" width="105">Valor total: </td><td align="left" style="font-size:18px"><b>R$ {$mT224['T224_Valor_Total']}</b></td>
+          <td align="left" width="105">Valor total: </td><td align="left" style="font-size:18px"><b>{$simboloMoeda} {$mT224['T224_Valor_Total']}</b></td>
         </tr>
         <tr>
           <td align="left" width="105"></td><td align="left"  style="border-right:2px solid black"></td>
-          <td align="left" width="105">Valor ICMS: </td><td align="left"><b>R$ {$mT224['T224_Valor_Total_ICMS']}</b></td>
+          <td align="left" width="105">Valor ICMS: </td><td align="left"><b>{$simboloMoeda} {$mT224['T224_Valor_Total_ICMS']}</b></td>
         </tr>
       
 EOT;
@@ -1236,7 +1277,7 @@ EOT;
      * @param int $T224_Id
      * @param int $C004_Id
      */
-    public function atualizarAliquotasPedidos($T224_Id, $C004_Id = false, $r_usarTabelaFornecedor = false, $arrayParametros =null)
+    public function atualizarAliquotasPedidos($T224_Id, $C004_Id = false, $r_usarTabelaFornecedor = false, $arrayParametros =null, $opcoes = null)
     {
         log("entrou no atualizarAliquotasPedidos");
         global $g;
@@ -1364,7 +1405,11 @@ EOT;
             $cClausula .= " T225_Percentual_Trib_Transparencia='{$Aliquotas['Percentual_Trib_Transparencia']}', ";
             $cClausula .= " T225_D005_Id_Info='{$demonstrativoNCM}', ";
             $cClausula .= " T225_Percentual_ST='{$Aliquotas['Percentual_ST']}',";
-            $cClausula .= " T225_Valor_Preco_Unitario='{$Aliquotas['Valor_Item_Tabela_Fornecedor']}'";
+            if (!is_array($opcoes) || !isset($opcoes['precoTabela']) || ($opcoes['precoTabela'] !== false && $opcoes['precoTabela'] !== 'false')) {
+                $cClausula .= " T225_Valor_Preco_Unitario='{$Aliquotas['Valor_Item_Tabela_Fornecedor']}'";
+            } else {
+                $cClausula .= " T225_Valor_Preco_Unitario=T225_Valor_Preco_Unitario";
+            }
             $cClausula .= " where T225_Id='{$T225_Id}'";
 
         } else {
@@ -1431,6 +1476,30 @@ EOT;
             $cClausula .= " T225_D005_Id_Info='{$demonstrativoNCM}' ";
             $cClausula .= " where T225_Id='{$T225_Id}'";
         }
+        // Nas chamadas manuais, mantém no item os grupos que o usuário desmarcou.
+        // Chamadas antigas não enviam opções e preservam o comportamento integral.
+        if (is_array($opcoes)) {
+            $camposPorOpcao = array(
+                'unidade'      => array('T225_D037_Id'),
+                'cfop'         => array('T225_D006_Id'),
+                'origem'       => array('T225_Flag_Origem_Produto'),
+                'ncm'          => array('T225_D005_Id', 'T225_D059_Id', 'T225_Classificacao_Fiscal', 'T225_Flag_Situacao_Tributaria', 'T225_D005_Id_Info'),
+                'ipi'          => array('T225_Aliquota_IPI', 'T225_Percentual_Reducao_IPI', 'T225_Situacao_Tributaria_IPI'),
+                'icms'         => array('T225_Aliquota_ICMS', 'T225_Percentual_Reducao_ICMS', 'T224_Aliquota_ICMS', 'T224_Percentual_Reducao_ICMS'),
+                'st'           => array('T225_Percentual_Reducao_ICMS_ST', 'T225_Flag_ST', 'T225_ST_VA', 'T225_ST_ICMS_Interno', 'T225_ICMS_Inter_Estadual', 'T225_ICMS_Inter_Estadual_MVA', 'T225_ST_ICMS_Interno_MVA', 'T225_Percentual_ST'),
+                'pisCofins'    => array('T225_Situacao_Tributaria_PIS', 'T225_Flag_Isento_PIS', 'T225_Aliquota_PIS', 'T225_Situacao_Tributaria_COFINS', 'T225_Flag_Isento_COFINS', 'T225_Aliquota_COFINS'),
+                'peso'         => array('T225_Peso_Unitario'),
+                'transparencia'=> array('T225_Percentual_Trib_Transparencia'),
+                'precoTabela'  => array('T225_Valor_Preco_Unitario')
+            );
+            foreach ($camposPorOpcao as $opcao => $campos) {
+                if (isset($opcoes[$opcao]) && ($opcoes[$opcao] === false || $opcoes[$opcao] === 'false')) {
+                    foreach ($campos as $campo) {
+                        $cClausula = preg_replace("/\\s+{$campo}\\s*=\\s*(?:'(?:\\\\'|[^'])*'|[^, ]+)\\s*,/", '', $cClausula);
+                    }
+                }
+            }
+        }
         //die($cClausula);
         mysql_query($cClausula);
          $erro = mysql_error();
@@ -1439,29 +1508,90 @@ EOT;
             return "Erro atualizando item da ordem de compra: ID {$T225_Id} - $erro";
         }
 
+        $atualizarFcpReducoes = !is_array($opcoes) || !isset($opcoes['icms'])
+            || ($opcoes['icms'] !== false && $opcoes['icms'] !== 'false');
+        if ($atualizarFcpReducoes) {
         $T225A = mysql_query("SELECT T225A_Id FROM T225A WHERE T225A_T225_Id='$T225_Id'");
         if (mysql_num_rows($T225A) > 0) {
             $sql = "UPDATE T225A 
                        SET T225A_Percentual_Reducao_ICMS_IE_ST  = '{$Aliquotas['Percentual_Reducao_ICMS_IE_ST']}',
                            T225A_Percentual_Reducao_ICMS_INT_ST = '{$Aliquotas['Percentual_Reducao_ICMS_INT_ST']}',
-                           T225A_Aliquota_FCP                   = '{$Aliquotas['Percentual_FCP']}' 
+                           T225A_Aliquota_FCP                   = '{$Aliquotas['Percentual_FCP']}',
+                           T225A_Situacao_Tributaria_CBS_IBS = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                           T225A_Classificacao_Tributaria_CBS_IBS = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                           T225A_Aliquota_CBS = '{$Aliquotas['Aliquota_CBS']}',
+                           T225A_Aliquota_IBS_UF = '{$Aliquotas['Aliquota_IBS_UF']}',
+                           T225A_Aliquota_IBS_Municipal = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                           T225A_Percentual_Reducao_CBS = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                           T225A_Percentual_Reducao_IBS_UF = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                           T225A_Percentual_Reducao_IBS_Municipal = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                           T225A_Percentual_Diferimento_CBS = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                           T225A_Percentual_Diferimento_IBS_UF = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                           T225A_Percentual_Diferimento_IBS_Municipal = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                           T225A_Situacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                           T225A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                           T225A_Aliquota_CBS_Regular = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                           T225A_Aliquota_IBS_UF_Regular = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                           T225A_Aliquota_IBS_Municipal_Regular = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                           T225A_Percentual_Reducao_CBS_Regular = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                           T225A_Percentual_Reducao_IBS_UF_Regular = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                           T225A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}'
                      WHERE T225A_T225_Id='$T225_Id'";
         } else {
             $sql = "INSERT INTO T225A (T225A_T225_Id,
                                        T225A_Percentual_Reducao_ICMS_IE_ST,
                                        T225A_Percentual_Reducao_ICMS_INT_ST,
-                                       T225A_Aliquota_FCP)
+                                       T225A_Aliquota_FCP,
+                                       T225A_Situacao_Tributaria_CBS_IBS,
+                                       T225A_Classificacao_Tributaria_CBS_IBS,
+                                       T225A_Aliquota_CBS,
+                                       T225A_Aliquota_IBS_UF,
+                                       T225A_Aliquota_IBS_Municipal,
+                                       T225A_Percentual_Reducao_CBS,
+                                       T225A_Percentual_Reducao_IBS_UF,
+                                       T225A_Percentual_Reducao_IBS_Municipal,
+                                       T225A_Percentual_Diferimento_CBS,
+                                       T225A_Percentual_Diferimento_IBS_UF,
+                                       T225A_Percentual_Diferimento_IBS_Municipal,
+                                       T225A_Situacao_Tributaria_CBS_IBS_Regular,
+                                       T225A_Classificacao_Tributaria_CBS_IBS_Regular,
+                                       T225A_Aliquota_CBS_Regular,
+                                       T225A_Aliquota_IBS_UF_Regular,
+                                       T225A_Aliquota_IBS_Municipal_Regular,
+                                       T225A_Percentual_Reducao_CBS_Regular,
+                                       T225A_Percentual_Reducao_IBS_UF_Regular,
+                                       T225A_Percentual_Reducao_IBS_Municipal_Regular)
                                VALUES ('$T225_Id', 
                                        '{$Aliquotas['Percentual_Reducao_ICMS_IE_ST']}',
                                        '{$Aliquotas['Percentual_Reducao_ICMS_INT_ST']}',
-                                       '{$Aliquotas['Percentual_FCP']}')";
+                                       '{$Aliquotas['Percentual_FCP']}',
+                                       '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                                       '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                                       '{$Aliquotas['Aliquota_CBS']}',
+                                       '{$Aliquotas['Aliquota_IBS_UF']}',
+                                       '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                                       '{$Aliquotas['Percentual_Reducao_CBS']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                                       '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                                       '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                                       '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                                       '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                                       '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                       '{$Aliquotas['Aliquota_CBS_Regular']}',
+                                       '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                                       '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                                       '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}')";
         }
         mysql_query($sql);
         $erro = mysql_error();
         if (!empty($erro)) {
             mysql_query("ROLLBACK");
             return "Erro atualizando item da OC T225A ID T225_Id '$T225_Id': $erro";
-        }      
+        }
+        }
         
         $T224A = mysql_query("SELECT T224A_Id FROM T224A WHERE T224A_T224_Id='{$T224_Id}'");
         if (mysql_num_rows($T224A) <= 0) {
@@ -4664,12 +4794,16 @@ EOT;
      *
      * @param int $T224_Id
      */
-    public function est016atualizarCFOP($T224_Id)
+    public function est016atualizarCFOP($T224_Id, $opcoes = null)
     {
         require_once("bibliotecas/classes/EST015.php");
         $EST015 = new EST015();
         global $g;
         
+        if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) {
+            return true;
+        }
+
         $sqlT224 = mysql_query("SELECT * FROM T224 LEFT JOIN T225 ON T224_Id = T225_T224_Id WHERE T224_Id = '{$T224_Id}'");
         
         while ($T224 = mysql_fetch_array($sqlT224)) {                        
@@ -4767,17 +4901,74 @@ EOT;
             $sql = "UPDATE T225A 
                        SET T225A_Percentual_Reducao_ICMS_IE_ST  ='{$Aliquotas['Percentual_Reducao_ICMS_IE_ST']}',
                            T225A_Percentual_Reducao_ICMS_INT_ST ='{$Aliquotas['Percentual_Reducao_ICMS_INT_ST']}',
-                           T225A_Aliquota_FCP                   ='{$Aliquotas['Percentual_FCP']}'  
+                           T225A_Aliquota_FCP                   ='{$Aliquotas['Percentual_FCP']}',
+                           T225A_Situacao_Tributaria_CBS_IBS = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                           T225A_Classificacao_Tributaria_CBS_IBS = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                           T225A_Aliquota_CBS = '{$Aliquotas['Aliquota_CBS']}',
+                           T225A_Aliquota_IBS_UF = '{$Aliquotas['Aliquota_IBS_UF']}',
+                           T225A_Aliquota_IBS_Municipal = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                           T225A_Percentual_Reducao_CBS = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                           T225A_Percentual_Reducao_IBS_UF = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                           T225A_Percentual_Reducao_IBS_Municipal = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                           T225A_Percentual_Diferimento_CBS = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                           T225A_Percentual_Diferimento_IBS_UF = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                           T225A_Percentual_Diferimento_IBS_Municipal = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                           T225A_Situacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                           T225A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                           T225A_Aliquota_CBS_Regular = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                           T225A_Aliquota_IBS_UF_Regular = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                           T225A_Aliquota_IBS_Municipal_Regular = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                           T225A_Percentual_Reducao_CBS_Regular = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                           T225A_Percentual_Reducao_IBS_UF_Regular = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                           T225A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}'
                      WHERE T225A_T225_Id='{$T225['T225_Id']}'";
         } else {
             $sql = "INSERT INTO T225A (T225A_T225_Id,
                                        T225A_Percentual_Reducao_ICMS_IE_ST,
                                        T225A_Percentual_Reducao_ICMS_INT_ST,
-                                       T225A_Aliquota_FCP)
+                                       T225A_Aliquota_FCP,
+                                       T225A_Situacao_Tributaria_CBS_IBS,
+                                       T225A_Classificacao_Tributaria_CBS_IBS,
+                                       T225A_Aliquota_CBS,
+                                       T225A_Aliquota_IBS_UF,
+                                       T225A_Aliquota_IBS_Municipal,
+                                       T225A_Percentual_Reducao_CBS,
+                                       T225A_Percentual_Reducao_IBS_UF,
+                                       T225A_Percentual_Reducao_IBS_Municipal,
+                                       T225A_Percentual_Diferimento_CBS,
+                                       T225A_Percentual_Diferimento_IBS_UF,
+                                       T225A_Percentual_Diferimento_IBS_Municipal,
+                                       T225A_Situacao_Tributaria_CBS_IBS_Regular,
+                                       T225A_Classificacao_Tributaria_CBS_IBS_Regular,
+                                       T225A_Aliquota_CBS_Regular,
+                                       T225A_Aliquota_IBS_UF_Regular,
+                                       T225A_Aliquota_IBS_Municipal_Regular,
+                                       T225A_Percentual_Reducao_CBS_Regular,
+                                       T225A_Percentual_Reducao_IBS_UF_Regular,
+                                       T225A_Percentual_Reducao_IBS_Municipal_Regular)
                          VALUES ('{$T225['T225_Id']}', 
                                  '{$Aliquotas['Percentual_Reducao_ICMS_IE_ST']}',
                                  '{$Aliquotas['Percentual_Reducao_ICMS_INT_ST']}',
-                                 '{$Aliquotas['Percentual_FCP']}')";
+                                 '{$Aliquotas['Percentual_FCP']}',
+                                 '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                                 '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                                 '{$Aliquotas['Aliquota_CBS']}',
+                                 '{$Aliquotas['Aliquota_IBS_UF']}',
+                                 '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                                 '{$Aliquotas['Percentual_Reducao_CBS']}',
+                                 '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                                 '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                                 '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                                 '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                                 '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                                 '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                                 '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                 '{$Aliquotas['Aliquota_CBS_Regular']}',
+                                 '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                                 '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                                 '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                                 '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                                 '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}')";
         }
         mysqli_query($sql);
         $erro = mysql_error();
@@ -4787,7 +4978,7 @@ EOT;
         }        
         return true;
     }
-    
+
     /**
      * insereOCItensViaRequisicao
      */

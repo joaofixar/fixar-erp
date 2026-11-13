@@ -480,18 +480,15 @@ EOT;
 
 	    $resposta['percentual'] = ceil((100/$resposta['etapas']) * $resposta['etapa']);
 	   
-	    $r_opcoes = json_decode($r_opcoes);
-
-	    if(!is_array($r_opcoes)) { 
-	        $opcoes = get_object_vars($r_opcoes);
-	    }
+	    $opcoes = json_decode($r_opcoes, true);
+	    if (!is_array($opcoes)) $opcoes = null;
 
 	   	$ok = 0;
 		$erro = 0;
 		$erros ="";
 
 	    for ($i=$resposta['limit1']; $i < $resposta['limit2'] ; $i++) { 
-	    	$retorno = $EST015->atualizarAliquotas($T218_Id, $C004_Id, $r_usarTabelaFornecedor, $cache[$i]);	            
+	    	$retorno = $EST015->atualizarAliquotas($T218_Id, $C004_Id, $r_usarTabelaFornecedor, $cache[$i], $opcoes);	            
            	if($retorno !== true){
            		log("&&entra aqui erro".$i);
        	     	$erro++;
@@ -522,6 +519,8 @@ EOT;
 	case 'atualizarCFOPManual':
 		$T218_Id = isset($r_T218_Id) ? $r_T218_Id : false;
 		$D006_Id = isset($r_D006_Id) ? $r_D006_Id : false;
+		$opcoes = json_decode($r_opcoes, true);
+		if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) break;
 
 		$resposta['code'] = true;
 		log("T218_Id no atualizar CFOP Manual= ".$T218_Id);
@@ -1227,7 +1226,8 @@ EOT;
 		$T218_Id = isset($r_T218_Id) ? $r_T218_Id : false;
 
 		$EST015 = new EST015();
-		$retorno = $EST015->est015atualizarCFOP($T218_Id);
+		$opcoes = json_decode($r_opcoes, true);
+		$retorno = $EST015->est015atualizarCFOP($T218_Id, $opcoes);
 		
 		if ($retorno === true) {
 			$resposta['code'] = true;
@@ -1620,7 +1620,7 @@ EOT;
 		$erroOrcamento='';
 		$contProdutosProduzidos = 0;
 		while($mT004 = mysql_fetch_assoc($T004)){
-			if($mT006['D049_Flag_Tipo'] == 'PD'){
+			if(in_array($mT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 				$contProdutosProduzidos++;
 				continue;
 			}
@@ -1776,7 +1776,7 @@ EOT;
 		$contProdutosProduzidos = 0;
 		while($mT006 = mysql_fetch_array($T006)){			
 			// Não atualiza custo de produtos produzidos
-			if($mT006['D049_Flag_Tipo'] == 'PD'){
+			if(in_array($mT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 				$contProdutosProduzidos++;
 				continue;
 			}

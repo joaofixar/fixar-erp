@@ -1,0 +1,149 @@
+{
+  "habilitado": true,
+  "acessoDiretorAutomatico": true,
+  "titulo": "Painel de Indicadores",
+  "indicadores": [
+    {
+      "id": "desempenho_comercial_teste",
+      "habilitado": true,
+      "ordem": 1,
+      "titulo": "Vendedores",
+      "subtitulo": "Orçamentos, pedidos e notas emitidas por cliente, vendedor e representante",
+      "icone": "chart",
+      "cor": "blue",
+      "card": {
+        "titulo": "Faturamento líquido no período",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda"
+      },
+      "grafico": {
+        "habilitado": false
+      },
+      "composicao": {
+        "habilitada": false
+      },
+      "listagem": {
+        "habilitada": false
+      },
+      "abas": [
+        {
+          "id": "vendedores",
+          "titulo": "Vendedores"
+        },
+        {
+          "id": "representantes",
+          "titulo": "Representantes"
+        }
+      ],
+      "filtros": [
+        {
+          "id": "dataInicio",
+          "titulo": "Emissão inicial",
+          "tipo": "data",
+          "padrao": "inicio_ano",
+          "obrigatorio": true
+        },
+        {
+          "id": "dataFim",
+          "titulo": "Emissão final",
+          "tipo": "data",
+          "padrao": "hoje",
+          "obrigatorio": true
+        },
+        {
+          "id": "vendedor",
+          "titulo": "Vendedor",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesSql": [
+            "SELECT DISTINCT C007_Id AS valor, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem nome') AS titulo",
+            "FROM C007",
+            "INNER JOIN C019 ON C019_C007_Id = C007_Id",
+            "WHERE C019_C004_Id = :empresa",
+            "AND C007_Ativo = 'S'",
+            "ORDER BY titulo"
+          ]
+        },
+        {
+          "id": "cliente",
+          "titulo": "Cliente",
+          "tipo": "texto",
+          "padrao": ""
+        }
+      ],
+      "sqlBase": [
+        "SELECT T007_Id AS id, T007_Data_Emissao AS data,",
+        "CASE WHEN IFNULL(T007_D024_Id, 0) > 0 THEN CONCAT('cad:', T007_D024_Id) ELSE CONCAT('T007:', T007_Id) END AS clienteId,",
+        "COALESCE(NULLIF(D024_Nome_Empresa, ''), NULLIF(T007_Cliente_Razao, ''), 'Sem cliente') AS cliente, COALESCE(T007_C007_Id_Vendedor_Interno, 0) AS responsavelId, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem vendedor') AS responsavel,",
+        "GREATEST(IFNULL(T007_Valor_Total, 0) - IFNULL(T007_Valor_Total_IPI, 0) - IFNULL(T007_Valor_Frete, 0), 0) AS valor, 0 AS convertido",
+        "FROM T007",
+        "INNER JOIN D006 ON D006_Id = T007_D006_Id",
+        "LEFT JOIN D024 ON D024_Id = T007_D024_Id",
+        "LEFT JOIN C007 ON C007_Id = T007_C007_Id_Vendedor_Interno",
+        "WHERE T007_C004_Id = :empresa",
+        "AND T007_Data_Emissao >= :dataInicio",
+        "AND T007_Data_Emissao < DATE_ADD(:dataFim, INTERVAL 1 DAY)",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND IFNULL(T007_Flag_Emitida_Recebida, '') <> 'R'",
+        "AND IFNULL(T007_Numero_Protocolo_Nfe, '') <> ''",
+        "AND IFNULL(T007_Flag_Cancelada, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Inutilizado, 'N') <> 'S'",
+        "AND IFNULL(T007_Flag_Denegado, 'N') <> 'S'",
+        "AND IFNULL(D006_Flag_Devolucao, 'N') <> 'S'",
+        "AND D006_Flag_Entrada_Saida = 'S'",
+        "AND D006_Flag_Venda_Compra_Outros = 'V'",
+        "AND (:vendedor = '' OR T007_C007_Id_Vendedor_Interno = :vendedor)",
+        "AND (:cliente = '' OR COALESCE(NULLIF(D024_Nome_Empresa, ''), NULLIF(T007_Cliente_Razao, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+      ],
+      "desempenhoComercial": {
+        "habilitado": true,
+        "rotuloResponsavel": "Vendedor",
+        "orcamentos": [
+          "SELECT T003_Id AS id, T003_Data_Emissao AS data,",
+          "CASE WHEN IFNULL(T003_D024_Id, 0) > 0 THEN CONCAT('cad:', T003_D024_Id) ELSE CONCAT('T003:', T003_Id) END AS clienteId,",
+          "COALESCE(NULLIF(D024_Nome_Empresa, ''), NULLIF(T003_Nome_Cliente, ''), 'Sem cliente') AS cliente, COALESCE(T003_C007_Id_Vendedor_Interno, 0) AS responsavelId, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem vendedor') AS responsavel,",
+          "COALESCE(T003_Valor_Total, 0) AS valor, CASE WHEN EXISTS (SELECT 1 FROM T005 WHERE T005_C004_Id = :empresa AND T005_T003_Id = T003_Id AND IFNULL(T005_Flag_Status, 0) <> 8 AND IFNULL(T005_Flag_Devolucao, 'N') <> 'S') THEN 1 ELSE 0 END AS convertido",
+          "FROM T003",
+          "LEFT JOIN D024 ON D024_Id = T003_D024_Id",
+          "LEFT JOIN C007 ON C007_Id = T003_C007_Id_Vendedor_Interno",
+          "WHERE T003_C004_Id = :empresa",
+          "AND T003_Data_Emissao >= :dataInicio",
+          "AND T003_Data_Emissao < DATE_ADD(:dataFim, INTERVAL 1 DAY)",
+          "AND IFNULL(T003_Flag_Perdido, 'N') <> 'S'",
+          "AND IFNULL(T003_Flag_Status_Orcamento, '') <> 'C'",
+          "AND (:vendedor = '' OR T003_C007_Id_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(D024_Nome_Empresa, ''), NULLIF(T003_Nome_Cliente, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+        ],
+        "pedidos": [
+          "SELECT T005_Id AS id, T005_Data_Emissao AS data,",
+          "CASE WHEN IFNULL(T005_D024_Id, 0) > 0 THEN CONCAT('cad:', T005_D024_Id) ELSE CONCAT('T005:', T005_Id) END AS clienteId,",
+          "COALESCE(NULLIF(D024_Nome_Empresa, ''), 'Sem cliente') AS cliente, COALESCE(T005_C007_Id_Vendedor_Interno, 0) AS responsavelId, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem vendedor') AS responsavel,",
+          "COALESCE(T005_Valor_Total, 0) AS valor, 0 AS convertido",
+          "FROM T005",
+          "LEFT JOIN D024 ON D024_Id = T005_D024_Id",
+          "LEFT JOIN C007 ON C007_Id = T005_C007_Id_Vendedor_Interno",
+          "WHERE T005_C004_Id = :empresa",
+          "AND T005_Data_Emissao >= :dataInicio",
+          "AND T005_Data_Emissao < DATE_ADD(:dataFim, INTERVAL 1 DAY)",
+          "AND IFNULL(T005_Flag_Devolucao, 'N') <> 'S'",
+          "AND IFNULL(T005_Flag_Status, 0) <> 8",
+          "AND (:vendedor = '' OR T005_C007_Id_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(D024_Nome_Empresa, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+        ],
+        "carteiraRepresentantes": [
+          "SELECT CONCAT('cad:', c.D024_Id) AS clienteId, COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') AS cliente,",
+          "c.D024_C007_Vendedor_Interno AS vendedorId, COALESCE(NULLIF(v.C007_Primeiro_Nome, ''), NULLIF(v.C007_Nome, ''), 'Sem vendedor') AS vendedor,",
+          "r.D021_Id AS representanteId, COALESCE(NULLIF(r.D021_Nome_Empresa, ''), 'Sem nome') AS representante",
+          "FROM D024 c",
+          "INNER JOIN D021 r ON r.D021_Id = c.D024_D021_Id AND r.D021_Id > 0",
+          "LEFT JOIN C007 v ON v.C007_Id = c.D024_C007_Vendedor_Interno",
+          "WHERE (c.D024_C004_Id = :empresa OR COALESCE(c.D024_C004_Id, 0) = 0)",
+          "AND c.D024_Flag_Cliente = 'S' AND c.D024_C007_Vendedor_Interno > 0",
+          "AND (:vendedor = '' OR c.D024_C007_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('assert'),fs=require('fs');
+const js=fs.readFileSync(__dirname+'/../public/task63-batch.js','utf8');
+assert(js.includes("var fresh=items.filter(function(x){return x.status==='new';});if(fresh.length)return fresh[0];"),'guia pendente deve ceder vez à próxima não iniciada');
+assert(js.includes("var due=items.filter(function(x){return x.status==='pending'&&x.next<=Date.now();});return due.length?due[0]:null;"),'somente pendente liberada pela data persistida pode ser consultada');
+assert(js.includes('async function waitForPersistedTime(pending)')&&js.includes('Math.min.apply(null,pending.map(function(x){return x.next;}))'),'Fila deve aguardar a menor próxima tentativa');
+assert(js.includes("setTimeout(resolve,Math.min(1000,remaining))"),'contagem visual deve atualizar sem antecipar a consulta');
+assert(js.includes("return time<=Date.now()?Date.now()+2000:time;"),'dois segundos só podem ocorrer quando a data persistida já venceu');
+assert(js.includes("pending.map(function(x){return '#'+x.id;}).join(', ')")&&js.includes('aguardando retorno do Portal'),'espera deve identificar guias pendentes sem detalhe técnico');
+assert(js.includes('if(!pending.length)break;await waitForPersistedTime(pending);'),'modal só encerra normalmente quando não há pendências');
+assert(js.includes("if(result.state==='authorized')")&&js.includes("if(result.state==='rejected')")&&js.includes("post(id,'pdf')"),'autorização/rejeição/PDF continuam condicionados ao resultado persistido');
+assert(js.includes("if(item.status==='new')")&&js.includes("var consulted=await post(id,'consult');"),'uma pendente retomada consulta de novo sem repetir transmissão');
+assert(js.includes('while(!stoppedNow())')&&js.includes('if(stoppedNow())return;'),'interrupção deve impedir novas consultas do navegador');
+assert(!js.includes("action:'transmit'"),'retomada não pode retransmitir no navegador');
+console.log('Task 74 pending queue resumption static checks: OK');

@@ -186,4 +186,5 @@ BEGIN
             T218A_Valor_Base_FCP=xT219A_Valor_Base_FCP,
             T218A_Valor_FCP=xT219A_Valor_FCP
       WHERE T218A_T218_Id=xT218_Id;
+    CALL T218_Gravar_Totalizacao_3_Reforma(xT218_Id);
 END;

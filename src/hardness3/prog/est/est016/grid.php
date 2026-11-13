@@ -34,16 +34,25 @@ switch($g['r'][3]){
             array('colunaValor' => 'T224_Data_Emissao', 'colunaTitulo' => 'Emissão', 'callback' => 'gCorrigeData', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => 'T224_D024_Id', 'colunaTitulo' => 'Cód.', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => 'C004_Nome_Abreviado', 'colunaTitulo' => 'Empresa', 'colunaExibir' => false),
-            array('colunaValor' => 'concat(convert(substr(D024_Nome_Empresa,1,30) using utf8),\'<br><font style="font-size:10px"><i>\',convert(ifnull(T224_Observacao_Pedido_Perdido,\'\') using utf8))', 'colunaTitulo' => 'Razão Social', 'style' => 'max-width:220px;min-width:220px;width:220px;white-space:normal;'),
+            array('colunaValor' => 'concat(substr(D024_Nome_Empresa,1,30),\'<br><font style="font-size:10px"><i>\',ifnull(T224_Observacao_Pedido_Perdido,\'\'))', 'colunaTitulo' => 'Razão Social', 'style' => 'max-width:220px;min-width:220px;width:220px;white-space:normal;'),
             array('colunaValor' => 'D024_Nome_Fantasia', 'colunaTitulo' => 'Nome Fantasia', 'colunaExibir' => false),
             //COM CELULAR array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\'),\' \',ifnull(D013_DDD_Celular,\'\'),\'-\',ifnull(D013_Celular,\'\')) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;min-width:190px;width:190px;white-space:normal;'),
-            array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',convert(ifnull(D013_DDD_Telefone_1,\'\') using utf8),\'-\',convert(ifnull(D013_Telefone_1,\'\') using utf8)) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;min-width:190px;width:190px;white-space:normal;'),
+            array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\')) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;min-width:190px;width:190px;white-space:normal;'),
             array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => 'D006_Codigo_CFOP', 'colunaTitulo' => 'CFOP', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => 'T224_Valor_Total_Produtos', 'colunaTitulo' => 'Produtos', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'width:1%'),
             array('colunaValor' => 'T224_Valor_Total_IPI', 'colunaTitulo' => 'IPI', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'width:1%'),
             array('colunaValor' => 'T224_Valor_Total_ICMS', 'colunaTitulo' => 'ICMS', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'width:1%'),
             array('colunaValor' => 'T224_Valor_ICMS_Substituicao_Retencao', 'colunaTitulo' => 'ST', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'width:1%'),
+            array('colunaValor' => 'T224A_Valor_Total_Base_CBS_IBS', 'colunaTitulo' => 'Base CBS/IBS', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_CBS', 'colunaTitulo' => 'CBS R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_IBS_Municipal', 'colunaTitulo' => 'IBS Mun. R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_IBS_UF', 'colunaTitulo' => 'IBS UF R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_IBS', 'colunaTitulo' => 'IBS R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_Diferimento_CBS', 'colunaTitulo' => 'Dif. CBS R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_Diferimento_IBS_UF', 'colunaTitulo' => 'Dif. IBS UF R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_Diferimento_IBS_Municipal', 'colunaTitulo' => 'Dif. IBS Mun. R$', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
+            array('colunaValor' => 'T224A_Valor_Total_Reforma', 'colunaTitulo' => 'Total Reforma', 'colunaCasasDecimais' => '2', 'colunaExibir' => false),
             array('colunaValor' => 'T224_Valor_Total', 'colunaTitulo' => 'Valor Total', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background-color: var(--celula-amarelo-claro);width:1%'),
             array('colunaValor' => 'T224_Valor_Pendente', 'colunaTitulo' => 'Valor pend.', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background-color: var(--celula-amarelo-claro);color: var(--BGVermelho);width:1%'),
             array('colunaValor' => 'T224_Prazos(T224_Id)', 'colunaTitulo' => 'Prazo', 'style' => 'width:1%'),
@@ -51,7 +60,7 @@ switch($g['r'][3]){
             //array('colunaValor' => 'sum(distinct IF(T225_Quantidade_Pendente_3(T225_Id) <= 0, 0, concat(T225_Valor_Preco_Unitario*T225_Quantidade_Pendente_3(T225_Id),T225_Id))) as valorPendente', 'colunaCasasDecimais' => 2, 'colunaTitulo' => 'Valor pend.', 'colunaAlinhar' => 'right', 'style' => 'background-color: var(--celula-amarelo-claro);color: var(--BGVermelho);width:1%'),
             //array('colunaValor' => '(sum(distinct concat(ifnull(T014_Quantidade,\'0.00000\'),T014_Id))/sum(distinct concat(T225_Quantidade,T225_Id)))*100', 'colunaTitulo' => '%Receb', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'width:1%'),
             //MOSTRA TODOS EMAILS array('colunaValor' => 'concat(T224_Nome_Status,\'<font style="font-size:10px;"> \',ifnull(group_concat(DISTINCT \'Mail:\',T139_Data_Hora),\'\'),\'<br><font style="font-size:11px;">\',ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\'))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;min-width:220px;width:220px;white-space:normal;'),
-            array('colunaValor' => 'concat(convert(T224_Nome_Status using utf8),\'<br><font style="font-size:10px"><i>\',convert(ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\') using utf8))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
+            array('colunaValor' => 'concat(T224_Nome_Status,\'<br><font style="font-size:10px"><i>\',ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\'))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
             //array('colunaValor' => 'concat(\'<font style="font-size:10px;"> \',ifnull(T139_Data_Hora,\'\'),\'<font style="font-size:11px;">\')', 'colunaTitulo' => 'Mail', 'style' => 'width:1%'),
             array('colunaValor' => 'if(T139_Id>0,\'Ok\',\'<font style="color: var(--BGVermelho)">--</font>\')', 'colunaTitulo' => 'Mail', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => '(SELECT GROUP_CONCAT(DISTINCT T013.T013_Id SEPARATOR \'|\') FROM T225 LEFT JOIN T014 ON T014.T014_T225_Id = T225.T225_Id AND T014.T014_Flag_Cancelada != \'S\' LEFT JOIN T013 ON T013.T013_Id = T014.T014_T013_Id AND T013.T013_Flag_Cancelada != \'S\' WHERE T225.T225_T224_Id = T224_Id)', 'colunaTitulo' => 'NF', 'callback' => 'danfeNFsDaOrdemDeCompra', 'style' => 'width:1%'),
@@ -98,7 +107,8 @@ switch($g['r'][3]){
 			LEFT JOIN D013 ON D013_Id=T224_D013_Id
 			LEFT JOIN T139 ON T139_T224_Id=T224_Id
 			LEFT JOIN D006 ON D006_Id = T224_D006_Id
-			WHERE (T224_C004_Id={$g['empresaAtual']} 
+			LEFT JOIN T224A ON T224A_T224_Id=T224_Id
+			WHERE (T224_C004_Id={$g['empresaAtual']}
 			AND (T224_T224_Id_Agrupado<=0 or T224_T224_Id_Agrupado is null))
 			and IF('{$g['C007']['C007_Flag_Vendedor']}' = 'V', comprador.C007_Id='{$g['usuarioAtual']}',IF('{$g['C007']['C007_Flag_Vendedor']}' = 'S', (Supervisor.C007_Id='{$g['usuarioAtual']}' or comprador.C007_Id='{$g['usuarioAtual']}') ,'1=1'))
 			GROUP BY T224_Id
@@ -417,6 +427,47 @@ EOT;
             array('colunaValor' => 'T225_Valor_Base_COFINS', 'colunaTitulo' => 'Base COFINS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'center'),            
 			array('colunaValor' => 'T225A_Valor_Base_FCP', 'colunaTitulo' => 'Base FCP', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right'),
 			array('colunaValor' => 'T225A_Valor_Base_FCP_ST', 'colunaTitulo' => 'Base FCP ST', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right'),			
+
+			/* [REFORMA TRIBUTÁRIA]
+			==============================================================*/
+			array('colunaValor' => 'T225A_Valor_Total_Reforma', 'colunaTitulo' => 'Total RT c/ impostos', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Situacao_Tributaria_CBS_IBS', 'colunaTitulo' => 'CST CBS/IBS', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Classificacao_Tributaria_CBS_IBS', 'colunaTitulo' => 'Classificação Trib. CBS/IBS', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Situacao_Tributaria_CBS_IBS_Regular', 'colunaTitulo' => 'CST CBS/IBS Reg.', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Classificacao_Tributaria_CBS_IBS_Regular', 'colunaTitulo' => 'Classificação Trib. CBS/IBS Reg.', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_CBS', 'colunaTitulo' => 'CBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Reducao_CBS', 'colunaTitulo' => '% Red. CBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_CBS_Efetiva', 'colunaTitulo' => 'CBS Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_CBS_Regular', 'colunaTitulo' => 'CBS Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Reducao_CBS_Regular', 'colunaTitulo' => '% Red. CBS Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_CBS_Efetiva_Regular', 'colunaTitulo' => 'CBS Reg. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Diferimento_CBS', 'colunaTitulo' => '% Dif. CBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_UF', 'colunaTitulo' => 'IBS UF', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Reducao_IBS_UF', 'colunaTitulo' => '% Red. IBS UF', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_UF_Efetiva', 'colunaTitulo' => 'IBS UF Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_UF_Regular', 'colunaTitulo' => 'IBS UF Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Reducao_IBS_UF_Regular', 'colunaTitulo' => '% Red. IBS UF Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_UF_Efetiva_Regular', 'colunaTitulo' => 'IBS UF Reg. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Diferimento_IBS_UF', 'colunaTitulo' => '% Dif. IBS UF', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_Municipal', 'colunaTitulo' => 'IBS Mun.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Reducao_IBS_Municipal', 'colunaTitulo' => '% Red. IBS Mun.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_Municipal_Efetiva', 'colunaTitulo' => 'IBS Mun. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_Municipal_Regular', 'colunaTitulo' => 'IBS Mun. Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Reducao_IBS_Municipal_Regular', 'colunaTitulo' => '% Red. IBS Mun. Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Aliquota_IBS_Municipal_Efetiva_Regular', 'colunaTitulo' => 'IBS Mun. Reg. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Percentual_Diferimento_IBS_Municipal', 'colunaTitulo' => '% Dif. IBS Mun.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_CBS', 'colunaTitulo' => 'CBS R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_CBS_Regular', 'colunaTitulo' => 'CBS Reg. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_Diferimento_CBS', 'colunaTitulo' => 'Dif. CBS R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_IBS_UF', 'colunaTitulo' => 'IBS UF R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_IBS_UF_Regular', 'colunaTitulo' => 'IBS UF Reg. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_Diferimento_IBS_UF', 'colunaTitulo' => 'Dif. IBS UF R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_IBS_Municipal', 'colunaTitulo' => 'IBS Mun. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_IBS_Municipal_Regular', 'colunaTitulo' => 'IBS Mun. Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_Diferimento_IBS_Municipal', 'colunaTitulo' => 'Dif. IBS Mun. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_IBS', 'colunaTitulo' => 'IBS R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T225A_Valor_Base_CBS_IBS', 'colunaTitulo' => 'Base CBS/IBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			/*==============================================================*/
 			array('colunaValor' => 'T225_Valor_Total_Agregados', 'colunaTitulo' => 'Agregados', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'center', 'colunaExibir' => false),
             array('colunaValor' => 'T225_Numero_Pedido_Compra', 'colunaTitulo' => 'Num.Ped.', 'colunaAlinhar' => 'center', 'colunaEditar' => true, 'colunaExibir' => false),
             array('colunaValor' => 'T225_Item_Pedido_Compra', 'colunaTitulo' => 'Item.Ped.', 'colunaAlinhar' => 'center', 'colunaEditar' => true, 'colunaExibir' => false),
@@ -1607,7 +1658,7 @@ EOT;
 	            array('colunaValor' => 'D001_Id', 'colunaTitulo' => 'D001_Id', 'chavePrimaria' => true, 'colunaExibirNivel' => 4, 'colunaExibir' => false),
 	            array('colunaValor' => 'Comprador.C007_Primeiro_Nome', 'colunaTitulo' => 'Comprador'),
 	            array('colunaValor' => 'concat(\'OC: \',T224_Id,\'-\',ifnull(D024_Nome_Empresa,\'\'), \' - \',ifnull(D018_UF,\'\'),\'-\',convert(substr(ifnull(D013_Nome_Contato,\'\'),1,10) USING utf8),\'-\',ifnull(D013_E_Mail,\'\'),\' - \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\'),\' \',ifnull(D013_DDD_Celular,\'\'),\'-\',ifnull(D013_Celular,\'\'),\' (\',ifnull(Comprador.C007_Primeiro_Nome,\'\'),\')\') as oc', 'colunaTitulo' => 'oc', 'colunaExibir' => false),
-	            array('colunaValor' => 'concat(convert(T224_Nome_Status using utf8),\'<br><font style="font-size:10px"><i>\',convert(ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\') using utf8))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
+	            array('colunaValor' => 'concat(T224_Nome_Status,\'<br><font style="font-size:10px"><i>\',ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\'))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
 	        	array('colunaValor' => 'D009_Quantidade_Pedido(D009_Id,1) as Pedido', 'colunaTitulo' => 'Pedidos', 'colunaAlinhar' => 'center', 'callback' => 'qtePedidos', 'style' => 'width:1%'),
 	        );
 		} else if (modoModelo('RECEBIMENTO')) {
@@ -1658,7 +1709,7 @@ EOT;
 	            array('colunaValor' => 'T014_Valor_Custo_Final_Unitario', 'colunaTitulo' => 'Custo NF', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '6', 'style' => 'background:lightblue'),
 	            array('colunaValor' => 'T014_Flag_Divergencia', 'colunaTitulo' => 'Divergência', 'colunaAlinhar' => 'center'),
 	            array('colunaValor' => 'concat(\'NF: \',T013_Numero_Nota_Fiscal,\'-\',D024_Nome_Empresa,\'-\',D018_UF) as nf', 'colunaTitulo' => 'nf', 'colunaExibir' => false),
-	            array('colunaValor' => 'concat(convert(T224_Nome_Status using utf8),\'<br><font style="font-size:10px"><i>\',convert(ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\') using utf8))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
+	            array('colunaValor' => 'concat(T224_Nome_Status,\'<br><font style="font-size:10px"><i>\',ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\'))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
 	        	array('colunaValor' => 'D009_Quantidade_Pedido(D009_Id,1) as Pedido', 'colunaTitulo' => 'Pedidos', 'colunaAlinhar' => 'center', 'callback' => 'qtePedidos', 'style' => 'width:1%'),
 			);
 			if($g['nivelAlcada'] == '4'){
@@ -1735,7 +1786,7 @@ EOT;
 	            array('colunaValor' => 'T013_Numero_Nota_Fiscal', 'colunaTitulo' => 'NF', 'colunaExibir' => false),
 	            array('colunaValor' => 'T225_Flag_Cancelada', 'colunaTitulo' => 'Cancelada', 'colunaExibir' => false),
 	            array('colunaValor' => 'T225_Flag_Status', 'colunaTitulo' => 'Status', 'colunaExibir' => false),
-	            array('colunaValor' => 'concat(convert(T224_Nome_Status using utf8),\'<br><font style="font-size:10px"><i>\',convert(ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\') using utf8))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
+	            array('colunaValor' => 'concat(T224_Nome_Status,\'<br><font style="font-size:10px"><i>\',ifnull(T224_Liberou_Alcada_Observacao_Nao_Liberado,\'\'))', 'colunaTitulo' => 'Status', 'style' => 'max-width:220px;width:220px;white-space:normal;'),
 	        	array('colunaValor' => 'D009_Quantidade_Pedido(D009_Id,1) as Pedido', 'colunaTitulo' => 'Pedidos', 'colunaAlinhar' => 'center', 'callback' => 'qtePedidos', 'style' => 'width:1%'),
 	            array('colunaValor' => 'D004_Local', 'colunaTitulo' => 'Locação'),
 	        );
@@ -1946,8 +1997,12 @@ EOT;
 	        );
 		}
         //Gera o filtro e acrescenta ao $extra
-        $extra = $g['ui']->gridFiltroExtra(true, $gridFiltro, $extra);
-        $extraTotal = $g['ui']->gridFiltroExtra(true, $gridFiltro, $extraTotal);
+        // A personalização global de Extra deste grid é do modo padrão e
+        // substitui todo o SQL quando aplicada. No Recebimento, ela remove
+        // os JOINs de D083/D6OC/D6NF necessários à conferência da NF-e.
+		$usarPersonalizacaoExtra = !modoModelo('RECEBIMENTO');
+        $extra = $g['ui']->gridFiltroExtra($usarPersonalizacaoExtra, $gridFiltro, $extra);
+        $extraTotal = $g['ui']->gridFiltroExtra($usarPersonalizacaoExtra, $gridFiltro, $extraTotal);
         // Imprime o filtro do GRID (normalmente executado acima do GRID)
         echo $g['ui']->gridFiltroPrint($gridFiltro);
         
@@ -2009,7 +2064,7 @@ EOT;
 			echo  <<<EOT
 				<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 					var dbclickPrevent = false; 
-					$('#{$g['divId']} .grid tr').unbind('click').unbind('click').bind('click', function(data) {
+					$('#{$g['divId']} .grid tr[id]').unbind('click').unbind('click').bind('click', function(data) {
 						// Previne duplo click (abrir duas janelas)
 						if (dbclickPrevent) { return false; }
 						dbclickPrevent = true;
@@ -2621,7 +2676,7 @@ EOT;
             array('colunaValor' => 'T224_Valor_Total_ICMS', 'colunaTitulo' => 'ICMS', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2'),
             array('colunaValor' => 'T224_Valor_ICMS_Substituicao_Retencao', 'colunaTitulo' => 'ST', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2'),
             array('colunaValor' => 'T224_Valor_Total', 'colunaTitulo' => 'Valor Total', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-amarelo-claro)'),
-            array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',convert(ifnull(D013_DDD_Telefone_1,\'\') using utf8),\'-\',convert(ifnull(D013_Telefone_1,\'\') using utf8)) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:180px;min-width:180px;width:180px;white-space:normal;'),
+            array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\')) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:180px;min-width:180px;width:180px;white-space:normal;'),
             array('colunaValor' => 'Vendedor.C007_Primeiro_Nome Vendedor', 'colunaTitulo' => 'Comprador'),
             array('colunaValor' => 'T224_Observacao_Comercial', 'colunaTitulo' => 'Observação Comercial'),
         );
@@ -2722,8 +2777,8 @@ EOT;
             array('colunaValor' => 'T224_Id', 'colunaTitulo' => 'OC', 'chavePrimaria' => true, 'colunaAlinhar' => 'center', 'style' => 'width:1%;'),
             array('colunaValor' => 'T224_T218_Id', 'colunaTitulo' => 'Cot', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => 'T224_D024_Id', 'colunaTitulo' => 'Cód.', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'concat(convert(substr(D024_Nome_Empresa,1,30) using utf8),\'<br><font style="font-size:10px"><i>\',convert(ifnull(T224_Observacao_Pedido_Perdido,\'\') using utf8))', 'colunaTitulo' => 'Razão Social', 'style' => 'max-width:220px;min-width:220px;width:220px;white-space:normal;'),
-            array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',convert(ifnull(D013_DDD_Telefone_1,\'\') using utf8),\'-\',convert(ifnull(D013_Telefone_1,\'\') using utf8)) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;min-width:190px;width:190px;white-space:normal;'),
+            array('colunaValor' => 'concat(substr(D024_Nome_Empresa,1,30),\'<br><font style="font-size:10px"><i>\',ifnull(T224_Observacao_Pedido_Perdido,\'\'))', 'colunaTitulo' => 'Razão Social', 'style' => 'max-width:220px;min-width:220px;width:220px;white-space:normal;'),
+            array('colunaValor' => 'concat(convert(substr(D013_Nome_Contato,1,10) USING utf8),\' \',ifnull(D013_DDD_Telefone_1,\'\'),\'-\',ifnull(D013_Telefone_1,\'\')) as Contato', 'colunaTitulo' => 'Contato', 'colunaAlinhar' => 'left', 'style' => 'max-width:190px;min-width:190px;width:190px;white-space:normal;'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'colunaAlinhar' => 'left', 'style' => 'width:1%'),
             array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
             array('colunaValor' => 'count(distinct T225_Id)', 'colunaTitulo' => 'Itens', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),

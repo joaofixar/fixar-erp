@@ -142,13 +142,21 @@ EOT;
 		 * Define ação do click de abertura (ao clicar em uma linha do grid)
 		 */
 		$novoIdTelaForm = uniqid();
-		echo <<<EOT
+/* 		echo <<<EOT
 		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 			$('#{$g['divId']} .grid tbody tr').unbind('click').unbind('click').bind('click', function(data) {
 				if (data.target.nodeName != 'TD' && data.target.nodeName != 'TR') { return true; }
 				var id = $(this).closest('tr').attr('id').replace(/D109_Id-/, '');
 				abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}' ,'{$novoIdTelaForm}', '', 'Editar Cadastro - ID: ' + id, '/cad/cad010/content/cad010content03/', '&acaoId=' + encodeURIComponent(id) + '&tabela={$from}', [900,600]);
 			});
+		} </script></div>
+EOT; */
+
+        echo <<<EOT
+		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {            
+            acaoClickLinha('{$g['divId']}', function(data, array) {
+                abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}' ,'{$novoIdTelaForm}', '', 'Editar Cadastro', '/cad/cad010/content/cad010content03/', '&acaoId=' + encodeURIComponent(array['todosCampos']['D109_Id']) + '&tabela={$from}', [900,600]);
+            });
 		} </script></div>
 EOT;
 

@@ -271,11 +271,8 @@ switch($g['r'][3]) {
 
 	    $resposta['percentual'] = ceil((100/$resposta['etapas']) * $resposta['etapa']);
 	   
-	    $r_opcoes = json_decode($r_opcoes);
-
-	    if(!is_array($r_opcoes)) { 
-	        $opcoes = get_object_vars($r_opcoes);
-	    }
+	    $opcoes = json_decode($r_opcoes, true);
+	    if (!is_array($opcoes)) $opcoes = null;
 
 	   	$ok = 0;
 		$erro = 0;
@@ -620,7 +617,7 @@ EOT;
 		$erros ="";
 
 	    for ($i=$resposta['limit1']; $i < $resposta['limit2'] ; $i++) { 
-	    	$retorno = $EST016-> atualizarAliquotasPedidos($T224_Id, $C004_Id, $r_usarTabelaFornecedor, $cache[$i]);	          
+	        $retorno = $EST016->atualizarAliquotasPedidos($T224_Id, $C004_Id, $r_usarTabelaFornecedor, $cache[$i], $opcoes);
            	if($retorno !== true){
            		log("entra aqui");
            		$resposta['code'] = false;
@@ -1318,7 +1315,8 @@ EOT;
 
 		
 		
-		$retorno = $EST016->est016atualizarCFOP($T224_Id);
+		$opcoes = json_decode($r_opcoes, true);
+		$retorno = $EST016->est016atualizarCFOP($T224_Id, $opcoes);
 		
 		if ($retorno === true) {
 			$resposta['code'] = true;
@@ -1335,6 +1333,10 @@ EOT;
 		$T224_Id = isset($r_T224_Id) ? $r_T224_Id : false;
 		$D006_Id = isset($r_D006_Id) ? $r_D006_Id : false;
 		$resposta['code'] = true;
+		$opcoes = json_decode($r_opcoes, true);
+		if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) {
+			break;
+		}
 
 		mysql_query("UPDATE T224 SET T224_D006_Id = '{$D006_Id}' WHERE T224_Id = '{$T224_Id}'");
         $erroSQLT224    = mysql_error();

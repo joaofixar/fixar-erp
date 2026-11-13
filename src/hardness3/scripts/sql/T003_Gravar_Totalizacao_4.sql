@@ -399,5 +399,6 @@ BEGIN
                     T003_Valor_Total_Trib_Transparencia=xValor_Trib_Transparencia,
                     T003_Valor_Pendente=xValorPendente
               WHERE T003_Id=xT003_Id;
-END;
 
+    CALL T003_Gravar_Totalizacao_4_Reforma(xT003_Id);
+END;

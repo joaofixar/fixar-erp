@@ -1,0 +1,334 @@
+{
+  "versao": 1,
+  "habilitado": true,
+  "orientacoes": [
+    "Personalização por empresa: ajuste campos, joins e regras de negócio nas fontes. Não remova as chaves dos campos; elas são o contrato dos indicadores.",
+    "O motor aplica empresa, representante, período e filtros usando a sessão autenticada. Clientes de cadastro compartilhado (empresa 0) são aceitos somente na carteira.",
+    "As fontes de notas e pedidos também alimentam o Início e os valores do mapa. Cobranças da nota usam a fonte cobrancas, sem recorte por vencimento.",
+    "Use somente expressões e SELECT de leitura. Parâmetros disponíveis: :empresa, :representante, :hoje, :inicio e :fim (fim exclusivo).",
+    "Layout: altere títulos, ordem do menu, blocos e proporções. Remover um bloco da lista oculta sua apresentação; não altera as permissões do representante."
+  ],
+  "layout": {
+    "titulo": "Meu acompanhamento",
+    "menu": [
+      "inicio",
+      "orcamentos",
+      "pedidos",
+      "notas",
+      "boletos",
+      "regioes"
+    ],
+    "tema": {
+      "destaque": "#305264",
+      "destaqueFinal": "#273f51",
+      "fundo": "#f3f7fc",
+      "primaria": "#285bea"
+    },
+    "visoes": {
+      "inicio": {
+        "titulo": "Início",
+        "descricao": "Visão geral do seu negócio"
+      },
+      "orcamentos": {
+        "titulo": "Orçamentos",
+        "descricao": "Propostas e negociações",
+        "evolucao": "Volume de orçamentos",
+        "distribuicao": "Situação dos orçamentos",
+        "blocos": [
+          "evolucao",
+          "distribuicao",
+          "clientes",
+          "acompanhamento"
+        ],
+        "proporcaoGraficos": 63
+      },
+      "pedidos": {
+        "titulo": "Pedidos",
+        "descricao": "Vendas em andamento",
+        "evolucao": "Entrada de pedidos",
+        "distribuicao": "Etapas dos pedidos",
+        "blocos": [
+          "evolucao",
+          "distribuicao",
+          "clientes",
+          "acompanhamento"
+        ],
+        "proporcaoGraficos": 63
+      },
+      "notas": {
+        "titulo": "Notas fiscais",
+        "descricao": "Faturamento autorizado",
+        "evolucao": "Evolução do faturamento",
+        "distribuicao": "Cobranças das notas",
+        "blocos": [
+          "evolucao",
+          "distribuicao",
+          "clientes",
+          "acompanhamento"
+        ],
+        "proporcaoGraficos": 63
+      },
+      "boletos": {
+        "titulo": "Pagamentos",
+        "descricao": "Recebimentos e vencimentos",
+        "evolucao": "Vencimentos e recebimentos",
+        "distribuicao": "Situação dos pagamentos",
+        "blocos": [
+          "evolucao",
+          "distribuicao",
+          "clientes",
+          "acompanhamento"
+        ],
+        "proporcaoGraficos": 63
+      },
+      "regioes": {
+        "titulo": "Vendas por região",
+        "descricao": "Sua carteira no Brasil"
+      }
+    },
+    "inicio": {
+      "blocos": [
+        "indicadores",
+        "evolucao",
+        "desempenho",
+        "pendencias",
+        "clientes",
+        "mapa"
+      ],
+      "titulos": {
+        "evolucao": "Pedidos e faturamento",
+        "desempenho": "Conversão e recebimentos",
+        "pendencias": "Pendências do mês",
+        "clientes": "Principais clientes"
+      },
+      "proporcaoGraficos": 63
+    }
+  },
+  "fontes": {
+    "orcamentos": {
+      "escopo": {
+        "empresa": "d.T003_C004_Id",
+        "representante": "d.T003_D021_Id"
+      },
+      "campos": {
+        "id": "d.T003_Id",
+        "numero": "d.T003_Id",
+        "data": "d.T003_Data_Emissao",
+        "cliente": "COALESCE(NULLIF(c.D024_Nome_Fantasia,''),c.D024_Nome_Empresa,'Sem cliente')",
+        "valor": "COALESCE(d.T003_Valor_Total,0)",
+        "status": "CASE d.T003_Flag_Status_Orcamento WHEN 'P' THEN 'Pendente' WHEN 'F' THEN 'Finalizado' WHEN 'C' THEN 'Cancelado' WHEN 'V' THEN 'Vencido' WHEN 'A' THEN 'Aprovado' WHEN 'N' THEN 'Negado' WHEN 'L' THEN 'Análise' ELSE 'Não informado' END",
+        "excluido": "CASE WHEN COALESCE(d.T003_Flag_Status_Orcamento,'')='C' THEN 1 ELSE 0 END",
+        "origem": "NULL",
+        "clienteId": "COALESCE(d.T003_D024_Id,0)",
+        "categoria": [
+          "CASE WHEN (CASE WHEN COALESCE(d.T003_Flag_Status_Orcamento,'')='C' THEN 1 ELSE 0 END)=1 THEN 'cancelado' WHEN EXISTS (SELECT 1 FROM T005 pedido WHERE pedido.T005_T003_Id=d.T003_Id",
+          "AND pedido.T005_C004_Id=d.T003_C004_Id AND pedido.T005_D021_Id=d.T003_D021_Id AND COALESCE(pedido.T005_Flag_Status,0) NOT IN (8,15)) THEN 'convertido'",
+          "WHEN d.T003_Flag_Status_Orcamento='P' THEN 'pendente' WHEN d.T003_Flag_Status_Orcamento='L' THEN 'analise' WHEN d.T003_Flag_Status_Orcamento='A' THEN 'aprovado'",
+          "WHEN d.T003_Flag_Status_Orcamento='V' THEN 'vencido' WHEN d.T003_Flag_Status_Orcamento='N' THEN 'negado' WHEN d.T003_Flag_Status_Orcamento='F' THEN 'finalizado' ELSE 'sem_conversao' END"
+        ],
+        "convertido": [
+          "EXISTS (SELECT 1 FROM T005 pedido WHERE pedido.T005_T003_Id=d.T003_Id",
+          "AND pedido.T005_C004_Id=d.T003_C004_Id AND pedido.T005_D021_Id=d.T003_D021_Id AND COALESCE(pedido.T005_Flag_Status,0) NOT IN (8,15))"
+        ]
+      },
+      "de": "T003 d LEFT JOIN D024 c ON c.D024_Id=d.T003_D024_Id",
+      "condicao": "1=1"
+    },
+    "pedidos": {
+      "escopo": {
+        "empresa": "d.T005_C004_Id",
+        "representante": "d.T005_D021_Id"
+      },
+      "campos": {
+        "id": "d.T005_Id",
+        "numero": "d.T005_Id",
+        "data": "d.T005_Data_Emissao",
+        "cliente": "COALESCE(NULLIF(c.D024_Nome_Fantasia,''),c.D024_Nome_Empresa,'Sem cliente')",
+        "valor": "COALESCE(d.T005_Valor_Total,0)",
+        "status": "COALESCE(NULLIF(d.T005_Nome_Status,''),CASE COALESCE(d.T005_Flag_Status,0) WHEN 0 THEN 'Pendente' WHEN 1 THEN 'Imprimir' WHEN 2 THEN 'Separando' WHEN 3 THEN 'Emitir NF' WHEN 6 THEN 'Financeiro' WHEN 10 THEN 'Conferindo' WHEN 21 THEN 'Aguardando peças' WHEN 22 THEN 'Disponível para faturar' WHEN 8 THEN 'Cancelado' WHEN 15 THEN 'Negado' ELSE 'Outra etapa do sistema' END)",
+        "excluido": "CASE WHEN COALESCE(d.T005_Flag_Status,0) IN (8,15) THEN 1 ELSE 0 END",
+        "origem": "d.T005_T003_Id",
+        "clienteId": "COALESCE(d.T005_D024_Id,0)",
+        "categoria": [
+          "CASE WHEN d.T005_Flag_Status=8 THEN 'cancelado' WHEN d.T005_Flag_Status=15 THEN 'negado'",
+          "WHEN (EXISTS (SELECT 1 FROM T007 nf WHERE nf.T007_T005_Id=d.T005_Id AND nf.T007_C004_Id=d.T005_C004_Id",
+          "AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')",
+          "OR EXISTS (SELECT 1 FROM T006 item INNER JOIN T008 faturado ON faturado.T008_T006_Id=item.T006_Id",
+          "INNER JOIN T007 nf ON nf.T007_Id=faturado.T008_T007_Id WHERE item.T006_T005_Id=d.T005_Id",
+          "AND nf.T007_C004_Id=d.T005_C004_Id AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')) THEN 'com_nota' WHEN COALESCE(d.T005_Flag_Status,0)=0 THEN 'pendente'",
+          "WHEN d.T005_Flag_Status IN (1,2,3,7,10,21,22,23,24,27)",
+          "OR (d.T005_Flag_Status=6 AND d.T005_Flag_Almoxarifado='S') THEN 'expedicao' ELSE 'outras_etapas' END"
+        ],
+        "comNota": [
+          "(EXISTS (SELECT 1 FROM T007 nf WHERE nf.T007_T005_Id=d.T005_Id AND nf.T007_C004_Id=d.T005_C004_Id",
+          "AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')",
+          "OR EXISTS (SELECT 1 FROM T006 item INNER JOIN T008 faturado ON faturado.T008_T006_Id=item.T006_Id",
+          "INNER JOIN T007 nf ON nf.T007_Id=faturado.T008_T007_Id WHERE item.T006_T005_Id=d.T005_Id",
+          "AND nf.T007_C004_Id=d.T005_C004_Id AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>''))"
+        ],
+        "entrega": "d.T005_Data_Entrega",
+        "pendenteDireto": [
+          "(COALESCE(d.T005_Flag_Status,0) NOT IN (8,15) AND COALESCE(d.T005_Flag_Status,0)=0 AND COALESCE(d.T005_T003_Id,0)=0 AND NOT (EXISTS (SELECT 1 FROM T007 nf WHERE nf.T007_T005_Id=d.T005_Id AND nf.T007_C004_Id=d.T005_C004_Id",
+          "AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')",
+          "OR EXISTS (SELECT 1 FROM T006 item INNER JOIN T008 faturado ON faturado.T008_T006_Id=item.T006_Id",
+          "INNER JOIN T007 nf ON nf.T007_Id=faturado.T008_T007_Id WHERE item.T006_T005_Id=d.T005_Id",
+          "AND nf.T007_C004_Id=d.T005_C004_Id AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')))"
+        ],
+        "prazoVencido": [
+          "(COALESCE(d.T005_Flag_Status,0) NOT IN (8,15) AND NOT (EXISTS (SELECT 1 FROM T007 nf WHERE nf.T007_T005_Id=d.T005_Id AND nf.T007_C004_Id=d.T005_C004_Id",
+          "AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')",
+          "OR EXISTS (SELECT 1 FROM T006 item INNER JOIN T008 faturado ON faturado.T008_T006_Id=item.T006_Id",
+          "INNER JOIN T007 nf ON nf.T007_Id=faturado.T008_T007_Id WHERE item.T006_T005_Id=d.T005_Id",
+          "AND nf.T007_C004_Id=d.T005_C004_Id AND nf.T007_D021_Id=d.T005_D021_Id AND nf.T007_Flag_Entrada_Saida='S' AND COALESCE(nf.T007_Flag_Emitida_Recebida,'')<>'R'",
+          "AND COALESCE(nf.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(nf.T007_Flag_Inutilizado,'N')<>'S'",
+          "AND COALESCE(nf.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(nf.T007_Numero_Protocolo_Nfe,''))<>'')) AND d.T005_Data_Entrega>'0000-00-00' AND d.T005_Data_Entrega<:hoje)"
+        ]
+      },
+      "de": "T005 d LEFT JOIN D024 c ON c.D024_Id=d.T005_D024_Id",
+      "condicao": "1=1"
+    },
+    "notas": {
+      "escopo": {
+        "empresa": "d.T007_C004_Id",
+        "representante": "d.T007_D021_Id"
+      },
+      "campos": {
+        "id": "d.T007_Id",
+        "numero": "d.T007_Numero_Nota_Fiscal",
+        "data": "d.T007_Data_Emissao",
+        "cliente": "COALESCE(NULLIF(c.D024_Nome_Fantasia,''),c.D024_Nome_Empresa,'Sem cliente')",
+        "valor": "COALESCE(d.T007_Valor_Total,0)",
+        "status": "'Autorizada'",
+        "excluido": "0",
+        "origem": "d.T007_T005_Id",
+        "clienteId": "COALESCE(d.T007_D024_Id,0)",
+        "categoria": [
+          "CASE WHEN (SELECT COALESCE(SUM(GREATEST(COALESCE(recebivel.T002_Valor_Saldo,recebivel.T002_Valor_Total-COALESCE(recebivel.T002_Valor_Recebido,0)),0)),0) FROM T002 recebivel WHERE recebivel.T002_T007_Id=d.T007_Id AND recebivel.T002_C004_Id=d.T007_C004_Id",
+          "AND COALESCE(recebivel.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(recebivel.T002_T002_Id_Agrupado,0)=0)>0 THEN 'em_aberto' WHEN (SELECT COUNT(*) FROM T002 recebivel WHERE recebivel.T002_T007_Id=d.T007_Id AND recebivel.T002_C004_Id=d.T007_C004_Id",
+          "AND COALESCE(recebivel.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(recebivel.T002_T002_Id_Agrupado,0)=0)>0 THEN 'quitada' ELSE 'sem_cobranca' END"
+        ],
+        "recebido": [
+          "(SELECT COALESCE(SUM(COALESCE(recebivel.T002_Valor_Recebido,0)),0) FROM T002 recebivel WHERE recebivel.T002_T007_Id=d.T007_Id AND recebivel.T002_C004_Id=d.T007_C004_Id",
+          "AND COALESCE(recebivel.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(recebivel.T002_T002_Id_Agrupado,0)=0)"
+        ],
+        "saldo": [
+          "(SELECT COALESCE(SUM(GREATEST(COALESCE(recebivel.T002_Valor_Saldo,recebivel.T002_Valor_Total-COALESCE(recebivel.T002_Valor_Recebido,0)),0)),0) FROM T002 recebivel WHERE recebivel.T002_T007_Id=d.T007_Id AND recebivel.T002_C004_Id=d.T007_C004_Id",
+          "AND COALESCE(recebivel.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(recebivel.T002_T002_Id_Agrupado,0)=0)"
+        ],
+        "cobrancas": [
+          "(SELECT COUNT(*) FROM T002 recebivel WHERE recebivel.T002_T007_Id=d.T007_Id AND recebivel.T002_C004_Id=d.T007_C004_Id",
+          "AND COALESCE(recebivel.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(recebivel.T002_T002_Id_Agrupado,0)=0)"
+        ]
+      },
+      "de": "T007 d LEFT JOIN D024 c ON c.D024_Id=d.T007_D024_Id",
+      "condicao": [
+        "d.T007_Flag_Entrada_Saida='S' AND COALESCE(d.T007_Flag_Emitida_Recebida,'')<>'R'",
+        "AND COALESCE(d.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(d.T007_Flag_Inutilizado,'N')<>'S'",
+        "AND COALESCE(d.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(d.T007_Numero_Protocolo_Nfe,''))<>''"
+      ]
+    },
+    "boletos": {
+      "escopo": {
+        "empresa": "t.T002_C004_Id",
+        "representante": "d.T007_D021_Id"
+      },
+      "campos": {
+        "id": "t.T002_Id",
+        "numero": "t.T002_Numero_Documento",
+        "data": "t.T002_Data_Emissao",
+        "cliente": "COALESCE(NULLIF(c.D024_Nome_Fantasia,''),c.D024_Nome_Empresa,t.T002_Nome_Cliente,'Sem cliente')",
+        "valor": "COALESCE(t.T002_Valor_Total,0)",
+        "saldo": "GREATEST(COALESCE(t.T002_Valor_Saldo,t.T002_Valor_Total-COALESCE(t.T002_Valor_Recebido,0)),0)",
+        "recebido": "COALESCE(t.T002_Valor_Recebido,0)",
+        "status": "CASE WHEN GREATEST(COALESCE(t.T002_Valor_Saldo,t.T002_Valor_Total-COALESCE(t.T002_Valor_Recebido,0)),0)<=0 THEN 'pago' WHEN t.T002_Data_Vencimento<:hoje THEN 'vencido' WHEN COALESCE(t.T002_Valor_Recebido,0)>0 THEN 'parcial' ELSE 'aberto' END",
+        "categoria": "CASE WHEN GREATEST(COALESCE(t.T002_Valor_Saldo,t.T002_Valor_Total-COALESCE(t.T002_Valor_Recebido,0)),0)<=0 THEN 'pago' WHEN t.T002_Data_Vencimento<:hoje THEN 'vencido' WHEN COALESCE(t.T002_Valor_Recebido,0)>0 THEN 'parcial' ELSE 'aberto' END",
+        "clienteId": "COALESCE(t.T002_D024_Id,0)",
+        "excluido": "0",
+        "vencimento": "t.T002_Data_Vencimento",
+        "pagamento": "t.T002_Data_Recebimento",
+        "nota": "d.T007_Numero_Nota_Fiscal",
+        "nossoNumero": "b.T117_Nosso_Numero",
+        "tipoCobranca": "CASE WHEN b.T117_Id IS NULL THEN 'Título' WHEN b.T117_Flag_Cancelado='S' THEN 'Boleto cancelado' ELSE 'Boleto' END",
+        "notaId": "d.T007_Id"
+      },
+      "de": [
+        "T002 t INNER JOIN T007 d ON d.T007_Id=t.T002_T007_Id AND d.T007_C004_Id=t.T002_C004_Id",
+        "LEFT JOIN T117 b ON b.T117_Id=t.T002_T117_Id AND b.T117_C004_Id=t.T002_C004_Id LEFT JOIN D024 c ON c.D024_Id=t.T002_D024_Id"
+      ],
+      "condicao": [
+        "d.T007_Flag_Entrada_Saida='S' AND COALESCE(d.T007_Flag_Emitida_Recebida,'')<>'R'",
+        "AND COALESCE(d.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(d.T007_Flag_Inutilizado,'N')<>'S'",
+        "AND COALESCE(d.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(d.T007_Numero_Protocolo_Nfe,''))<>'' AND COALESCE(t.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(t.T002_T002_Id_Agrupado,0)=0 AND b.T117_Id IS NOT NULL AND COALESCE(b.T117_Flag_Cancelado,'N')<>'S'"
+      ]
+    },
+    "cobrancas": {
+      "escopo": {
+        "empresa": "t.T002_C004_Id",
+        "representante": "d.T007_D021_Id"
+      },
+      "campos": {
+        "id": "t.T002_Id",
+        "numero": "t.T002_Numero_Documento",
+        "data": "t.T002_Data_Emissao",
+        "cliente": "COALESCE(NULLIF(c.D024_Nome_Fantasia,''),c.D024_Nome_Empresa,t.T002_Nome_Cliente,'Sem cliente')",
+        "valor": "COALESCE(t.T002_Valor_Total,0)",
+        "saldo": "GREATEST(COALESCE(t.T002_Valor_Saldo,t.T002_Valor_Total-COALESCE(t.T002_Valor_Recebido,0)),0)",
+        "recebido": "COALESCE(t.T002_Valor_Recebido,0)",
+        "status": "CASE WHEN GREATEST(COALESCE(t.T002_Valor_Saldo,t.T002_Valor_Total-COALESCE(t.T002_Valor_Recebido,0)),0)<=0 THEN 'pago' WHEN t.T002_Data_Vencimento<:hoje THEN 'vencido' WHEN COALESCE(t.T002_Valor_Recebido,0)>0 THEN 'parcial' ELSE 'aberto' END",
+        "categoria": "CASE WHEN GREATEST(COALESCE(t.T002_Valor_Saldo,t.T002_Valor_Total-COALESCE(t.T002_Valor_Recebido,0)),0)<=0 THEN 'pago' WHEN t.T002_Data_Vencimento<:hoje THEN 'vencido' WHEN COALESCE(t.T002_Valor_Recebido,0)>0 THEN 'parcial' ELSE 'aberto' END",
+        "clienteId": "COALESCE(t.T002_D024_Id,0)",
+        "excluido": "0",
+        "vencimento": "t.T002_Data_Vencimento",
+        "pagamento": "t.T002_Data_Recebimento",
+        "nota": "d.T007_Numero_Nota_Fiscal",
+        "nossoNumero": "b.T117_Nosso_Numero",
+        "tipoCobranca": "CASE WHEN b.T117_Id IS NULL THEN 'Título' WHEN b.T117_Flag_Cancelado='S' THEN 'Boleto cancelado' ELSE 'Boleto' END",
+        "notaId": "d.T007_Id"
+      },
+      "de": [
+        "T002 t INNER JOIN T007 d ON d.T007_Id=t.T002_T007_Id AND d.T007_C004_Id=t.T002_C004_Id",
+        "LEFT JOIN T117 b ON b.T117_Id=t.T002_T117_Id AND b.T117_C004_Id=t.T002_C004_Id LEFT JOIN D024 c ON c.D024_Id=t.T002_D024_Id"
+      ],
+      "condicao": [
+        "d.T007_Flag_Entrada_Saida='S' AND COALESCE(d.T007_Flag_Emitida_Recebida,'')<>'R'",
+        "AND COALESCE(d.T007_Flag_Cancelada,'N')<>'S' AND COALESCE(d.T007_Flag_Inutilizado,'N')<>'S'",
+        "AND COALESCE(d.T007_Flag_Denegado,'N')<>'S' AND TRIM(COALESCE(d.T007_Numero_Protocolo_Nfe,''))<>'' AND COALESCE(t.T002_Flag_Cancelada,'N')<>'S' AND COALESCE(t.T002_T002_Id_Agrupado,0)=0"
+      ]
+    },
+    "clientes": {
+      "escopo": {
+        "empresa": "c.D024_C004_Id",
+        "representante": "c.D024_D021_Id"
+      },
+      "campos": {
+        "id": "c.D024_Id",
+        "cliente": "COALESCE(NULLIF(c.D024_Nome_Fantasia,''),c.D024_Nome_Empresa,'Sem nome')",
+        "ativo": "COALESCE(c.D024_Flag_Ativo,'N')",
+        "uf": "COALESCE(uf.D018_UF,'')",
+        "ufMunicipio": "COALESCE(cidadeUf.D018_UF,'')",
+        "ibge": "COALESCE(ci.D020_Codigo_IBGE,'')",
+        "cidade": "COALESCE(ci.D020_Nome_Cidade,'')",
+        "endereco": "COALESCE(c.D024_Endereco,'')",
+        "numero": "COALESCE(c.D024_Numero,'')",
+        "bairro": "COALESCE(c.D024_Bairro,'')",
+        "cep": "COALESCE(c.D024_Cep,'')"
+      },
+      "de": "D024 c LEFT JOIN D018 uf ON uf.D018_Id=c.D024_D018_Id LEFT JOIN D020 ci ON ci.D020_Id=c.D024_D020_Id LEFT JOIN D018 cidadeUf ON cidadeUf.D018_Id=ci.D020_D018_Id",
+      "condicao": "c.D024_Flag_Cliente='S'"
+    }
+  }
+}

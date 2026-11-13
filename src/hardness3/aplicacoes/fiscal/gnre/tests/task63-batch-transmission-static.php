@@ -1,0 +1,31 @@
+<?php
+declare(strict_types=1);
+$root=dirname(__DIR__);
+$index=(string)file_get_contents($root.'/public/index.php');
+$ui=(string)file_get_contents($root.'/public/task63-batch.php');
+$js=(string)file_get_contents($root.'/public/task63-batch.js');
+function task63_assert(bool $ok,string $message): void { if(!$ok){fwrite(STDERR,"FAIL: $message\n");exit(1);} }
+task63_assert(strpos($index,'task63_batch_step')!==false,'endpoint batch protegido deve existir');
+task63_assert(strpos($index,'gnre_require_csrf(); gnre_batch_step')!==false,'endpoint deve exigir CSRF');
+task63_assert(strpos($index,'gnre_batch_candidate')!==false&&strpos($index,"GNRE001_Status']==='R'")!==false,'servidor deve revalidar rascunho');
+task63_assert(strpos($index,"empty(\$row['_attempts'])")!==false&&strpos($index,"empty(\$row['_queue'])")!==false,'tentativa/fila impedem seleção');
+task63_assert(strpos($index,'GnreConfigUfSnapshot::forGuide')!==false,'ambiente deve vir do snapshot');
+task63_assert(strpos($index,'gnre_transmit_atomic')!==false,'lote deve reutilizar transmissão individual');
+$batchEndpoint=substr($index,strpos($index,'function gnre_batch_step'),strpos($index,'function gnre_item_values')-strpos($index,'function gnre_batch_step'));
+task63_assert(strpos($batchEndpoint,"'message'=>\$e->getMessage()")===false&&strpos($batchEndpoint,'unexpectedFailureMessage($e)')!==false,'endpoint não pode expor mensagens de exceção no JSON');
+task63_assert(strpos($index,'GnreOfficialPdfService')!==false,'PDF usa serviço existente');
+task63_assert(strpos($js,"post(id,'validate')")!==false&&strpos($js,"post(id,'transmit')")!==false,'XML é validado antes da transmissão');
+task63_assert(strpos($js,"canPreview=response.state!=='rescheduled'")!==false&&strpos($js,'Date.now()+2000')!==false,'Fila deve tentar visualmente após dois segundos em ambos os ambientes');
+task63_assert(strpos($js,'persistedNext')!==false&&strpos($js,"response.state!=='rescheduled'")!==false,'recusa do servidor deve voltar ao horário persistido');
+task63_assert(strpos($js,'data-task63-all')!==false&&strpos($ui,'data-task63-all')!==false&&strpos($ui,'type="button"')!==false&&strpos($ui,'data-environment')!==false,'UI deve oferecer seleção e botão para marcar todas');
+task63_assert(strpos($ui,"['created_date'=>")!==false&&strpos($ui,"'due_from'=>")!==false&&strpos($ui,"'revenue'=>")!==false&&strpos($ui,'name="environment"')!==false,'tela de lote deve oferecer filtros da Central de Guias');
+task63_assert(strpos($ui,'gnre_guide_url')!==false&&strpos($ui,'guide-row-action')!==false,'cada rascunho listado deve poder ser aberto para edição no padrão da Central de Guias');
+task63_assert(strpos($ui,'button.guide-row-action{background:#edf3ff!important;color:#1554d1!important}')!==false,'botão de preparar reenvio deve manter contraste legível.');
+task63_assert(strpos($ui,'Última movimentação')!==false&&strpos($ui,'Vencimento')!==false&&strpos($ui,'Recibo')!==false,'Fila deve exibir as colunas operacionais da Central de Guias');
+$candidateSource=(string)file_get_contents($root.'/src/BatchTransmissionCandidates.php');
+task63_assert(strpos($candidateSource,'if(!$statement)')!==false&&strpos($candidateSource,'if(!$itemStatement)')!==false,'consultas de candidatos e vencimentos devem rejeitar statement inválido antes do bind');
+task63_assert(strpos($ui,'Fila de transmissão')!==false&&strpos($ui,'Cada guia será processada individualmente')!==false,'a apresentação deve informar processamento individual');
+foreach(['Transmitir guias em lote','transmissão em lote','Processando lote','Lote concluído'] as $publicText) task63_assert(strpos($ui,$publicText)===false&&strpos($js,$publicText)===false,'a apresentação não deve chamar o fluxo atual de lote GNRE real');
+task63_assert(strpos($js,"d.addEventListener('cancel'")!==false,'modal não fecha por Esc');
+task63_assert(strpos($js,"'Serão transmitidas '+count")!==false&&strpos($js,"', uma por vez, no ambiente '")!==false,'confirmação deve informar quantidade, processamento individual e ambiente');
+echo "OK Task 63 batch transmission static checks\n";

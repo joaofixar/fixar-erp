@@ -351,4 +351,5 @@ BEGIN
            T005A_Valor_FCP_ST=xValor_FCP_ST,
            T005A_Valor_Total_FCP_Partilha=xValor_Total_FCP_Partilha
      WHERE T005A_T005_Id=xT005_Id;
+    CALL T005_Gravar_Totalizacao_4_Reforma(xT005_Id);
 END;

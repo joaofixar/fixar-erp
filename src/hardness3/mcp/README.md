@@ -3,6 +3,60 @@
 Módulo MCP isolado do Framework e da REST API. O endpoint é `POST /mcp` e o
 tenant é resolvido pela configuração existente da instalação.
 
+### Perfil de instalação MCP
+
+As instalações exclusivas são cadastradas no inventário privado
+`mcp/config/installations.php`, por exemplo:
+
+```php
+'inecel-production' => [
+    'hosts' => ['inecel.hardness.com.br'],
+    'expected_database' => 'e018',
+    'profile' => 'inecel-process-analysis-v1',
+],
+```
+
+O perfil é um identificador estável, em minúsculas e separado por hífens. O
+registro MCP exige o host canônico e o banco esperado, mas esses valores não
+ativam a feature sozinhos: ela também passa pela assinatura de
+schema/configuração definida em código. A tool de rastreio da Inecel exige o valor
+`inecel-process-analysis-v1`, as tabelas/colunas de rastreabilidade e o scope
+`inecel.certificate:read`; assim ela não é publicada nem autorizável nas demais
+instalações.
+
+### Certificados da Inecel
+
+`hardness.inecel.certificate.trace` parte da NF de saída da empresa da conexão,
+resolve a OP pelo vínculo do lote ou pelo prefixo numérico legado e identifica
+os lotes de matéria-prima consumidos. Anexos na entrada usada pela OP mantêm
+prioridade. Se essa entrada não tiver anexos, a busca também segue uma
+transferência entre empresas até a entrada original: chave da NF-e recebida
+igual à emitida, `T008_T014_Id` do item emitido apontando ao item original e
+mesmo lote no recebimento da OP, na saída da transferência e na entrada original.
+Cada item e histórico deve pertencer à empresa e ao produto de sua etapa.
+Esse caminho funciona mesmo quando `T014_T008_Id` da nota recebida está zerado.
+
+O resultado mantém `inbound_*` como a origem do certificado e informa a etapa
+intermediária em `transfer`, quando houver. Notas, empresas, lotes e documentos
+são resolvidos pelos vínculos, sem IDs fixos. A extensão percorre uma
+transferência de matéria-prima; não faz uma busca global por lote nem presume
+que lotes diferentes compartilhem a mesma origem. A tool de leitura usa os
+mesmos vínculos para autorizar o documento. Links de PDF identificam a empresa
+da entrada original e mantêm a validade de 15 minutos.
+
+Validação local, sem conexão com bases de clientes:
+
+```bash
+python3 mcp/tests/InecelCertificate/repository-sql.py
+php -r 'require "mcp/autoload.php"; function mcpAssert($ok, $message) { if (!$ok) throw new RuntimeException($message); } require "mcp/tests/Capabilities/foundation.php";'
+```
+
+O teste SQL captura os SELECTs gerados pelo repositório e os executa sobre
+fixtures em memória no SQLite, adaptando somente as funções específicas do
+MySQL. Ele cobre duas origens distintas, lotes adicionais no mesmo item,
+documentos com o mesmo nome, vínculos incompletos, isolamento por empresa e
+autorização da leitura. Não substitui a homologação do plano de execução no MySQL.
+
 ## Namespace de tabelas
 
 `MCP` é reservado exclusivamente a este módulo. As tabelas por tenant são

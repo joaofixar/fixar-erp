@@ -404,6 +404,13 @@ EOT;
      * @param boolean $incluirItens
      * @return true/string
      */
+    public function EST004ValorTagXML($no, $tag, $padrao = '')
+    {
+        if (empty($no)) return $padrao;
+        $tags = $no->getElementsByTagName($tag);
+        return $tags->length > 0 ? $tags->item(0)->nodeValue : $padrao;
+    }
+
     public function ImportarXML($arquivo, $incluirItens, $vinculoOcAuto = false, $D006_Id = false, $cadastrarCFOP = false)
     {
         global $g, $nT013_Id;
@@ -442,6 +449,7 @@ EOT;
         $cobr       = $dom->getElementsByTagName("cobr");
         $dup        = $dom->getElementsByTagName("dup");
         $ICMSTot    = $dom->getElementsByTagName("ICMSTot")->item(0);
+        $IBSCBSTot  = $dom->getElementsByTagName("IBSCBSTot")->item(0);
         $transp     = $dom->getElementsByTagName("transp")->item(0);
         $transporta = $dom->getElementsByTagName("transporta")->item(0);
         $veicTransp = $dom->getElementsByTagName("veicTransp")->item(0);
@@ -548,6 +556,54 @@ EOT;
         $vFCPSTRet     = utf8_decode($ICMSTot->getElementsByTagName("vFCPSTRet")->item(0)->nodeValue);
         $vFCPUFDest    = utf8_decode($ICMSTot->getElementsByTagName("vFCPUFDest")->item(0)->nodeValue);
         $vIPIDevol     = utf8_decode($ICMSTot->getElementsByTagName("vIPIDevol")->item(0)->nodeValue);
+        // Normalmente os totais da Reforma são preservados do XML do fornecedor.
+        // Se atualizarAliquotasAoImportarXML estiver habilitada, o fluxo existente
+        // atualiza as alíquotas pelo ERP, inclusive CBS/IBS.
+        $T013A_Valor_Total_Base_CBS_IBS = 0;
+        $T013A_Valor_Total_CBS = 0;
+        $T013A_Valor_Total_IBS_Municipal = 0;
+        $T013A_Valor_Total_IBS_UF = 0;
+        $T013A_Valor_Total_IBS = 0;
+        $T013A_Valor_Total_Diferimento_CBS = 0;
+        $T013A_Valor_Total_Diferimento_IBS_UF = 0;
+        $T013A_Valor_Total_Diferimento_IBS_Municipal = 0;
+        $T013A_Valor_Total_Reforma = 0;
+        if (!empty($IBSCBSTot)) {
+            $vBCIBSCBSTot = $IBSCBSTot->getElementsByTagName("vBCIBSCBS");
+            if ($vBCIBSCBSTot->length > 0) {
+                $T013A_Valor_Total_Base_CBS_IBS = $vBCIBSCBSTot->item(0)->nodeValue;
+            }
+            $gIBSTot = $IBSCBSTot->getElementsByTagName("gIBS")->item(0);
+            $gCBSTot = $IBSCBSTot->getElementsByTagName("gCBS")->item(0);
+            if (!empty($gIBSTot)) {
+                $gIBSUFTot = $gIBSTot->getElementsByTagName("gIBSUF")->item(0);
+                $gIBSMunicipalTot = $gIBSTot->getElementsByTagName("gIBSMun")->item(0);
+                $vIBSTot = $gIBSTot->getElementsByTagName("vIBS");
+                if ($vIBSTot->length > 0) {
+                    $T013A_Valor_Total_IBS = $vIBSTot->item(0)->nodeValue;
+                }
+                if (!empty($gIBSUFTot)) {
+                    $vIBSUFTot = $gIBSUFTot->getElementsByTagName("vIBSUF");
+                    $vDifIBSUFTot = $gIBSUFTot->getElementsByTagName("vDif");
+                    if ($vIBSUFTot->length > 0) $T013A_Valor_Total_IBS_UF = $vIBSUFTot->item(0)->nodeValue;
+                    if ($vDifIBSUFTot->length > 0) $T013A_Valor_Total_Diferimento_IBS_UF = $vDifIBSUFTot->item(0)->nodeValue;
+                }
+                if (!empty($gIBSMunicipalTot)) {
+                    $vIBSMunTot = $gIBSMunicipalTot->getElementsByTagName("vIBSMun");
+                    $vDifIBSMunTot = $gIBSMunicipalTot->getElementsByTagName("vDif");
+                    if ($vIBSMunTot->length > 0) $T013A_Valor_Total_IBS_Municipal = $vIBSMunTot->item(0)->nodeValue;
+                    if ($vDifIBSMunTot->length > 0) $T013A_Valor_Total_Diferimento_IBS_Municipal = $vDifIBSMunTot->item(0)->nodeValue;
+                }
+            }
+            if (!empty($gCBSTot)) {
+                $vCBSTot = $gCBSTot->getElementsByTagName("vCBS");
+                $vDifCBSTot = $gCBSTot->getElementsByTagName("vDif");
+                if ($vCBSTot->length > 0) $T013A_Valor_Total_CBS = $vCBSTot->item(0)->nodeValue;
+                if ($vDifCBSTot->length > 0) $T013A_Valor_Total_Diferimento_CBS = $vDifCBSTot->item(0)->nodeValue;
+            }
+            $vNFTot = $dom->getElementsByTagName("vNFTot");
+            if ($vNFTot->length > 0) $T013A_Valor_Total_Reforma = $vNFTot->item(0)->nodeValue;
+        }
         //**Essas duas tags abaixo não vem em todo XML */
         $qBCMonoRet    = utf8_decode($ICMSTot->getElementsByTagName("qBCMonoRet")->item(0)->nodeValue);
         $qBCMonoRet    = (empty($qBCMonoRet)) ? '0.00' : $qBCMonoRet;
@@ -1077,11 +1133,29 @@ EOT;
         mysql_query("INSERT INTO T013A(T013A_T013_Id,
                                        T013A_Valor_Total_ICMS_Mono_Retido,
                                        T013A_Valor_Total_Base_ICMS_Mono_Retido,
-                                       T013A_Flag_Destaca_Frete_SPED
+                                       T013A_Flag_Destaca_Frete_SPED,
+                                       T013A_Valor_Total_Base_CBS_IBS,
+                                       T013A_Valor_Total_CBS,
+                                       T013A_Valor_Total_IBS_Municipal,
+                                       T013A_Valor_Total_IBS_UF,
+                                       T013A_Valor_Total_IBS,
+                                       T013A_Valor_Total_Diferimento_CBS,
+                                       T013A_Valor_Total_Diferimento_IBS_UF,
+                                       T013A_Valor_Total_Diferimento_IBS_Municipal,
+                                       T013A_Valor_Total_Reforma
                                )VALUES('{$nT013_Id}',
                                        '{$vICMSMonoRet}',
                                        '{$qBCMonoRet}',
-                                       '{$T013A_Flag_Destaca_Frete_SPED}')");
+                                       '{$T013A_Flag_Destaca_Frete_SPED}',
+                                       '{$T013A_Valor_Total_Base_CBS_IBS}',
+                                       '{$T013A_Valor_Total_CBS}',
+                                       '{$T013A_Valor_Total_IBS_Municipal}',
+                                       '{$T013A_Valor_Total_IBS_UF}',
+                                       '{$T013A_Valor_Total_IBS}',
+                                       '{$T013A_Valor_Total_Diferimento_CBS}',
+                                       '{$T013A_Valor_Total_Diferimento_IBS_UF}',
+                                       '{$T013A_Valor_Total_Diferimento_IBS_Municipal}',
+                                       '{$T013A_Valor_Total_Reforma}')");
         $cErro = mysql_error();                     
         if (!empty($cErro)) {
             mysql_query("ROLLBACK");
@@ -1115,6 +1189,7 @@ EOT;
                 $PIS          = $imposto->getElementsByTagName("PIS")->item(0);
                 $COFINS       = $imposto->getElementsByTagName("COFINS")->item(0);
                 $TAGIPI       = $imposto->getElementsByTagName("IPI")->item(0);                 
+                $IBSCBS       = $imposto->getElementsByTagName("IBSCBS")->item(0);
                 if(!empty($impostoDevol)){
                     $IPIDev = $impostoDevol->getElementsByTagName("IPI")->item(0);     
                 }            
@@ -1211,6 +1286,95 @@ EOT;
                     $T014_Valor_Base_COFINS          = $COFINS->getElementsByTagName("vBC")->item(0)->nodeValue; // T014_Valor_Base_COFINS
                     $T014_Aliquota_COFINS            = $COFINS->getElementsByTagName("pCOFINS")->item(0)->nodeValue; // T014_Aliquota_COFINS
                     $T014_Valor_COFINS               = $COFINS->getElementsByTagName("vCOFINS")->item(0)->nodeValue; // T014_Valor_COFINS
+                }
+
+                // Reforma Tributária (NT 2025.002): mantém o snapshot do XML,
+                // inclusive CST/classificação e alíquotas que divirjam do ERP.
+                $T014A_Situacao_Tributaria_CBS_IBS = $T014A_Classificacao_Tributaria_CBS_IBS = '';
+                $T014A_Situacao_Tributaria_CBS_IBS_Regular = $T014A_Classificacao_Tributaria_CBS_IBS_Regular = '';
+                $T014A_Valor_Base_CBS_IBS = $T014A_Aliquota_CBS = $T014A_Percentual_Reducao_CBS = $T014A_Aliquota_CBS_Efetiva = $T014A_Valor_CBS = $T014A_Percentual_Diferimento_CBS = $T014A_Valor_Diferimento_CBS = 0;
+                $T014A_Aliquota_CBS_Efetiva_Regular = $T014A_Valor_CBS_Regular = 0;
+                $T014A_Aliquota_IBS_UF = $T014A_Percentual_Reducao_IBS_UF = $T014A_Aliquota_IBS_UF_Efetiva = $T014A_Valor_IBS_UF = $T014A_Percentual_Diferimento_IBS_UF = $T014A_Valor_Diferimento_IBS_UF = 0;
+                $T014A_Aliquota_IBS_UF_Efetiva_Regular = $T014A_Valor_IBS_UF_Regular = 0;
+                $T014A_Aliquota_IBS_Municipal = $T014A_Percentual_Reducao_IBS_Municipal = $T014A_Aliquota_IBS_Municipal_Efetiva = $T014A_Valor_IBS_Municipal = $T014A_Percentual_Diferimento_IBS_Municipal = $T014A_Valor_Diferimento_IBS_Municipal = 0;
+                $T014A_Aliquota_IBS_Municipal_Efetiva_Regular = $T014A_Valor_IBS_Municipal_Regular = $T014A_Valor_IBS = $T014A_Valor_Total_Reforma = 0;
+
+                if (!empty($IBSCBS)) {
+                    $T014A_Situacao_Tributaria_CBS_IBS = $this->EST004ValorTagXML($IBSCBS, "CST");
+                    $T014A_Classificacao_Tributaria_CBS_IBS = $this->EST004ValorTagXML($IBSCBS, "cClassTrib");
+                    $gIBSCBS = $IBSCBS->getElementsByTagName("gIBSCBS")->item(0);
+
+                    if (!empty($gIBSCBS)) {
+                        $T014A_Valor_Base_CBS_IBS = $this->EST004ValorTagXML($gIBSCBS, "vBC", 0);
+                        $T014A_Valor_IBS = $this->EST004ValorTagXML($gIBSCBS, "vIBS", 0);
+                        $T014A_Valor_Total_Reforma = $this->EST004ValorTagXML($det->item($x), "vItem", 0);
+                        $gCBS = $gIBSCBS->getElementsByTagName("gCBS")->item(0);
+                        $gIBSUF = $gIBSCBS->getElementsByTagName("gIBSUF")->item(0);
+                        $gIBSMunicipal = $gIBSCBS->getElementsByTagName("gIBSMun")->item(0);
+                        $gTribRegular = $gIBSCBS->getElementsByTagName("gTribRegular")->item(0);
+
+                        if (!empty($gCBS)) {
+                            $T014A_Aliquota_CBS = $this->EST004ValorTagXML($gCBS, "pCBS", 0);
+                            $T014A_Valor_CBS = $this->EST004ValorTagXML($gCBS, "vCBS", 0);
+                            $gRedCBS = $gCBS->getElementsByTagName("gRed")->item(0);
+                            $gDifCBS = $gCBS->getElementsByTagName("gDif")->item(0);
+                            if (!empty($gRedCBS)) {
+                                $T014A_Percentual_Reducao_CBS = $this->EST004ValorTagXML($gRedCBS, "pRedAliq", 0);
+                                $T014A_Aliquota_CBS_Efetiva = $this->EST004ValorTagXML($gRedCBS, "pAliqEfet", 0);
+                            } else {
+                                $T014A_Aliquota_CBS_Efetiva = $T014A_Aliquota_CBS;
+                            }
+                            if (!empty($gDifCBS)) {
+                                $T014A_Percentual_Diferimento_CBS = $this->EST004ValorTagXML($gDifCBS, "pDif", 0);
+                                $T014A_Valor_Diferimento_CBS = $this->EST004ValorTagXML($gDifCBS, "vDif", 0);
+                            }
+                        }
+
+                        if (!empty($gIBSUF)) {
+                            $T014A_Aliquota_IBS_UF = $this->EST004ValorTagXML($gIBSUF, "pIBSUF", 0);
+                            $T014A_Valor_IBS_UF = $this->EST004ValorTagXML($gIBSUF, "vIBSUF", 0);
+                            $gRedIBSUF = $gIBSUF->getElementsByTagName("gRed")->item(0);
+                            $gDifIBSUF = $gIBSUF->getElementsByTagName("gDif")->item(0);
+                            if (!empty($gRedIBSUF)) {
+                                $T014A_Percentual_Reducao_IBS_UF = $this->EST004ValorTagXML($gRedIBSUF, "pRedAliq", 0);
+                                $T014A_Aliquota_IBS_UF_Efetiva = $this->EST004ValorTagXML($gRedIBSUF, "pAliqEfet", 0);
+                            } else {
+                                $T014A_Aliquota_IBS_UF_Efetiva = $T014A_Aliquota_IBS_UF;
+                            }
+                            if (!empty($gDifIBSUF)) {
+                                $T014A_Percentual_Diferimento_IBS_UF = $this->EST004ValorTagXML($gDifIBSUF, "pDif", 0);
+                                $T014A_Valor_Diferimento_IBS_UF = $this->EST004ValorTagXML($gDifIBSUF, "vDif", 0);
+                            }
+                        }
+
+                        if (!empty($gIBSMunicipal)) {
+                            $T014A_Aliquota_IBS_Municipal = $this->EST004ValorTagXML($gIBSMunicipal, "pIBSMun", 0);
+                            $T014A_Valor_IBS_Municipal = $this->EST004ValorTagXML($gIBSMunicipal, "vIBSMun", 0);
+                            $gRedIBSMunicipal = $gIBSMunicipal->getElementsByTagName("gRed")->item(0);
+                            $gDifIBSMunicipal = $gIBSMunicipal->getElementsByTagName("gDif")->item(0);
+                            if (!empty($gRedIBSMunicipal)) {
+                                $T014A_Percentual_Reducao_IBS_Municipal = $this->EST004ValorTagXML($gRedIBSMunicipal, "pRedAliq", 0);
+                                $T014A_Aliquota_IBS_Municipal_Efetiva = $this->EST004ValorTagXML($gRedIBSMunicipal, "pAliqEfet", 0);
+                            } else {
+                                $T014A_Aliquota_IBS_Municipal_Efetiva = $T014A_Aliquota_IBS_Municipal;
+                            }
+                            if (!empty($gDifIBSMunicipal)) {
+                                $T014A_Percentual_Diferimento_IBS_Municipal = $this->EST004ValorTagXML($gDifIBSMunicipal, "pDif", 0);
+                                $T014A_Valor_Diferimento_IBS_Municipal = $this->EST004ValorTagXML($gDifIBSMunicipal, "vDif", 0);
+                            }
+                        }
+
+                        if (!empty($gTribRegular)) {
+                            $T014A_Situacao_Tributaria_CBS_IBS_Regular = $this->EST004ValorTagXML($gTribRegular, "CSTReg");
+                            $T014A_Classificacao_Tributaria_CBS_IBS_Regular = $this->EST004ValorTagXML($gTribRegular, "cClassTribReg");
+                            $T014A_Aliquota_CBS_Efetiva_Regular = $this->EST004ValorTagXML($gTribRegular, "pAliqEfetRegCBS", 0);
+                            $T014A_Valor_CBS_Regular = $this->EST004ValorTagXML($gTribRegular, "vTribRegCBS", 0);
+                            $T014A_Aliquota_IBS_UF_Efetiva_Regular = $this->EST004ValorTagXML($gTribRegular, "pAliqEfetRegIBSUF", 0);
+                            $T014A_Valor_IBS_UF_Regular = $this->EST004ValorTagXML($gTribRegular, "vTribRegIBSUF", 0);
+                            $T014A_Aliquota_IBS_Municipal_Efetiva_Regular = $this->EST004ValorTagXML($gTribRegular, "pAliqEfetRegIBSMun", 0);
+                            $T014A_Valor_IBS_Municipal_Regular = $this->EST004ValorTagXML($gTribRegular, "vTribRegIBSMun", 0);
+                        }
+                    }
                 }
  
                 if (!empty($IPIDev)) {
@@ -1477,8 +1641,45 @@ EOT;
                                                 T014A_Codigo_Barras_Tributavel,
                                                 T014A_Valor_Base_ICMS_Mono_Retido,
                                                 T014A_Valor_ICMS_Mono_Retido,
-                                                T014A_Ficha_Conteudo_Importacao
-                                       )VALUES (
+                                                T014A_Ficha_Conteudo_Importacao,
+                                                T014A_Situacao_Tributaria_CBS_IBS,
+                                                T014A_Classificacao_Tributaria_CBS_IBS,
+                                                T014A_Situacao_Tributaria_CBS_IBS_Regular,
+                                                T014A_Classificacao_Tributaria_CBS_IBS_Regular,
+                                                T014A_Aliquota_CBS,
+                                                T014A_Percentual_Reducao_CBS,
+                                                T014A_Aliquota_CBS_Efetiva,
+                                                T014A_Valor_CBS,
+                                                T014A_Percentual_Diferimento_CBS,
+                                                T014A_Valor_Diferimento_CBS,
+                                                T014A_Aliquota_CBS_Regular,
+                                                T014A_Percentual_Reducao_CBS_Regular,
+                                                T014A_Aliquota_CBS_Efetiva_Regular,
+                                                T014A_Valor_CBS_Regular,
+                                                T014A_Aliquota_IBS_Municipal,
+                                                T014A_Percentual_Reducao_IBS_Municipal,
+                                                T014A_Aliquota_IBS_Municipal_Efetiva,
+                                                T014A_Valor_IBS_Municipal,
+                                                T014A_Percentual_Diferimento_IBS_Municipal,
+                                                T014A_Valor_Diferimento_IBS_Municipal,
+                                                T014A_Aliquota_IBS_Municipal_Regular,
+                                                T014A_Percentual_Reducao_IBS_Municipal_Regular,
+                                                T014A_Aliquota_IBS_Municipal_Efetiva_Regular,
+                                                T014A_Valor_IBS_Municipal_Regular,
+                                                T014A_Aliquota_IBS_UF,
+                                                T014A_Percentual_Reducao_IBS_UF,
+                                                T014A_Aliquota_IBS_UF_Efetiva,
+                                                T014A_Valor_IBS_UF,
+                                                T014A_Percentual_Diferimento_IBS_UF,
+                                                T014A_Valor_Diferimento_IBS_UF,
+                                                T014A_Aliquota_IBS_UF_Regular,
+                                                T014A_Percentual_Reducao_IBS_UF_Regular,
+                                                T014A_Aliquota_IBS_UF_Efetiva_Regular,
+                                                T014A_Valor_IBS_UF_Regular,
+                                                T014A_Valor_Base_CBS_IBS,
+                                                T014A_Valor_Total_Reforma,
+                                                T014A_Valor_IBS
+                                       ) VALUES (
                                                 '{$T014_Id}', 
                                                 '{$Quantidade}', 
                                                 '{$nValor_Unitario}',  
@@ -1494,7 +1695,44 @@ EOT;
                                                 '{$cEANTrib}',
                                                 '{$qBCMonoRet}',
                                                 '{$vICMSMonoRet}',
-                                                '{$nFCI}')";
+                                                '{$nFCI}',
+                                                '{$T014A_Situacao_Tributaria_CBS_IBS}',
+                                                '{$T014A_Classificacao_Tributaria_CBS_IBS}',
+                                                '{$T014A_Situacao_Tributaria_CBS_IBS_Regular}',
+                                                '{$T014A_Classificacao_Tributaria_CBS_IBS_Regular}',
+                                                '{$T014A_Aliquota_CBS}',
+                                                '{$T014A_Percentual_Reducao_CBS}',
+                                                '{$T014A_Aliquota_CBS_Efetiva}',
+                                                '{$T014A_Valor_CBS}',
+                                                '{$T014A_Percentual_Diferimento_CBS}',
+                                                '{$T014A_Valor_Diferimento_CBS}',
+                                                '0',
+                                                '0',
+                                                '{$T014A_Aliquota_CBS_Efetiva_Regular}',
+                                                '{$T014A_Valor_CBS_Regular}',
+                                                '{$T014A_Aliquota_IBS_Municipal}',
+                                                '{$T014A_Percentual_Reducao_IBS_Municipal}',
+                                                '{$T014A_Aliquota_IBS_Municipal_Efetiva}',
+                                                '{$T014A_Valor_IBS_Municipal}',
+                                                '{$T014A_Percentual_Diferimento_IBS_Municipal}',
+                                                '{$T014A_Valor_Diferimento_IBS_Municipal}',
+                                                '0',
+                                                '0',
+                                                '{$T014A_Aliquota_IBS_Municipal_Efetiva_Regular}',
+                                                '{$T014A_Valor_IBS_Municipal_Regular}',
+                                                '{$T014A_Aliquota_IBS_UF}',
+                                                '{$T014A_Percentual_Reducao_IBS_UF}',
+                                                '{$T014A_Aliquota_IBS_UF_Efetiva}',
+                                                '{$T014A_Valor_IBS_UF}',
+                                                '{$T014A_Percentual_Diferimento_IBS_UF}',
+                                                '{$T014A_Valor_Diferimento_IBS_UF}',
+                                                '0',
+                                                '0',
+                                                '{$T014A_Aliquota_IBS_UF_Efetiva_Regular}',
+                                                '{$T014A_Valor_IBS_UF_Regular}',
+                                                '{$T014A_Valor_Base_CBS_IBS}',
+                                                '{$T014A_Valor_Total_Reforma}',
+                                                '{$T014A_Valor_IBS}')";
                     
                 mysql_query($cClausula);
                 $cErro = mysql_error();
@@ -4391,6 +4629,9 @@ EOT;
     public function excluirNota($T013_Id)
     {
         global $g;
+        require_once('bibliotecas/classes/EST004FreteNFS.php');
+        $validacaoFreteNFS = (new EST004FreteNFS())->validarRemocao($T013_Id);
+        if ($validacaoFreteNFS !== true) { return $validacaoFreteNFS; }
         mysql_query("SET AUTOCOMMIT=0");
         mysql_query("START TRANSACTION");
 
@@ -5954,6 +6195,9 @@ EOT;
      */
     public function EST004CancelarNotaEntrada($form, $T013_Id)
     {
+        require_once('bibliotecas/classes/EST004FreteNFS.php');
+        $validacaoFreteNFS = (new EST004FreteNFS())->validarRemocao($T013_Id);
+        if ($validacaoFreteNFS !== true) { return $validacaoFreteNFS; }
         
         require_once("bibliotecas/classes/CAD002.php");
         $CAD002 = new CAD002();
@@ -6750,6 +6994,12 @@ EOT;
         }
         //Trocado valor da variável $g['empresaAtual']. Pois há empresas que vão administrar todas as notas de uma vez
         $g['empresaAtual'] = $mT013['T013_C004_Id'];
+
+        if ((string) $mT013['T013_Flag_Frete'] === '4') {
+            require_once('bibliotecas/classes/EST004FreteNFS.php');
+            $validacaoFreteNFS = (new EST004FreteNFS())->validarFinalizacao($T013_Id);
+            if ($validacaoFreteNFS !== true) { return $validacaoFreteNFS; }
+        }
         
         //-- INSTANCIA CLASSE DE PROCESSAMENTOS
         $Pendencias = NEW \Processamentos($g['empresaAtual']);
@@ -7946,11 +8196,19 @@ EOT;
                                         D006_Flag_Devolucao,
                                         T014_Aliquota_PIS,
                                         T014_Aliquota_COFINS,
+                                        D006_Flag_Deb_Crd_CBS,
+                                        D006_Flag_Deb_Crd_IBS,
                                         T014_Flag_Origem_Produto,
                                         D049_Id,
                                         T014_Codigo_Produto_Fornecedor,
                                         T014A_Valor_Custo_Final_Liquido_Unitario,
                                         T014A_Valor_Acrescimo_Custo,
+                                        IFNULL(T014A_Valor_Frete_NFS,0) AS T014A_Valor_Frete_NFS,
+                                        IFNULL(T014A_Valor_CBS,0) AS T014A_Valor_CBS,
+                                        IFNULL(T014A_Valor_IBS,0) AS T014A_Valor_IBS,
+                                        IFNULL(T014A_Aliquota_CBS_Efetiva,0) AS T014A_Aliquota_CBS_Efetiva,
+                                        IFNULL(T014A_Aliquota_IBS_UF_Efetiva,0) AS T014A_Aliquota_IBS_UF_Efetiva,
+                                        IFNULL(T014A_Aliquota_IBS_Municipal_Efetiva,0) AS T014A_Aliquota_IBS_Municipal_Efetiva,
                                         T014A_Ficha_Conteudo_Importacao
                                     from T014
                               left join D009 on D009_Id=T014_D009_Id
@@ -8014,6 +8272,10 @@ EOT;
                 $mDemonstrativo_Custo[] = "+,,ICMS Substituição,," . number_format($mT014['T014_Valor_ICMS_Substituicao_Unitario'], 2, ',', '.');
             }
             $mDemonstrativo_Custo[] = "+,,Frete,," . number_format($mT014['T014_Valor_Frete'] / $QtdSoma, 2, ',', '.');
+            $freteNFSUnitario = $mT014['T014_Quantidade'] > 0 ? $mT014['T014A_Valor_Frete_NFS'] / $mT014['T014_Quantidade'] : 0;
+            if ($freteNFSUnitario > 0) {
+                $mDemonstrativo_Custo[] = "+,,Frete NFS,," . number_format($freteNFSUnitario, 2, ',', '.');
+            }
             $mDemonstrativo_Custo[] = "+,,Seguro,," . number_format($mT014['T014_Valor_Seguro'] / $QtdSoma, 2, ',', '.');
             $mDemonstrativo_Custo[] = "+,,Despesas Acessórias,," . number_format($mT014['T014_Valor_Despesas_Acessorias'] / $QtdSoma, 2, ',', '.');
 
@@ -8046,11 +8308,13 @@ EOT;
             $valorICMSUnitario     = $mT014['T014_Valor_ICMS'] / $QtdSoma;
             $valorIPIUnitario      = $mT014['T014_Valor_IPI'] / $QtdSoma;
             $valorSTUnitario       = $mT014['T014_Valor_ICMS_Substituicao'] / $QtdSoma;
-            $valorFreteUnitario    = $mT014['T014_Valor_Frete'] / $QtdSoma;
+            $valorFreteUnitario    = $mT014['T014_Valor_Frete'] / $QtdSoma + $freteNFSUnitario;
             $valorSeguroUnitario   = $mT014['T014_Valor_Seguro'] / $QtdSoma;
             $valorDespesasUnitario = $mT014['T014_Valor_Despesas_Acessorias'] / $QtdSoma;
             $valorPISUnitario      = $mT014['T014_Valor_PIS'] / $QtdSoma;
             $valorCOFINSUnitario   = $mT014['T014_Valor_COFINS'] / $QtdSoma;
+            $valorCBSUnitario      = $mT014['T014A_Valor_CBS'] / $QtdSoma;
+            $valorIBSUnitario      = $mT014['T014A_Valor_IBS'] / $QtdSoma;
             $valorICMSUnitario     = empty($valorICMSUnitario) ? 0 : $valorICMSUnitario;
             $valorIPIUnitario      = empty($valorIPIUnitario) ? 0 : $valorIPIUnitario;
             $valorSTUnitario       = empty($valorSTUnitario) ? 0 : $valorSTUnitario;
@@ -8059,6 +8323,8 @@ EOT;
             $valorDespesasUnitario = empty($valorDespesasUnitario) ? 0 : $valorDespesasUnitario;
             $valorPISUnitario      = empty($valorPISUnitario) ? 0 : $valorPISUnitario;
             $valorCOFINSUnitario   = empty($valorCOFINSUnitario) ? 0 : $valorCOFINSUnitario;
+            $valorCBSUnitario      = empty($valorCBSUnitario) ? 0 : $valorCBSUnitario;
+            $valorIBSUnitario      = empty($valorIBSUnitario) ? 0 : $valorIBSUnitario;
 
             $percentualSTUnitario  = ($valorSTUnitario / ($mT014['T014_Valor_Custo_Unitario'] + $valorIPIUnitario))*100;
             $percentualSTUnitario  = ($percentualSTUnitario > 0) ? $percentualSTUnitario : 0;
@@ -8162,11 +8428,21 @@ EOT;
 
             $T001_Id    = mysql_query("INSERT INTO T001A (T001A_T001_Id,
                                                           T001A_Valor_Custo_Unitario_Liquido,
-                                                          T001A_Valor_Acrescimo_Custo
+                                                          T001A_Valor_Acrescimo_Custo,
+                                                          T001A_Valor_CBS,
+                                                          T001A_Valor_IBS,
+                                                          T001A_Aliquota_CBS_Efetiva,
+                                                          T001A_Aliquota_IBS_UF_Efetiva,
+                                                          T001A_Aliquota_IBS_Municipal_Efetiva
                                                   )VALUES(
                                                           '{$T001_Id}', 
                                                           '{$mT014['T014A_Valor_Custo_Final_Liquido_Unitario']}',
-                                                          '{$mT014['T014A_Valor_Acrescimo_Custo']}')");
+                                                          '{$mT014['T014A_Valor_Acrescimo_Custo']}',
+                                                          '{$valorCBSUnitario}',
+                                                          '{$valorIBSUnitario}',
+                                                          '{$mT014['T014A_Aliquota_CBS_Efetiva']}',
+                                                          '{$mT014['T014A_Aliquota_IBS_UF_Efetiva']}',
+                                                          '{$mT014['T014A_Aliquota_IBS_Municipal_Efetiva']}')");
 
             if (strlen($mT014['T014_Flag_Origem_Produto']) > 0 and $mT014['D006_Flag_Venda_Compra_Outros'] == 'C' && $g['C031']['atualizarOrigemProdutoComNotaRecebida'] == 'S') {
 
@@ -9009,6 +9285,7 @@ EOT;
 
     public function insereRegistroT001($T014_Id)
     {
+        global $g;
 
         ///////////////////////////////////////////////////////////////////////////////////
         //-- LANCAMENTO NO HISTORICO E NO ESTOQUE
@@ -9020,6 +9297,7 @@ EOT;
                                  left join D001 on D001_Id=D049_D001_Id
                                  left join D006 on D006_Id=T014_D006_Id
                                  left join T001 on T001_T014_Id=T014_Id
+                                 left join T014A on T014A_T014_Id=T014_Id
                                     where T014_Id='$T014_Id'
                                       AND T001_Id IS NULL");
 
@@ -9082,6 +9360,10 @@ EOT;
             $mDemonstrativo_Custo[] = "+,,ICMS Substituição,," . number_format($mT014['T014_Valor_ICMS_Substituicao_Unitario'], 2, ',', '.');
         }
         $mDemonstrativo_Custo[] = "+,,Frete,," . number_format($mT014['T014_Valor_Frete'] / $QtdSoma, 2, ',', '.');
+        $freteNFSUnitario = $mT014['T014_Quantidade'] > 0 ? (float) $mT014['T014A_Valor_Frete_NFS'] / $mT014['T014_Quantidade'] : 0;
+        if ($freteNFSUnitario > 0) {
+            $mDemonstrativo_Custo[] = "+,,Frete NFS,," . number_format($freteNFSUnitario, 2, ',', '.');
+        }
         $mDemonstrativo_Custo[] = "+,,Seguro,," . number_format($mT014['T014_Valor_Seguro'] / $QtdSoma, 2, ',', '.');
         $mDemonstrativo_Custo[] = "+,,Despesas Acessórias,," . number_format($mT014['T014_Valor_Despesas_Acessorias'] / $QtdSoma, 2, ',', '.');
 
@@ -9111,11 +9393,13 @@ EOT;
         $valorICMSUnitario     = $mT014['T014_Valor_ICMS'] / $QtdSoma;
         $valorIPIUnitario      = $mT014['T014_Valor_IPI'] / $QtdSoma;
         $valorSTUnitario       = $mT014['T014_Valor_ICMS_Substituicao'] / $QtdSoma;
-        $valorFreteUnitario    = $mT014['T014_Valor_Frete'] / $QtdSoma;
+        $valorFreteUnitario    = $mT014['T014_Valor_Frete'] / $QtdSoma + $freteNFSUnitario;
         $valorSeguroUnitario   = $mT014['T014_Valor_Seguro'] / $QtdSoma;
         $valorDespesasUnitario = $mT014['T014_Valor_Despesas_Acessorias'] / $QtdSoma;
         $valorPISUnitario      = $mT014['T014_Valor_PIS'] / $QtdSoma;
         $valorCOFINSUnitario   = $mT014['T014_Valor_COFINS'] / $QtdSoma;
+        $valorCBSUnitario      = $mT014['T014A_Valor_CBS'] / $QtdSoma;
+        $valorIBSUnitario      = $mT014['T014A_Valor_IBS'] / $QtdSoma;
         $valorICMSUnitario     = empty($valorICMSUnitario) ? 0 : $valorICMSUnitario;
         $valorIPIUnitario      = empty($valorIPIUnitario) ? 0 : $valorIPIUnitario;
         $valorSTUnitario       = empty($valorSTUnitario) ? 0 : $valorSTUnitario;
@@ -9124,6 +9408,8 @@ EOT;
         $valorDespesasUnitario = empty($valorDespesasUnitario) ? 0 : $valorDespesasUnitario;
         $valorPISUnitario      = empty($valorPISUnitario) ? 0 : $valorPISUnitario;
         $valorCOFINSUnitario   = empty($valorCOFINSUnitario) ? 0 : $valorCOFINSUnitario;
+        $valorCBSUnitario      = empty($valorCBSUnitario) ? 0 : $valorCBSUnitario;
+        $valorIBSUnitario      = empty($valorIBSUnitario) ? 0 : $valorIBSUnitario;
 
         $sqlT001 = mysql_query("SELECT * FROM T001 WHERE T001_D009_Id = '{$mT014['T014_D009_Id']}' AND T001_T014_Id = '{$mT014['T014_Id']}' AND T001_Flag_Operacao != 'C'");
         if(mysql_num_rows($sqlT001) > 0){
@@ -9210,6 +9496,26 @@ EOT;
                                                             '{$tmpD004_Id}',
                                                             '{$mT014['T014_Aliquota_ICMS_Diferenca_Aliquotas']}'
                                                             )");
+        $erro = mysql_error();
+        if (!empty($erro)) {
+            mysql_query("ROLLBACK");
+            return 'Erro ao inserir o histórico do produto. <br />Erro: '.$erro;
+        }
+
+        $T001_Id = $g['mysqlLastId'];
+        mysql_query("INSERT INTO T001A (T001A_T001_Id,
+                                        T001A_Valor_CBS,
+                                        T001A_Valor_IBS,
+                                        T001A_Aliquota_CBS_Efetiva,
+                                        T001A_Aliquota_IBS_UF_Efetiva,
+                                        T001A_Aliquota_IBS_Municipal_Efetiva
+                                ) VALUES (
+                                        '{$T001_Id}',
+                                        '{$valorCBSUnitario}',
+                                        '{$valorIBSUnitario}',
+                                        '{$mT014['T014A_Aliquota_CBS_Efetiva']}',
+                                        '{$mT014['T014A_Aliquota_IBS_UF_Efetiva']}',
+                                        '{$mT014['T014A_Aliquota_IBS_Municipal_Efetiva']}')");
         $erro = mysql_error();
         if (!empty($erro)) {
             mysql_query("ROLLBACK");
@@ -9403,6 +9709,7 @@ EOT;
 
 
     function EST004AtualizarObservacoes($T013_Id) {        
+        global $g;
 
         $D188 = mysql_query("select  D188_Id
         from T014
@@ -9428,13 +9735,139 @@ EOT;
         
 
         while($mT014 = mysql_fetch_array($T014)) {
+            
             if(empty($mT014['T298_Id'])) {
-                mysql_query("insert into T298 (T298_T014_Id, T298_D189_Id, T298_T297_Id) values ({$mT014['T014_Id']},{$mT014['D189_Id']}, {$mT014['T297_Id']})");                
+                $insert = mysql_query("insert into T298 (T298_T014_Id, T298_D189_Id, T298_T297_Id) values ({$mT014['T014_Id']},{$mT014['D189_Id']}, {$mT014['T297_Id']})");
+
+                if (!$insert) {
+                    return mysql_error();
+                }
             } else  {
-                mysql_query("update T298 set T298_D189_Id = '{$mT014['D189_Id']}', T298_T297_Id = '{$mT014['T297_Id']}' where T298_Id = '{$mT014['T298_Id']}'");                
+                $update = mysql_query("update T298 set T298_D189_Id = '{$mT014['D189_Id']}', T298_T297_Id = '{$mT014['T297_Id']}' where T298_Id = '{$mT014['T298_Id']}'");
+
+                if (!$update) {
+                    return mysql_error();
+                }
+            }
+
+            $retorno = $this->EST004CalcularDIFALObservacao($mT014['T014_Id']);
+
+            if ($retorno !== true) {
+                return $retorno;
             }
         }
                     
+        return true;
+    }
+
+    /**
+     * Calcula o DIFAL de um ajuste já vinculado a um item da nota.
+     */
+    function EST004CalcularDIFALObservacao($T014_Id) {
+        $T014_Id = (int) $T014_Id;
+
+        if ($T014_Id <= 0) {
+            return 'Erro: item não informado para calcular o DIFAL.';
+        }
+
+        // A atualização de base pode ainda não ter criado a estrutura do DIFAL.
+        // Nesse cenário, mantém o comportamento anterior: não calcula o ajuste.
+        $tabelaD149A = mysql_query("SHOW TABLES LIKE 'D149A'");
+
+        if (!$tabelaD149A || mysql_num_rows($tabelaD149A) === 0) {
+            return true;
+        }
+
+        $sql = <<<SQL
+            SELECT
+                D005.D005_Id AS D005_Id,
+                T298.T298_Id AS T298_Id,
+                T014.T014_Valor_Base_ICMS,
+                T014.T014_Valor_ICMS,
+                D149A.D149A_Aliquota_ICMS_Difal_Uso_Consumo
+            FROM T014
+                INNER JOIN D006 ON D006.D006_Id = T014.T014_D006_Id
+                INNER JOIN D188 ON D188.D188_Id = D006.D006_D188_Id
+                INNER JOIN D189 ON D189.D189_Id = D188.D188_D189_Id
+                INNER JOIN T297 ON T297.T297_T013_Id = T014.T014_T013_Id
+                    AND T297.T297_D188_Id = D188.D188_Id
+                INNER JOIN T298 ON T298.T298_T014_Id = T014.T014_Id
+                    AND T298.T298_T297_Id = T297.T297_Id
+                    AND T298.T298_D189_Id = D189.D189_Id
+                LEFT JOIN D009 ON D009.D009_Id = T014.T014_D009_Id
+                LEFT JOIN D049 ON D049.D049_Id = D009.D009_D049_Id
+                LEFT JOIN D001 ON D001.D001_Id = D049.D049_D001_Id
+                INNER JOIN D005 ON D005.D005_Id = COALESCE(NULLIF(T014.T014_D005_Id, 0), D001.D001_D005_Id)
+                INNER JOIN D149 ON D149.D149_D005_Id = D005.D005_Id
+                    AND D149.D149_C004_Id = T014.T014_C004_Id
+                INNER JOIN D149A ON D149A.D149A_D149_Id = D149.D149_Id
+            WHERE T014.T014_Id = '{$T014_Id}'
+                AND D149A.D149A_Aliquota_ICMS_Difal_Uso_Consumo > 0
+                AND (
+                    T298.T298_Origem_Ajuste = 'DIFAL_AUTO_NCM'
+                    OR (
+                        COALESCE(T298.T298_Origem_Ajuste, '') = ''
+                        AND T298.T298_Valor_Base_ICMS IS NULL
+                        AND T298.T298_Aliquota_ICMS IS NULL
+                        AND T298.T298_Valor_ICMS IS NULL
+                    )
+                )
+SQL;
+
+        $result = mysql_query($sql);
+
+        if (!$result) {
+            return 'Erro ao localizar o ajuste de DIFAL do item: ' . mysql_error();
+        }
+
+        $ajuste = mysql_fetch_assoc($result);
+
+        // Sem configuração de DIFAL ou ajuste preenchido manualmente: não altera.
+        if (!$ajuste) {
+            return true;
+        }
+
+        $valorBaseOrigem = (float) $ajuste['T014_Valor_Base_ICMS'];
+        $valorIcmsOrigem = (float) $ajuste['T014_Valor_ICMS'];
+        $aliquotaInterna = (float) $ajuste['D149A_Aliquota_ICMS_Difal_Uso_Consumo'];
+
+        if ($valorBaseOrigem <= 0 || $valorIcmsOrigem < 0 || $aliquotaInterna <= 0 || $aliquotaInterna >= 100) {
+            return true;
+        }
+
+        $baseDifal = round(
+            ($valorBaseOrigem - $valorIcmsOrigem) / (1 - ($aliquotaInterna / 100)),
+            2
+        );
+        $valorDifal = round(($baseDifal * ($aliquotaInterna / 100)) - $valorIcmsOrigem, 2);
+
+        if ($baseDifal < 0 || $valorDifal < 0) {
+            return true;
+        }
+
+        $D005_Id = (int) $ajuste['D005_Id'];
+        $T298_Id = (int) $ajuste['T298_Id'];
+        $baseDifal = number_format($baseDifal, 2, '.', '');
+        $valorDifal = number_format($valorDifal, 2, '.', '');
+        $valorIcmsOrigem = number_format($valorIcmsOrigem, 2, '.', '');
+        $aliquotaInterna = number_format($aliquotaInterna, 2, '.', '');
+
+        $sqlUpdate = <<<SQL
+            UPDATE T298
+            SET
+                T298_Valor_Base_ICMS = '{$baseDifal}',
+                T298_Aliquota_ICMS = '{$aliquotaInterna}',
+                T298_Valor_ICMS = '{$valorDifal}',
+                T298_D005_Id = '{$D005_Id}',
+                T298_Data_Hora_Origem = NOW(),
+                T298_Origem_Ajuste = 'DIFAL_AUTO_NCM',
+                T298_Valor_Original_ICMS = '{$valorIcmsOrigem}'
+            WHERE T298_Id = '{$T298_Id}'
+SQL;
+
+        if (!mysql_query($sqlUpdate)) {
+            return 'Erro ao gravar o cálculo de DIFAL do ajuste ' . $T298_Id . ': ' . mysql_error();
+        }
         return true;
     }
 
@@ -9786,6 +10219,114 @@ EOT;
                                      T014_Percentual_Reducao_IPI       = '{$Aliquotas['Percentual_Reducao_IPI']}'                    
                                WHERE T014_Id = '{$T014_Id}'";          
         mysql_query($sqlQuery);        
+        $cErro = mysql_error();
+        if (!empty($cErro)) {
+            return "Erro: $cErro <br /> $sqlQuery";
+        }
+
+        $sqlDadosReforma = mysql_query("SELECT T014_Valor_Total_Custo, T014_Valor_Frete, T014_Valor_Seguro,
+                                                T014_Valor_Despesas_Acessorias, T014_Valor_Total_Desconto,
+                                                T014_Valor_PIS, T014_Valor_COFINS, T014_Valor_ICMS,
+                                                T014_Valor_ICMS_Diferenca_Aliquotas, T014_Valor_FCP,
+                                                T014_Valor_FCP_Dest, T014_Valor_ICMS_Substituicao,
+                                                T014_Valor_FCP_ST, T014_Valor_IPI,
+                                                D006_Flag_Deduz_PIS_Base_IBS_CBS,
+                                                D006_Flag_Deduz_COFINS_Base_IBS_CBS,
+                                                D006_Flag_Deduz_ICMS_Base_IBS_CBS,
+                                                D006_Flag_Deduz_DIFAL_Base_IBS_CBS,
+                                                D006_Flag_Deduz_FCP_Base_IBS_CBS,
+                                                D006_Flag_Deduz_FCP_Dest_Base_IBS_CBS,
+                                                D006_Flag_Nao_Somar_IBS_CBS_Valor_Total_Reforma
+                                           FROM T014
+                                      LEFT JOIN D006 ON D006_Id = T014_D006_Id
+                                          WHERE T014_Id = '{$T014_Id}'");
+        $dadosReforma = mysql_fetch_array($sqlDadosReforma);
+
+        $aliquotaCBSEfetiva = $Aliquotas['Aliquota_CBS'] * (1 - ($Aliquotas['Percentual_Reducao_CBS'] / 100));
+        $aliquotaIBSUFEfetiva = $Aliquotas['Aliquota_IBS_UF'] * (1 - ($Aliquotas['Percentual_Reducao_IBS_UF'] / 100));
+        $aliquotaIBSMunicipalEfetiva = $Aliquotas['Aliquota_IBS_Municipal'] * (1 - ($Aliquotas['Percentual_Reducao_IBS_Municipal'] / 100));
+        $aliquotaCBSRegularEfetiva = $Aliquotas['Aliquota_CBS_Regular'] * (1 - ($Aliquotas['Percentual_Reducao_CBS_Regular'] / 100));
+        $aliquotaIBSUFRegularEfetiva = $Aliquotas['Aliquota_IBS_UF_Regular'] * (1 - ($Aliquotas['Percentual_Reducao_IBS_UF_Regular'] / 100));
+        $aliquotaIBSMunicipalRegularEfetiva = $Aliquotas['Aliquota_IBS_Municipal_Regular'] * (1 - ($Aliquotas['Percentual_Reducao_IBS_Municipal_Regular'] / 100));
+
+        $temAliquotaReforma = $Aliquotas['Aliquota_CBS'] > 0 || $Aliquotas['Aliquota_IBS_UF'] > 0 || $Aliquotas['Aliquota_IBS_Municipal'] > 0
+                            || $Aliquotas['Aliquota_CBS_Regular'] > 0 || $Aliquotas['Aliquota_IBS_UF_Regular'] > 0 || $Aliquotas['Aliquota_IBS_Municipal_Regular'] > 0;
+        $valorBaseReforma = $dadosReforma['T014_Valor_Total_Custo'] + $dadosReforma['T014_Valor_Frete'] + $dadosReforma['T014_Valor_Seguro'] + $dadosReforma['T014_Valor_Despesas_Acessorias'] - $dadosReforma['T014_Valor_Total_Desconto'];
+        $valorBaseReforma -= $dadosReforma['D006_Flag_Deduz_PIS_Base_IBS_CBS'] === 'S' ? $dadosReforma['T014_Valor_PIS'] : 0;
+        $valorBaseReforma -= $dadosReforma['D006_Flag_Deduz_COFINS_Base_IBS_CBS'] === 'S' ? $dadosReforma['T014_Valor_COFINS'] : 0;
+        $valorBaseReforma -= $dadosReforma['D006_Flag_Deduz_ICMS_Base_IBS_CBS'] === 'S' ? $dadosReforma['T014_Valor_ICMS'] : 0;
+        $valorBaseReforma -= $dadosReforma['D006_Flag_Deduz_DIFAL_Base_IBS_CBS'] === 'S' ? $dadosReforma['T014_Valor_ICMS_Diferenca_Aliquotas'] : 0;
+        $valorBaseReforma -= $dadosReforma['D006_Flag_Deduz_FCP_Base_IBS_CBS'] === 'S' ? $dadosReforma['T014_Valor_FCP'] : 0;
+        $valorBaseReforma -= $dadosReforma['D006_Flag_Deduz_FCP_Dest_Base_IBS_CBS'] === 'S' ? $dadosReforma['T014_Valor_FCP_Dest'] : 0;
+        $valorBaseReforma = $temAliquotaReforma ? $valorBaseReforma : 0;
+
+        $valorDiferimentoCBS = $valorBaseReforma * ($aliquotaCBSEfetiva / 100) * ($Aliquotas['Percentual_Diferimento_CBS'] / 100);
+        $valorDiferimentoIBSUF = $valorBaseReforma * ($aliquotaIBSUFEfetiva / 100) * ($Aliquotas['Percentual_Diferimento_IBS_UF'] / 100);
+        $valorDiferimentoIBSMunicipal = $valorBaseReforma * ($aliquotaIBSMunicipalEfetiva / 100) * ($Aliquotas['Percentual_Diferimento_IBS_Municipal'] / 100);
+        $valorCBS = $valorBaseReforma * ($aliquotaCBSEfetiva / 100) - $valorDiferimentoCBS;
+        $valorIBSUF = $valorBaseReforma * ($aliquotaIBSUFEfetiva / 100) - $valorDiferimentoIBSUF;
+        $valorIBSMunicipal = $valorBaseReforma * ($aliquotaIBSMunicipalEfetiva / 100) - $valorDiferimentoIBSMunicipal;
+        $valorIBS = $valorIBSUF + $valorIBSMunicipal;
+        $valorCBSRegular = $valorBaseReforma * ($aliquotaCBSRegularEfetiva / 100);
+        $valorIBSUFRegular = $valorBaseReforma * ($aliquotaIBSUFRegularEfetiva / 100);
+        $valorIBSMunicipalRegular = $valorBaseReforma * ($aliquotaIBSMunicipalRegularEfetiva / 100);
+        $valorTotalReforma = $dadosReforma['T014_Valor_Total_Custo'] - $dadosReforma['T014_Valor_Total_Desconto'] + $dadosReforma['T014_Valor_ICMS_Substituicao'] + $dadosReforma['T014_Valor_FCP_ST'] + $dadosReforma['T014_Valor_Frete'] + $dadosReforma['T014_Valor_Seguro'] + $dadosReforma['T014_Valor_Despesas_Acessorias'] + $dadosReforma['T014_Valor_IPI'];
+        $valorTotalReforma += $dadosReforma['D006_Flag_Nao_Somar_IBS_CBS_Valor_Total_Reforma'] === 'S' ? $valorIBS + $valorCBS : 0;
+
+        /* [REFORMA TRIBUTÁRIA]
+         * Recalcula os mesmos dados fiscais que são substituídos para os
+         * demais impostos, usando a prioridade CFOP -> NCM resolvida no EST015.
+         */
+        $sqlReforma = "UPDATE T014A SET
+                            T014A_Situacao_Tributaria_CBS_IBS              = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                            T014A_Classificacao_Tributaria_CBS_IBS         = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                            T014A_Aliquota_CBS                             = '{$Aliquotas['Aliquota_CBS']}',
+                            T014A_Aliquota_IBS_UF                          = '{$Aliquotas['Aliquota_IBS_UF']}',
+                            T014A_Aliquota_IBS_Municipal                   = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                            T014A_Percentual_Reducao_CBS                   = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                            T014A_Percentual_Reducao_IBS_UF                = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                            T014A_Percentual_Reducao_IBS_Municipal         = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                            T014A_Aliquota_CBS_Efetiva                     = '{$aliquotaCBSEfetiva}',
+                            T014A_Aliquota_IBS_UF_Efetiva                  = '{$aliquotaIBSUFEfetiva}',
+                            T014A_Aliquota_IBS_Municipal_Efetiva           = '{$aliquotaIBSMunicipalEfetiva}',
+                            T014A_Percentual_Diferimento_CBS               = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                            T014A_Percentual_Diferimento_IBS_UF            = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                            T014A_Percentual_Diferimento_IBS_Municipal     = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                            T014A_Situacao_Tributaria_CBS_IBS_Regular      = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                            T014A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                            T014A_Aliquota_CBS_Regular                     = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                            T014A_Aliquota_IBS_UF_Regular                  = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                            T014A_Aliquota_IBS_Municipal_Regular           = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                            T014A_Percentual_Reducao_CBS_Regular           = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                            T014A_Percentual_Reducao_IBS_UF_Regular        = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                            T014A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}',
+                            T014A_Aliquota_CBS_Efetiva_Regular             = '{$aliquotaCBSRegularEfetiva}',
+                            T014A_Aliquota_IBS_UF_Efetiva_Regular          = '{$aliquotaIBSUFRegularEfetiva}',
+                            T014A_Aliquota_IBS_Municipal_Efetiva_Regular   = '{$aliquotaIBSMunicipalRegularEfetiva}',
+                            T014A_Valor_Base_CBS_IBS                       = '{$valorBaseReforma}',
+                            T014A_Valor_Diferimento_CBS                    = '{$valorDiferimentoCBS}',
+                            T014A_Valor_Diferimento_IBS_UF                 = '{$valorDiferimentoIBSUF}',
+                            T014A_Valor_Diferimento_IBS_Municipal          = '{$valorDiferimentoIBSMunicipal}',
+                            T014A_Valor_CBS                                = '{$valorCBS}',
+                            T014A_Valor_IBS_UF                             = '{$valorIBSUF}',
+                            T014A_Valor_IBS_Municipal                      = '{$valorIBSMunicipal}',
+                            T014A_Valor_CBS_Regular                        = '{$valorCBSRegular}',
+                            T014A_Valor_IBS_UF_Regular                     = '{$valorIBSUFRegular}',
+                            T014A_Valor_IBS_Municipal_Regular              = '{$valorIBSMunicipalRegular}',
+                            T014A_Valor_IBS                                = '{$valorIBS}',
+                            T014A_Valor_Total_Reforma                      = '{$valorTotalReforma}'
+                      WHERE T014A_T014_Id = '{$T014_Id}'";
+        mysql_query($sqlReforma);
+        $cErro = mysql_error();
+        if (!empty($cErro)) {
+            return "Erro ao atualizar alíquotas da reforma: $cErro <br /> $sqlReforma";
+        }
+
+        mysql_query("CALL T014_Gravar_Totalizacao_Custo('{$T014_Id}')");
+        $cErro = mysql_error();
+        if (!empty($cErro)) {
+            return "Erro ao totalizar custo após atualizar alíquotas: $cErro";
+        }
         return true;
     }    
     
@@ -10058,7 +10599,8 @@ EOT;
                                             $mT014Custo['T014_Valor_Despesas_Acessorias'] + 
                                             $xValorDiferencaAliquota) - 
                                             $mT014Custo['T014_Valor_Total_Desconto']) / $resQtde['T014_Quantidade']) + 
-                                            $mT014Custo['T014A_Valor_Acrescimo_Custo'],6);
+                                            $mT014Custo['T014A_Valor_Acrescimo_Custo'] +
+                                            ($mT014Custo['T014_Quantidade'] > 0 ? (float) $mT014Custo['T014A_Valor_Frete_NFS'] / $mT014Custo['T014_Quantidade'] : 0),6);
 
                 $Custo_Nota      = number_format($Custo_Nota, 2);
                 $custo_Calculado = number_format($custo_Calculado, 2);

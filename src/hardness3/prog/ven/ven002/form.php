@@ -5631,7 +5631,7 @@ EOT;
                 	'T005_D044_Id' => array('name' => 'T005_D044_Id', 'label' => 'Moeda', 'type' => 'select', 
                 		'select' => gGeraSelect('D044', 'D044_Id', 'D044_Moeda,D044_Simbolo')
                 	),
-                	'T005_Cotacao_Moeda' => array('name' => 'T005_Cotacao_Moeda', 'label' => 'Cotação da Moeda', 'type' => 'moeda', 'align' => 'right', 'length' => array(10,10)),
+                    'T005_Cotacao_Moeda' => array('name' => 'T005_Cotacao_Moeda', 'label' => 'Cotação da Moeda', 'type' => 'moeda', 'align' => 'right', 'length' => array(10,10), 'casasDecimais' => 5),
                 	'ven002FormMoedaBtn' => array('name' => 'ven002FormMoedaBtn', 'type'=>'submit', 'reload' => false, 'value' => empty($acaoId) ? 'Incluir' : 'Alterar', 'align' => 'right', 'style' => 'float:right;', 'reject' => true),
                 )
             )
@@ -5689,6 +5689,78 @@ EOT;
         $g['smarty']->assign('table', $gerado['table']); $g['smarty']->assign('form_tabela', isset($form_tabela) ? $form_tabela : '');
         echo $gerado['pagina'];
         if (!$formMultiTab) { $g["smarty"]->assign("formId", $formId); }
+        $g['smarty']->display('formEditor.tpl');
+    break;
+
+    /**
+    * Dados comerciais para impressao de Commercial Invoice / Packing List.
+    */
+    case 'ven002FormExportacao':
+        $tab = (isset($_REQUEST['tab'])) ? $_REQUEST['tab'] : false;
+        // A aba recebe o pedido pai em T005_Id. O acaoId pode referenciar o
+        // registro auxiliar T005A após o submit, portanto não deve ser usado
+        // para gravar a cubagem no pedido.
+        $T005_Id = (isset($_REQUEST['T005_Id'])) ? (int) $_REQUEST['T005_Id'] : ((isset($_REQUEST['acaoId'])) ? (int) $_REQUEST['acaoId'] : 0);
+        $formMultiTab = false;
+        $formId = uniqid();
+
+        // T005 é a tabela principal. Os campos T005A_* são carregados e
+        // gravados pelo sqlAuto na tabela auxiliar, como nos demais forms
+        // relacionais do sistema.
+        $form_tabela = 'T005';
+        $form_campo_pk = 'T005_Id';
+        $enviar_btnId = 'ven002FormExportacaoBtn';
+        $enviar_acaoHref = '/ven/ven002/form/ven002FormExportacao/';
+
+        $form_editor = array(
+            'geral' => '{"T005A_Invoice_Payment_Terms":{"top":7,"left":14.015625,"width":300,"hidden":0},"T005A_Invoice_From":{"top":30,"left":65.109375,"width":300,"hidden":0},"T005A_Invoice_To":{"top":53,"left":78.28125,"width":300,"hidden":0},"T005A_Invoice_Number":{"top":76,"left":13.703125,"width":300,"hidden":0},"T005A_Invoice_Incoterms":{"top":99,"left":41,"width":300,"hidden":0},"T005_Total_Cubagem":{"top":122,"left":41,"width":300,"hidden":0},"ven002FormExportacaoBtn":{"top":166,"left":208,"width":null,"hidden":0}}'
+        );
+
+        $form = new Formulario('ven002FormExportacao');
+        $formArray = array(
+            'campos' => array(
+                'geral' => array(
+                    'T005A_Invoice_Payment_Terms' => array('name' => 'T005A_Invoice_Payment_Terms', 'label' => 'Payment Terms', 'type' => 'text', 'length' => array(60, 255)),
+                    'T005A_Invoice_From' => array('name' => 'T005A_Invoice_From', 'label' => 'From', 'type' => 'text', 'length' => array(60, 255)),
+                    'T005A_Invoice_To' => array('name' => 'T005A_Invoice_To', 'label' => 'To', 'type' => 'text', 'length' => array(60, 255)),
+                    'T005A_Invoice_Number' => array('name' => 'T005A_Invoice_Number', 'label' => 'Invoice Number', 'type' => 'text', 'length' => array(30, 100)),
+                    'T005A_Invoice_Incoterms' => array('name' => 'T005A_Invoice_Incoterms', 'label' => 'Incoterms', 'type' => 'text', 'length' => array(30, 100)),
+                    'T005_Total_Cubagem' => array('name' => 'T005_Total_Cubagem', 'label' => 'Vol in CM3', 'type' => 'moeda', 'casasDecimais' => 3, 'length' => array(12, 10)),
+                    'ven002FormExportacaoBtn' => array('name' => 'ven002FormExportacaoBtn', 'type' => 'submit', 'reload' => false, 'value' => 'Alterar', 'align' => 'right', 'style' => 'float:right;', 'reject' => true),
+                )
+            )
+        );
+        $form->definirFormularioArray($formArray);
+
+        if ($formCodigo = $form->processarFormulario($form_tabela)) {
+            if ($formCodigo == 1) {
+                echo gGeraAlertMsgErroForm($form);
+            } else if ($formCodigo == 2) {
+                if ($sql = $g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $T005_Id, $form)) {
+                    echo gGeraAlertMsg('Operação OK', 'Dados de exportação alterados com sucesso!');
+                    echo <<<EOT
+                        <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+                            divRefresh('{$g['divId']}', true);
+                        } </script></div>
+EOT;
+                }
+            }
+        } else if (!empty($T005_Id)) {
+            $processado = $form->carregarValoresCampos($form_tabela, $form_campo_pk, $T005_Id);
+            if ($processado !== true) {
+                reset($form->formArray['campos']);
+                if ($tab == key($form->formArray['campos'])) {
+                    echo $processado;
+                }
+            }
+        }
+
+        $gerado = gGeraCamposForm($form, $tab, $T005_Id, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk);
+        $g['smarty']->assign('formularioID', $form->formularioID());
+        $g['smarty']->assign('table', $gerado['table']);
+        $g['smarty']->assign('form_tabela', $form_tabela);
+        echo $gerado['pagina'];
+        $g['smarty']->assign('formId', $formId);
         $g['smarty']->display('formEditor.tpl');
     break;
 

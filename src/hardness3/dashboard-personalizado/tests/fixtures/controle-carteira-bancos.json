@@ -1,0 +1,140 @@
+{
+  "id": "controle_carteira_bancos",
+  "habilitado": true,
+  "ordem": 14,
+  "titulo": "Controle de carteira bancos",
+  "subtitulo": "Garantias, vencimentos e prioridade de emissão de boletos por banco",
+  "icone": "wallet",
+  "cor": "blue",
+  "filtros": [
+    {
+      "id": "abrangenciaEmpresa",
+      "titulo": "Empresas",
+      "tipo": "selecao",
+      "padrao": "todas",
+      "obrigatorio": true,
+      "persistir": false,
+      "recarregarAoAlterar": true,
+      "opcoes": [
+        {
+          "valor": "atual",
+          "titulo": "Empresa atual"
+        },
+        {
+          "valor": "todas",
+          "titulo": "Todas as empresas"
+        }
+      ],
+      "opcoesCadastro": "empresasGrupo",
+      "empresas": [
+        1,
+        2,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "dataInicio",
+      "titulo": "Data inicial da projeção",
+      "tipo": "data",
+      "padrao": "hoje",
+      "obrigatorio": true
+    },
+    {
+      "id": "diasProjecao",
+      "titulo": "Dias de projeção",
+      "tipo": "numero",
+      "padrao": 45,
+      "inteiro": true,
+      "minimo": 7,
+      "maximo": 366,
+      "obrigatorio": true
+    }
+  ],
+  "sqlBase": [
+    "SELECT T002_Id AS id, COALESCE(NULLIF(TRIM(D027_Portador), ''), 'Sem portador') AS portador,",
+    "IFNULL(D027_Flag_Boleto, 'N') AS boleto, T002_Data_Vencimento AS data, T002_Valor_Saldo AS valor",
+    "FROM T002 LEFT JOIN D027 ON D027_Id = T002_D027_Id",
+    "WHERE (T002_C004_Id IN (",
+    "  CASE WHEN :abrangenciaEmpresa = 'atual' THEN :empresa WHEN :abrangenciaEmpresa IN ('todas', '1') THEN 1 ELSE NULL END,",
+    "  CASE WHEN :abrangenciaEmpresa IN ('todas', '2') THEN 2 ELSE NULL END,",
+    "  CASE WHEN :abrangenciaEmpresa IN ('todas', '4') THEN 4 ELSE NULL END,",
+    "  CASE WHEN :abrangenciaEmpresa IN ('todas', '5') THEN 5 ELSE NULL END",
+    ") AND (:abrangenciaEmpresa <> 'atual' OR T002_C004_Id = :empresa))",
+    "AND IFNULL(T002_Flag_Cancelada, 'N') <> 'S'",
+    "AND (T002_Data_Recebimento IS NULL OR T002_Data_Recebimento = '0000-00-00')",
+    "AND (T002_T002_Id_Agrupado IS NULL OR T002_T002_Id_Agrupado <= 0)",
+    "AND IFNULL(T002_Flag_Status, '1') <> '6'",
+    "AND T002_Valor_Saldo > 0 AND T002_Data_Vencimento >= :dataInicio"
+  ],
+  "controleCarteiraBancos": {
+    "habilitado": true,
+    "bancos": [
+      {
+        "id": "itau",
+        "nome": "Itaú",
+        "garantia": 3000000,
+        "cor": "#f47b34",
+        "portadores": [
+          "BOLETO ITAU CC 18626-7",
+          "BOLETO ITAU CC 02539-0"
+        ]
+      },
+      {
+        "id": "bradesco",
+        "nome": "Bradesco",
+        "garantia": 500000,
+        "cor": "#497bc5",
+        "portadores": [
+          "BOLETO BRADESCO"
+        ]
+      },
+      {
+        "id": "caixa",
+        "nome": "Caixa",
+        "garantia": 9000000,
+        "cor": "#9ca3af",
+        "portadores": [
+          "BOLETO CAIXA"
+        ]
+      },
+      {
+        "id": "banco_brasil",
+        "nome": "Banco do Brasil",
+        "garantia": 2500000,
+        "cor": "#eab308",
+        "portadores": [
+          "BOLETO BANCO DO BRASIL"
+        ]
+      },
+      {
+        "id": "santander",
+        "nome": "Santander",
+        "garantia": 800000,
+        "cor": "#55a0df",
+        "portadores": [
+          "BOLETO SANTANDER"
+        ]
+      },
+      {
+        "id": "ouribank",
+        "nome": "Ouribank",
+        "garantia": 0,
+        "cor": "#74a946",
+        "portadores": [
+          "BOLETO ORINVEST"
+        ]
+      }
+    ]
+  },
+  "card": {
+    "titulo": "Carteira nos bancos",
+    "formato": "moeda"
+  },
+  "grafico": {
+    "habilitado": false
+  },
+  "listagem": {
+    "habilitada": false
+  }
+}

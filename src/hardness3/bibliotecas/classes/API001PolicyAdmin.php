@@ -2,6 +2,7 @@
 namespace hardness;
 
 require_once("old/lib/funcoes.php");
+require_once("bibliotecas/segurancaSenha.php");
 require_once("rest_api/autoload.php");
 
 definirClasse('API001PolicyAdmin');
@@ -30,8 +31,11 @@ class API001PolicyAdmin_
 
     public function assertAuthorized(): void
     {
+        $this->startSessionIfNeeded();
         $userId = (int) ($this->g['usuarioAtual'] ?? 0);
-        if ($userId !== 63) {
+        $isSupportUser = $this->isCurrentUserSupport();
+
+        if ($userId !== 63 && !$isSupportUser) {
             throw new \RuntimeException('Acesso não autorizado para esta funcionalidade.');
         }
     }
@@ -40,7 +44,7 @@ class API001PolicyAdmin_
     {
         $this->assertAuthorized();
         if (!$this->isRestApiUnlocked()) {
-            throw new \RuntimeException('Informe a senha master para liberar esta área.');
+            throw new \RuntimeException('Informe sua senha de acesso para liberar esta área.');
         }
     }
 
@@ -74,14 +78,12 @@ class API001PolicyAdmin_
     {
         $this->assertAuthorized();
         if (!$this->isLocalhostAccess()) {
-            $password = trim($password);
             if ($password === '') {
-                throw new \RuntimeException('Informe a senha master.');
+                throw new \RuntimeException('Informe sua senha de acesso.');
             }
 
-            $hash = $this->getMasterPasswordHash();
-            if ($hash === '' || md5($password) !== $hash) {
-                throw new \RuntimeException('Senha master inválida.');
+            if (!$this->isCurrentUserPasswordValid($password)) {
+                throw new \RuntimeException('Senha de acesso inválida.');
             }
         }
 
@@ -273,10 +275,36 @@ class API001PolicyAdmin_
         }
     }
 
-    private function getMasterPasswordHash(): string
+    private function isCurrentUserPasswordValid(string $password): bool
     {
-        $hash = (string) ($this->sys['senhaRootMaster'] ?? '');
-        return trim($hash);
+        $user = $this->getCurrentUser();
+
+        return is_array($user)
+            && \hardness\SegurancaSenha::validarSenhaArmazenada($password, (string) ($user['C007_Senha'] ?? ''));
+    }
+
+    private function isCurrentUserSupport(): bool
+    {
+        $user = $this->getCurrentUser();
+
+        return is_array($user)
+            && (string) ($user['C007_Usuario_Suporte'] ?? 'N') === 'S';
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function getCurrentUser(): ?array
+    {
+        $userId = (int) ($this->g['usuarioAtual'] ?? 0);
+        if ($userId <= 0) {
+            return null;
+        }
+
+        $result = mysql_query("SELECT C007_Senha, C007_Usuario_Suporte FROM C007 WHERE C007_Id = '{$userId}' AND C007_Ativo = 'S' LIMIT 1");
+        $user = $result ? mysql_fetch_assoc($result) : null;
+
+        return is_array($user) ? $user : null;
     }
 
     private function isLocalhostAccess(): bool
@@ -286,4 +314,5 @@ class API001PolicyAdmin_
 
         return $host === 'localhost' || $host === '127.0.0.1' || $host === '::1';
     }
+
 }

@@ -437,4 +437,5 @@ BEGIN
             T006A_Valor_FCP=T006A_Valor_Base_FCP*(T006A_Percentual_FCP/100),
             T006A_Valor_Total_Desconto_Manual = xTotal_Desconto_Produto_Manual
       WHERE T006A_T006_Id=xT006_Id; 
+     CALL T006_Gravar_Totalizacao_4_Reforma(xT006_Id);
 END;

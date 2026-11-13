@@ -642,7 +642,7 @@ if($IND_MOV == '0'){
 							FROM
 							 	D001 
 							LEFT JOIN D049 ON D049_D001_Id = D001_Id 
-							LEFT JOIN D009 ON D009_D049_Id = D049_Id 
+							LEFT JOIN D009 ON D009_D049_Id = D049_Id AND D009_C004_Id = '{$g['empresaAtual']}'
 							LEFT JOIN D037 ON D001_D037_Id = D037_Id 
 							LEFT JOIN D005 ON D001_D005_Id = D005_Id 
 							LEFT JOIN C004 ON D009_C004_Id = C004_Id 

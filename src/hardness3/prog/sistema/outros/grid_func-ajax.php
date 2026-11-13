@@ -34,9 +34,10 @@ switch($g['r'][3]) {
 				$count++;
 			}
 			$resposta['totalRegistros'] = count($cache);
-			$resposta['etapas'] = round($resposta['totalRegistros'] / 1);
+			$lote = isset($r_lote) && is_numeric($r_lote) && (int) $r_lote > 0 ? (int) $r_lote : 1;
+			$resposta['etapas'] = ceil($resposta['totalRegistros'] / $lote);
 	    	$resposta['etapas'] = ($resposta['etapas'] < 1) ? 1 : $resposta['etapas'];
-	    	$resposta['registrosEtapa'] = round( $resposta['totalRegistros'] / $resposta['etapas'] );
+			$resposta['registrosEtapa'] = $lote;
 			$resposta['etapa'] = 1;
 	        $resposta['ok'] = 0;
     	    $resposta['erro'] = 0;

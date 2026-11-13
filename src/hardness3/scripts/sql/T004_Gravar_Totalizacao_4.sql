@@ -410,5 +410,6 @@ BEGIN
               T004A_Valor_Total_Desconto_Manual_Confirmada = xTotal_Desconto_Produto_Manual_Confirmada
         WHERE T004A_T004_Id=xT004_Id; 
 
+       CALL T004_Gravar_Totalizacao_4_Reforma(xT004_Id);
        CALL T003_Gravar_Totalizacao_4(xT003_Id);
 END;

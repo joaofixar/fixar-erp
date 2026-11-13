@@ -3,7 +3,6 @@ namespace hardness;
 
 // Este comando já está em vários pontos de entrada (exemplo index-framework.php), colocado aqui também para garantir que será executado em scripts antigos
 setlocale(LC_CTYPE, 'pt_BR.UTF-8');
-error_log("entrou conexaoBancoEspelhado");
 
 if (isset($_SESSION['authDB']) && $_SESSION['authDB'] && $confUsuarioEspelhado['dbDatabase'] != $sys['dbDatabase']) {
 	$confUsuarioEspelhado['dbUser_'] = $confUsuarioEspelhado['dbUser'];

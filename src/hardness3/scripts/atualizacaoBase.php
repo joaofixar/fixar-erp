@@ -13,6 +13,232 @@ if (isset($atualizacaoTodasEmpresas)) {
 
 // Bloqueio de execução em horário comercial (evita travar o sistema).
 bloquearAtualizacaoBaseHorarioComercial();
+/* INÍCIO PROJETO APONTAMENTO */
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS SMT006 (
+SMT006_Id int unsigned NOT NULL AUTO_INCREMENT,
+SMT006_Descricao varchar(100) DEFAULT NULL COMMENT 'Descrição',
+SMT006_Valor decimal(10,2) DEFAULT NULL,
+SMT006_Flag_Pintura enum('S','N') DEFAULT 'N' COMMENT 'Flag para determinar se um processo é pintura.',
+SMT006_Flag_Apontamento enum('S','N') NOT NULL DEFAULT 'N' COMMENT 'Liberado para uso no Apontamento PCP.',
+SMT006_SMT201_Id int DEFAULT NULL COMMENT 'Vínculo com a etapa',
+PRIMARY KEY (SMT006_Id),
+KEY I_SMT006_SMT201_Id (SMT006_SMT201_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Processos de engenharia';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+// Instalações anteriores já possuem SMT006 e precisam receber a flag sem
+// qualquer migração ou alteração dos registros PCP existentes.
+Criar_Campo('SMT006_Flag_Apontamento', "enum('S','N') NOT NULL DEFAULT 'N' COMMENT 'Liberado para uso no Apontamento PCP.'");
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS SMT012 (
+SMT012_Id int unsigned NOT NULL AUTO_INCREMENT,
+SMT012_Descricao varchar(100) DEFAULT NULL,
+SMT012_Cor varchar(10) DEFAULT NULL COMMENT 'Cor para destacar o registro. Informar em HEX (Ex: #FFFFFF)',
+SMT012_Obriga_Apontar_Quantidade enum('S','N') DEFAULT 'N' COMMENT 'Obriga_Apontar_Quantidade',
+PRIMARY KEY (SMT012_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Cadastro de motivos de parada';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+// PCP — Apontamento de Produção. D109 é o cadastro mestre; PCP006 delimita
+// quem participa do apontamento e mantém sua matrícula e seus processos.
+// As relações são lógicas, sem FK, conforme o padrão do ERP.
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP006 (
+PCP006_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP006_D109_Id int unsigned NOT NULL COMMENT 'Colaborador mestre habilitado no apontamento',
+PCP006_Matricula varchar(250) NOT NULL COMMENT 'Matrícula usada pelo apontamento',
+PCP006_Status enum('A','I') NOT NULL DEFAULT 'A' COMMENT 'A=ativo; I=inativo',
+PRIMARY KEY (PCP006_Id),
+UNIQUE KEY IDX_PCP006_D109_Id (PCP006_D109_Id),
+UNIQUE KEY IDX_PCP006_Matricula (PCP006_Matricula),
+KEY IDX_PCP006_Status (PCP006_Status)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Colaboradores habilitados no apontamento PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP001 (
+PCP001_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP001_T255_Id int unsigned NOT NULL COMMENT 'OP apontada pelo grupo',
+PCP001_SMT006_Id int unsigned NOT NULL COMMENT 'Processo selecionado no apontamento',
+PCP001_Status enum('A','F','I') NOT NULL DEFAULT 'A' COMMENT 'A=ativo; F=finalizado; I=inativado',
+PCP001_Data_Hora_Inicio datetime NOT NULL COMMENT 'Início do grupo',
+PCP001_Data_Hora_Fim datetime DEFAULT NULL COMMENT 'Finalização do grupo',
+PCP001_Flag_Retrabalho enum('S','N') NOT NULL DEFAULT 'N' COMMENT 'Indica retrabalho',
+PCP001_PCP005_Id int unsigned DEFAULT NULL COMMENT 'Motivo de retrabalho',
+PCP001_C007_Id int DEFAULT NULL COMMENT 'Usuário técnico da estação',
+PRIMARY KEY (PCP001_Id),
+KEY IDX_PCP001_T255_Id (PCP001_T255_Id),
+KEY IDX_PCP001_SMT006_Id (PCP001_SMT006_Id),
+KEY IDX_PCP001_Status (PCP001_Status),
+KEY IDX_PCP001_PCP005_Id (PCP001_PCP005_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Grupos de apontamento PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP002 (
+PCP002_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP002_PCP001_Id int unsigned NOT NULL COMMENT 'Grupo de apontamento',
+PCP002_D109_Id int unsigned NOT NULL COMMENT 'Colaborador participante',
+PCP002_Status enum('A','P','F','I') NOT NULL DEFAULT 'A' COMMENT 'A=ativo; P=pausado; F=finalizado; I=inativado',
+PCP002_Data_Hora_Inicio datetime NOT NULL COMMENT 'Início da participação',
+PCP002_Data_Hora_Fim datetime DEFAULT NULL COMMENT 'Finalização da participação',
+PRIMARY KEY (PCP002_Id),
+KEY IDX_PCP002_PCP001_Id (PCP002_PCP001_Id),
+KEY IDX_PCP002_D109_Id (PCP002_D109_Id),
+KEY IDX_PCP002_Status (PCP002_Status)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Participantes dos grupos de apontamento PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+// Evolução compatível do modelo PCP: relações diretas para OP e processo.
+Criar_Campo('PCP001_T255_Id', 'int unsigned DEFAULT NULL COMMENT \'OP apontada pelo grupo\'');
+Criar_Campo('PCP001_SMT006_Id', 'int unsigned DEFAULT NULL COMMENT \'Processo selecionado no apontamento\'');
+Criar_Indice('PCP001_T255_Id');
+Criar_Indice('PCP001_SMT006_Id');
+// Inativação lógica: preserva o histórico e identifica quem a executou.
+Criar_Campo('PCP001_Data_Hora_Inativacao', 'datetime DEFAULT NULL');
+Criar_Campo('PCP001_C007_Id_Inativacao', 'int DEFAULT NULL');
+Criar_Campo('PCP001_Motivo_Inativacao', 'varchar(500) DEFAULT NULL');
+Criar_Campo('PCP002_Data_Hora_Inativacao', 'datetime DEFAULT NULL');
+Criar_Campo('PCP002_C007_Id_Inativacao', 'int DEFAULT NULL');
+Criar_Campo('PCP002_Motivo_Inativacao', 'varchar(500) DEFAULT NULL');
+Alterar_Tipo_Campo('PCP001_Status', "enum('A','F','I') NOT NULL DEFAULT 'A'");
+Alterar_Tipo_Campo('PCP002_Status', "enum('A','P','F','I') NOT NULL DEFAULT 'A'");
+
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP003 (
+PCP003_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP003_PCP001_Id int unsigned NOT NULL COMMENT 'Grupo relacionado ao evento',
+PCP003_PCP002_Id int unsigned DEFAULT NULL COMMENT 'Participante; nulo para evento do grupo',
+PCP003_Tipo enum('I','P','R','F') NOT NULL COMMENT 'I=iniciar; P=pausar; R=retomar; F=finalizar',
+PCP003_Data_Hora datetime NOT NULL COMMENT 'Momento do evento',
+PCP003_SMT012_Id int unsigned DEFAULT NULL COMMENT 'Motivo de parada, quando aplicável',
+PCP003_C007_Id int DEFAULT NULL COMMENT 'Usuário técnico que registrou o evento',
+PCP003_Status enum('A','I') NOT NULL DEFAULT 'A' COMMENT 'A=ativo; I=cancelado',
+PCP003_Data_Hora_Inativacao datetime DEFAULT NULL,
+PCP003_C007_Id_Inativacao int DEFAULT NULL,
+PCP003_Motivo_Inativacao varchar(500) DEFAULT NULL,
+PRIMARY KEY (PCP003_Id),
+KEY IDX_PCP003_PCP001_Id (PCP003_PCP001_Id),
+KEY IDX_PCP003_PCP002_Id (PCP003_PCP002_Id),
+KEY IDX_PCP003_Data_Hora (PCP003_Data_Hora),
+KEY IDX_PCP003_SMT012_Id (PCP003_SMT012_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Eventos de grupos e participantes PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+Criar_Campo('PCP003_Status', "enum('A','I') NOT NULL DEFAULT 'A'");
+Criar_Campo('PCP003_Data_Hora_Inativacao', 'datetime DEFAULT NULL');
+Criar_Campo('PCP003_C007_Id_Inativacao', 'int DEFAULT NULL');
+Criar_Campo('PCP003_Motivo_Inativacao', 'varchar(500) DEFAULT NULL');
+Alterar_Tipo_Campo('PCP003_Status', "enum('A','I') NOT NULL DEFAULT 'A'");
+
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP004 (
+PCP004_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP004_PCP006_Id int unsigned NOT NULL COMMENT 'Colaborador PCP habilitado',
+PCP004_SMT006_Id int unsigned NOT NULL COMMENT 'Processo habilitado',
+PCP004_Status enum('A','I') NOT NULL DEFAULT 'A' COMMENT 'A=ativo; I=inativo',
+PRIMARY KEY (PCP004_Id),
+UNIQUE KEY IDX_PCP004_PCP006_Id_PCP004_SMT006_Id (PCP004_PCP006_Id,PCP004_SMT006_Id),
+KEY IDX_PCP004_PCP006_Id (PCP004_PCP006_Id),
+KEY IDX_PCP004_SMT006_Id (PCP004_SMT006_Id),
+KEY IDX_PCP004_Status (PCP004_Status)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Habilitação de colaborador por processo PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP005 (
+PCP005_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP005_Descricao varchar(100) NOT NULL COMMENT 'Motivo de retrabalho',
+PCP005_Status enum('A','I') NOT NULL DEFAULT 'A' COMMENT 'A=ativo; I=inativo',
+PRIMARY KEY (PCP005_Id),
+KEY IDX_PCP005_Status (PCP005_Status)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Motivos de retrabalho PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
+// Auditoria das alterações administrativas de apontamentos. Os valores são
+// gravados em JSON textual para preservar o estado anterior e posterior.
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS PCP007 (
+PCP007_Id int unsigned NOT NULL AUTO_INCREMENT,
+PCP007_PCP001_Id int unsigned NOT NULL,
+PCP007_PCP002_Id int unsigned DEFAULT NULL,
+PCP007_PCP003_Id int unsigned DEFAULT NULL,
+PCP007_Acao varchar(50) NOT NULL,
+PCP007_Justificativa varchar(500) DEFAULT NULL,
+PCP007_Dados_Anteriores longtext DEFAULT NULL,
+PCP007_Dados_Novos longtext DEFAULT NULL,
+PCP007_Data_Hora datetime NOT NULL,
+PCP007_C007_Id int DEFAULT NULL,
+PRIMARY KEY (PCP007_Id),
+KEY IDX_PCP007_PCP001_Id (PCP007_PCP001_Id),
+KEY IDX_PCP007_PCP002_Id (PCP007_PCP002_Id),
+KEY IDX_PCP007_PCP003_Id (PCP007_PCP003_Id),
+KEY IDX_PCP007_Data_Hora (PCP007_Data_Hora)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Auditoria de alterações administrativas do apontamento PCP';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+Criar_Campo('PCP007_PCP003_Id', 'int unsigned DEFAULT NULL');
+Criar_Indice('PCP007_PCP003_Id');
+
+/* FIM PROJETO APONTAMENTO */
 
 /**
 * TABELAS I (Internas)
@@ -9368,6 +9594,7 @@ create table if not exists T014A (
     T014A_T014_Id                         int(10),
     T014A_Quantidade  decimal(10,3),
     T014A_Valor_Custo_Unitario decimal(20,10) DEFAULT '0.0000000000',   
+    T014A_Aliquota_ICMS_Credito_Recebida decimal(7,4) DEFAULT '0.0000',
     PRIMARY KEY (T014A_Id),
     KEY IDX_T014A_T014_Id (T014A_T014_Id)
 )
@@ -9654,6 +9881,27 @@ EOT;
 
 $cSql = mysql_query($cClausula);
 $cErro = mysql_error(); 
+
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+    exit;
+}
+
+// criação da tabela D149A
+$cClausula  = <<<EOT
+create table if not exists D149A (
+    D149A_Id                                          int(10) unsigned auto_increment,
+    D149A_D149_Id                                     int(10),
+    D149A_Aliquota_ICMS_Difal_Uso_Consumo             decimal(10,2) DEFAULT '0.00',
+    PRIMARY KEY (D149A_Id),
+    UNIQUE KEY IDX_D149A_D149_Id (D149A_D149_Id)
+)
+DEFAULT CHARSET=utf8
+ENGINE=InnoDB;
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
 
 if (!empty($cErro)){
     echo "$cClausula<hr>$cErro";
@@ -10299,6 +10547,8 @@ create table if not exists T013A (
     T013A_T013_Id                           int(10),
     T013A_Valor_Total_ICMS_Mono_Retido      decimal(15,2) DEFAULT '0.00',
     T013A_Valor_Total_Base_ICMS_Mono_Retido decimal(15,2) DEFAULT '0.00',   
+    T013A_Aliquota_ICMS_Credito_Recebida    decimal(7,4) DEFAULT '0.0000',
+    T013A_Valor_ICMS_Credito_Recebida       decimal(15,2) DEFAULT '0.00',
     PRIMARY KEY (T013A_Id),
     UNIQUE KEY IDX_T013A_T013_Id (T013A_T013_Id)
 )
@@ -10906,6 +11156,328 @@ if($rowC029['C029_Descricao_Acesso'] != 'Vendas - Notas Fiscais'){
 
 Criar_Campo("C029_Flag_Tipo","char(1) NOT NULL DEFAULT 'M'");
 Criar_Campo("C029_Flag_Modulo","varchar(2) DEFAULT NULL");
+/* INÍCIO PROJETO GNRE — Task 02: cadastro manual de rascunhos */
+// O modelo guarda somente os dados que o operador informa para identificar a
+// guia manual. Transmissão, XML, fila, PDF e configurações de UF não fazem
+// parte destas tabelas.
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE001 (
+GNRE001_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE001_C004_Id int unsigned NOT NULL COMMENT 'Empresa proprietária da guia',
+GNRE001_GNRE007_Id int unsigned DEFAULT NULL COMMENT 'Snapshot imutável TConfigUf escolhido conscientemente para esta guia',
+GNRE001_GNRE001_Id_Origem_Correcao int unsigned DEFAULT NULL COMMENT 'Guia rejeitada que originou este rascunho de correção; nunca representa retransmissão',
+GNRE001_Modalidade enum('INDIVIDUAL','APURACAO') NOT NULL COMMENT 'Forma operacional da guia manual',
+GNRE001_Status enum('R','C','P','I','F') NOT NULL DEFAULT 'R' COMMENT 'R=rascunho; C=cancelada; P=recibo pendente; I=transmissão inconclusiva; F=resultado final consultado',
+GNRE001_Arquivada CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'S=guia arquivada sem apagar histórico técnico',
+GNRE001_Numero_Controle varchar(20) DEFAULT NULL COMMENT 'Projeção operacional do numeroControle oficial de resultado individual autorizado',
+GNRE001_UF_Favorecida char(2) NOT NULL COMMENT 'UF favorecida informada manualmente',
+GNRE001_Tipo_GNRE char(1) DEFAULT NULL COMMENT 'Tipo oficial GNRE do XML (0, 1 ou 2); validado futuramente contra o XSD e TConfigUf',
+GNRE001_Codigo_Receita varchar(20) NOT NULL DEFAULT '' COMMENT 'Vazio somente enquanto rascunho sem receita informada',
+GNRE001_Detalhamento_Receita varchar(50) DEFAULT NULL COMMENT 'Detalhamento de receita, quando conhecido',
+GNRE001_Data_Vencimento date DEFAULT NULL COMMENT 'Vencimento manual; nulo enquanto rascunho incompleto',
+GNRE001_Valor decimal(15,2) NOT NULL DEFAULT '0.00' COMMENT 'Zero somente enquanto rascunho sem valores informados',
+GNRE001_Referencia varchar(50) DEFAULT NULL COMMENT 'Referência ou competência livre',
+GNRE001_Observacao varchar(1000) DEFAULT NULL COMMENT 'Observação livre da guia',
+GNRE001_Data_Pagamento date DEFAULT NULL COMMENT 'Data de pagamento global da guia no XML GNRE',
+GNRE001_Data_Hora_Criacao datetime NOT NULL,
+GNRE001_C007_Id_Criacao int NOT NULL COMMENT 'Usuário ERP que criou a guia',
+GNRE001_Data_Hora_Alteracao datetime DEFAULT NULL,
+GNRE001_C007_Id_Alteracao int DEFAULT NULL COMMENT 'Usuário ERP que alterou o rascunho',
+GNRE001_Data_Hora_Cancelamento datetime DEFAULT NULL,
+GNRE001_C007_Id_Cancelamento int DEFAULT NULL COMMENT 'Usuário ERP que cancelou o rascunho',
+GNRE001_Motivo_Cancelamento varchar(500) DEFAULT NULL,
+PRIMARY KEY (GNRE001_Id),
+KEY IDX_GNRE001_C004_Id_Status (GNRE001_C004_Id,GNRE001_Status),
+KEY IDX_GNRE001_EMPRESA_ARQUIVADA (GNRE001_C004_Id,GNRE001_Arquivada),
+UNIQUE KEY UQ_GNRE001_Empresa_Numero_Controle (GNRE001_C004_Id,GNRE001_Numero_Controle),
+KEY IDX_GNRE001_GNRE007_Id (GNRE001_GNRE007_Id),
+KEY IDX_GNRE001_Origem_Correcao_Status (GNRE001_GNRE001_Id_Origem_Correcao,GNRE001_Status),
+KEY IDX_GNRE001_C004_Id_Data_Vencimento (GNRE001_C004_Id,GNRE001_Data_Vencimento)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Guias GNRE cadastradas manualmente';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 17: versão oficial imutável por empresa, ambiente, UF e conteúdo.
+   Este CREATE descreve somente instalações novas. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE007 (
+GNRE007_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE007_C004_Id int unsigned NOT NULL COMMENT 'Empresa/CNPJ cujo certificado consultou o Portal',
+GNRE007_Ambiente char(1) NOT NULL COMMENT 'Ambiente informado na TConfigUf (homologação=2)',
+GNRE007_UF char(2) NOT NULL COMMENT 'UF favorecida da configuração oficial',
+GNRE007_XML mediumtext NOT NULL COMMENT 'TConfigUf bruto validado no XSD oficial',
+GNRE007_Regras_JSON mediumtext NOT NULL COMMENT 'Interpretação Task 16 do XML validado',
+GNRE007_XML_SHA256 char(64) NOT NULL COMMENT 'SHA-256 do XML bruto',
+GNRE007_Data_Hora_Consulta datetime NOT NULL,
+GNRE007_C007_Id_Consulta int DEFAULT NULL COMMENT 'Usuário que solicitou a consulta manual',
+GNRE007_Origem varchar(30) NOT NULL DEFAULT 'PORTAL_MANUAL' COMMENT 'Origem técnica auditável',
+PRIMARY KEY (GNRE007_Id),
+UNIQUE KEY UQ_GNRE007_Empresa_Ambiente_UF_Hash (GNRE007_C004_Id,GNRE007_Ambiente,GNRE007_UF,GNRE007_XML_SHA256),
+KEY IDX_GNRE007_Localizacao (GNRE007_C004_Id,GNRE007_Ambiente,GNRE007_UF,GNRE007_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Snapshots imutáveis da configuração oficial TConfigUf';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE002 (
+GNRE002_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE002_GNRE001_Id int unsigned NOT NULL COMMENT 'Guia manual relacionada',
+GNRE002_T007_Id int unsigned DEFAULT NULL COMMENT 'NF de origem vinculada manualmente no Escopo 3 da Task 60',
+GNRE002_Tributo_Origem varchar(10) DEFAULT NULL COMMENT 'Componente temporário da NF de origem: ST, DIFAL ou FCP',
+GNRE002_Identificacao varchar(100) NOT NULL COMMENT 'Identificação livre do documento de origem',
+GNRE002_Descricao varchar(500) DEFAULT NULL COMMENT 'Descrição livre do documento de origem',
+GNRE002_Data_Hora_Criacao datetime NOT NULL,
+PRIMARY KEY (GNRE002_Id),
+KEY IDX_GNRE002_GNRE001_Id (GNRE002_GNRE001_Id),
+UNIQUE KEY UQ_GNRE002_NF_TRIBUTO (GNRE002_T007_Id,GNRE002_Tributo_Origem)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Documentos de origem vinculados manualmente à GNRE';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 05: cada transmissão é imutável para auditoria e para impedir reenvio
+   automático após resposta ambígua. Não armazena certificado, senha ou chave. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE004 (
+GNRE004_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE004_GNRE001_Id int unsigned NOT NULL COMMENT 'Guia transmitida',
+GNRE004_Sequencia smallint unsigned NOT NULL COMMENT 'Tentativa sequencial por guia',
+GNRE004_XML_Enviado mediumtext NOT NULL COMMENT 'XML de lote validado antes do envio',
+GNRE004_XML_SHA256 char(64) NOT NULL COMMENT 'Hash SHA-256 do XML enviado',
+GNRE004_Data_Hora_Criacao datetime NOT NULL,
+GNRE004_Data_Hora_Envio datetime DEFAULT NULL,
+GNRE004_C007_Id_Solicitante int NOT NULL COMMENT 'Usuário ERP que solicitou a transmissão',
+GNRE004_HTTP_Status smallint unsigned DEFAULT NULL,
+GNRE004_Codigo_Retorno varchar(10) DEFAULT NULL,
+GNRE004_Descricao_Retorno varchar(255) DEFAULT NULL,
+GNRE004_Recibo varchar(20) DEFAULT NULL,
+GNRE004_Data_Hora_Recibo varchar(40) DEFAULT NULL,
+GNRE004_Tempo_Estimado_Processamento_MS int DEFAULT NULL,
+GNRE004_Resposta_SOAP mediumtext DEFAULT NULL,
+GNRE004_Erro_Tecnico text DEFAULT NULL,
+GNRE004_Estado enum('CRIADA','RECEBIDA','REJEITADA','INCONCLUSIVA') NOT NULL COMMENT 'Estado imutável da tentativa de recepção',
+PRIMARY KEY (GNRE004_Id),
+UNIQUE KEY UQ_GNRE004_Guia_Sequencia (GNRE004_GNRE001_Id,GNRE004_Sequencia),
+KEY IDX_GNRE004_GNRE001_Id_Data (GNRE004_GNRE001_Id,GNRE004_Data_Hora_Criacao)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Auditoria das tentativas de transmissão GNRE';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 74: cabeçalho persistente do futuro lote físico GNRE. A criação local
+   ainda prepara somente a coorte; campos de transporte/consulta ficam NULL
+   até task própria. Não armazena PDF coletivo. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE010 (
+GNRE010_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE010_C004_Id int unsigned NOT NULL COMMENT 'Empresa GNRE proprietária do lote',
+GNRE010_GNRE007_Id int unsigned NOT NULL COMMENT 'Snapshot oficial imutável comum às participantes',
+GNRE010_UF_Favorecida char(2) NOT NULL COMMENT 'UF favorecida homogênea do lote',
+GNRE010_Ambiente char(1) NOT NULL COMMENT 'Ambiente exclusivamente do GNRE007 vinculado',
+GNRE010_Layout_Versao varchar(20) NOT NULL COMMENT 'Versão do layout oficial aplicável ao lote',
+GNRE010_Fingerprint_Versao varchar(64) NOT NULL COMMENT 'Versão do contrato de correlação',
+GNRE010_Chave_Idempotencia varchar(64) DEFAULT NULL COMMENT 'Chave persistida antes do futuro envio físico; NULL em coorte local legada',
+GNRE010_XML_SHA256 char(64) DEFAULT NULL COMMENT 'SHA-256 do XML físico congelado do lote',
+GNRE010_XML_Fisico mediumtext DEFAULT NULL COMMENT 'XML físico congelado do lote, quando futuro envio o gerar',
+GNRE010_Data_Hora_Envio datetime DEFAULT NULL COMMENT 'Horário da única chamada física futura',
+GNRE010_C007_Id_Solicitante_Envio int DEFAULT NULL COMMENT 'Usuário que solicitará o futuro envio',
+GNRE010_HTTP_Recepcao_Status smallint unsigned DEFAULT NULL COMMENT 'HTTP da recepção futura',
+GNRE010_SOAP_Recepcao mediumtext DEFAULT NULL COMMENT 'SOAP bruto da recepção futura',
+GNRE010_Mensagem_Tecnica text DEFAULT NULL COMMENT 'Erro ou mensagem técnica de recepção/recuperação, sem segredo',
+GNRE010_Recibo varchar(20) DEFAULT NULL COMMENT 'Recibo compartilhado retornado pelo Portal',
+GNRE010_Data_Hora_Recibo varchar(40) DEFAULT NULL COMMENT 'Data/hora do recibo preservada do retorno oficial',
+GNRE010_Situacao enum('PREPARADO','ENVIANDO','RECEBIDO','PENDENTE','FINALIZADO','INCONCLUSIVO','REJEITADO','CANCELADO') NOT NULL DEFAULT 'PREPARADO',
+GNRE010_Proxima_Tentativa_Consulta datetime DEFAULT NULL COMMENT 'Próxima consulta futura do recibo compartilhado',
+GNRE010_Consulta_Lock_Token char(64) DEFAULT NULL COMMENT 'Lease futuro da consulta do lote',
+GNRE010_Consulta_Lock_Ate datetime DEFAULT NULL COMMENT 'Validade do lease futuro da consulta do lote',
+GNRE010_Ultima_Consulta_SOAP mediumtext DEFAULT NULL COMMENT 'Último SOAP futuro de consulta do recibo',
+GNRE010_Data_Hora_Ultima_Consulta datetime DEFAULT NULL COMMENT 'Horário da última consulta futura do recibo',
+GNRE010_Data_Hora_Criacao datetime NOT NULL,
+PRIMARY KEY (GNRE010_Id),
+UNIQUE KEY UQ_GNRE010_Empresa_Idempotencia (GNRE010_C004_Id,GNRE010_Chave_Idempotencia),
+KEY IDX_GNRE010_Empresa_Situacao (GNRE010_C004_Id,GNRE010_Situacao),
+KEY IDX_GNRE010_Snapshot (GNRE010_GNRE007_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Lotes físicos GNRE futuros; criação atual permanece somente local';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE011 (
+GNRE011_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE011_GNRE010_Id int unsigned NOT NULL COMMENT 'Lote GNRE proprietário',
+GNRE011_GNRE001_Id int unsigned NOT NULL COMMENT 'Guia participante',
+GNRE011_Fragmento_Canonico mediumtext NOT NULL COMMENT 'Fragmento TDadosGNRE canônico de auditoria congelado',
+GNRE011_Fragmento_SHA256 char(64) NOT NULL COMMENT 'SHA-256 do fragmento canônico',
+GNRE011_Fingerprint_Negocio char(64) NOT NULL COMMENT 'SHA-256 de negócio usado exclusivamente para correlação futura',
+GNRE011_Fingerprint_Versao varchar(64) NOT NULL COMMENT 'Versão do vetor de correlação',
+GNRE011_Ordinal_Envio smallint unsigned DEFAULT NULL COMMENT 'Ordinal apenas de auditoria; nunca critério de correlação',
+GNRE011_Situacao enum('PREPARADO','PENDENTE','FINALIZADO','INCONCLUSIVO','REJEITADO') NOT NULL DEFAULT 'PREPARADO' COMMENT 'Ciclo individual futuro da participante',
+GNRE011_Situacao_Guia char(1) DEFAULT NULL COMMENT 'situacaoGuia oficial individual futura; 0 é a única confirmação de autorização',
+GNRE011_Resultado_Individual mediumtext DEFAULT NULL COMMENT 'Resultado individual bruto/projetado futuro',
+GNRE011_Motivos_Rejeicao mediumtext DEFAULT NULL COMMENT 'Motivos individuais futuros de rejeição',
+GNRE011_Decisao_Correlacao varchar(32) DEFAULT NULL COMMENT 'MATCHED, UNMATCHED, AMBIGUOUS ou INSUFFICIENT_EVIDENCE',
+GNRE011_Candidatos_Correlacao mediumtext DEFAULT NULL COMMENT 'Auditoria futura dos candidatos de correlação',
+GNRE011_Data_Hora_Decisao datetime DEFAULT NULL COMMENT 'Horário futuro da decisão individual persistida',
+GNRE011_Data_Hora_Criacao datetime NOT NULL,
+PRIMARY KEY (GNRE011_Id),
+UNIQUE KEY UQ_GNRE011_Coorte_Guia (GNRE011_GNRE010_Id,GNRE011_GNRE001_Id),
+KEY IDX_GNRE011_Guia (GNRE011_GNRE001_Id),
+KEY IDX_GNRE011_Lote (GNRE011_GNRE010_Id),
+KEY IDX_GNRE011_Lote_Situacao (GNRE011_GNRE010_Id,GNRE011_Situacao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Participantes imutáveis de lote GNRE real';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 25: o binário oficial não se mistura com XML/SOAP das trilhas GNRE004/5. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE008 (
+GNRE008_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE008_C004_Id int unsigned NOT NULL COMMENT 'Empresa autorizada proprietária do documento',
+GNRE008_GNRE001_Id int unsigned NOT NULL COMMENT 'Guia aprovada',
+GNRE008_GNRE004_Id int unsigned NOT NULL COMMENT 'Tentativa de recepção que originou o recibo',
+GNRE008_Recibo varchar(20) NOT NULL COMMENT 'Recibo consultado no Portal',
+GNRE008_Tipo varchar(20) NOT NULL COMMENT 'PDF_OFICIAL',
+GNRE008_Origem varchar(20) NOT NULL COMMENT 'PORTAL_GNRE',
+GNRE008_Conteudo mediumblob NOT NULL COMMENT 'PDF original retornado pelo Portal Nacional',
+GNRE008_Mime varchar(100) NOT NULL COMMENT 'application/pdf',
+GNRE008_Tamanho int unsigned NOT NULL COMMENT 'Tamanho do binário em bytes',
+GNRE008_SHA256 char(64) NOT NULL COMMENT 'SHA-256 do binário original',
+GNRE008_Data_Hora_Obtencao datetime NOT NULL,
+GNRE008_C007_Id_Solicitante int DEFAULT NULL COMMENT 'Usuário que solicitou a obtenção',
+PRIMARY KEY (GNRE008_Id),
+UNIQUE KEY UQ_GNRE008_Tentativa_Hash (GNRE008_GNRE004_Id,GNRE008_SHA256),
+KEY IDX_GNRE008_Empresa_Guia (GNRE008_C004_Id,GNRE008_GNRE001_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='PDF oficial imutável retornado pelo Portal Nacional GNRE';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 38: preferência preparatória; não muda ambiente operacional. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE009 (
+GNRE009_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE009_C004_Id int unsigned NOT NULL,
+GNRE009_Ambiente char(1) NOT NULL DEFAULT '2',
+PRIMARY KEY (GNRE009_Id),
+UNIQUE KEY UQ_GNRE009_Empresa (GNRE009_C004_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 04: cada linha representa um item de recolhimento do XML, e não um
+   produto ou uma linha de NF-e. GNRE002 continua sendo apenas o documento de
+   origem; uma guia pode ter vários itens e um documento pode originar vários
+   recolhimentos. Não há XML, recibo, fila ou dados específicos por UF aqui. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE003 (
+GNRE003_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE003_GNRE001_Id int unsigned NOT NULL COMMENT 'Guia GNRE proprietária do item de recolhimento',
+GNRE003_GNRE002_Id int unsigned DEFAULT NULL COMMENT 'Documento de origem opcional do item de recolhimento',
+GNRE003_Codigo_Receita varchar(6) NOT NULL COMMENT 'Receita do item no XML GNRE',
+GNRE003_Detalhamento_Receita varchar(6) DEFAULT NULL COMMENT 'Detalhamento da receita do item no XML GNRE',
+GNRE003_Tipo_Valor char(2) NOT NULL DEFAULT '11' COMMENT 'Tipo de valor GNRE: 11 principal, 12 FECP, 21 total, etc.',
+GNRE003_Valor decimal(15,2) NOT NULL COMMENT 'Valor do item de recolhimento',
+GNRE003_Tipo_Documento_Origem char(2) DEFAULT NULL COMMENT 'Tipo de documento de origem exigido pelo XML',
+GNRE003_Codigo_Produto varchar(4) DEFAULT NULL COMMENT 'Código de produto GNRE, quando aplicável',
+GNRE003_Referencia_Periodo char(1) DEFAULT NULL COMMENT '0 mensal, 1/2 quinzena, 3/4/5 decêndio',
+GNRE003_Referencia_Mes char(2) DEFAULT NULL COMMENT 'Mês de referência',
+GNRE003_Referencia_Ano char(4) DEFAULT NULL COMMENT 'Ano de referência',
+GNRE003_Referencia_Parcela varchar(3) DEFAULT NULL COMMENT 'Parcela de referência',
+GNRE003_Data_Vencimento date DEFAULT NULL COMMENT 'Vencimento do item no XML GNRE',
+GNRE003_Convenio varchar(30) DEFAULT NULL COMMENT 'Número do convênio do item no XML GNRE (XSD: TString, máximo 30)',
+GNRE003_Destinatario_Tipo_Identificacao enum('CNPJ','CPF','IE') DEFAULT NULL COMMENT 'Tipo da identificação do destinatário',
+GNRE003_Destinatario_Identificacao varchar(16) DEFAULT NULL COMMENT 'CNPJ, CPF ou IE do destinatário',
+GNRE003_Destinatario_Razao_Social varchar(60) DEFAULT NULL COMMENT 'Nome ou razão social do destinatário',
+GNRE003_Destinatario_Codigo_Municipio char(5) DEFAULT NULL COMMENT 'Código IBGE de cinco dígitos exigido pelo XML GNRE',
+GNRE003_Campos_Extras_JSON text COMMENT 'Lista JSON genérica de codigo/valor de campos extras GNRE',
+GNRE003_Data_Hora_Criacao datetime NOT NULL,
+GNRE003_C007_Id_Criacao int NOT NULL COMMENT 'Usuário ERP que criou o item',
+GNRE003_Data_Hora_Alteracao datetime DEFAULT NULL,
+GNRE003_C007_Id_Alteracao int DEFAULT NULL COMMENT 'Usuário ERP que alterou o item',
+PRIMARY KEY (GNRE003_Id),
+KEY IDX_GNRE003_GNRE001_Id (GNRE003_GNRE001_Id),
+KEY IDX_GNRE003_GNRE002_Id (GNRE003_GNRE002_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Itens de recolhimento para geração local do XML GNRE';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE006 (
+GNRE006_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE006_GNRE003_Id int unsigned NOT NULL COMMENT 'Item de recolhimento proprietário do valor tributário',
+GNRE006_Tipo_Valor char(2) NOT NULL COMMENT 'Tipo de valor XML GNRE: 11, 12, 21, 22, 31, 32, 41, 42, 51 ou 52',
+GNRE006_Valor decimal(15,2) NOT NULL COMMENT 'Valor tributário do item no XML GNRE',
+GNRE006_Data_Hora_Criacao datetime NOT NULL,
+GNRE006_C007_Id_Criacao int NOT NULL COMMENT 'Usuário ERP que criou o valor',
+GNRE006_Data_Hora_Alteracao datetime DEFAULT NULL,
+GNRE006_C007_Id_Alteracao int DEFAULT NULL COMMENT 'Usuário ERP que alterou o valor',
+PRIMARY KEY (GNRE006_Id),
+KEY IDX_GNRE006_GNRE003_Id (GNRE006_GNRE003_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Valores tributários por item de recolhimento GNRE';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* Task 06: fila própria de consulta de recibos. A chave única impede que a
+   mesma tentativa recebida gere duas consultas, inclusive ao reaplicar a base. */
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS GNRE005 (
+GNRE005_Id int unsigned NOT NULL AUTO_INCREMENT,
+GNRE005_GNRE004_Id int unsigned NOT NULL COMMENT 'Tentativa de recepção que forneceu o recibo',
+GNRE005_Recibo varchar(20) NOT NULL COMMENT 'Recibo GNRE a consultar',
+GNRE005_Situacao enum('PENDENTE','PROCESSANDO','FINALIZADA','BLOQUEADA') NOT NULL DEFAULT 'PENDENTE',
+GNRE005_Proxima_Tentativa datetime NOT NULL,
+GNRE005_Tentativas int unsigned NOT NULL DEFAULT 0,
+GNRE005_Lock_Token char(64) DEFAULT NULL COMMENT 'Token aleatório do worker que detém o lease',
+GNRE005_Lock_Ate datetime DEFAULT NULL COMMENT 'Lease temporário; item volta a ser elegível depois dele',
+GNRE005_Data_Hora_Processamento datetime DEFAULT NULL,
+GNRE005_Erro_Tecnico text DEFAULT NULL,
+GNRE005_Ultima_Consulta_HTTP smallint unsigned DEFAULT NULL,
+GNRE005_Ultima_Consulta_Codigo varchar(10) DEFAULT NULL,
+GNRE005_Ultima_Consulta_Descricao varchar(255) DEFAULT NULL,
+GNRE005_Ultima_Consulta_SOAP mediumtext DEFAULT NULL,
+GNRE005_Data_Hora_Ultima_Consulta datetime DEFAULT NULL,
+GNRE005_Data_Hora_Criacao datetime NOT NULL,
+GNRE005_Data_Hora_Alteracao datetime DEFAULT NULL,
+PRIMARY KEY (GNRE005_Id),
+UNIQUE KEY UQ_GNRE005_GNRE004_Id (GNRE005_GNRE004_Id),
+KEY IDX_GNRE005_Execucao (GNRE005_Situacao,GNRE005_Proxima_Tentativa,GNRE005_Lock_Ate),
+KEY IDX_GNRE005_Recibo (GNRE005_Recibo)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Fila persistente GNRE de consulta de recibos';
+EOT;
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+/* FIM PROJETO GNRE */
+
 $registroC029 = <<<EOT
 insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Entidade`,`C029_Tela`,`C029_Opcao`,`C029_Grupo`,`C029_Grupo_NFe`,`C029_Flag_NFe`,`C029_Flag_Modulo`) values (1,'Cliente/Fornecedor',NULL,NULL,NULL,'Cadastros',NULL,'N','15');
 insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Entidade`,`C029_Tela`,`C029_Opcao`,`C029_Grupo`,`C029_Grupo_NFe`,`C029_Flag_NFe`,`C029_Flag_Modulo`) values (2,'Transportadoras',NULL,NULL,NULL,'Cadastros',NULL,'N','13');
@@ -11226,6 +11798,9 @@ insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Grupo`,`C029_Flag_Tipo
 insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Grupo`,`C029_Flag_Tipo`,`C029_Flag_Modulo`) values (305,'Acessar configurações das integrações','Integrações','M','0');
 insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Grupo`,`C029_Flag_Tipo`,`C029_Flag_Modulo`) values (306,'Acessar conexões MCP','Integrações','M','0');
 insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Grupo`,`C029_Flag_Tipo`,`C029_Flag_Modulo`) values (307,'Administrar Webhooks','Integrações','M','0');
+insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Entidade`,`C029_Tela`,`C029_Opcao`,`C029_Grupo`,`C029_Grupo_NFe`,`C029_Flag_NFe`) values (308,'Acessar Apontamento PCP',NULL,NULL,NULL,'Estoque - PCP',NULL,'N');
+insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Entidade`,`C029_Tela`,`C029_Opcao`,`C029_Grupo`,`C029_Grupo_NFe`,`C029_Flag_NFe`) values (309,'Editar/Excluir Apontamentos PCP',NULL,NULL,NULL,'Estoque - PCP',NULL,'N');
+insert into c029 (`C029_Id`,`C029_Descricao_Acesso`,`C029_Entidade`,`C029_Tela`,`C029_Opcao`,`C029_Grupo`,`C029_Grupo_NFe`,`C029_Flag_NFe`) values (310,'Acessar GNRE',NULL,NULL,NULL,'Fiscal',NULL,'N');
 
 
 EOT;
@@ -12429,6 +13004,12 @@ mysqli_query("update D001 set D001_Flag_Ativo='S' where D001_Flag_Ativo!='N'");
 Criar_Campo("D006_ST_ICMS_Interno_Reducao","decimal(5,2) DEFAULT '0.00'");
 
 Criar_Campo("D006_Flag_Calcula_FCP","varchar(1) DEFAULT 'N'");
+// Task 60 — estes marcadores classificam somente a elegibilidade da CFOP
+// para a inclusão manual assistida de GNRE. Não participam de totalização,
+// XML, contas, vencimento, receita ou qualquer regra fiscal existente.
+Criar_Campo("D006_Flag_Gera_GNRE_ST", "char(1) NOT NULL DEFAULT 'N'");
+Criar_Campo("D006_Flag_Gera_GNRE_DIFAL", "char(1) NOT NULL DEFAULT 'N'");
+Criar_Campo("D006_Flag_Gera_GNRE_FCP", "char(1) NOT NULL DEFAULT 'N'");
 
 Criar_Campo("D014_Grupo_DRE","varchar(2) DEFAULT ''");
 Criar_Campo("D001_Flag_Desenho_Tecnico","varchar(1) DEFAULT 'N'");
@@ -12539,6 +13120,7 @@ Criar_Campo('T014_Valor_PIS_Recebida', "decimal(10,2)             DEFAULT '0.00'
 Criar_Campo('T014_Valor_Base_COFINS_Recebida', "decimal(20,2)             DEFAULT '0.00'");
 Criar_Campo('T014_Valor_COFINS_Recebida', "decimal(10,2)             DEFAULT '0.00'");
 Criar_Campo('T014_Valor_ICMS_Credito_Recebida', "decimal(15,2)             DEFAULT '0.00'");
+Criar_Campo('T014A_Aliquota_ICMS_Credito_Recebida', "decimal(7,4)             DEFAULT '0.0000'");
 Criar_Campo('T014_Total_Cubagem_Recebida', "decimal(10,6)             DEFAULT '0.000000'");
 Criar_Campo('T014_Valor_Trib_Transparencia_Recebida', "decimal(15,6)             DEFAULT '0.000000'");
 Criar_Campo('T014_Valor_Custo_Unitario_Recebida', "decimal(19,5)             DEFAULT '0.00000'");
@@ -12564,6 +13146,7 @@ Criar_Campo("D013_DDD_Telefone_2","int(2) unsigned");
 Criar_Campo("D021_DDD_Telefone_1","int(2) unsigned");
 Criar_Campo("D021_Nome_Fantasia","varchar(50)");
 Criar_Campo("D021_DDD_Telefone_2","int(2) unsigned");
+Criar_Campo("D021_E_Mail","varchar(254) DEFAULT NULL COMMENT 'E-mail de acesso ao portal do representante'");
 Criar_Campo("D022_DDD_Telefone_1","int(2) unsigned");
 Criar_Campo("D022_DDD_Telefone_2","int(2) unsigned");
 Criar_Campo("D023_DDD_Telefone_1","int(2) unsigned");
@@ -13354,6 +13937,8 @@ Criar_Campo("T014_Valor_COFINS","decimal(10,2) DEFAULT '0.00'");
 
 Criar_Campo("T013_Valor_Total_COFINS","decimal(10,2) DEFAULT '0.00'");
 Criar_Campo("T013_Valor_Total_PIS","decimal(10,2) DEFAULT '0.00'");
+Criar_Campo("T013A_Aliquota_ICMS_Credito_Recebida","decimal(7,4) DEFAULT '0.0000'");
+Criar_Campo("T013A_Valor_ICMS_Credito_Recebida","decimal(15,2) DEFAULT '0.00'");
 
 Criar_Campo("T013_Peso_Bruto","decimal(10,3) DEFAULT '0.00'");
 Criar_Campo("T013_Peso_Liquido","decimal(10,3) DEFAULT '0.00'");
@@ -14019,6 +14604,8 @@ Criar_Campo("T003_D044_Id","int(10) unsigned DEFAULT '1'");
 Criar_Campo("T003_Cotacao_Moeda","decimal(10,5) DEFAULT 0");
 Criar_Campo("T005_D044_Id","int(10) unsigned DEFAULT '1'");
 Criar_Campo("T005_Cotacao_Moeda","decimal(10,5) DEFAULT 0");
+Criar_Campo("T224A_D044_Id","int(10) unsigned DEFAULT '1'");
+Criar_Campo("T224A_Cotacao_Moeda","decimal(10,5) DEFAULT 0");
 
 Criar_Campo("D049_Valor_Preco_KG","decimal(14,4) DEFAULT 0");
 Criar_Campo("T005_Separacao_Lote","int(11)");
@@ -14581,6 +15168,7 @@ Criar_Indice('T139_T075_Id');
 Criar_Indice('T139_Flag_Excluir');
 Criar_Indice('T003_D044_Id');
 Criar_Indice('T005_D044_Id');
+Criar_Indice('T224A_D044_Id');
 Criar_Indice('D085_T002_Id');
 Criar_Indice('D009_Frequencia_Venda');
 Criar_Indice('D006_D088_Id');
@@ -15002,7 +15590,11 @@ Criar_Campo("T006A_Valor_Base_FCP_ST","decimal(15,2) default '0.00'");
 Criar_Campo("T006A_Valor_FCP_ST","decimal(15,2) default '0.00'");
 Criar_Campo("T006A_Valor_Base_FCP_Dest","decimal(15,2) default '0.00'");
 Criar_Campo("T006A_Valor_FCP_Partilha","decimal(15,2) default '0.00'"); 
-Criar_Campo("T014A_Valor_Acrescimo_Custo","decimal(20,10) default '0.00'"); 
+Criar_Campo("T014A_Valor_Acrescimo_Custo","decimal(20,10) default '0.00'");
+// Frete por NFS: vínculo da nota de serviço e parcela no custo dos produtos.
+Criar_Campo("T013A_T013_Id_Frete_NFS", "int unsigned NOT NULL DEFAULT 0");
+Criar_Indice("T013A_T013_Id_Frete_NFS");
+Criar_Campo("T014A_Valor_Frete_NFS", "decimal(15,2) NOT NULL DEFAULT '0.00'");
 Criar_Campo("T001A_Valor_Acrescimo_Custo","decimal(20,10) default '0.00'"); 
 Criar_Indice("T001_Data_Hora_Insercao");
 Alterar_Tipo_Campo("D042_Quantidade","decimal(10,5) default '0.00000'");
@@ -15156,6 +15748,7 @@ Criar_Campo("T055A_Duimp_Codigo_Interno", "varchar(60) DEFAULT ''");
 Criar_Campo("D001A_Quantidade_Estoque_Consolidado", "decimal(14,2) DEFAULT '0.00'");
 Criar_Campo("D001A_Quantidade_Estoque_Liquido_Consolidado", "decimal(14,2) DEFAULT '0.00'");
 Criar_Campo("D201_Chave_Sistema", "varchar(50) DEFAULT ''");
+Criar_Campo("C004_Cor_Identidade","varchar(7) DEFAULT NULL");
 
 // Segurança de senha: mantém a senha atual e as três anteriores em hash.
 Alterar_Tipo_Campo("C007_Senha", "varchar(255)");
@@ -15173,6 +15766,285 @@ if (mysql_num_rows($cMcp001PublicIdIndex) === 0) {
     $cMcp001PublicIdUnique = "ALTER TABLE MCP001 ADD UNIQUE KEY U_MCP001_Public_Id (MCP001_Public_Id)";
     $cSql = mysql_query($cMcp001PublicIdUnique); $cErro = mysql_error(); if (!empty($cErro)) { echo "$cMcp001PublicIdUnique<hr>$cErro"; }
 }
+
+/* [REFORMA TRIBUTÁRIA] - Fluxos comerciais: orçamento/Peiddo.
+ * Lote para a janela programada de T003A/T004A. */
+Criar_Campos('T003A', array(
+    'T003A_Valor_Total_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T003A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T004A', array(
+    'T004A_Situacao_Tributaria_CBS_IBS' => "varchar(3) NOT NULL DEFAULT ''",
+    'T004A_Classificacao_Tributaria_CBS_IBS' => "varchar(6) NOT NULL DEFAULT ''",
+    'T004A_Situacao_Tributaria_CBS_IBS_Regular' => "varchar(3) NOT NULL DEFAULT ''",
+    'T004A_Classificacao_Tributaria_CBS_IBS_Regular' => "varchar(6) NOT NULL DEFAULT ''",
+    'T004A_Aliquota_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Percentual_Reducao_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Aliquota_CBS_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Percentual_Diferimento_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Aliquota_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Percentual_Reducao_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Aliquota_CBS_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_CBS_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Aliquota_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Percentual_Reducao_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Aliquota_IBS_Municipal_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Percentual_Diferimento_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Aliquota_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Percentual_Reducao_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Aliquota_IBS_Municipal_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_IBS_Municipal_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Aliquota_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Percentual_Reducao_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Aliquota_IBS_UF_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Percentual_Diferimento_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Aliquota_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Percentual_Reducao_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Aliquota_IBS_UF_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T004A_Valor_IBS_UF_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Valor_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T004A_Valor_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T005A', array(
+    'T005A_Valor_Total_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T005A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T006A', array(
+    'T006A_Situacao_Tributaria_CBS_IBS' => "varchar(3) NOT NULL DEFAULT ''",
+    'T006A_Classificacao_Tributaria_CBS_IBS' => "varchar(6) NOT NULL DEFAULT ''",
+    'T006A_Situacao_Tributaria_CBS_IBS_Regular' => "varchar(3) NOT NULL DEFAULT ''",
+    'T006A_Classificacao_Tributaria_CBS_IBS_Regular' => "varchar(6) NOT NULL DEFAULT ''",
+    'T006A_Aliquota_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Percentual_Reducao_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Aliquota_CBS_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Percentual_Diferimento_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Aliquota_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Percentual_Reducao_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Aliquota_CBS_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_CBS_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Aliquota_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Percentual_Reducao_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Aliquota_IBS_Municipal_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Percentual_Diferimento_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Aliquota_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Percentual_Reducao_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Aliquota_IBS_Municipal_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_IBS_Municipal_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Aliquota_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Percentual_Reducao_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Aliquota_IBS_UF_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Percentual_Diferimento_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Aliquota_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Percentual_Reducao_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Aliquota_IBS_UF_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T006A_Valor_IBS_UF_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Valor_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T006A_Valor_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T013A', array(
+    'T013A_Valor_Total_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T013A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T014A', array(
+    'T014A_Situacao_Tributaria_CBS_IBS' => "varchar(3) NOT NULL DEFAULT ''",
+    'T014A_Classificacao_Tributaria_CBS_IBS' => "varchar(6) NOT NULL DEFAULT ''",
+    'T014A_Situacao_Tributaria_CBS_IBS_Regular' => "varchar(3) NOT NULL DEFAULT ''",
+    'T014A_Classificacao_Tributaria_CBS_IBS_Regular' => "varchar(6) NOT NULL DEFAULT ''",
+    'T014A_Aliquota_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Percentual_Reducao_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Aliquota_CBS_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Percentual_Diferimento_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Aliquota_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Percentual_Reducao_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Aliquota_CBS_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_CBS_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Aliquota_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Percentual_Reducao_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Aliquota_IBS_Municipal_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Percentual_Diferimento_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Aliquota_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Percentual_Reducao_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Aliquota_IBS_Municipal_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_IBS_Municipal_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Aliquota_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Percentual_Reducao_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Aliquota_IBS_UF_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Percentual_Diferimento_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Aliquota_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Percentual_Reducao_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Aliquota_IBS_UF_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T014A_Valor_IBS_UF_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Valor_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T014A_Valor_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+// Cotação de compra e snapshot da cotação na ordem de compra.
+Criar_Campos('T218A', array(
+    'T218A_Valor_Total_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T218A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T219A', array(
+    'T219A_Situacao_Tributaria_CBS_IBS' => "varchar(3) NOT NULL DEFAULT ''",
+    'T219A_Classificacao_Tributaria_CBS_IBS' => "varchar(6) NOT NULL DEFAULT ''",
+    'T219A_Situacao_Tributaria_CBS_IBS_Regular' => "varchar(3) NOT NULL DEFAULT ''",
+    'T219A_Classificacao_Tributaria_CBS_IBS_Regular' => "varchar(6) NOT NULL DEFAULT ''",
+    'T219A_Aliquota_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Percentual_Reducao_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Aliquota_CBS_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Percentual_Diferimento_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Aliquota_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Percentual_Reducao_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Aliquota_CBS_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_CBS_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Aliquota_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Percentual_Reducao_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Aliquota_IBS_Municipal_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Percentual_Diferimento_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Aliquota_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Percentual_Reducao_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Aliquota_IBS_Municipal_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_IBS_Municipal_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Aliquota_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Percentual_Reducao_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Aliquota_IBS_UF_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Percentual_Diferimento_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Aliquota_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Percentual_Reducao_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Aliquota_IBS_UF_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T219A_Valor_IBS_UF_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Valor_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T219A_Valor_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T224A', array(
+    'T224A_Valor_Total_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T224A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+Criar_Campos('T225A', array(
+    'T225A_Situacao_Tributaria_CBS_IBS' => "varchar(3) NOT NULL DEFAULT ''",
+    'T225A_Classificacao_Tributaria_CBS_IBS' => "varchar(6) NOT NULL DEFAULT ''",
+    'T225A_Situacao_Tributaria_CBS_IBS_Regular' => "varchar(3) NOT NULL DEFAULT ''",
+    'T225A_Classificacao_Tributaria_CBS_IBS_Regular' => "varchar(6) NOT NULL DEFAULT ''",
+    'T225A_Aliquota_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Percentual_Reducao_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Aliquota_CBS_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Percentual_Diferimento_CBS' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_Diferimento_CBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Aliquota_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Percentual_Reducao_CBS_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Aliquota_CBS_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_CBS_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Aliquota_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Percentual_Reducao_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Aliquota_IBS_Municipal_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Percentual_Diferimento_IBS_Municipal' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_Diferimento_IBS_Municipal' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Aliquota_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Percentual_Reducao_IBS_Municipal_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Aliquota_IBS_Municipal_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_IBS_Municipal_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Aliquota_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Percentual_Reducao_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Aliquota_IBS_UF_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Percentual_Diferimento_IBS_UF' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_Diferimento_IBS_UF' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Aliquota_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Percentual_Reducao_IBS_UF_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Aliquota_IBS_UF_Efetiva_Regular' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T225A_Valor_IBS_UF_Regular' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Valor_Base_CBS_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Valor_Total_Reforma' => "decimal(15,2) NOT NULL DEFAULT 0.00",
+    'T225A_Valor_IBS' => "decimal(15,2) NOT NULL DEFAULT 0.00"
+));
+
+// Histórico: valores e alíquotas efetivas unitárias necessários para custo e preço de venda.
+Criar_Campos('T001A', array(
+    'T001A_Valor_CBS' => "decimal(20,10) NOT NULL DEFAULT 0.0000000000",
+    'T001A_Valor_IBS' => "decimal(20,10) NOT NULL DEFAULT 0.0000000000",
+    'T001A_Aliquota_CBS_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T001A_Aliquota_IBS_UF_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000",
+    'T001A_Aliquota_IBS_Municipal_Efetiva' => "decimal(7,4) NOT NULL DEFAULT 0.0000"
+));
+
+// CFOP: define se o imposto recuperável da entrada deve ser abatido do custo/preço.
+Criar_Campos('D006', array(
+    'D006_Flag_Deb_Crd_CBS' => "enum('S','N') NOT NULL DEFAULT 'N'",
+    'D006_Flag_Deb_Crd_IBS' => "enum('S','N') NOT NULL DEFAULT 'N'"
+));
+
 //---- FIM FELIPE
 //-- Gabriel Ribeiro
 Criar_Campo("T013A_JSON", "JSON DEFAULT NULL");
@@ -16348,6 +17220,7 @@ include('scripts/atualizacaoBaseGlobal.php');
 
 // Atualização IDE -> Tabelas
 $g['modoDesenvolvedorApp'] = false;
+
 include('scripts/atualizacaoBaseIde.php');
 
 // Popula a tabela (D187) com os valores padrões de Tipo Produto
@@ -16491,3 +17364,15 @@ if (!empty($cErro)){
 
 // Conferência livre do pedido antes do faturamento em lote na expedição
 Criar_Campo("T005A_Conferido", "varchar(255) DEFAULT ''");
+
+// Dados de exportação comercial do pedido (Commercial Invoice / Packing List)
+Criar_Campo("T005A_Invoice_Payment_Terms", "varchar(255) DEFAULT ''");
+Criar_Campo("T005A_Invoice_From", "varchar(255) DEFAULT ''");
+Criar_Campo("T005A_Invoice_To", "varchar(255) DEFAULT ''");
+Criar_Campo("T005A_Invoice_Number", "varchar(100) DEFAULT ''");
+Criar_Campo("T005A_Invoice_Incoterms", "varchar(100) DEFAULT ''");
+Criar_Campo("C004_Invoice_Our_Bank", "text");
+// DANFE RTC - NT 2026.010 v1.00. Modelo e orientação são configurados separadamente.
+Criar_Campo("C004_Tipo_DANFE", "char(1) NOT NULL DEFAULT 'V' COMMENT 'V=RTC retrato; H=RTC paisagem'");
+Criar_Campo("C004_Flag_Usar_DANFE_RTC", "char(1) NOT NULL DEFAULT 'N' COMMENT 'N=Modelo atual; S=Usar DANFE RTC'");
+Criar_Campo("T007A_Tipo_DANFE", "char(1) NOT NULL DEFAULT '' COMMENT 'Vazio=Empresa; A=Atual; V=RTC vertical; H=RTC horizontal'");

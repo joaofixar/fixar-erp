@@ -42,6 +42,20 @@ $grid = array(
 	array('colunaValor' => "D006_Percentual_Reducao_ICMS", 'colunaTitulo' => '% Red.<br>ICMS', 'colunaAlinhar' => 'center','style' => 'background: var(--celula-amarelo-claro);', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'colunaEditarOculto' => true),
 	array('colunaValor' => "D006_Flag_Reduz_Base_DIFAL", 'colunaTitulo' => 'Reduz BC.<br>DIFAL', 'colunaAlinhar' => 'center','style' => 'background: var(--celula-amarelo-claro);', 'colunaAlinhar' => 'center', 'colunaEditarOculto' => true),
 	array('colunaValor' => "D006_Flag_Substituicao_Tributaria", 'colunaTitulo' => 'ST', 'colunaAlinhar' => 'center','style' => 'background: var(--celula-amarelo-claro);', 'colunaEditarOculto' => true),
+	// Task 60: elegibilidade manual para GNRE. Estes flags não alteram os
+	// cálculos fiscais desta CFOP nem preenchem dados da guia.
+	array('colunaValor' => "D006_Flag_Gera_GNRE_ST", 'colunaTitulo' => 'Gera GNRE<br>ST', 'colunaAlinhar' => 'center', 'colunaEditarTodos' => true, 'colunaEditarOculto' => true, 'colunaEditarGeraSelect' => array(
+		array('title' => 'Não', 'value' => 'N', 'selected' => true),
+		array('title' => 'Sim', 'value' => 'S'),
+	)),
+	array('colunaValor' => "D006_Flag_Gera_GNRE_DIFAL", 'colunaTitulo' => 'Gera GNRE<br>DIFAL', 'colunaAlinhar' => 'center', 'colunaEditarTodos' => true,'colunaEditarOculto' => true, 'colunaEditarGeraSelect' => array(
+		array('title' => 'Não', 'value' => 'N', 'selected' => true),
+		array('title' => 'Sim', 'value' => 'S'),
+	)),
+	array('colunaValor' => "D006_Flag_Gera_GNRE_FCP", 'colunaTitulo' => 'Gera GNRE<br>FCP', 'colunaAlinhar' => 'center', 'colunaEditarTodos' => true,'colunaEditarOculto' => true, 'colunaEditarGeraSelect' => array(
+		array('title' => 'Não', 'value' => 'N', 'selected' => true),
+		array('title' => 'Sim', 'value' => 'S'),
+	)),
 	array('colunaValor' => "D006_Flag_Deb_Crd_ST", 'colunaTitulo' => 'Credita<br>ST', 'colunaAlinhar' => 'center','style' => 'background: var(--celula-amarelo-claro);', 'colunaEditarOculto' => true),
 	array('colunaValor' => "D006_ST_MVA", 'colunaTitulo' => 'MVA', 'colunaAlinhar' => 'center','style' => 'background: var(--celula-amarelo-claro);', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'colunaEditarOculto' => true),
 	array('colunaValor' => "D006_Flag_ST_VA", 'colunaTitulo' => 'Agrega<br> MVA', 'colunaAlinhar' => 'center','style' => 'background: var(--celula-amarelo-claro);', 'colunaEditarOculto' => true),

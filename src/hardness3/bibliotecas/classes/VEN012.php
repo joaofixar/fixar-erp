@@ -6,6 +6,39 @@ definirClasse('VEN012');
 class VEN012_
 {
 
+    /**
+     * Retorna as séries adicionais disponíveis para inutilização.
+     *
+     * A consulta fica desabilitada inicialmente. Para ativá-la em uma
+     * personalização, basta remover os delimitadores de comentário abaixo.
+     *
+     * @param int $empresaId
+     * @return array
+     */
+    public function listarSeriesAdicionaisInutilizacao($empresaId)
+    {
+        $series = array();
+
+        /*
+        $consulta = mysql_query("SELECT DISTINCT T007_Serie
+                                   FROM T007
+                                  WHERE T007_C004_Id = '" . (int) $empresaId . "'
+                                    AND T007_Flag_ACP IN ('6', '8')
+                                    AND T007_Serie <> ''
+                                  ORDER BY CAST(T007_Serie AS UNSIGNED)");
+
+        if ($consulta === false) {
+            return array('sucesso' => false, 'series' => array());
+        }
+
+        while ($linha = mysql_fetch_assoc($consulta)) {
+            $series[] = $linha['T007_Serie'];
+        }
+        */
+
+        return array('sucesso' => true, 'series' => $series);
+    }
+
     public function inserePessoaRemessaPedido($T005_Id, $T007_Id){
         
     }
@@ -10050,14 +10083,6 @@ EOT;
                 return "Item {$mT008['T008_Id']} não possui registro de separação para gerar o histórico de estoque. O pedido permaneceu no status atual.";
             }
             
-            // Executa reprocessa histórico do produto
-            require_once("bibliotecas/classes/CAD002.php");
-            $CAD002 = new CAD002();
-            $retorno = $CAD002->D001_reprocessa_historico(0, $mT008['T008_D009_Id'], 50);
-            if ($retorno !== true) {
-                mysql_query("ROLLBACK");
-                return "Erro ao reprocessar o histórico de estoque do item {$mT008['T008_Id']}: {$retorno}";
-            }
         }
 
         if ($travaSemSeparacao) {
@@ -10074,6 +10099,29 @@ EOT;
             $cErro = mysql_error();
             mysql_query("ROLLBACK");
             return "Erro ao atualizar o pedido para coletado: {$cErro}";
+        }
+
+        // O estoque deve ser reprocessado após a atualização do status do pedido para não continuar sendo descontado como reserva no cálculo do estoque líquido.
+        $sqlT008 = <<<SQL
+            SELECT DISTINCT T008_D009_Id FROM T008 WHERE T008_T007_Id = '{$mT005['T007_Id']}' AND T008_D009_Id > 0 AND T008_Quantidade > 0
+        SQL;
+
+        $T008 = mysql_query($sqlT008);
+        if ($T008 === false) {
+            $cErro = mysql_error();
+            mysql_query("ROLLBACK");
+            return "Erro ao consultar os produtos para reprocessar o estoque do pedido {$T005_Id}: {$cErro}";
+        }
+
+        require_once("bibliotecas/classes/CAD002.php");
+        $CAD002 = new CAD002();
+
+        while ($T008Reprocessar = mysql_fetch_assoc($T008)) {
+            $retorno = $CAD002->D001_reprocessa_historico(0, $T008Reprocessar['T008_D009_Id'], 50);
+            if ($retorno !== true) {
+                mysql_query("ROLLBACK");
+                return "Erro ao reprocessar o estoque do produto {$T008Reprocessar['T008_D009_Id']} do pedido {$T005_Id}: {$retorno}";
+            }
         }
 
         //Insere registros no histórico do pedido (T178)

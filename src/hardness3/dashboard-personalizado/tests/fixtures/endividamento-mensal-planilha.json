@@ -1,0 +1,242 @@
+[
+  {
+    "periodo": "2026-01",
+    "serie": "Capital Giro",
+    "valor": 8587474.48
+  },
+  {
+    "periodo": "2026-02",
+    "serie": "Capital Giro",
+    "valor": 4705946.93
+  },
+  {
+    "periodo": "2026-03",
+    "serie": "Capital Giro",
+    "valor": 9256561.14
+  },
+  {
+    "periodo": "2026-04",
+    "serie": "Capital Giro",
+    "valor": 7089794.21
+  },
+  {
+    "periodo": "2026-05",
+    "serie": "Capital Giro",
+    "valor": 6407509.45
+  },
+  {
+    "periodo": "2026-06",
+    "serie": "Capital Giro",
+    "valor": 7865498.82
+  },
+  {
+    "periodo": "2026-07",
+    "serie": "Capital Giro",
+    "valor": 4731587.28
+  },
+  {
+    "periodo": "2026-08",
+    "serie": "Capital Giro",
+    "valor": 3040205.3
+  },
+  {
+    "periodo": "2026-09",
+    "serie": "Capital Giro",
+    "valor": 9869368.28
+  },
+  {
+    "periodo": "2026-10",
+    "serie": "Capital Giro",
+    "valor": 9762388.4
+  },
+  {
+    "periodo": "2026-11",
+    "serie": "Capital Giro",
+    "valor": 6218995.14
+  },
+  {
+    "periodo": "2026-12",
+    "serie": "Capital Giro",
+    "valor": 5521814.0
+  },
+  {
+    "periodo": "2026-01",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 233939.82
+  },
+  {
+    "periodo": "2026-02",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 151910.69
+  },
+  {
+    "periodo": "2026-03",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 194339.67
+  },
+  {
+    "periodo": "2026-04",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 150295.44
+  },
+  {
+    "periodo": "2026-05",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 197608.89
+  },
+  {
+    "periodo": "2026-06",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 169970.25
+  },
+  {
+    "periodo": "2026-07",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 224374.45
+  },
+  {
+    "periodo": "2026-08",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 226842.48
+  },
+  {
+    "periodo": "2026-09",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 206674.27
+  },
+  {
+    "periodo": "2026-10",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 246944.2
+  },
+  {
+    "periodo": "2026-11",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 167716.32
+  },
+  {
+    "periodo": "2026-12",
+    "serie": "Imobilizado - Consorcios",
+    "valor": 167162.82
+  },
+  {
+    "periodo": "2026-01",
+    "serie": "Imobilizado - Industria",
+    "valor": 94000.0
+  },
+  {
+    "periodo": "2026-02",
+    "serie": "Imobilizado - Industria",
+    "valor": 94000.0
+  },
+  {
+    "periodo": "2026-03",
+    "serie": "Imobilizado - Industria",
+    "valor": 1715295.68
+  },
+  {
+    "periodo": "2026-04",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-05",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-06",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-07",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-08",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-09",
+    "serie": "Imobilizado - Industria",
+    "valor": 1773182.51
+  },
+  {
+    "periodo": "2026-10",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-11",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-12",
+    "serie": "Imobilizado - Industria",
+    "valor": 0.0
+  },
+  {
+    "periodo": "2026-01",
+    "serie": "Impostos/PERT",
+    "valor": 13778.69
+  },
+  {
+    "periodo": "2026-02",
+    "serie": "Impostos/PERT",
+    "valor": 13872.85
+  },
+  {
+    "periodo": "2026-03",
+    "serie": "Impostos/PERT",
+    "valor": 13954.03
+  },
+  {
+    "periodo": "2026-04",
+    "serie": "Impostos/PERT",
+    "valor": 14052.25
+  },
+  {
+    "periodo": "2026-05",
+    "serie": "Impostos/PERT",
+    "valor": 14140.73
+  },
+  {
+    "periodo": "2026-06",
+    "serie": "Impostos/PERT",
+    "valor": 14227.59
+  },
+  {
+    "periodo": "2026-07",
+    "serie": "Impostos/PERT",
+    "valor": 14318.5
+  },
+  {
+    "periodo": "2026-08",
+    "serie": "Impostos/PERT",
+    "valor": 14417.54
+  },
+  {
+    "periodo": "2026-09",
+    "serie": "Impostos/PERT",
+    "valor": 14506.02
+  },
+  {
+    "periodo": "2026-10",
+    "serie": "Impostos/PERT",
+    "valor": 14593.69
+  },
+  {
+    "periodo": "2026-11",
+    "serie": "Impostos/PERT",
+    "valor": 14593.69
+  },
+  {
+    "periodo": "2026-12",
+    "serie": "Impostos/PERT",
+    "valor": 14593.69
+  }
+]

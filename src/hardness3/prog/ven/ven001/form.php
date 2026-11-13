@@ -3441,6 +3441,7 @@ EOT;
 			} else if ($formCodigo == 2) {
 				// Ações dos botões
 				$novoIdTelaForm = uniqid();
+				$lote = 10;
 
 				echo <<<EOT
 					<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {		
@@ -3449,22 +3450,36 @@ EOT;
 								var campoAplicarDesconto = $('#{$g['divId']} #campoAplicarDesconto').val();
 								var desconto = $('#{$g['divId']} #desconto').val();
 								$('#{$g['divId']}').showLoading();
-								$.getJSON('/ven/ven001/form_func-ajax/ven001aplicarDesconto/?ajax=true&tabelaCabecalho=' + encodeURIComponent('{$tabelaCabecalho}') + '&idTabelaCabecalho=' + encodeURIComponent('{$idTabelaCabecalho}')  + '&tabelaProduto=' + encodeURIComponent('{$r_tabelaProduto}') + '&desconto=' + encodeURIComponent(desconto) + '&campoAplicardesconto=' + encodeURIComponent(campoAplicarDesconto) + '&PDV=' + encodeURIComponent('{$r_PDV}') + '&callback=?', function(request) {
+								$.getJSON('/ven/ven001/form_func-ajax/ven001aplicarDesconto/?ajax=true&tabelaCabecalho=' + encodeURIComponent('{$tabelaCabecalho}') + '&idTabelaCabecalho=' + encodeURIComponent('{$idTabelaCabecalho}')  + '&tabelaProduto=' + encodeURIComponent('{$r_tabelaProduto}') + '&desconto=' + encodeURIComponent(desconto) + '&campoAplicardesconto=' + encodeURIComponent(campoAplicarDesconto) + '&PDV=' + encodeURIComponent('{$r_PDV}') + '&lote={$lote}&callback=?', function(request) {
 									if (request.code && request.data == 'jsonEtapas') {
 										var p = typeof request.json === 'string' ? JSON.parse(request.json) : request.json;
-										processaEtapasAsync(p.titulo, p.classe, p.metodo, p.sql, 0, p.divId || $('#{$g['divIdParent']}').attr('id') || '', p.autoExec)
-											.then(function () {
-												var \$buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } };
-												dialogConfirm('Ok', 'Desconto aplicado com sucesso!', \$buttons);
-											})
-											.catch(function (err) {
-												console.log('erro etapas:', err);
-											})
-											.finally(function () {
+										var idProgressBar = dialogAlert('Aplicar Desconto', "<span class='progressBarDesconto'>Processando 0%</span>");
+										function finalizarDesconto(sucesso, mensagem) {
+											$('#dc-' + idProgressBar).dialog('destroy').remove();
+											$('#{$g['divId']}').hideLoading();
+											if (sucesso) {
 												divRefresh('{$g['divIdParent']}');
 												fecharJanela('{$g['divId']}');
-												$('#{$g['divId']}').hideLoading();
+											}
+											dialogConfirm(sucesso ? 'Ok' : 'Erro', mensagem);
+										}
+										function processarDesconto(inicio) {
+											$.getJSON('/sistema/outros/grid_func-ajax/ajaxEtapas/?ajax=true&inicio=' + inicio + '&classe=' + encodeURIComponent(p.classe) + '&metodo=' + encodeURIComponent(p.metodo) + '&sql=' + encodeURIComponent(p.sql) + '&lote=' + encodeURIComponent(p.lote) + '&callback=?', function(resposta) {
+												if (!resposta.code) {
+													finalizarDesconto(false, resposta.erros || resposta.data || 'Erro ao aplicar desconto.');
+													return;
+												}
+												if (resposta.concluido == 1) {
+													finalizarDesconto(true, 'Desconto aplicado com sucesso!');
+													return;
+												}
+												$('#dc-' + idProgressBar).find('.progressBarDesconto').text('Processando ' + resposta.percentual + '% (' + resposta.ok + '/' + resposta.totalRegistros + ' itens)');
+												processarDesconto(0);
+											}).fail(function(xhr) {
+												finalizarDesconto(false, 'Erro HTTP ' + xhr.status + ' ao aplicar desconto. Confira o orçamento antes de tentar novamente.');
 											});
+										}
+										processarDesconto(1);
 										return;
 									}
 
@@ -5826,7 +5841,7 @@ EOT;
                 	'T003_D044_Id' => array('name' => 'T003_D044_Id', 'label' => 'Moeda', 'type' => 'select', 
                 		'select' => gGeraSelect('D044', 'D044_Id', 'D044_Moeda,D044_Simbolo')
                 	),
-                	'T003_Cotacao_Moeda' => array('name' => 'T003_Cotacao_Moeda', 'label' => 'Cotação da Moeda', 'type' => 'moeda', 'align' => 'right', 'length' => array(10,10)),
+                    'T003_Cotacao_Moeda' => array('name' => 'T003_Cotacao_Moeda', 'label' => 'Cotação da Moeda', 'type' => 'moeda', 'align' => 'right', 'length' => array(10,10), 'casasDecimais' => 5),
                 	'ven001FormMoedaBtn' => array('name' => 'ven001FormMoedaBtn', 'type'=>'submit', 'reload' => false, 'value' => empty($acaoId) ? 'Incluir' : 'Alterar', 'align' => 'right', 'style' => 'float:right;', 'reject' => true),
                 )
             )

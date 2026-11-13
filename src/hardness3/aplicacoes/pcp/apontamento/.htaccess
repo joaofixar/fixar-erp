@@ -1,0 +1,6 @@
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?:bootstrap|config|docs)(?:/|$) - [F,L,NC]
+</IfModule>

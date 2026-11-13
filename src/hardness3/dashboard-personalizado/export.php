@@ -3,6 +3,7 @@ namespace hardness;
 
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/../bibliotecas/confUsuario.php';
+require_once __DIR__ . '/connection.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/access.php';
 require_once __DIR__ . '/custom-indicator-engine.php';
@@ -29,8 +30,9 @@ function dashboardExportarNomeArquivo($titulo, $extensao)
     return ($nome !== '' ? $nome : 'indicador') . '-' . date('Ymd-His') . '.' . $extensao;
 }
 
-function dashboardExportarFormatar($valor, $formato)
+function dashboardExportarFormatar($valor, $formato, $textoNulo = null)
 {
+    if ($valor === null && $textoNulo !== null) return dashboardExportarTexto($textoNulo);
     if ($formato === 'moeda') return 'R$ ' . number_format((float) $valor, 2, ',', '.');
     if ($formato === 'percentual') return number_format((float) $valor, 2, ',', '.') . '%';
     if ($formato === 'numero') return number_format((float) $valor, 2, ',', '.');
@@ -45,6 +47,11 @@ function dashboardExportarFiltros($indicador)
         if (!is_array($filtro) || !isset($filtro['valor']) || $filtro['valor'] === '') continue;
         $rotulo = isset($filtro['titulo']) ? $filtro['titulo'] : (isset($filtro['id']) ? $filtro['id'] : 'Filtro');
         $valor = $filtro['valor'];
+        if (isset($filtro['componente']) && $filtro['componente'] === 'contas_caixa') {
+            $ids = explode(',', (string) $valor); $nomes = array();
+            foreach ((array) $filtro['opcoes'] as $opcao) if (in_array((string) $opcao['valor'], $ids, true)) $nomes[] = $opcao['titulo'];
+            $valor = $valor === 'todas' ? 'Todas as contas habilitadas' : ($valor === 'nenhuma' ? 'Nenhuma conta' : implode(', ', $nomes));
+        }
         if (isset($filtro['opcoes']) && is_array($filtro['opcoes'])) {
             foreach ($filtro['opcoes'] as $opcao) {
                 if (is_array($opcao) && isset($opcao['valor']) && (string) $opcao['valor'] === (string) $valor) {
@@ -62,6 +69,30 @@ function dashboardExportarFiltros($indicador)
 function dashboardExportarTabela($resultado)
 {
     $indicador = $resultado['indicador'];
+    if (!empty($indicador['previsaoCaixa'])) {
+        $rotulos = array();
+        foreach ($indicador['grafico']['series'] as $serie) $rotulos[$serie['chave']] = $serie['rotulo'];
+        $linhas = array(); $totais = array();
+        if (!empty($indicador['grafico']['saldoAcumulado']['saldoBancario'])) {
+            $saldo = $indicador['grafico']['saldoAcumulado'];
+            $saldoAtual = !empty($saldo['saldoBancario']['saldoAtual']);
+            foreach ($saldo['saldoBancario']['contas'] as $conta) $linhas[] = array($saldoAtual ? 'Saldo atual' : 'Saldo de abertura', $conta['nomeEmpresa'] . ' · ' . $conta['conta'], dashboardExportarFormatar($conta['saldo'], 'moeda'));
+            $linhas[] = array(dashboardExportarFormatar($saldo['saldoBancario']['dataInicio'], 'data'), $saldoAtual ? 'Saldo atual das contas' : 'Saldo inicial das contas', dashboardExportarFormatar($saldo['saldoInicial'], 'moeda'));
+        }
+        foreach ($resultado['grafico'] as $barra) {
+            $serie = $barra['serie'];
+            $linhas[] = array(dashboardExportarFormatar($barra['periodo'], 'data'), isset($rotulos[$serie]) ? $rotulos[$serie] : $serie, dashboardExportarFormatar($barra['valor'], 'moeda'));
+            $totais[$serie] = (isset($totais[$serie]) ? $totais[$serie] : 0) + $barra['valor'];
+        }
+        foreach ($rotulos as $serie => $rotulo) $linhas[] = array('Total', $rotulo, dashboardExportarFormatar(isset($totais[$serie]) ? $totais[$serie] : 0, 'moeda'));
+        if (!empty($indicador['grafico']['saldoAcumulado']['saldoBancario'])) {
+            $saldoFinal = (int) round($indicador['grafico']['saldoAcumulado']['saldoInicial'] * 100);
+            foreach ($indicador['grafico']['series'] as $serie) $saldoFinal += (int) round((isset($totais[$serie['chave']]) ? $totais[$serie['chave']] : 0) * (isset($serie['impactoSaldo']) ? $serie['impactoSaldo'] : 1) * 100);
+            $linhas[] = array('Saldo final projetado', '', dashboardExportarFormatar($saldoFinal / 100, 'moeda'));
+        }
+        if (!empty($resultado['previsaoCaixa']['pedidosPendentes'])) $linhas[] = array('Conferir pedidos', implode(', ', $resultado['previsaoCaixa']['pedidosPendentes']), 'Sem previsão por dados incompletos');
+        return array(array('Data projetada', 'Origem', 'Valor'), $linhas);
+    }
     $comparativo = isset($resultado['comparativoRepresentantes']) ? $resultado['comparativoRepresentantes'] : array();
     if (!empty($comparativo['linhas'])) {
         if (isset($comparativo['modo']) && $comparativo['modo'] === 'mensal') {
@@ -114,7 +145,7 @@ function dashboardExportarTabela($resultado)
         $valores = array();
         foreach ($colunas as $coluna) {
             $campo = isset($coluna['campo']) ? $coluna['campo'] : '';
-            $valores[] = dashboardExportarFormatar(isset($linha[$campo]) ? $linha[$campo] : '', isset($coluna['formato']) ? $coluna['formato'] : 'texto');
+            $valores[] = dashboardExportarFormatar(isset($linha[$campo]) ? $linha[$campo] : null, isset($coluna['formato']) ? $coluna['formato'] : 'texto', isset($coluna['textoNulo']) ? $coluna['textoNulo'] : null);
         }
         $linhas[] = $valores;
     }
@@ -159,7 +190,9 @@ function dashboardExportarPrepararDetalhamento($resultado, $grupo)
         }
     }
     foreach ($candidatos as $candidato) {
-        foreach (array('descricao', 'representante', 'nome') as $campoRotulo) {
+        $camposRotulo = array('descricao', 'representante', 'nome');
+        if (!empty($detalhamento['campoRotuloGrupo'])) array_unshift($camposRotulo, $detalhamento['campoRotuloGrupo']);
+        foreach ($camposRotulo as $campoRotulo) {
             if (isset($candidato[$campoRotulo]) && trim((string) $candidato[$campoRotulo]) !== '') {
                 $rotuloGrupo = trim((string) $candidato[$campoRotulo]);
                 break 2;
@@ -171,12 +204,14 @@ function dashboardExportarPrepararDetalhamento($resultado, $grupo)
     $indicador['titulo'] = strpos($titulo, '{grupo}') !== false ? str_replace('{grupo}', $rotuloGrupo, $titulo) : $titulo . ' — ' . $rotuloGrupo;
     $indicador['listagem']['colunas'] = $colunas;
     if (!isset($indicador['filtros']) || !is_array($indicador['filtros'])) $indicador['filtros'] = array();
-    $indicador['filtros'][] = array('id' => 'detalheGrupo', 'titulo' => 'Representante', 'tipo' => 'texto', 'valor' => $rotuloGrupo);
+    $indicador['filtros'][] = array('id' => 'detalheGrupo', 'titulo' => isset($detalhamento['tituloGrupo']) ? $detalhamento['tituloGrupo'] : 'Representante', 'tipo' => 'texto', 'valor' => $rotuloGrupo);
 
     $resultado['indicador'] = $indicador;
     $resultado['listagem'] = $linhas;
     $resultado['listagemDetalhes'] = array();
     $resultado['comparativoRepresentantes'] = array();
+    $resultado['resumos'] = array();
+    $resultado['secoes'] = array();
     $resultado['_detalhamentoExportado'] = array('grupo' => $grupo, 'rotulo' => $rotuloGrupo, 'quantidade' => count($linhas));
     return $resultado;
 }
@@ -199,10 +234,27 @@ function dashboardExportarCsv($resultado)
     $escreverLinha(array($indicador['titulo']));
     $escreverLinha(array('Gerado em', date('d/m/Y H:i')));
     foreach (dashboardExportarFiltros($indicador) as $filtro) $escreverLinha(array($filtro));
+    if (!empty($resultado['resumos'])) $escreverLinha(array($indicador['card']['titulo'], dashboardExportarFormatar($resultado['card']['valor'], $resultado['card']['formato'])));
+    foreach (isset($resultado['resumos']) ? $resultado['resumos'] : array() as $resumo) {
+        $escreverLinha(array($resumo['titulo'], dashboardExportarFormatar($resumo['valor'], $resumo['formato'], !empty($resumo['textoNulo']) ? $resumo['textoNulo'] : null), $resumo['descricao']));
+    }
+    if (!empty($resultado['desempenhoComercial'])) {
+        foreach (dashboardComercialResumoExportacao($resultado['desempenhoComercial']) as $metrica) {
+            $escreverLinha(array($metrica[0], dashboardExportarFormatar($metrica[1], $metrica[2])));
+        }
+    }
     $escreverLinha(array());
     list($cabecalho, $linhas) = dashboardExportarTabela($resultado);
     $escreverLinha($cabecalho);
     foreach ($linhas as $linha) $escreverLinha($linha);
+    foreach (isset($resultado['secoes']) ? $resultado['secoes'] : array() as $secao) {
+        if (!empty($secao['somenteGrafico'])) continue;
+        $escreverLinha(array());
+        $escreverLinha(array($secao['titulo'], $secao['subtitulo']));
+        list($cabecalhoSecao, $linhasSecao) = dashboardExportarTabela(array('indicador' => array('listagem' => array('colunas' => $secao['colunas'])), 'listagem' => $secao['linhas']));
+        $escreverLinha($cabecalhoSecao);
+        foreach ($linhasSecao as $linhaSecao) $escreverLinha($linhaSecao);
+    }
     fclose($saida);
     exit;
 }
@@ -362,12 +414,24 @@ function dashboardExportarPdf($resultado)
     if ($detalhamentoExportado) {
         $quantidadeNotas = isset($resultado['_detalhamentoExportado']['quantidade']) ? (int) $resultado['_detalhamentoExportado']['quantidade'] : count($linhas);
         $pdf->Cell(0, 6, dashboardExportarPdfTexto('Quantidade de NF-e: ' . number_format($quantidadeNotas, 0, ',', '.')), 0, 1);
-    } else {
+    } elseif (empty($indicador['previsaoCaixa'])) {
         $pdf->Cell(0, 6, dashboardExportarPdfTexto((isset($indicador['card']['titulo']) ? $indicador['card']['titulo'] : 'Resultado') . ': ' . dashboardExportarFormatar($resultado['card']['valor'], $resultado['card']['formato'])), 0, 1);
         $pdf->SetFont('Arial', '', 8);
         $pdf->Cell(0, 5, dashboardExportarPdfTexto('Quantidade de registros: ' . dashboardExportarFormatar($resultado['card']['quantidade'], 'numero')), 0, 1);
     }
     $pdf->Ln(3);
+
+    if (!$detalhamentoExportado) foreach (isset($resultado['resumos']) ? $resultado['resumos'] : array() as $resumo) {
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(0, 5, dashboardExportarPdfTexto($resumo['titulo'] . ': ' . dashboardExportarFormatar($resumo['valor'], $resumo['formato'], !empty($resumo['textoNulo']) ? $resumo['textoNulo'] : null)), 0, 1);
+    }
+    if (!empty($resultado['desempenhoComercial'])) {
+        $pdf->SetFont('Arial', '', 8);
+        foreach (dashboardComercialResumoExportacao($resultado['desempenhoComercial']) as $metrica) {
+            $pdf->Cell(0, 5, dashboardExportarPdfTexto($metrica[0] . ': ' . dashboardExportarFormatar($metrica[1], $metrica[2])), 0, 1);
+        }
+        $pdf->Ln(3);
+    }
 
     $larguraDisponivel = $pdf->w - $pdf->lMargin - $pdf->rMargin;
     $larguras = dashboardExportarPdfLarguras($pdf, $cabecalho, $linhas);
@@ -380,6 +444,20 @@ function dashboardExportarPdf($resultado)
     foreach ($grupos as $indiceGrupo => $grupo) {
         if ($indiceGrupo > 0) $pdf->AddPage();
         dashboardExportarPdfImprimirTabela($pdf, $cabecalho, $linhas, $larguras, $grupo, $indiceGrupo + 1, count($grupos));
+    }
+    if (!$detalhamentoExportado) foreach (isset($resultado['secoes']) ? $resultado['secoes'] : array() as $secao) {
+        if (!empty($secao['somenteGrafico'])) continue;
+        list($cabecalhoSecao, $linhasSecao) = dashboardExportarTabela(array('indicador' => array('listagem' => array('colunas' => $secao['colunas'])), 'listagem' => $secao['linhas']));
+        $largurasSecao = dashboardExportarPdfLarguras($pdf, $cabecalhoSecao, $linhasSecao);
+        $gruposSecao = dashboardExportarPdfGruposColunas($largurasSecao, $larguraDisponivel);
+        foreach ($gruposSecao as $indiceSecao => $grupoSecao) {
+            $pdf->AddPage();
+            $pdf->SetFont('Arial', 'B', 10);
+            $pdf->MultiCell(0, 6, dashboardExportarPdfTexto($secao['titulo']), 0, 'L');
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->MultiCell(0, 5, dashboardExportarPdfTexto($secao['subtitulo']), 0, 'L');
+            dashboardExportarPdfImprimirTabela($pdf, $cabecalhoSecao, $linhasSecao, $largurasSecao, $grupoSecao, $indiceSecao + 1, count($gruposSecao));
+        }
     }
     $pdf->Output(dashboardExportarNomeArquivo($pdf->tituloRelatorio, 'pdf'), 'D');
     exit;
@@ -405,11 +483,14 @@ foreach ($indicadoresPermitidos as $indicador) {
     }
 }
 if ($indicadorSelecionado === null) dashboardExportarErro(404, 'Indicador não encontrado na personalização da empresa.');
+if (dashboardCotacoesHabilitado($indicadorSelecionado)) dashboardExportarErro(422, 'Use CSV ou PDF no cabeçalho do Painel de Cotações.');
+if (dashboardCarteiraBancosHabilitado($indicadorSelecionado)) dashboardExportarErro(422, 'Use CSV ou PDF no cabeçalho do Controle de carteira bancos.');
 $restricaoUsuario = dashboardPersonalizadoRestricaoUsuarioIndicador($autorizacao, $acessos, $indicadorId);
 $entradaIndicador = $_GET;
+if (dashboardCaixaPrevisaoHabilitada($indicadorSelecionado)) $indicadorSelecionado['_caixaUsuario'] = (int) $autorizacao['usuario'];
 if (!empty($indicadorSelecionado['abas']) && is_array($indicadorSelecionado['abas'])) {
     $abaId = isset($_GET['tab']) ? (string) $_GET['tab'] : '';
-    if ($restricaoUsuario !== false) {
+    if ($restricaoUsuario !== false && !dashboardPersonalizadoAbasComerciaisLocais($indicadorSelecionado)) {
         $abaPermitida = dashboardPersonalizadoAbaVendedores($indicadorSelecionado);
         if ($abaPermitida === '' || ($abaId !== '' && $abaId !== $abaPermitida)) {
             dashboardExportarErro(403, 'Esta aba não está liberada para o seu usuário.');
@@ -420,29 +501,72 @@ if (!empty($indicadorSelecionado['abas']) && is_array($indicadorSelecionado['aba
     $abaEncontrada = false;
     foreach ($indicadorSelecionado['abas'] as $aba) {
         if ($abaId === '' || (isset($aba['id']) && $aba['id'] === $abaId)) {
-            $indicadorSelecionado = array_merge($indicadorSelecionado, $aba);
+            if (dashboardPersonalizadoAbasComerciaisLocais($indicadorSelecionado)) {
+                $indicadorSelecionado['_abaComercial'] = $aba['id'];
+            } else {
+                $indicadorSelecionado = array_merge($indicadorSelecionado, $aba);
+            }
             $abaEncontrada = true;
             break;
         }
     }
     if (!$abaEncontrada) dashboardExportarErro(404, 'Aba do indicador não encontrada.');
 }
+if (!empty($indicadorSelecionado['portalRepresentantes']['habilitado'])) dashboardExportarErro(403, 'A gestão de acessos deve ser consultada na tela do dashboard.');
 $indicadorSelecionado = dashboardPersonalizadoAplicarRestricaoUsuario($indicadorSelecionado, $restricaoUsuario, $entradaIndicador, $erroRestricao);
 if ($indicadorSelecionado === false) dashboardExportarErro(403, $erroRestricao);
 
-$conexao = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
+$escopo = isset($_GET['escopo']) && is_string($_GET['escopo']) ? strtolower(trim($_GET['escopo'])) : '';
+if (isset($_GET['escopo']) && !is_string($_GET['escopo'])) dashboardExportarErro(400, 'Escopo de exportação inválido.');
+if (!in_array($escopo, array('', 'detalhamento', 'marcadas'), true)) dashboardExportarErro(400, 'Escopo de exportação inválido.');
+if ($escopo === 'marcadas' && (!isset($_GET['formato']) || $_GET['formato'] !== 'pdf')) dashboardExportarErro(400, 'A impressão de marcadas está disponível em PDF.');
+// Exportação geral sempre executa o fluxo completo, mesmo com parâmetro no URL.
+unset($entradaIndicador['somenteDetalhamento'], $entradaIndicador['somenteListagem'], $entradaIndicador['listaOffset']);
+if ($escopo === 'detalhamento') $entradaIndicador['somenteDetalhamento'] = '1';
+dashboardFiltrosCacheContexto(
+    hash('sha256', $confUsuario['dbHost'] . '|' . $confUsuario['dbDatabase']),
+    $autorizacao, $acessos, $indicadorSelecionado
+);
+
+$conexao = dashboardPersonalizadoConectarLeitura($confUsuario, isset($confUsuarioEspelhado) ? $confUsuarioEspelhado : null, dashboardPersonalizadoIndicadorUsaEspelho($indicadorSelecionado));
 if (!$conexao) dashboardExportarErro(503, 'Não foi possível consultar os dados do dashboard.');
 mysqli_set_charset($conexao, 'utf8');
-@mysqli_query($conexao, 'SET SESSION MAX_EXECUTION_TIME=5000');
+@mysqli_query($conexao, 'SET SESSION MAX_EXECUTION_TIME=15000');
 @mysqli_query($conexao, 'START TRANSACTION READ ONLY');
 $erro = '';
-$resultado = dashboardIndicadorExecutar($conexao, $indicadorSelecionado, $empresa, $entradaIndicador, $erro);
+try {
+    if ($escopo === 'marcadas') {
+        $resultado = dashboardImpressaoMarcadasConsultar($conexao, $indicadorSelecionado, $empresa, $entradaIndicador, $erro);
+    } else {
+        if (dashboardCargaGeralHabilitada($indicadorSelecionado) && !empty($indicadorSelecionado['carregamentoProgressivo'])
+            && $escopo !== 'detalhamento' && empty($entradaIndicador['cargaToken'])) {
+            throw new \RuntimeException('Atualize o indicador antes de exportar o carregamento.');
+        }
+        // Detalhes novos não fazem parte das fontes da carga inicial geral.
+        if (dashboardCargaHabilitada($indicadorSelecionado) && !empty($entradaIndicador['cargaToken'])
+            && !(dashboardCargaGeralHabilitada($indicadorSelecionado) && $escopo === 'detalhamento')) dashboardCargaInicializar($conexao,$autorizacao,$indicadorSelecionado,$entradaIndicador,hash('sha256',$confUsuario['dbHost'].'|'.$confUsuario['dbDatabase']),true);
+        if ($escopo !== 'detalhamento' && !defined('HARDNESS_DASHBOARD_EXPORTAR_LISTAGEM_COMPLETA')) define('HARDNESS_DASHBOARD_EXPORTAR_LISTAGEM_COMPLETA', true);
+        $resultado = dashboardIndicadorExecutar($conexao, $indicadorSelecionado, $empresa, $entradaIndicador, $erro);
+    }
+    dashboardCargaFinalizar();
+} catch (\RuntimeException $e) {
+    dashboardCargaFinalizar();@mysqli_rollback($conexao);mysqli_close($conexao);
+    dashboardExportarErro(422,$e->getMessage());
+}
 @mysqli_rollback($conexao);
 mysqli_close($conexao);
 if ($resultado === false) dashboardExportarErro(422, $erro);
 
-$escopo = isset($_GET['escopo']) ? strtolower(trim((string) $_GET['escopo'])) : '';
-if ($escopo !== '' && $escopo !== 'detalhamento') dashboardExportarErro(400, 'Escopo de exportação inválido.');
+if ($escopo === 'marcadas') {
+    $pdf = dashboardImpressaoMarcadasPdf($resultado);
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="comissoes-marcadas.pdf"');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Content-Length: ' . strlen($pdf));
+    echo $pdf;
+    exit;
+}
+
 if ($escopo === 'detalhamento') {
     $resultado = dashboardExportarPrepararDetalhamento($resultado, isset($_GET['detalheGrupo']) ? $_GET['detalheGrupo'] : '');
 }

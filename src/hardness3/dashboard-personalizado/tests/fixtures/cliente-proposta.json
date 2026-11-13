@@ -1,0 +1,292 @@
+{
+  "indicadores": [
+    {
+      "id": "desempenho_vendedores",
+      "habilitado": true,
+      "ordem": 8,
+      "titulo": "Vendedores",
+      "subtitulo": "Orçamentos, pedidos e notas emitidas por cliente, vendedor e representante",
+      "icone": "chart",
+      "cor": "blue",
+      "card": {
+        "titulo": "Faturamento total no período",
+        "campo": "valor",
+        "calculo": "soma",
+        "formato": "moeda",
+        "descricao": "Valor total das notas de saída autorizadas, incluindo IPI e frete, sem transferências entre empresas."
+      },
+      "grafico": {
+        "habilitado": false
+      },
+      "composicao": {
+        "habilitada": false
+      },
+      "listagem": {
+        "habilitada": false
+      },
+      "abas": [
+        {
+          "id": "vendedores",
+          "titulo": "Vendedores"
+        },
+        {
+          "id": "representantes",
+          "titulo": "Representantes"
+        },
+        {
+          "id": "regioes",
+          "titulo": "Regiões"
+        }
+      ],
+      "filtros": [
+        {
+          "id": "dataInicio",
+          "titulo": "Emissão inicial",
+          "tipo": "data",
+          "padrao": "inicio_ano",
+          "obrigatorio": true
+        },
+        {
+          "id": "dataFim",
+          "titulo": "Emissão final",
+          "tipo": "data",
+          "padrao": "hoje",
+          "obrigatorio": true
+        },
+        {
+          "id": "vendedor",
+          "titulo": "Vendedor",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoesSql": [
+            "SELECT DISTINCT C007_Id AS valor, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem nome') AS titulo",
+            "FROM C007",
+            "INNER JOIN C019 ON C019_C007_Id = C007_Id",
+            "WHERE C019_C004_Id = :empresa",
+            "AND C007_Ativo = 'S'",
+            "ORDER BY titulo"
+          ]
+        },
+        {
+          "id": "cliente",
+          "titulo": "Cliente",
+          "tipo": "texto",
+          "padrao": ""
+        }
+      ],
+      "sqlBase": [
+        "SELECT T007_Id AS id, T007_Data_Emissao AS data,",
+        "CASE WHEN COALESCE((SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0), T007_D024_Id, 0) > 0 THEN CONCAT('cad:', COALESCE((SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0), T007_D024_Id, 0)) ELSE CONCAT('T007:', T007_Id) END AS clienteId,",
+        "COALESCE(NULLIF(D024_Nome_Empresa, ''), CASE WHEN (SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0) IS NOT NULL THEN CONCAT('Cliente proposta ', (SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0)) ELSE NULLIF(T007_Cliente_Razao, '') END, 'Sem cliente') AS cliente, COALESCE(T007_C007_Id_Vendedor_Interno, 0) AS responsavelId, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem vendedor') AS responsavel,",
+        "COALESCE(T007_Valor_Total, 0) AS valor, 0 AS convertido",
+        "FROM T007",
+        "LEFT JOIN D024 ON D024_Id = COALESCE((SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0), T007_D024_Id, 0)",
+        "LEFT JOIN C007 ON C007_Id = T007_C007_Id_Vendedor_Interno",
+        "WHERE T007_C004_Id = :empresa",
+        "AND T007_Data_Emissao >= :dataInicio",
+        "AND T007_Data_Emissao < DATE_ADD(:dataFim, INTERVAL 1 DAY)",
+        "AND T007_Flag_Entrada_Saida = 'S'",
+        "AND T007_Flag_Cancelada = 'N'",
+        "AND T007_Numero_Protocolo_Nfe IS NOT NULL AND TRIM(T007_Numero_Protocolo_Nfe) <> ''",
+        "AND NOT ((T007_C004_Id = 1 AND COALESCE(T007_D024_Id, 0) IN (22460, 19367, 21746, 46617)) OR (EXISTS (SELECT 1 FROM C004 empresaTransferencia WHERE empresaTransferencia.C004_Id = T007_C004_Id AND TRIM(empresaTransferencia.C004_Cnpj) IN ('17750961000540', '17.750.961/0005-40')) AND COALESCE(T007_D024_Id, 0) IN (20516, 19367, 21746)))",
+        "AND (:vendedor = '' OR T007_C007_Id_Vendedor_Interno = :vendedor)",
+        "AND (:cliente = '' OR COALESCE(NULLIF(D024_Nome_Empresa, ''), CASE WHEN (SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0) IS NOT NULL THEN CONCAT('Cliente proposta ', (SELECT MIN(proposta.T007A_D024_Id_Cliente_Proposta) FROM T007A proposta WHERE proposta.T007A_T007_Id = T007.T007_Id AND proposta.T007A_D024_Id_Cliente_Proposta > 0)) ELSE NULLIF(T007_Cliente_Razao, '') END, 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+      ],
+      "desempenhoComercial": {
+        "habilitado": true,
+        "rotuloResponsavel": "Vendedor",
+        "orcamentos": [
+          "SELECT T003_Id AS id, T003_Data_Emissao AS data,",
+          "CASE WHEN COALESCE((SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0), T003_D024_Id, 0) > 0 THEN CONCAT('cad:', COALESCE((SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0), T003_D024_Id, 0)) ELSE CONCAT('T003:', T003_Id) END AS clienteId,",
+          "COALESCE(NULLIF(D024_Nome_Empresa, ''), CASE WHEN (SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0) IS NOT NULL THEN CONCAT('Cliente proposta ', (SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0)) ELSE NULLIF(T003_Nome_Cliente, '') END, 'Sem cliente') AS cliente, COALESCE(T003_C007_Id_Vendedor_Interno, 0) AS responsavelId, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem vendedor') AS responsavel,",
+          "COALESCE(T003_Valor_Total, 0) AS valor, CASE WHEN EXISTS (SELECT 1 FROM T005 WHERE T005_C004_Id = :empresa AND T005_T003_Id = T003.T003_Id AND IFNULL(T005_Flag_Status, 0) <> 8) THEN 1 ELSE 0 END AS convertido",
+          "FROM T003",
+          "LEFT JOIN D024 ON D024_Id = COALESCE((SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0), T003_D024_Id, 0)",
+          "LEFT JOIN C007 ON C007_Id = T003_C007_Id_Vendedor_Interno",
+          "WHERE T003_C004_Id = :empresa",
+          "AND T003_Data_Emissao >= :dataInicio",
+          "AND T003_Data_Emissao < DATE_ADD(:dataFim, INTERVAL 1 DAY)",
+          "AND IFNULL(T003_Flag_Status_Orcamento, '') <> 'C'",
+          "AND (:vendedor = '' OR T003_C007_Id_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(D024_Nome_Empresa, ''), CASE WHEN (SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0) IS NOT NULL THEN CONCAT('Cliente proposta ', (SELECT MIN(proposta.T003A_D024_Id_Cliente_Proposta) FROM T003A proposta WHERE proposta.T003A_T003_Id = T003.T003_Id AND proposta.T003A_D024_Id_Cliente_Proposta > 0)) ELSE NULLIF(T003_Nome_Cliente, '') END, 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+        ],
+        "pedidos": [
+          "SELECT T005_Id AS id, T005_Data_Emissao AS data,",
+          "CASE WHEN COALESCE((SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0), T005_D024_Id, 0) > 0 THEN CONCAT('cad:', COALESCE((SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0), T005_D024_Id, 0)) ELSE CONCAT('T005:', T005_Id) END AS clienteId,",
+          "COALESCE(NULLIF(D024_Nome_Empresa, ''), CASE WHEN (SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0) IS NOT NULL THEN CONCAT('Cliente proposta ', (SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0)) ELSE 'Sem cliente' END) AS cliente, COALESCE(T005_C007_Id_Vendedor_Interno, 0) AS responsavelId, COALESCE(NULLIF(C007_Primeiro_Nome, ''), NULLIF(C007_Nome, ''), 'Sem vendedor') AS responsavel,",
+          "COALESCE(T005_Valor_Total, 0) AS valor, 0 AS convertido",
+          "FROM T005",
+          "LEFT JOIN D024 ON D024_Id = COALESCE((SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0), T005_D024_Id, 0)",
+          "LEFT JOIN C007 ON C007_Id = T005_C007_Id_Vendedor_Interno",
+          "WHERE T005_C004_Id = :empresa",
+          "AND T005_Data_Emissao >= :dataInicio",
+          "AND T005_Data_Emissao < DATE_ADD(:dataFim, INTERVAL 1 DAY)",
+          "AND IFNULL(T005_Flag_Status, 0) <> 8",
+          "AND NOT ((T005_C004_Id = 1 AND COALESCE(T005_D024_Id, 0) IN (22460, 19367, 21746, 46617)) OR (EXISTS (SELECT 1 FROM C004 empresaTransferencia WHERE empresaTransferencia.C004_Id = T005_C004_Id AND TRIM(empresaTransferencia.C004_Cnpj) IN ('17750961000540', '17.750.961/0005-40')) AND COALESCE(T005_D024_Id, 0) IN (20516, 19367, 21746)))",
+          "AND (:vendedor = '' OR T005_C007_Id_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(D024_Nome_Empresa, ''), CASE WHEN (SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0) IS NOT NULL THEN CONCAT('Cliente proposta ', (SELECT MIN(proposta.T005A_D024_Id_Cliente_Proposta) FROM T005A proposta WHERE proposta.T005A_T005_Id = T005.T005_Id AND proposta.T005A_D024_Id_Cliente_Proposta > 0)) ELSE 'Sem cliente' END) LIKE CONCAT('%', :cliente, '%'))"
+        ],
+        "valorNotas": "total",
+        "comparativoMesAnterior": true,
+        "carteiraRepresentantes": [
+          "SELECT CONCAT('cad:', c.D024_Id) AS clienteId, COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') AS cliente,",
+          "c.D024_C007_Vendedor_Interno AS vendedorId, COALESCE(NULLIF(v.C007_Primeiro_Nome, ''), NULLIF(v.C007_Nome, ''), 'Sem vendedor') AS vendedor,",
+          "r.D021_Id AS representanteId, COALESCE(NULLIF(r.D021_Nome_Empresa, ''), 'Sem nome') AS representante",
+          "FROM D024 c",
+          "INNER JOIN D021 r ON r.D021_Id = c.D024_D021_Id AND r.D021_Id > 0",
+          "LEFT JOIN C007 v ON v.C007_Id = c.D024_C007_Vendedor_Interno",
+          "WHERE (c.D024_C004_Id = :empresa OR COALESCE(c.D024_C004_Id, 0) = 0)",
+          "AND c.D024_Flag_Cliente = 'S' AND c.D024_C007_Vendedor_Interno > 0",
+          "AND (:vendedor = '' OR c.D024_C007_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+        ],
+        "carteiraRegioes": [
+          "SELECT CONCAT('cad:', c.D024_Id) AS clienteId, COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') AS cliente,",
+          "c.D024_C007_Vendedor_Interno AS vendedorId, COALESCE(NULLIF(v.C007_Primeiro_Nome, ''), NULLIF(v.C007_Nome, ''), 'Sem vendedor') AS vendedor,",
+          "COALESCE(u.D018_UF, '') AS uf, COALESCE(ci.D020_Id, 0) AS cidadeId, COALESCE(NULLIF(ci.D020_Nome_Cidade, ''), 'Cidade não informada') AS cidade, ",
+          "COALESCE(r.D084_Id, 0) AS regiaoId, COALESCE(NULLIF(r.D084_Regiao, ''), 'Sem região cadastrada') AS regiao, COALESCE(ci.D020_Codigo_IBGE, '') AS cidadeIbge",
+          "FROM D024 c",
+          "LEFT JOIN C007 v ON v.C007_Id = c.D024_C007_Vendedor_Interno",
+          "LEFT JOIN D018 u ON u.D018_Id = c.D024_D018_Id",
+          "LEFT JOIN D020 ci ON ci.D020_Id = c.D024_D020_Id",
+          "LEFT JOIN D084 r ON r.D084_Id = ci.D020_D084_Id",
+          "WHERE (c.D024_C004_Id = :empresa OR COALESCE(c.D024_C004_Id, 0) = 0)",
+          "AND c.D024_Flag_Cliente = 'S' AND c.D024_C007_Vendedor_Interno > 0",
+          "AND (:vendedor = '' OR c.D024_C007_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%'))"
+        ],
+        "metasVendedores": [
+          "SELECT m.SMT120_C007_Id AS vendedorId, m.SMT120_Data_Inicial AS inicio, m.SMT120_Data_Final AS fim,",
+          "m.SMT120_Valor_Meta AS meta, m.SMT120_Valor_Atingido AS atingido, m.SMT120_Percentual_Atingido AS percentual",
+          "FROM SMT120 m",
+          "WHERE m.SMT120_Data_Inicial = :metaInicio AND m.SMT120_Data_Final = :metaFim",
+          "AND (:vendedor = '' OR m.SMT120_C007_Id = :vendedor)",
+          "AND EXISTS (SELECT 1 FROM C019 vinculo WHERE vinculo.C019_C007_Id = m.SMT120_C007_Id AND vinculo.C019_C004_Id = :empresa)"
+        ],
+        "territoriosRegioes": [
+          "SELECT u.D018_UF AS uf, ci.D020_Codigo_IBGE AS cidadeIbge, COALESCE(r.D084_Id, 0) AS regiaoId, COALESCE(NULLIF(r.D084_Regiao, ''), 'Sem região cadastrada') AS regiao",
+          "FROM D020 ci",
+          "INNER JOIN D018 u ON u.D018_Id = ci.D020_D018_Id",
+          "LEFT JOIN D084 r ON r.D084_Id = ci.D020_D084_Id",
+          "WHERE ci.D020_Codigo_IBGE <> ''",
+          "AND EXISTS (SELECT 1 FROM D024 c",
+          "WHERE c.D024_D018_Id = ci.D020_D018_Id AND (c.D024_C004_Id = :empresa OR COALESCE(c.D024_C004_Id, 0) = 0)",
+          "AND c.D024_Flag_Cliente = 'S' AND c.D024_C007_Vendedor_Interno > 0",
+          "AND (:vendedor = '' OR c.D024_C007_Vendedor_Interno = :vendedor)",
+          "AND (:cliente = '' OR COALESCE(NULLIF(c.D024_Nome_Empresa, ''), 'Sem cliente') LIKE CONCAT('%', :cliente, '%')))"
+        ]
+      }
+    },
+    {
+      "id": "inecel_desempenho_comercial",
+      "habilitado": true,
+      "ordem": 10,
+      "titulo": "Painel de Cotações",
+      "subtitulo": "Orçamentos, pedidos, faturamento e projeção por equipe, vendedor e representante",
+      "icone": "chart",
+      "cor": "blue",
+      "sqlBase": "SELECT 0 AS valor WHERE :empresa > 0",
+      "filtros": [
+        {
+          "id": "vendedor",
+          "titulo": "Vendedor",
+          "tipo": "selecao",
+          "padrao": "",
+          "opcoes": []
+        }
+      ],
+      "card": {
+        "habilitada": false
+      },
+      "grafico": {
+        "habilitado": false
+      },
+      "composicao": {
+        "habilitada": false
+      },
+      "listagem": {
+        "habilitada": false
+      },
+      "painelCotacoes": {
+        "habilitado": true,
+        "empresas": "acesso_usuario",
+        "supervisor": "C007_C007_Id",
+        "incluirSupervisorSecundario": false,
+        "clienteProposta": true,
+        "origemIA": true,
+        "clientesExcluidos": [],
+        "meta": null,
+        "calendario": {
+          "feriadosAdicionais": [],
+          "recesso": {
+            "de": "12-20",
+            "ate": "01-09"
+          }
+        },
+        "empresasConfiguradas": [
+          {
+            "id": 1,
+            "rotulo": "Matriz",
+            "clientesTransferencia": [
+              22460,
+              19367,
+              21746,
+              46617
+            ]
+          },
+          {
+            "cnpj": "17750961000540",
+            "rotulo": "Vendas Aço",
+            "clientesTransferencia": [
+              20516,
+              19367,
+              21746
+            ],
+            "toneladas": true,
+            "servicosIndustrializacao": [
+              142485,
+              148229,
+              155288
+            ]
+          }
+        ],
+        "equipes": [
+          {
+            "id": "gian",
+            "nome": "Gian",
+            "empresaId": 1,
+            "supervisores": [
+              83,
+              79
+            ]
+          },
+          {
+            "id": "humberto_rafaela",
+            "nome": "Humberto / Rafaela",
+            "empresaId": 1,
+            "supervisores": [
+              89
+            ]
+          },
+          {
+            "id": "william",
+            "nome": "William",
+            "empresaId": 1,
+            "supervisores": [
+              77
+            ]
+          },
+          {
+            "id": "alessandro",
+            "nome": "Alessandro",
+            "empresaCnpj": "17750961000540",
+            "supervisoresNomes": [
+              "ALESSANDRO"
+            ]
+          }
+        ],
+        "atribuirClienteProposta": true
+      }
+    }
+  ]
+}

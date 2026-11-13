@@ -260,7 +260,7 @@ EOT;
             
             return $retorno;
         }
-        
+
         /**
          * SELECT's
          */
@@ -1679,6 +1679,19 @@ EOT;
             mysql_query("ROLLBACK");
             return "Erro: $cErro <br /><br /> $cClausula";
         }
+
+        // Remove os complementos dos itens antes dos próprios itens. Sem isso,
+        // uma eventual reutilização de T006_Id pode associar dados antigos ao novo pedido.
+        $cClausula = "DELETE T006A
+                        FROM T006A
+                       INNER JOIN T006 ON T006_Id = T006A_T006_Id
+                       WHERE T006_T005_Id = '{$T005_Id}'";
+        mysql_query($cClausula);
+        $cErro = mysql_error();
+        if (!empty($cErro)) {
+            mysql_query("ROLLBACK");
+            return "Erro: $cErro <br /><br /> $cClausula";
+        }
         
         $T006 = mysql_query("SELECT T006_Id FROM T006 WHERE T006_T005_Id='{$T005_Id}'");
         while ($mT006 = mysql_fetch_array($T006)) {
@@ -1689,6 +1702,16 @@ EOT;
                 mysql_query("ROLLBACK");
                 return "Erro: $cErro <br /> <br /> $cClausula";
             }
+        }
+
+        // Remove o complemento do cabeçalho antes de excluir o pedido.
+        // T162 e T178 são mantidas por serem registros históricos/auditoria.
+        $cClausula = "DELETE FROM T005A WHERE T005A_T005_Id = '{$T005_Id}'";
+        mysql_query($cClausula);
+        $cErro = mysql_error();
+        if (!empty($cErro)) {
+            mysql_query("ROLLBACK");
+            return "Erro: $cErro <br /><br /> $cClausula";
         }
 
         $D085 = mysql_query("SELECT D085_Id, D085_T259_Id FROM D085 WHERE D085_Id_Entidade = '{$T005_Id}'AND D085_Entidade = 'T005'");        
@@ -2199,7 +2222,26 @@ EOT;
                                       T006A_Percentual_Reducao_COFINS         = '{$Aliquotas['Percentual_Reducao_COFINS']}',
                                       T006A_Percentual_Reducao_Base_DIFAL     = '{$Aliquotas['Percentual_Reducao_Base_DIFAL']}',
                                       T006A_Trib_Interna_UF_Dest_Reducao_Base = '{$Aliquotas['EIP001_Trib_Interna_UF_Dest_Reducao_Base']}',
-                                      T006A_Percentual_FCP                    = '{$Aliquotas['Percentual_FCP']}'
+                                      T006A_Percentual_FCP                    = '{$Aliquotas['Percentual_FCP']}',
+                                      T006A_Situacao_Tributaria_CBS_IBS              = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                                      T006A_Classificacao_Tributaria_CBS_IBS         = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                                      T006A_Aliquota_CBS                             = '{$Aliquotas['Aliquota_CBS']}',
+                                      T006A_Aliquota_IBS_UF                          = '{$Aliquotas['Aliquota_IBS_UF']}',
+                                      T006A_Aliquota_IBS_Municipal                   = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                                      T006A_Percentual_Reducao_CBS                   = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                                      T006A_Percentual_Reducao_IBS_UF                = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                                      T006A_Percentual_Reducao_IBS_Municipal         = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                                      T006A_Percentual_Diferimento_CBS               = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                                      T006A_Percentual_Diferimento_IBS_UF            = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                                      T006A_Percentual_Diferimento_IBS_Municipal     = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                                      T006A_Situacao_Tributaria_CBS_IBS_Regular      = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                                      T006A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                      T006A_Aliquota_CBS_Regular                     = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                                      T006A_Aliquota_IBS_UF_Regular                  = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                                      T006A_Aliquota_IBS_Municipal_Regular           = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                                      T006A_Percentual_Reducao_CBS_Regular           = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                                      T006A_Percentual_Reducao_IBS_UF_Regular        = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                                      T006A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}'
                                 WHERE T006A_T006_Id = '{$T006_Id}'");
 
         return true;
@@ -5977,7 +6019,7 @@ EOT;
             $mPD = mysql_fetch_assoc($PD);
             // Verifica se o item é produzido, se for precisa buscar o ultimo T006_Id inserido no pedido
             // Porque são feitos outros insertes na tabela de engenharia que são startados pela trigger 
-            if($mPD['D049_Flag_Tipo'] == 'PD'){
+            if(in_array($mPD['D049_Flag_Tipo'], array('PD', 'IN'), true)){
                 $item  = mysql_query("SELECT T006_Id FROM T006 WHERE T006_T005_Id = '{$T005_Id_Novo}' ORDER BY T006_Id DESC LIMIT 1");
                 $mItem = mysql_fetch_assoc($item);
                 $T006_Id = $mItem['T006_Id'];
@@ -6325,7 +6367,7 @@ EOT;
                                WHERE T006_Id = '{$mT006['T006_Id']}'
                                LIMIT 1");
         $mPD = mysql_fetch_assoc($sqlPD);
-        if ($mPD['D049_Flag_Tipo'] == 'PD') {
+        if (in_array($mPD['D049_Flag_Tipo'], array('PD', 'IN'), true)) {
             $sqlUltimoItem = mysql_query("SELECT T006_Id FROM T006 WHERE T006_T005_Id = '{$cache['contexto']['novoT005_Id']}' ORDER BY T006_Id DESC LIMIT 1");
             $mUltimoItem = mysql_fetch_assoc($sqlUltimoItem);
             if (!empty($mUltimoItem['T006_Id'])) {
@@ -7986,11 +8028,234 @@ EOT;
     }
 
     /**
-     * incluirProdutosPesquisaGridPedido
-     *
-     * @param String $T005_Id
-     * @return Bool
+     * Gera o arquivo PDF dos documentos de exportação sem passar pelo
+     * montarEmailPdf, que pode ser sobrescrito por personalizações de clientes.
      */
+    public function montarDocumentoExportacaoPdf($T005_Id, $moeda = '1', $layout = 'invoice')
+    {
+        global $g, $confUsuario;
+
+        $T005_Id = (int) $T005_Id;
+        $moeda = empty($moeda) ? 1 : $moeda;
+        $layout = $layout === 'packing' ? 'packing' : 'invoice';
+        $fonteMinima = 13 + $g['C031']['vendasZoomFonteImprimirPDF'];
+        $margensImpressao = $g['C031']['margemImprimirPDF'];
+        $margensImpressao = ($margensImpressao <= 0 || $margensImpressao === '') ? 1 : $margensImpressao;
+
+        $dir = $g['pathDados'] . 'tmp/';
+        is_dir($dir) OR mkdir($dir, 0777, true);
+        $filename = "pedido-{$T005_Id}-{$layout}.pdf";
+        $file = $dir . $filename;
+        $fileFull = $g['pathRaiz'] . '/' . $file;
+        if (file_exists($fileFull)) {
+            unlink($fileFull);
+        }
+
+        $retorno['Anexos'] = array($file);
+        $retorno['AnexosWeb'] = array('/hardness3/' . $file . '?v=' . uniqid('', true));
+
+        $r_link = '/ven/ven002/form_func-ajax/ven002ImprimirDocumentoExportacao/?ajax=true&T005_Id=' . $T005_Id . '&moeda=' . $moeda . '&layout=' . $layout;
+        $r_link = str_replace(' ', '+', $r_link);
+        shell_exec("xvfb-run --server-num " . mt_rand(0, 98) . " -s \"-screen 0 640x480x16\" wkhtmltopdf --minimum-font-size {$fonteMinima} --quiet --margin-left {$margensImpressao} --margin-right {$margensImpressao} --margin-top {$margensImpressao} --margin-bottom {$margensImpressao} \"{$g['urlRaiz']}{$r_link}&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}&db={$confUsuario['dbDatabase']}\" \"{$fileFull}\"");
+
+        return $retorno;
+    }
+
+    /**
+     * Gera os documentos de exportação do pedido. Os campos com prefixo
+     * Invoice são opcionais para manter compatibilidade com bases que ainda
+     * não receberam a migração da Alumifix.
+     */
+    public function montarDocumentoExportacao($T005_Id, $moeda, $layout)
+    {
+        global $g, $confUsuario;
+
+        $T005_Id = mysql_real_escape_string($T005_Id);
+        $moeda   = (int) $moeda;
+        $layout  = $layout === 'packing' ? 'packing' : 'invoice';
+
+        $C004 = mysql_query("SELECT C004.*, D018.D018_UF AS emissorUF, D020.D020_Nome_Cidade AS emissorCidade,
+                                     D030Emissor.D030_Nome_Pais AS emissorPais
+                               FROM C004
+                          LEFT JOIN D018 ON D018.D018_Id=C004.C004_D018_Id
+                          LEFT JOIN D020 ON D020.D020_Id=C004.C004_D020_Id
+                          LEFT JOIN D024 AS D024Emissor ON D024Emissor.D024_Id=C004.C004_D024_Id
+                          LEFT JOIN D030 AS D030Emissor ON D030Emissor.D030_Id=D024Emissor.D024_D030_Id
+                              WHERE C004.C004_Id='{$g['empresaAtual']}'");
+        $mC004 = mysql_fetch_array($C004);
+
+        $T005 = mysql_query("SELECT T005.*, T005A.*,
+                                     D024.D024_Nome_Empresa, D024.D024_Endereco, D024.D024_Numero,
+                                     D024.D024_Bairro, D024.D024_Complemento, D024.D024_Cep,
+                                     D024.D024_Cnpj, D024.D024_Cpf, D024.D024_Inscricao_Estadual,
+                                     D024.D024_DDD_Telefone_1, D024.D024_Telefone_1,
+                                     D020.D020_Nome_Cidade AS clienteCidade, D018.D018_UF AS clienteUF,
+                                     D030.D030_Nome_Pais AS clientePais,
+                                     T005_Prazos(T005.T005_Id) AS pagamentoPadrao
+                                FROM T005
+                           LEFT JOIN T005A ON T005A.T005A_T005_Id=T005.T005_Id
+                           LEFT JOIN D024 ON D024.D024_Id=T005.T005_D024_Id
+                           LEFT JOIN D020 ON D020.D020_Id=D024.D024_D020_Id
+                           LEFT JOIN D018 ON D018.D018_Id=D024.D024_D018_Id
+                           LEFT JOIN D030 ON D030.D030_Id=D024.D024_D030_Id
+                               WHERE T005.T005_Id='{$T005_Id}'");
+        $mT005 = mysql_fetch_array($T005);
+
+        if (empty($mT005['T005_Id'])) {
+            return '<p>Pedido não encontrado.</p>';
+        }
+
+        $T006 = mysql_query("SELECT T006.T006_Item, T006.T006_Descricao_Produto, T006.T006_Quantidade,
+                                     T006.T006_Valor_Preco_Sem_Desconto_Unitario, T006.T006_Valor_Total_Preco,
+                                     D001.D001_Peso_Unitario_Kg, D001.D001_Quantidade_Tributavel, D037.D037_Unidade,
+                                     D005.D005_Classificacao_Fiscal
+                                FROM T006
+                           LEFT JOIN D009 ON D009.D009_Id=T006.T006_D009_Id
+                           LEFT JOIN D049 ON D049.D049_Id=D009.D009_D049_Id
+                           LEFT JOIN D001 ON D001.D001_Id=D049.D049_D001_Id
+                           LEFT JOIN D037 ON D037.D037_Id=T006.T006_D037_Id
+                           LEFT JOIN D005 ON D005.D005_Id=T006.T006_D005_Id
+                               WHERE T006.T006_T005_Id='{$T005_Id}'
+                                 AND T006.T006_Flag_Cancelado!='S'
+                                 AND T006.T006_Quantidade > 0
+                            ORDER BY T006.T006_Item");
+
+        $itens = array();
+        $pesoLiquidoTotal = 0;
+        while ($item = mysql_fetch_array($T006)) {
+            $item['pesoLiquido'] = (float) $item['D001_Quantidade_Tributavel'] * (float) $item['T006_Quantidade'];
+            // T006_Item pode conter lacunas quando algum item é excluído. A
+            // numeração impressa precisa representar a sequência exibida.
+            $item['numeroImpressao'] = count($itens) + 1;
+            $pesoLiquidoTotal += $item['pesoLiquido'];
+            $itens[] = $item;
+        }
+
+        $cotacao = (float) $mT005['T005_Cotacao_Moeda'];
+        if ($cotacao <= 0) {
+            $cotacao = 1;
+        }
+        $pesoBrutoPedido = (float) $mT005['T005_Peso_Bruto'];
+        if ($pesoBrutoPedido <= 0) {
+            $pesoBrutoPedido = (float) $mT005['T005_Peso_Bruto_Total'];
+        }
+
+        $logo = '';
+        if (!empty($mC004['C004_Logo_Marca'])) {
+            $pathinfo = pathinfo($mC004['C004_Logo_Marca']);
+            $src = "{$confUsuario['urlRaiz']}{$g['pathWeb']}{$g['pathDados']}imagens/logo/{$g['empresaAtual']}.{$pathinfo['extension']}";
+            $logo = '<img class="logo-exportacao" src="' . $this->documentoExportacaoEscapar($src) . '">';
+        }
+
+        $nomeEmissor = $this->documentoExportacaoEscapar($mC004['C004_Nome_Empresa']);
+        $enderecoEmissor = $this->documentoExportacaoEscapar(trim($mC004['C004_Logradouro'] . ', ' . $mC004['C004_Numero'] . ' - ' . $mC004['C004_Bairro']));
+        $cidadeEmissor = $this->documentoExportacaoEscapar(trim($mC004['emissorCidade'] . ' - ' . $mC004['emissorUF']));
+        $paisEmissor = $this->documentoExportacaoEscapar(!empty($mC004['emissorPais']) ? $mC004['emissorPais'] : 'Brazil');
+        $cnpjEmissor = $this->documentoExportacaoEscapar($mC004['C004_Cnpj']);
+        $telefoneEmissor = $this->documentoExportacaoEscapar(trim($mC004['C004_DDD_Telefone'] . ' ' . $mC004['C004_Telefone']));
+        $nomeCliente = $this->documentoExportacaoEscapar($mT005['D024_Nome_Empresa']);
+        $enderecoCliente = $this->documentoExportacaoEscapar(trim($mT005['D024_Endereco'] . ', ' . $mT005['D024_Numero'] . ' - ' . $mT005['D024_Bairro']));
+        $cidadeCliente = $this->documentoExportacaoEscapar(trim($mT005['clienteCidade'] . ' - ' . $mT005['clienteUF']));
+        $paisCliente = $this->documentoExportacaoEscapar(!empty($mT005['clientePais']) ? $mT005['clientePais'] : 'Brazil');
+        $fromAutomatico = $this->documentoExportacaoEscapar(trim($mC004['emissorCidade'] . '/' . (!empty($mC004['emissorPais']) ? $mC004['emissorPais'] : 'Brazil')));
+        $toAutomatico = $this->documentoExportacaoEscapar(trim($mT005['clienteCidade'] . '/' . (!empty($mT005['clientePais']) ? $mT005['clientePais'] : 'Brazil')));
+        $dataEmissao = $this->documentoExportacaoEscapar(gCorrigeData($mT005['T005_Data_Emissao']));
+        $numeroPedido = str_pad($mT005['T005_Id'], 6, '0', STR_PAD_LEFT);
+
+        $css = '<style>
+            * { box-sizing:border-box; } body { font-family:Arial,sans-serif; color:#111; font-size:10px; margin:8px; }
+            .exportacao-cabecalho { display:table; width:100%; margin-bottom:8px; } .exportacao-titulo { display:table-cell; width:70%; font-size:22px; font-weight:bold; vertical-align:middle; }
+            .logo-exportacao { display:block; max-width:230px; max-height:70px; margin-left:auto; } .exportacao-logo { display:table-cell; vertical-align:middle; }
+            .exportacao-blocos { width:100%; border-collapse:collapse; margin-bottom:8px; } .exportacao-blocos td { width:50%; border:1px solid #222; vertical-align:top; padding:4px; }
+            .exportacao-blocos p { margin:1px 0; } .exportacao-rotulo { font-weight:bold; } .exportacao-itens { width:100%; border-collapse:collapse; margin-top:6px; }
+            .exportacao-itens th, .exportacao-itens td { border:1px solid #222; padding:4px; } .exportacao-invoice-itens th, .exportacao-invoice-itens td { padding:2px 3px; } .exportacao-itens thead { display:table-header-group; page-break-after:avoid; break-after:avoid; } .exportacao-itens th { text-align:center; font-weight:bold; } .numero { text-align:right; white-space:nowrap; }
+            .exportacao-rodape { width:100%; border-collapse:collapse; margin-top:8px; } .exportacao-rodape td { border:1px solid #222; padding:4px; vertical-align:top; width:25%; }
+            .exportacao-rodape .assinatura-documento { width:50%; } .exportacao-rodape p { margin:2px 0; }
+            .exportacao-fechamento, .exportacao-fechamento table, .exportacao-fechamento tr, .exportacao-fechamento td, .exportacao-rodape, .exportacao-rodape tr, .exportacao-rodape td { page-break-inside:avoid; break-inside:avoid; }
+            .assinatura { margin-top:55px; width:260px; border-top:1px solid #222; padding-top:4px; text-align:center; font-weight:bold; }
+        </style>';
+
+        if ($layout === 'packing') {
+            $html = $css . '<div class="exportacao-cabecalho"><div class="exportacao-titulo">PACKING LIST</div><div class="exportacao-logo">' . $logo . '</div></div>';
+            $html .= '<table class="exportacao-blocos"><tr><td><span class="exportacao-rotulo">Exporter:</span><p><b>' . $nomeEmissor . '</b></p><p>' . $enderecoEmissor . '</p><p>' . $cidadeEmissor . ' - ' . $paisEmissor . '</p><p><b>CNPJ:</b> ' . $cnpjEmissor . ' &nbsp; <b>Telephone:</b> ' . $telefoneEmissor . '</p></td>';
+            $html .= '<td><span class="exportacao-rotulo">Date:</span><p>' . $dataEmissao . '</p><span class="exportacao-rotulo">Payment Terms:</span><p>' . $this->documentoExportacaoEscapar($this->documentoExportacaoCampo($mT005, 'T005A_Invoice_Payment_Terms', $mT005['pagamentoPadrao'])) . '</p><span class="exportacao-rotulo">Authorized Signature:</span><p>&nbsp;</p></td></tr>';
+            $html .= '<tr><td><span class="exportacao-rotulo">Importer:</span><p><b>' . $nomeCliente . '</b></p><p>' . $enderecoCliente . '</p><p>' . $cidadeCliente . ' - ' . $paisCliente . '</p></td>';
+            $html .= '<td><span class="exportacao-rotulo">Notify:</span><p><b>' . $nomeCliente . '</b></p><p>' . $enderecoCliente . '</p><p>' . $cidadeCliente . ' - ' . $paisCliente . '</p></td></tr>';
+            $html .= '<tr><td><span class="exportacao-rotulo">From:</span><p>' . $fromAutomatico . '</p><span class="exportacao-rotulo">Invoice Number:</span><p>' . $this->documentoExportacaoEscapar($this->documentoExportacaoCampo($mT005, 'T005A_Invoice_Number', $numeroPedido)) . '</p></td>';
+            $html .= '<td><span class="exportacao-rotulo">To:</span><p>' . $toAutomatico . '</p><span class="exportacao-rotulo">Incoterms:</span><p>' . $this->documentoExportacaoEscapar($this->documentoExportacaoCampo($mT005, 'T005A_Invoice_Incoterms', '')) . '</p></td></tr></table>';
+            $html .= '<table class="exportacao-itens"><tr><th>ITEM</th><th>DESCRIPTION</th><th>UNIT</th><th>QUANTITY</th><th>WEIGHT NET (Kgs)</th><th>WEIGHT GROSS (Kgs)</th></tr>';
+            foreach ($itens as $item) {
+                $pesoBrutoItem = $pesoLiquidoTotal > 0 ? $pesoBrutoPedido * ($item['pesoLiquido'] / $pesoLiquidoTotal) : null;
+                $html .= '<tr><td>' . $this->documentoExportacaoEscapar($item['numeroImpressao']) . '</td><td><b>' . $this->documentoExportacaoEscapar($item['T006_Descricao_Produto']) . '</b></td><td>' . $this->documentoExportacaoEscapar($item['D037_Unidade']) . '</td><td class="numero">' . $this->documentoExportacaoNumero($item['T006_Quantidade'], 2) . '</td><td class="numero">' . $this->documentoExportacaoNumero($item['pesoLiquido'], 3) . '</td><td class="numero">' . ($pesoBrutoItem === null ? '-' : $this->documentoExportacaoNumero($pesoBrutoItem, 3)) . '</td></tr>';
+            }
+            $html .= '<tr><td colspan="4"><b>TOTAL</b></td><td class="numero"><b>' . $this->documentoExportacaoNumero($pesoLiquidoTotal, 3) . '</b></td><td class="numero"><b>' . ($pesoLiquidoTotal > 0 ? $this->documentoExportacaoNumero($pesoBrutoPedido, 3) : '-') . '</b></td></tr></table>';
+            return $html;
+        }
+
+        $html = $css . '<div class="exportacao-cabecalho"><div class="exportacao-titulo">COMMERCIAL INVOICE</div><div class="exportacao-logo">' . $logo . '</div></div>';
+        $html .= '<table class="exportacao-blocos"><tr><td><span class="exportacao-rotulo">Exporter:</span><p><b>' . $nomeEmissor . '</b></p><p>' . $enderecoEmissor . '</p><p>' . $cidadeEmissor . ' - ' . $paisEmissor . '</p><p><b>CNPJ:</b> ' . $cnpjEmissor . ' &nbsp; <b>Telephone:</b> ' . $telefoneEmissor . '</p></td>';
+        $html .= '<td><span class="exportacao-rotulo">Date:</span><p>' . $dataEmissao . '</p><span class="exportacao-rotulo">Payment Terms:</span><p>' . $this->documentoExportacaoEscapar($this->documentoExportacaoCampo($mT005, 'T005A_Invoice_Payment_Terms', $mT005['pagamentoPadrao'])) . '</p><span class="exportacao-rotulo">Our Bank:</span><p>' . $this->documentoExportacaoTextoMultilinha($this->documentoExportacaoCampo($mC004, 'C004_Invoice_Our_Bank', '')) . '</p></td></tr>';
+        $html .= '<tr><td><span class="exportacao-rotulo">Importer:</span><p><b>' . $nomeCliente . '</b></p><p>' . $enderecoCliente . '</p><p>' . $cidadeCliente . ' - ' . $paisCliente . '</p></td>';
+        $html .= '<td><span class="exportacao-rotulo">Notify:</span><p><b>' . $nomeCliente . '</b></p><p>' . $enderecoCliente . '</p><p>' . $cidadeCliente . ' - ' . $paisCliente . '</p></td></tr>';
+        $html .= '<tr><td><span class="exportacao-rotulo">From:</span><p>' . $fromAutomatico . '</p><span class="exportacao-rotulo">Invoice Number:</span><p>' . $this->documentoExportacaoEscapar($this->documentoExportacaoCampo($mT005, 'T005A_Invoice_Number', $numeroPedido)) . '</p></td>';
+        $html .= '<td><span class="exportacao-rotulo">To:</span><p>' . $toAutomatico . '</p><span class="exportacao-rotulo">Incoterms:</span><p>' . $this->documentoExportacaoEscapar($this->documentoExportacaoCampo($mT005, 'T005A_Invoice_Incoterms', '')) . '</p></td></tr></table>';
+        // Mantém o fechamento da invoice (últimos itens, total e rodapé) unido
+        // quando houver quebra de página.
+        $quantidadeItensFechamento = min(3, count($itens));
+        $itensFechamento = $quantidadeItensFechamento > 0 ? array_splice($itens, -$quantidadeItensFechamento) : array();
+        $totalDolar = 0;
+        foreach (array_merge($itens, $itensFechamento) as $item) {
+            $precoDolar = (float) $item['T006_Valor_Preco_Sem_Desconto_Unitario'] / $cotacao;
+            $valorDolar = (float) $item['T006_Valor_Total_Preco'] / $cotacao;
+            $totalDolar += $valorDolar;
+        }
+
+        $colunasItensInvoice = '<colgroup><col style="width:7%"><col style="width:25%"><col style="width:12%"><col style="width:7%"><col style="width:14%"><col style="width:15%"><col style="width:20%"></colgroup>';
+        $cabecalhoItensInvoice = '<thead><tr><th>ITEM</th><th>DESCRIPTION</th><th>NCM</th><th>UNIT</th><th>QUANTITY</th><th>USD PRICE</th><th>USD AMOUNT</th></tr></thead>';
+
+        if (!empty($itens)) {
+            $html .= '<table class="exportacao-itens exportacao-invoice-itens">' . $colunasItensInvoice . $cabecalhoItensInvoice . '<tbody>';
+            foreach ($itens as $item) {
+                $precoDolar = (float) $item['T006_Valor_Preco_Sem_Desconto_Unitario'] / $cotacao;
+                $valorDolar = (float) $item['T006_Valor_Total_Preco'] / $cotacao;
+                $html .= '<tr><td>' . $this->documentoExportacaoEscapar($item['numeroImpressao']) . '</td><td><b>' . $this->documentoExportacaoEscapar($item['T006_Descricao_Produto']) . '</b></td><td>' . $this->documentoExportacaoEscapar($item['D005_Classificacao_Fiscal']) . '</td><td>' . $this->documentoExportacaoEscapar($item['D037_Unidade']) . '</td><td class="numero">' . $this->documentoExportacaoNumero($item['T006_Quantidade'], 2) . '</td><td class="numero">' . $this->documentoExportacaoNumero($precoDolar, 5) . '</td><td class="numero">' . $this->documentoExportacaoNumero($valorDolar, 2) . '</td></tr>';
+            }
+            $html .= '</tbody></table>';
+        }
+
+        $html .= '<div class="exportacao-fechamento"><table class="exportacao-itens exportacao-invoice-itens">' . $colunasItensInvoice . (empty($itens) ? $cabecalhoItensInvoice : '') . '<tbody>';
+        foreach ($itensFechamento as $item) {
+            $precoDolar = (float) $item['T006_Valor_Preco_Sem_Desconto_Unitario'] / $cotacao;
+            $valorDolar = (float) $item['T006_Valor_Total_Preco'] / $cotacao;
+            $html .= '<tr><td>' . $this->documentoExportacaoEscapar($item['numeroImpressao']) . '</td><td><b>' . $this->documentoExportacaoEscapar($item['T006_Descricao_Produto']) . '</b></td><td>' . $this->documentoExportacaoEscapar($item['D005_Classificacao_Fiscal']) . '</td><td>' . $this->documentoExportacaoEscapar($item['D037_Unidade']) . '</td><td class="numero">' . $this->documentoExportacaoNumero($item['T006_Quantidade'], 2) . '</td><td class="numero">' . $this->documentoExportacaoNumero($precoDolar, 5) . '</td><td class="numero">' . $this->documentoExportacaoNumero($valorDolar, 2) . '</td></tr>';
+        }
+        $html .= '<tr><td colspan="6"><b>TOTAL USD</b></td><td class="numero"><b>' . $this->documentoExportacaoNumero($totalDolar, 2) . '</b></td></tr>';
+        $html .= '</tbody></table>';
+        $html .= '<table class="exportacao-rodape"><tr><td><b>Net Weight:</b><p>' . $this->documentoExportacaoNumero($pesoLiquidoTotal, 3) . ' Kgs</p></td><td><b>Packages:</b><p>' . $this->documentoExportacaoNumero($mT005['T005_Quantidade_Volumes'], 0) . ' CTN&apos;s</p></td><td class="assinatura-documento" rowspan="2"><b>Authorized Signature:</b><p>&nbsp;</p></td></tr>';
+        $html .= '<tr><td><b>Gross Weight:</b><p>' . $this->documentoExportacaoNumero($pesoBrutoPedido, 3) . ' Kgs</p></td><td><b>Vol in CM3:</b><p>' . $this->documentoExportacaoNumero($mT005['T005_Total_Cubagem'], 3) . ' m&sup3;</p></td></tr></table></div>';
+        return $html;
+    }
+
+    private function documentoExportacaoCampo($dados, $campo, $padrao)
+    {
+        return isset($dados[$campo]) && trim($dados[$campo]) !== '' ? $dados[$campo] : $padrao;
+    }
+
+    private function documentoExportacaoEscapar($valor)
+    {
+        return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
+    }
+
+    private function documentoExportacaoTextoMultilinha($valor)
+    {
+        return nl2br($this->documentoExportacaoEscapar($valor));
+    }
+
+    private function documentoExportacaoNumero($valor, $casas)
+    {
+        return number_format((float) $valor, $casas, ',', '.');
+    }
+
     public function incluirProdutosPesquisaGridPedido($T005_Id)
     {
         global $g;

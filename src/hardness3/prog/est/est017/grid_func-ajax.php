@@ -52,8 +52,13 @@ switch($g['r'][3]) {
 			$T255_Id = 0;
 			$retorno = $EST017->gerarOrdemProducao($sql);
 
-			$resposta['code'] = true;
-			$resposta['T255_Id'] = $T255_Id;
+			if ($retorno !== true) {
+				$resposta['code'] = false;
+				$resposta['data'] = $retorno;
+			} else {
+				$resposta['code'] = true;
+				$resposta['T255_Id'] = $T255_Id;
+			}
 		} else {
 			$resposta['code'] = false;
 			$resposta['data'] = "Nenhum produto foi selecionado, por favor verifique!";
@@ -142,6 +147,16 @@ switch($g['r'][3]) {
 		if ($retorno !== true) {
 			$resposta['code'] = false;
 			$resposta['data'] = $retorno;
+		}
+	break;
+
+	case 'duplicarOrdemProducao':
+		$retorno = $EST017->duplicarOrdemProducao($r_T255_Id);
+		if (!is_array($retorno)) {
+			$resposta['code'] = false;
+			$resposta['data'] = $retorno;
+		} else {
+			$resposta['T255_Id'] = $retorno['T255_Id'];
 		}
 	break;
 }

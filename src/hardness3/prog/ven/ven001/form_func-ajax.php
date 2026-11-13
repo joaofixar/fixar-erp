@@ -379,7 +379,7 @@ EOT;
 			if (empty($erro)) {
 				$VEN001 = new VEN001();
 
-				if ($g['C031']['aplicarDescontoEmEtapas'] == 'S' && $tabelaCabecalho == "T003") {
+				if (($g['C031']['aplicarDescontoEmEtapas'] == 'S' || (isset($r_lote))) && $tabelaCabecalho == "T003") {
 					$retorno = $VEN001->validaAplicarDescontoEmEtapas(array(
 						'tabelaCabecalho' => $tabelaCabecalho,
 						'idTabelaCabecalho' => $idTabelaCabecalho,
@@ -421,6 +421,7 @@ EOT;
 							'classe' => 'VEN001',
 							'metodo' => 'VEN001aplicarDescontoEmEtapas()',
 							'sql' => $sqlEtapas,
+							'lote' => $r_lote ?? 5,
 							'idBotao' => false,
 							'divId' => $g['divIdParent'],
 							'autoExec' => true,

@@ -1,0 +1,11 @@
+(function(){'use strict';
+  function modalUrl(href){var url=new URL(href,window.location.href);url.searchParams.set('item_modal','1');return url.href;}
+  document.addEventListener('click',function(event){var link=event.target.closest('[data-guide-item-modal]'),button=event.target.closest('[data-guide-item-modal-button]');if((!link&&!button)||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();window.location.assign(modalUrl(link?link.href:button.getAttribute('data-guide-item-modal-button')));});
+  var dialog=document.querySelector('[data-guide-item-modal-open]');if(!dialog)return;
+  var flash=dialog.previousElementSibling,feedback=null;if(flash&&flash.matches('[role="alert"]')){dialog.querySelector('.guide-item-modal-body').insertBefore(flash,dialog.querySelector('.guide-item-modal-body').firstChild);if(flash.hasAttribute('data-guide-payment-due-error')){feedback=document.createElement('dialog');feedback.className='gnre-item-feedback';feedback.innerHTML='<section class="gnre-panel"><h2>Vencimento incompatível</h2><p class="error"></p><form method="dialog" class="form-actions"><button>Corrigir vencimento</button></form></section>';feedback.querySelector('p').textContent=flash.textContent||'Revise o vencimento do item.';document.body.appendChild(feedback);flash.remove();feedback.addEventListener('close',function(){var due=dialog.querySelector('[name="due_date"]');if(due){due.focus();if(due.scrollIntoView)due.scrollIntoView({block:'center'});}});}}
+  var canonical=new URL(window.location.href);canonical.searchParams.delete('item_modal');canonical.searchParams.delete('item');canonical.searchParams.delete('new_item');canonical.searchParams.delete('readonly_item');
+  function close(){if(dialog.open)dialog.close();window.history.replaceState(window.history.state,'',canonical.href);}
+  dialog.querySelectorAll('[data-guide-item-modal-close],[data-guide-item-modal-cancel]').forEach(function(control){control.addEventListener('click',function(event){event.preventDefault();close();});});
+  dialog.addEventListener('cancel',function(event){event.preventDefault();});
+  dialog.showModal();if(feedback)feedback.showModal();
+}());

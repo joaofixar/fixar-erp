@@ -627,35 +627,25 @@ EOT;
 			$('#est016AtualizarOpcoes').unbind('click').bind('click', function(data) {
 				var \$buttons = {
 					"Atualizar Aliquotas": function() {
-						var \$buttons2 = {
-							"Sim": function() {
+						$(this).dialog("destroy").remove();
+						est016SelecionarCamposAtualizacao('aliquotas', function(opcoes) {
 								var T224_Id = $('#{$g['divId']} #T224_Id').val();
 								idProgressBar = dialogAlert('Processando alíquotas',"<span id='progressBar'><b><br>0% Processando Alíquotas</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-					            est016AtualizarAliquotasLoop(idProgressBar,T224_Id,1);
-								$(this).dialog("destroy").remove();
-							},
-							"Não": function() { $(this).dialog("destroy").remove(); }
-						};
-						$(this).dialog("destroy").remove();
-						dialogConfirm('Atenção', 'Este processo não atualiza a origem da mercadoria.<br /><br />Confirma a atualização?', \$buttons2);
+					            est016AtualizarAliquotasLoop(idProgressBar,T224_Id,1,opcoes);
+						});
 					},
-					"Atualizar CFOP": function() { 
-						abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Atualizar CFOP', '/est/est016/content/est016ContentAtualizarCFOP/', '&tab=geral&T224_Id=' + encodeURIComponent("{$r_acaoId}"), [500,250]);
+					"Atualizar CFOP": function() {
+						abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Atualizar CFOP', '/est/est016/content/est016ContentAtualizarCFOP/', '&tab=geral&T224_Id=' + encodeURIComponent("{$r_acaoId}"), [500,300]);
 						$(this).dialog("destroy").remove();
 					},
 					"Atualizar Aliquotas/CFOP Tabela": function() {
-						var \$buttons2 = {
-							"Sim": function() {
+						$(this).dialog("destroy").remove();
+						est016SelecionarCamposAtualizacao('tabela', function(opcoes) {
 								var T218_Id = $('#{$g['divId']} #T218_Id').val();
 								var T224_Id = $('#{$g['divId']} #T224_Id').val();
 								idProgressBar = dialogAlert('Processando alíquotas',"<span id='progressBar'><b>0% Processando alíquotas</span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-						            est016AtualizarAliquotasTabelaLoop(idProgressBar,T224_Id,1);
-								$(this).dialog("destroy").remove();
-							},
-							"Não": function() { $(this).dialog("destroy").remove(); }
-						};
-						$(this).dialog("destroy").remove();
-						dialogConfirm('Atenção', 'Este procedimento irá atualizar a CFOP e Origem pela tabela do fornecedor e não será possivel alterá-las de outro meio.<br /><br />Confirma a atualização?', \$buttons2);
+					            est016AtualizarAliquotasTabelaLoop(idProgressBar,T224_Id,1,opcoes);
+						});
 					},
 					"Cancelar": function() { 
 						$(this).dialog("destroy").remove();
@@ -729,11 +719,44 @@ EOT;
 				divRefresh('{$g['divIdParent']}');
 			}
 
-			function est016AtualizarAliquotasLoop(idProgressBar, T224_Id, inicio){
-                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + encodeURIComponent("{$r_acaoId}") + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
+			function est016SelecionarCamposAtualizacao(tipo, concluir){
+				var grupos = [
+					{ titulo: 'Impostos', campos: [['ipi', 'IPI'], ['icms', 'ICMS'], ['st', 'ST'], ['pisCofins', 'PIS/COFINS']] },
+					{ titulo: 'Dados do produto', campos: [['cfop', 'CFOP'], ['origem', 'Origem do produto'], ['ncm', 'NCM'], ['unidade', 'Unidade de medida'], ['peso', 'Peso do produto'], ['precoTabela', 'Preço da tabela do fornecedor']] }
+				];
+				if (tipo == 'aliquotas') grupos[1].campos = [['ncm', 'NCM'], ['unidade', 'Unidade de medida'], ['peso', 'Peso do produto']];
+				var botoes = {
+					"Atualizar": function() {
+						var opcoes = {};
+						$('#dc-' + dialogo).find('input.est016CampoAtualizacao').each(function() {
+							opcoes[$(this).attr('data-campo')] = $(this).is(':checked');
+						});
+						$(this).dialog('destroy').remove();
+						concluir(opcoes);
+					},
+					"Cancelar": function() { $(this).dialog('destroy').remove(); }
+				};
+				var dialogo = dialogConfirm('Selecionar atualização', 'Marque os dados que deseja atualizar:', botoes);
+				$('#dc-' + dialogo).dialog('option', 'width', 380);
+				var area = $('#dc-' + dialogo).find('p');
+				area.append('<br />');
+				var colunas = $('<div>').css({'white-space':'nowrap'}).appendTo(area);
+				for (var grupo = 0; grupo < grupos.length; grupo++) {
+					var coluna = $('<div>').css({'display':'inline-block', 'vertical-align':'top', 'width': grupo === 0 ? '38%' : '62%', 'white-space':'normal'}).appendTo(colunas);
+					$('<div>').text(grupos[grupo].titulo).css({'color':'#2e75b6', 'font-weight':'bold', 'margin-bottom':'3px', 'border-bottom':'1px solid #b7cde3'}).appendTo(coluna);
+					for (var i = 0; i < grupos[grupo].campos.length; i++) {
+						var campo = grupos[grupo].campos[i];
+						$('<input type="checkbox" checked="checked" class="est016CampoAtualizacao">').attr('data-campo', campo[0]).appendTo(coluna);
+						$('<label>').html(campo[1]).appendTo(coluna).append('<br />');
+					}
+				}
+			}
+
+			function est016AtualizarAliquotasLoop(idProgressBar, T224_Id, inicio, opcoes){
+                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + encodeURIComponent("{$r_acaoId}") + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
                     if (request.concluido == 0) {
                     	$('#progressBar').html('<b>' + request.percentual + '% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
-                    	est016AtualizarAliquotasLoop(idProgressBar,T224_Id,0);
+						est016AtualizarAliquotasLoop(idProgressBar,T224_Id,0,opcoes);
                     }else{
                     	if (request.code) {
                     		$('#dc-' + idProgressBar).dialog("destroy").remove();
@@ -745,18 +768,18 @@ EOT;
                     		divRefresh('{$g['divId']}', true);
                         } else {
                         	$('#dc-' + idProgressBar).dialog("destroy").remove();
-                            dialogConfirm('Erro!', request.data);
+                            dialogConfirm('Erro!', request.data || request.erros || 'Não foi possível atualizar as alíquotas.');
                             divRefresh('{$g['divId']}', true);
                         }
                     } 
                 });	                    
 	        }
 
-	        function est016AtualizarAliquotasTabelaLoop(idProgressBar, T224_Id, inicio){
-                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + encodeURIComponent("{$r_acaoId}") + '&usarTabelaFornecedor=true' +  '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
+	        function est016AtualizarAliquotasTabelaLoop(idProgressBar, T224_Id, inicio, opcoes){
+                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + encodeURIComponent("{$r_acaoId}") + '&usarTabelaFornecedor=true' +  '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
                     if (request.concluido == 0) {
                     	$('#progressBar').html('<b>' + request.percentual + '% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
-                    	est016AtualizarAliquotasTabelaLoop(idProgressBar,T224_Id,0);
+						est016AtualizarAliquotasTabelaLoop(idProgressBar,T224_Id,0,opcoes);
                     }else{
                     	if (request.code) {
                     		$('#dc-' + idProgressBar).dialog("destroy").remove();
@@ -768,7 +791,7 @@ EOT;
                     		divRefresh('{$g['divId']}', true);
                         } else {
                         	$('#dc-' + idProgressBar).dialog("destroy").remove();
-                            dialogConfirm('Erro!', request.data);
+                            dialogConfirm('Erro!', request.data || request.erros || 'Não foi possível atualizar as alíquotas.');
                             divRefresh('{$g['divId']}', true);
                         }
                     } 
@@ -1460,7 +1483,7 @@ EOT;
 		// O que será carregado em cada conteúdo?
 		$actions = array(
 		    // identificador, url, paramentros get (opcional)
-			array($content1, '/est/est016/form/est016FormAtualizarCFOP/', '&tab=geral&T224_Id=' . urlencode($r_T224_Id)),
+			array($content1, '/est/est016/form/est016FormAtualizarCFOP/', '&tab=geral&T224_Id=' . urlencode($r_T224_Id) . '&opcoes=' . urlencode($r_opcoes)),
 		);
 		echo gProcessaAcoes($actions);
 	break;

@@ -1383,12 +1383,17 @@ EOT;
             array('colunaValor' => 'T001_Valor_ST', 'colunaTitulo' => 'ST R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'colunaExibirNivel' => 2),
             array('colunaValor' => 'T001_Valor_PIS', 'colunaTitulo' => 'PIS R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'colunaExibirNivel' => 2),
             array('colunaValor' => 'T001_Valor_COFINS', 'colunaTitulo' => 'COFINS R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'colunaExibirNivel' => 2),
+			array('colunaValor' => 'T001A_Valor_CBS', 'colunaTitulo' => 'CBS R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)', 'colunaExibirNivel' => 2),
+			array('colunaValor' => 'T001A_Valor_IBS', 'colunaTitulo' => 'IBS R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)', 'colunaExibirNivel' => 2),
+			array('colunaValor' => 'T001A_Aliquota_CBS_Efetiva', 'colunaTitulo' => '% CBS Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)', 'colunaExibirNivel' => 2),
+			array('colunaValor' => 'T001A_Aliquota_IBS_UF_Efetiva', 'colunaTitulo' => '% IBS UF Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)', 'colunaExibirNivel' => 2),
+			array('colunaValor' => 'T001A_Aliquota_IBS_Municipal_Efetiva', 'colunaTitulo' => '% IBS Mun. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)', 'colunaExibirNivel' => 2),
             array('colunaValor' => 'T001_Valor_Frete', 'colunaTitulo' => 'Frete R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'colunaExibirNivel' => 2),
             array('colunaValor' => 'T001_Valor_Custo_Financeiro', 'colunaTitulo' => 'C.F. R$', 'colunaCasasDecimais' => '5', 'colunaAlinhar' => 'right', 'colunaExibirNivel' => 2),
 	        array('colunaValor' => 'T001_Quantidade_Saldo_Mes_Anterior', 'colunaTitulo' => 'Saldo mês anterior', 'colunaCasasDecimais' => '3', 'colunaAlinhar' => 'right', 'colunaExibir' => true),
         	array('colunaValor' => 'T001_Valor_Custo_Mes_Anterior', 'colunaTitulo' => 'Custo mês anterior', 'colunaCasasDecimais' => '3', 'colunaAlinhar' => 'right', 'colunaExibir' => true),
 			array('colunaValor' => 'T001_Valor_Custo_Medio_Mes_Anterior', 'colunaTitulo' => 'Médio mês anterior', 'colunaCasasDecimais' => '3', 'colunaAlinhar' => 'right', 'colunaExibir' => true),
-			array('colunaValor' => 'Vendedor.C007_Primeiro_Nome', 'colunaTitulo' => 'Vendedor', 'colunaExibir' => false),
+			array('colunaValor' => 'vendedor.C007_Primeiro_Nome', 'colunaTitulo' => 'Vendedor', 'colunaExibir' => false),
 
         );
 
@@ -1527,7 +1532,7 @@ EOT;
 			'T001_Flag_Operacao' => array('titulo' => 'Operação(E/S/B/C)', 'tipo' => 'texto'),
 			'T013_Numero_Nota_Fiscal' => array('titulo' => 'NFe Entrada', 'tipo' => 'texto'),
 			'T007_Numero_Nota_Fiscal' => array('titulo' => 'NFe Saída', 'tipo' => 'texto'),
-			'Vendedor.C007_Primeiro_Nome' => array('titulo' => 'Vendedor', 'tipo' => 'texto'),
+			'vendedor.C007_Primeiro_Nome' => array('titulo' => 'Vendedor', 'tipo' => 'texto'),
 
 		);
 		// Gera o filtro e acrescenta ao $extra
@@ -2111,7 +2116,7 @@ EOT;
 			'T005_Id' => array('titulo' => 'Pedido', 'tipo' => 'numero'),
 			'T005_Data_Emissao' => array('titulo' => 'Emissão', 'tipo' => 'data'),
 			'D024_Nome_Fantasia' => array('titulo' => 'Cliente', 'tipo' => 'texto'),		
-			'Vendedor.C007_Primeiro_Nome' => array('titulo' => 'Vendedor', 'tipo' => 'texto'),	
+			'vendedor.C007_Primeiro_Nome' => array('titulo' => 'Vendedor', 'tipo' => 'texto'),	
 			'T005_Nome_Status' => array('titulo' => 'Status', 'tipo' => 'texto'),
 		);
                  
@@ -2599,7 +2604,8 @@ EOT;
 				array('title' => 'CP-Comprado', 'value' => 'CP'),
 				array('title' => 'PD-Produzido', 'value' => 'PD'),
 				array('title' => 'MT-Montado', 'value' => 'MT'),
-				array('title' => 'MD-Modificado', 'value' => 'MD')
+				array('title' => 'MD-Modificado', 'value' => 'MD'),
+				array('title' => 'IN-Industrialização', 'value' => 'IN')
 			)),
 	);
 
@@ -2728,7 +2734,7 @@ EOT; */
 			'D009_Valor_Custo_Unitario' => array('titulo' => 'Custo', 'tipo' => 'numero'),
 			'D009_Valor_Preco_Tabela' => array('titulo' => 'Custo Manual', 'tipo' => 'numero'),
 			'D009_Valor_Custo_Tabela' => array('titulo' => 'Custo Tab.Forn', 'tipo' => 'numero'),
-            'D049_Flag_Tipo' => array('titulo' => 'Tipo (CP,PD,MT,MD)?', 'tipo' => 'texto'),
+            'D049_Flag_Tipo' => array('titulo' => 'Tipo (CP,PD,MT,MD,IN)?', 'tipo' => 'texto'),
         );
 		// Gera o filtro e acrescenta ao $extra
 		$g['cacheCount'] = true;
@@ -5245,7 +5251,7 @@ EOT;
 		*/
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D069_Id', $g['divId']), 'colunaExibir' => false),
-            array('colunaValor' => 'D069_Flag_Excluir', 'colunaTitulo' => 'Exc', 'callback' => 'checkboxExcluirD069', 'colunaEditarTodos' => true, 'colunaAlinhar' => 'center' ,'colunaEditarTipo' => 'flag', 'colunaEditarExtra' => '1|2'),
+            array('colunaValor' => 'D069_Flag_Excluir', 'colunaTitulo' => 'Exc', 'callback' => 'checkboxExcluirD069', 'colunaEditarTodos' => true, 'colunaAlinhar' => center ,'colunaEditarTipo' => 'flag', 'colunaEditarExtra' => '1|2'),
             array('colunaValor' => 'D069_Campos_Atualizados', 'colunaTitulo' => '?', 'colunaAlinhar' => 'center', 'callback' => 'camposAtualizadosTabFornecedor', 'style' => 'width: 1%'),
             array('colunaValor' => 'D069_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaExibir' => false, 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D069_D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),

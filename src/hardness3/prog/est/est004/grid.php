@@ -500,6 +500,7 @@ EOT;
             array('colunaValor' => 'T014_Valor_PIS', 'colunaTitulo' => 'PIS R$', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background:var(--celula-verde)'),
 			array('colunaValor' => 'T014_Valor_COFINS', 'colunaTitulo' => 'COFINS R$', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background:var(--celula-verde)'),
 			array('colunaValor' => 'T014_Valor_Frete', 'colunaTitulo' => 'Frete R$', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background:var(--celula-verde)'),
+            array('colunaValor' => 'IFNULL(T014A_Valor_Frete_NFS,0)', 'colunaTitulo' => 'Frete NFS R$', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background:var(--celula-verde)'),
 			array('colunaValor' => 'T014_Valor_FCP_ST ', 'colunaTitulo' => 'FCP ST R$', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background:var(--celula-verde)'),			
 			array('colunaValor' => 'T014_Valor_Despesas_Acessorias ', 'colunaTitulo' => 'Despesas Acess.', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background:var(--celula-verde)'),			
 			array('colunaValor' => 'T014_Valor_Total_Desconto', 'colunaTitulo' => 'Desconto R$', 'colunaCasasDecimais' => '2', 'colunaEditarOculto' => true, 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-verde)'),
@@ -550,6 +551,46 @@ EOT;
 			array('colunaValor' => 'T014A_Aliquota_ICMS_Interno', 'colunaTitulo' => '%ICMS Int NF Original', 'colunaAlinhar' => 'center', 'colunaCasasDecimais' => '2', 'style' => 'background: var(--celula-verde);'),
 			array('colunaValor' => 'T014A_Valor_ICMS_Substituicao', 'colunaTitulo' => 'ST R$ NF Original', 'colunaAlinhar' => 'center', 'colunaCasasDecimais' => '2', 'style' => 'background: var(--celula-verde);'),
 			array('colunaValor' => 'T014A_Valor_FCP_ST', 'colunaTitulo' => 'FCP ST R$ NF Original', 'colunaAlinhar' => 'center', 'colunaCasasDecimais' => '2', 'style' => 'background: var(--celula-verde);'),
+			/* [REFORMA TRIBUTÁRIA]
+			==============================================================*/
+			array('colunaValor' => 'T014A_Valor_Total_Reforma', 'colunaTitulo' => 'Total RT c/ impostos', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Situacao_Tributaria_CBS_IBS', 'colunaTitulo' => 'CST CBS/IBS', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Classificacao_Tributaria_CBS_IBS', 'colunaTitulo' => 'Classificação Trib. CBS/IBS', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Situacao_Tributaria_CBS_IBS_Regular', 'colunaTitulo' => 'CST CBS/IBS Reg.', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Classificacao_Tributaria_CBS_IBS_Regular', 'colunaTitulo' => 'Classificação Trib. CBS/IBS Reg.', 'colunaAlinhar' => 'center', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_CBS', 'colunaTitulo' => 'CBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Reducao_CBS', 'colunaTitulo' => '% Red. CBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_CBS_Efetiva', 'colunaTitulo' => 'CBS Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_CBS_Regular', 'colunaTitulo' => 'CBS Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Reducao_CBS_Regular', 'colunaTitulo' => '% Red. CBS Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_CBS_Efetiva_Regular', 'colunaTitulo' => 'CBS Reg. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Diferimento_CBS', 'colunaTitulo' => '% Dif. CBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_UF', 'colunaTitulo' => 'IBS UF', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Reducao_IBS_UF', 'colunaTitulo' => '% Red. IBS UF', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_UF_Efetiva', 'colunaTitulo' => 'IBS UF Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_UF_Regular', 'colunaTitulo' => 'IBS UF Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Reducao_IBS_UF_Regular', 'colunaTitulo' => '% Red. IBS UF Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_UF_Efetiva_Regular', 'colunaTitulo' => 'IBS UF Reg. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Diferimento_IBS_UF', 'colunaTitulo' => '% Dif. IBS UF', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_Municipal', 'colunaTitulo' => 'IBS Mun.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Reducao_IBS_Municipal', 'colunaTitulo' => '% Red. IBS Mun.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_Municipal_Efetiva', 'colunaTitulo' => 'IBS Mun. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_Municipal_Regular', 'colunaTitulo' => 'IBS Mun. Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Reducao_IBS_Municipal_Regular', 'colunaTitulo' => '% Red. IBS Mun. Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Aliquota_IBS_Municipal_Efetiva_Regular', 'colunaTitulo' => 'IBS Mun. Reg. Efetiva', 'colunaCasasDecimais' => '4', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Percentual_Diferimento_IBS_Municipal', 'colunaTitulo' => '% Dif. IBS Mun.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_CBS', 'colunaTitulo' => 'CBS R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_CBS_Regular', 'colunaTitulo' => 'CBS Reg. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_Diferimento_CBS', 'colunaTitulo' => 'Dif. CBS R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_IBS_UF', 'colunaTitulo' => 'IBS UF R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_IBS_UF_Regular', 'colunaTitulo' => 'IBS UF Reg. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_Diferimento_IBS_UF', 'colunaTitulo' => 'Dif. IBS UF R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_IBS_Municipal', 'colunaTitulo' => 'IBS Mun. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_IBS_Municipal_Regular', 'colunaTitulo' => 'IBS Mun. Reg.', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_Diferimento_IBS_Municipal', 'colunaTitulo' => 'Dif. IBS Mun. R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_IBS', 'colunaTitulo' => 'IBS R$', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			array('colunaValor' => 'T014A_Valor_Base_CBS_IBS', 'colunaTitulo' => 'Base CBS/IBS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'style' => 'background:var(--celula-azul)'),
+			/*==============================================================*/
 			array('colunaValor' => 'T014A_Valor_Base_ICMS_Mono_Retido', 'colunaTitulo' => 'BC ICMS Mono Ret.', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background: var(--celula-verde);', 'colunaExibir' => false),
 			array('colunaValor' => 'T014A_Valor_ICMS_Mono_Retido', 'colunaTitulo' => 'R$ ICMS Mono Ret.', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '2', 'style' => 'background: var(--celula-verde);', 'colunaExibir' => false),
 			array('colunaValor' => 'T014A_Flag_Destino_Produto', 'colunaTitulo' => 'Dest', 'colunaAlinhar' => 'center', 'colunaEditar' => true, 'colunaEditarTodos' => true, 'colunaEditarGeraSelect' => $destinoProdutos, 'style' => 'background: var(--celula-vermelho);font-size:12px'),	  
@@ -3354,7 +3395,7 @@ EOT;
 					var id = $(this).closest('tr').attr('id').split('|');
 					var acaoId = id[0].replace(chavePrimaria + '-', '');					
 					// Ação: abrir nova janela
-					abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}' , unique(), '', 'Editar Observação - ID: ' + acaoId, '/est/est004/content/est004ContentCadastroObservacao/', '&acaoId=' + encodeURIComponent(acaoId) + '&T013_Id={$r_acaoId}', [700,450]);
+					abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}' , unique(), '', 'Editar Observação - ID: ' + acaoId, '/est/est004/content/est004ContentCadastroObservacao/', '&acaoId=' + encodeURIComponent(acaoId) + '&T013_Id={$r_acaoId}', [1000,450]);
 				});
 				$('#{$g['divId']} .grid .campoEditavel').unbind('click').bind('click', function(event) { return false; });
 			} </script></div>
@@ -3395,14 +3436,14 @@ EOT;
 		$grid = array(
 			array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('T298_Id', $g['divId'])),
 			array('colunaValor' => 'T298_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaExibir'=>false),									
-			array('colunaValor' => 'D188_Codigo_Observacao', 'colunaTitulo' => 'Código Observação'),												
+			array('colunaValor' => 'D188_Codigo_Observacao', 'colunaTitulo' => 'Código Obs', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),												
 			array('colunaValor' => 'T014_Descricao_Produto', 'colunaTitulo' => 'Descrição Produto'),		
 			array('colunaValor' => 'D189_Codigo_Ajuste', 'colunaTitulo' => 'Código Ajuste'),						
 			array('colunaValor' => 'T298_Descricao_Complementar_Ajuste', 'colunaTitulo' => 'Descrição Complementar Ajuste'),			
-			array('colunaValor' => 'T298_Valor_Base_ICMS', 'colunaTitulo' => 'Base ICMS'),								
-			array('colunaValor' => 'T298_Aliquota_ICMS', 'colunaTitulo' => '% ICMS'),								
-			array('colunaValor' => 'T298_Valor_ICMS', 'colunaTitulo' => 'Valor de ICMS'),								
-			array('colunaValor' => 'T298_Outros_Valores', 'colunaTitulo' => 'Valor Outros'),								
+			array('colunaValor' => 'T298_Valor_Base_ICMS', 'colunaTitulo' => 'Base ICMS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right'),								
+			array('colunaValor' => 'T298_Aliquota_ICMS', 'colunaTitulo' => '% ICMS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right'),								
+			array('colunaValor' => 'T298_Valor_ICMS', 'colunaTitulo' => 'Valor de ICMS', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right'),								
+			array('colunaValor' => 'T298_Outros_Valores', 'colunaTitulo' => 'Valor Outros', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right'),								
 		);
 
 		/**

@@ -18742,10 +18742,13 @@ EOT;
             $cClausula .= " * ";
             $cClausula .= " FROM T007 ";
             $cClausula .= " LEFT JOIN C004 ON C004_Id=T007_C004_Id ";
+            $cClausula .= " LEFT JOIN T007A ON T007A_T007_Id=T007_Id ";
             $cClausula .= " WHERE T007_Id='$T007_Id' ";
             $cSql_T007 = mysql_query($cClausula);
             echo mysql_error();
             $mT007 = mysql_fetch_array($cSql_T007);
+            require_once __DIR__ . '/../../hardness/class/DanfeModelo.php';
+            $tipoDanfe = \hardness\DanfeModelo::resolver($mT007 ?: array());
             
             $cAno_Mes_NFe  = substr($mT007['T007_Data_Emissao'], 0, 7);
             $Diretorio_NFe = $g['pathDadosAntigo'] . 'nfe';
@@ -18754,13 +18757,27 @@ EOT;
             is_dir($dirPdfNfe) or mkdir($dirPdfNfe, 0777, true);
             
             $cArquivoPDF = $Diretorio_NFe . "/danfe/danfe_" . $mT007['T007_Numero_Protocolo_Nfe'] . ".pdf";
-            if (!$forcar && file_exists($cArquivoPDF) && filesize($cArquivoPDF) > 0) {
+            if (!$forcar && \hardness\DanfeModelo::cacheValido($cArquivoPDF, $tipoDanfe)) {
                 $data="Entrou if existe pdf. cArquivo: {$cArquivoPDF}\n";
                 log($data);
                 $r = fwrite($h, $data);
+                fclose($h);
                 return $cArquivoPDF;
             }
             
+            if ($tipoDanfe !== \hardness\DanfeModelo::ATUAL) {
+                $extensaoLogo = pathinfo($mT007['C004_Logo_Marca'], PATHINFO_EXTENSION);
+                $logoRTC = $g['pathRaiz'] . $g['pathDados'] . "imagens/logo/{$mT007['C004_Id']}.{$extensaoLogo}";
+                try {
+                    \hardness\DanfeModelo::gravarRTC($mT007, $cArquivoXML, $logoRTC, $cArquivoPDF);
+                } finally {
+                    fclose($h);
+                }
+                return $cArquivoPDF;
+            }
+
+            \hardness\DanfeModelo::prepararGeracaoAtual($cArquivoPDF);
+
             //-- GERA O ARQUIVO PDF
             $mArq              = explode(".", $mT007['C004_Logo_Marca']);
             $bd                = $confUsuario['dbDatabase'];
@@ -18927,6 +18944,9 @@ EOT;
             unlink("/tmp/{$id}.barcode.png");
             unlink("{$cArquivos}/{$id}.barcode.png");
 
+            if (is_file($cArquivoPDF) && filesize($cArquivoPDF) > 0) {
+                file_put_contents($cArquivoPDF . '.modelo', \hardness\DanfeModelo::ATUAL);
+            }
             fclose($h);
             return $cArquivoPDF;
         }
@@ -19566,18 +19586,22 @@ namespace {
         $cClausula .= " * ";
         $cClausula .= " FROM T007 ";
         $cClausula .= " LEFT JOIN C004 ON C004_Id=T007_C004_Id ";
+        $cClausula .= " LEFT JOIN T007A ON T007A_T007_Id=T007_Id ";
         $cClausula .= " WHERE T007_Id='$T007_Id' ";
         $cSql_T007 = mysql_query("$cClausula");
         echo mysql_error();
         $mT007 = mysql_fetch_array($cSql_T007);
+        require_once __DIR__ . '/../../hardness/class/DanfeModelo.php';
+        $tipoDanfe = \hardness\DanfeModelo::resolver($mT007 ?: array());
         
         $cAno_Mes_NFe  = substr($mT007['T007_Data_Emissao'], 0, 7);
         $Diretorio_NFe = $g['pathDadosAntigo'] . 'nfe';
         
         $cArquivoPDF = $Diretorio_NFe . "/danfe/danfe_" . $mT007['T007_Numero_Protocolo_Nfe'] . ".pdf";
-        if (!$forcar && file_exists($cArquivoPDF) && filesize($cArquivoPDF) > 0) {
+        if (!$forcar && \hardness\DanfeModelo::cacheValido($cArquivoPDF, $tipoDanfe)) {
             $data="Entrou if existe pdf. cArquivo: {$cArquivoPDF}\n";
             $r = fwrite($h, $data);
+            fclose($h);
             return $cArquivoPDF;
         }
         
@@ -19589,6 +19613,19 @@ namespace {
         // $Corpo="<b>".str_replace("\n","<BR>",$Corpo)."</b>".$Propaganda;
         
         
+        if ($tipoDanfe !== \hardness\DanfeModelo::ATUAL) {
+            $extensaoLogo = pathinfo($mT007['C004_Logo_Marca'], PATHINFO_EXTENSION);
+            $logoRTC = $g['pathRaiz'] . $g['pathDados'] . "imagens/logo/{$mT007['C004_Id']}.{$extensaoLogo}";
+            try {
+                \hardness\DanfeModelo::gravarRTC($mT007, $cArquivoXML, $logoRTC, $cArquivoPDF);
+            } finally {
+                fclose($h);
+            }
+            return $cArquivoPDF;
+        }
+
+        \hardness\DanfeModelo::prepararGeracaoAtual($cArquivoPDF);
+
         //-- GERA O ARQUIVO PDF
         $mArq              = explode(".", $mT007['C004_Logo_Marca']);
         $bd                = $confUsuario['dbDatabase'];
@@ -19731,6 +19768,9 @@ namespace {
         unlink("/tmp/{$id}.barcode.png");
         unlink("{$cArquivos}/{$id}.barcode.png");
 
+        if (is_file($cArquivoPDF) && filesize($cArquivoPDF) > 0) {
+            file_put_contents($cArquivoPDF . '.modelo', \hardness\DanfeModelo::ATUAL);
+        }
         fclose($h);
 
         return $cArquivoPDF;

@@ -1,0 +1,8 @@
+'use strict';
+const p=require('../public/task09-progressive.js');
+function ok(v,m){if(!v)throw new Error(m)}
+const rules={uf_types:['0','2'],receipts:{'100211':{types:['0'],fields:{detail:'S',product:'N',period:'O',installment:'N',document:'S',recipient:'S',extras:'S',emitter:'S'},details:[{code:'000001'}],products:[{code:'1'}],periods:[{code:'1'}],document_types:[{code:'55'}],extras:[{code:'7',required:'S',title:'Campo'}]},'100220':{types:['2'],fields:{detail:'N',product:'S',period:'S',installment:'O',document:'N',recipient:'N',extras:'N',emitter:'N'},details:[],products:[{code:'2'}],periods:[{code:'2'}],document_types:[],extras:[]}}};
+let a=p.model(rules,'100211');ok(a.states.detail==='required'&&a.states.product==='forbidden'&&a.states.document==='required'&&a.states.recipient==='required'&&a.states.emitter==='required','estados obrigatório/proibido/emitente');
+let b=p.normalize(rules,'100220',{detail:'000001',product:'1',period:'1',document_id:'42',document_type:'55',recipient_type:'CNPJ',recipient_id:'12345678000199',recipient_name:'Destinatário',recipient_city:'33045',installment:'9'});ok(b.detail===''&&b.product===''&&b.period===''&&b.document_id===''&&b.document_type===''&&b.recipient_type===''&&b.recipient_id===''&&b.recipient_name===''&&b.recipient_city===''&&b.installment==='9','troca de receita limpa documento e destinatário incompatíveis e preserva opcional');
+let c=p.model(rules,'100220');ok(c.types[0]==='2'&&c.states.product==='required'&&c.states.document==='forbidden'&&c.states.recipient==='forbidden'&&c.states.extras==='forbidden','tipo e campos recalculados; ocultos não são obrigatórios');
+console.log('task09 progressive ui: OK');

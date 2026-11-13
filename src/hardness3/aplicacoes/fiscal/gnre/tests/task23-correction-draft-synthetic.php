@@ -1,0 +1,54 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/../src/ResultInterpreter.php';
+require_once __DIR__.'/../src/CorrectionReopen.php';
+require_once __DIR__.'/../src/GuideCenter.php';
+function t23(bool $ok,string $message):void { if(!$ok)throw new RuntimeException($message); }
+
+$rejected=['valid'=>true,'guides'=>[['code'=>'2']]];
+$rejectedOne=['valid'=>true,'guides'=>[['code'=>'1']]];
+$issued=['valid'=>true,'guides'=>[['code'=>'0']]];
+$pending=['valid'=>true,'guides'=>[['code'=>'4']]];
+$mixed01=['valid'=>true,'guides'=>[['code'=>'0'],['code'=>'1']]];
+$mixed02=['valid'=>true,'guides'=>[['code'=>'0'],['code'=>'2']]];
+$mixed12=['valid'=>true,'guides'=>[['code'=>'1'],['code'=>'2']]];
+$final=['GNRE001_Id'=>15,'GNRE001_Status'=>'F'];
+$soap=static function(string $code): string { return '<soap:Envelope xmlns:soap="urn:test" xmlns="http://www.gnre.pe.gov.br"><soap:Body><TResultLote_GNRE><situacaoProcess><codigo>403</codigo><descricao>Lote</descricao></situacaoProcess><resultado><guia><situacaoGuia>'.$code.'</situacaoGuia></guia></resultado></TResultLote_GNRE></soap:Body></soap:Envelope>'; };
+$attempt=static function(int $id,int $sequence,string $state='RECEBIDA',string $receipt='R1'): array { return ['GNRE004_Id'=>$id,'GNRE004_Sequencia'=>$sequence,'GNRE004_Estado'=>$state,'GNRE004_Recibo'=>$receipt]; };
+$queue=static function(int $attemptId,string $state,string $soap,string $receipt='R1'): array { return ['GNRE005_GNRE004_Id'=>$attemptId,'GNRE005_Recibo'=>$receipt,'GNRE005_Situacao'=>$state,'GNRE005_Ultima_Consulta_SOAP'=>$soap]; };
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1)],[$queue(1,'FINALIZADA',$soap('1'))])['outcome']==='reopened','resultado isolado 1 da tentativa mais recente permite reabrir a mesma guia.');
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1)],[$queue(1,'FINALIZADA',$soap('2'))])['outcome']==='reopened','resultado isolado 2 da tentativa mais recente permite reabrir a mesma guia.');
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1)],[$queue(1,'FINALIZADA',$soap('0'))])['outcome']==='blocked','resultado individual 0 bloqueia a reabertura.');
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1)],[$queue(1,'FINALIZADA',str_replace('</resultado>','<guia><situacaoGuia>2</situacaoGuia></guia></resultado>',$soap('1')))])['outcome']==='blocked','resultados individuais múltiplos ou conflitantes bloqueiam a reabertura.');
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1),$attempt(2,2)],[$queue(1,'FINALIZADA',$soap('1')),$queue(2,'PENDENTE','')])['outcome']==='blocked','rejeição antiga com tentativa posterior pendente bloqueia.');
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1),$attempt(2,2)],[$queue(1,'FINALIZADA',$soap('1')),$queue(2,'PROCESSANDO','')])['outcome']==='blocked','rejeição antiga com tentativa posterior processando bloqueia.');
+t23(GnreCorrectionReopen::decisionFromHistory($final,[$attempt(1,1),$attempt(2,2,'INCONCLUSIVA','')],[$queue(1,'FINALIZADA',$soap('1'))])['outcome']==='blocked','rejeição antiga com tentativa posterior inconclusiva bloqueia.');
+t23(GnreCorrectionReopen::decisionFromHistory(['GNRE001_Id'=>15,'GNRE001_Status'=>'R'],[$attempt(1,1)],[$queue(1,'FINALIZADA',$soap('1'))])['outcome']==='already_open','reabertura repetida permanece idempotente sem nova auditoria.');
+t23(GnreCorrectionReopen::decision($final,$rejected)['outcome']==='reopened','rejeição individual final reabre a mesma guia.');
+t23(GnreCorrectionReopen::decision($final,$rejectedOne)['outcome']==='reopened','código individual 1 isolado reabre a mesma guia.');
+t23(GnreCorrectionReopen::decision(['GNRE001_Id'=>15,'GNRE001_Status'=>'R'],$rejected)['outcome']==='already_open','ação repetida em rascunho é idempotente.');
+t23(GnreCorrectionReopen::decision($final,$issued)['outcome']==='blocked','guia emitida não é reaberta.');
+t23(GnreCorrectionReopen::decision($final,$mixed01)['outcome']==='blocked','combinação 0 e 1 é bloqueada conservadoramente.');
+t23(GnreCorrectionReopen::decision($final,$mixed02)['outcome']==='blocked','combinação 0 e 2 é bloqueada conservadoramente.');
+t23(GnreCorrectionReopen::decision($final,$mixed12)['outcome']==='blocked','múltiplas rejeições individuais são bloqueadas conservadoramente.');
+t23(GnreCorrectionReopen::decision(['GNRE001_Id'=>15,'GNRE001_Status'=>'P'],$rejected)['outcome']==='blocked','guia pendente não é reaberta.');
+t23(GnreCorrectionReopen::decision(['GNRE001_Id'=>15,'GNRE001_Status'=>'I'],$rejected)['outcome']==='blocked','guia inconclusiva não é reaberta.');
+t23(GnreCorrectionReopen::decision($final,$pending)['outcome']==='blocked','processamento pendente não é reaberto.');
+t23(GnreCorrectionReopen::decision($final,null)['outcome']==='blocked','ausência de resultado individual não é reaberta.');
+
+$state=GnreGuideCenter::classify(['GNRE001_Status'=>'R'],['result'=>$rejected,'attempts'=>[['GNRE004_Estado'=>'RECEBIDA']]]);
+t23($state['key']==='RASCUNHO','rascunho reaberto não herda rejeição histórica na listagem.');
+t23(GnreGuideCenter::classify(['GNRE001_Status'=>'R'],['result'=>$issued])['key']==='EMITIDA','resultado individual 0 prevalece sobre R na listagem.');
+t23(GnreGuideCenter::classify(['GNRE001_Status'=>'R'],['result'=>$mixed12])['key']==='INCONCLUSIVA','múltiplos resultados não liberam rascunho na listagem.');
+$source=(string)file_get_contents(__DIR__.'/../src/CorrectionReopen.php');
+$index=(string)file_get_contents(__DIR__.'/../public/index.php');
+$presentation=(string)file_get_contents(__DIR__.'/../public/task10-presentation.php');
+t23(strpos($source,'SELECT * FROM GNRE001')!==false&&strpos($source,"GNRE001_Status='R'")!==false&&strpos($source,'FOR UPDATE')!==false,'reabertura bloqueia e atualiza a própria GNRE001.');
+foreach(['INSERT INTO GNRE001','INSERT INTO GNRE002','INSERT INTO GNRE003','INSERT INTO GNRE004','INSERT INTO GNRE005','INSERT INTO GNRE006','DELETE FROM GNRE'] as $forbidden)t23(strpos($source,$forbidden)===false,'reabertura não cria nem remove auditoria ou dados: '.$forbidden);
+t23(strpos($index,'reopen_rejected_guide')!==false&&strpos($index,'gnre_invalidate_local_xml($context,$sourceId)')!==false,'reabertura invalida XML local antes de nova validação.');
+t23(strpos($index,'SELECT COALESCE(MAX(GNRE004_Sequencia),0)+1')!==false&&strpos($index,'INSERT INTO GNRE004')!==false,'reenvio normal cria nova tentativa técnica sequencial.');
+t23(strpos($presentation,"\$canTransmit=\$guide&&\$guide['GNRE001_Status']==='R'")!==false&&strpos($presentation,'xml_valid')!==false,'guia reaberta exige novo XML válido antes da transmissão.');
+t23(strpos($index,'create_correction_draft')===false&&strpos($index,'GnreCorrectionDraft')===false,'caminho de criação de rascunho separado foi desativado.');
+t23(strpos($presentation,'decisionFromHistory')!==false&&strpos($presentation,'reopen_rejected_guide')!==false&&strpos($presentation,'Reabra esta mesma guia')!==false,'interface mostra a ação somente para a rejeição final elegível e explica a própria guia.');
+t23(strpos($presentation,'create_correction_draft')===false&&strpos($presentation,'Crie um novo rascunho')===false,'interface não oferece criação de outra guia.');
+echo "task23 reabertura de guia rejeitada: OK\n";

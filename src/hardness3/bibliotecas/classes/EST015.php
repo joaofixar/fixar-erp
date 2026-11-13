@@ -1760,18 +1760,95 @@ EOT;
                 
                 $T225_Id = $g['mysqlLastId'];
 
-                $T225A = mysql_query("INSERT INTO T225A (T225A_T225_Id,
+                /* Snapshot fiscal da cotação gravado junto com o item da OC. */
+                $T225A = mysql_query("INSERT INTO T225A (
+                                                         T225A_T225_Id,
                                                          T225A_Aliquota_FCP,
                                                          T225A_Valor_Base_FCP,
                                                          T225A_Valor_FCP,
                                                          T225A_Valor_Base_FCP_ST,
-                                                         T225A_Valor_FCP_ST)
-                                                VALUES ('{$T225_Id}',
+                                                         T225A_Valor_FCP_ST,
+                                                         T225A_Situacao_Tributaria_CBS_IBS,
+                                                         T225A_Classificacao_Tributaria_CBS_IBS,
+                                                         T225A_Situacao_Tributaria_CBS_IBS_Regular,
+                                                         T225A_Classificacao_Tributaria_CBS_IBS_Regular,
+                                                         T225A_Aliquota_CBS,
+                                                         T225A_Percentual_Reducao_CBS,
+                                                         T225A_Aliquota_CBS_Efetiva,
+                                                         T225A_Valor_CBS,
+                                                         T225A_Percentual_Diferimento_CBS,
+                                                         T225A_Valor_Diferimento_CBS,
+                                                         T225A_Aliquota_CBS_Regular,
+                                                         T225A_Percentual_Reducao_CBS_Regular,
+                                                         T225A_Aliquota_CBS_Efetiva_Regular,
+                                                         T225A_Valor_CBS_Regular,
+                                                         T225A_Aliquota_IBS_Municipal,
+                                                         T225A_Percentual_Reducao_IBS_Municipal,
+                                                         T225A_Aliquota_IBS_Municipal_Efetiva,
+                                                         T225A_Valor_IBS_Municipal,
+                                                         T225A_Percentual_Diferimento_IBS_Municipal,
+                                                         T225A_Valor_Diferimento_IBS_Municipal,
+                                                         T225A_Aliquota_IBS_Municipal_Regular,
+                                                         T225A_Percentual_Reducao_IBS_Municipal_Regular,
+                                                         T225A_Aliquota_IBS_Municipal_Efetiva_Regular,
+                                                         T225A_Valor_IBS_Municipal_Regular,
+                                                         T225A_Aliquota_IBS_UF,
+                                                         T225A_Percentual_Reducao_IBS_UF,
+                                                         T225A_Aliquota_IBS_UF_Efetiva,
+                                                         T225A_Valor_IBS_UF,
+                                                         T225A_Percentual_Diferimento_IBS_UF,
+                                                         T225A_Valor_Diferimento_IBS_UF,
+                                                         T225A_Aliquota_IBS_UF_Regular,
+                                                         T225A_Percentual_Reducao_IBS_UF_Regular,
+                                                         T225A_Aliquota_IBS_UF_Efetiva_Regular,
+                                                         T225A_Valor_IBS_UF_Regular,
+                                                         T225A_Valor_Base_CBS_IBS,
+                                                         T225A_Valor_Total_Reforma,
+                                                         T225A_Valor_IBS)
+                                                VALUES (
+                                                        '{$T225_Id}',
                                                         '{$linha['T219A_Aliquota_FCP']}',
                                                         '{$linha['T219A_Valor_Base_FCP']}',
                                                         '{$linha['T219A_Valor_FCP']}',
                                                         '{$linha['T219A_Valor_Base_FCP_ST']}',
-                                                        '{$linha['T219A_Valor_FCP_ST']}')");
+                                                        '{$linha['T219A_Valor_FCP_ST']}',
+                                                        '{$linha['T219A_Situacao_Tributaria_CBS_IBS']}',
+                                                        '{$linha['T219A_Classificacao_Tributaria_CBS_IBS']}',
+                                                        '{$linha['T219A_Situacao_Tributaria_CBS_IBS_Regular']}',
+                                                        '{$linha['T219A_Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                                        '{$linha['T219A_Aliquota_CBS']}',
+                                                        '{$linha['T219A_Percentual_Reducao_CBS']}',
+                                                        '{$linha['T219A_Aliquota_CBS_Efetiva']}',
+                                                        '{$linha['T219A_Valor_CBS']}',
+                                                        '{$linha['T219A_Percentual_Diferimento_CBS']}',
+                                                        '{$linha['T219A_Valor_Diferimento_CBS']}',
+                                                        '{$linha['T219A_Aliquota_CBS_Regular']}',
+                                                        '{$linha['T219A_Percentual_Reducao_CBS_Regular']}',
+                                                        '{$linha['T219A_Aliquota_CBS_Efetiva_Regular']}',
+                                                        '{$linha['T219A_Valor_CBS_Regular']}',
+                                                        '{$linha['T219A_Aliquota_IBS_Municipal']}',
+                                                        '{$linha['T219A_Percentual_Reducao_IBS_Municipal']}',
+                                                        '{$linha['T219A_Aliquota_IBS_Municipal_Efetiva']}',
+                                                        '{$linha['T219A_Valor_IBS_Municipal']}',
+                                                        '{$linha['T219A_Percentual_Diferimento_IBS_Municipal']}',
+                                                        '{$linha['T219A_Valor_Diferimento_IBS_Municipal']}',
+                                                        '{$linha['T219A_Aliquota_IBS_Municipal_Regular']}',
+                                                        '{$linha['T219A_Percentual_Reducao_IBS_Municipal_Regular']}',
+                                                        '{$linha['T219A_Aliquota_IBS_Municipal_Efetiva_Regular']}',
+                                                        '{$linha['T219A_Valor_IBS_Municipal_Regular']}',
+                                                        '{$linha['T219A_Aliquota_IBS_UF']}',
+                                                        '{$linha['T219A_Percentual_Reducao_IBS_UF']}',
+                                                        '{$linha['T219A_Aliquota_IBS_UF_Efetiva']}',
+                                                        '{$linha['T219A_Valor_IBS_UF']}',
+                                                        '{$linha['T219A_Percentual_Diferimento_IBS_UF']}',
+                                                        '{$linha['T219A_Valor_Diferimento_IBS_UF']}',
+                                                        '{$linha['T219A_Aliquota_IBS_UF_Regular']}',
+                                                        '{$linha['T219A_Percentual_Reducao_IBS_UF_Regular']}',
+                                                        '{$linha['T219A_Aliquota_IBS_UF_Efetiva_Regular']}',
+                                                        '{$linha['T219A_Valor_IBS_UF_Regular']}',
+                                                        '{$linha['T219A_Valor_Base_CBS_IBS']}',
+                                                        '{$linha['T219A_Valor_Total_Reforma']}',
+                                                        '{$linha['T219A_Valor_IBS']}')");
                 $erro = mysql_error();
                 if(!empty($erro)){
                     mysql_query("ROLLBACK");
@@ -1958,6 +2035,7 @@ EOT;
                 return 'Erro: ' . mysql_error();
             }
             
+
             mysql_query("call T224_Gravar_Totalizacao_3($T224_Id)");
             if (mysql_error()) {
                 mysql_query("ROLLBACK");
@@ -2180,7 +2258,7 @@ EOT;
         return true;
     }
     
-    public function atualizarAliquotas($T218_Id, $C004_Id = false, $r_usarTabelaFornecedor = false, $arrayParametros = null)
+    public function atualizarAliquotas($T218_Id, $C004_Id = false, $r_usarTabelaFornecedor = false, $arrayParametros = null, $opcoes = null)
     { 
         global $g;
         require_once('bibliotecas/classes/FIS003.php');
@@ -2199,6 +2277,10 @@ EOT;
         $D001_Codigo_Produto = $arrayParametros['D001_Codigo_Produto'];   
         $D001_D037_Id = $arrayParametros['D001_D037_Id'];
         $D001_Peso_Unitario_Kg = $arrayParametros['D001_Peso_Unitario_Kg']; 
+        $atualizarCampo = function ($campo) use ($opcoes) {
+            return !is_array($opcoes) || !array_key_exists($campo, $opcoes)
+                || ($opcoes[$campo] !== false && $opcoes[$campo] !== 'false');
+        };
         
         // $Item = 1;
 
@@ -2349,6 +2431,28 @@ EOT;
             $sql .= "T219_Aliquota_ICMS_Diferenca_Aliquotas='{$Aliquotas['Aliquota_DIFAL']}' ";
             $sql .= "WHERE T219_Id='{$T219_Id}'";
         }
+        if (is_array($opcoes)) {
+            $camposPorOpcao = array(
+                'ipi' => array('T219_Aliquota_IPI', 'T219_Percentual_Reducao_IPI', 'T219_Situacao_Tributaria_IPI'),
+                'icms' => array('T219_Aliquota_ICMS', 'T219_Percentual_Reducao_ICMS', 'T219_Aliquota_ICMS_Diferenca_Aliquotas'),
+                'st' => array('T219_Percentual_Reducao_ICMS_ST', 'T219_Flag_ST', 'T219_ST_VA', 'T219_ICMS_Inter_Estadual', 'T219_ST_ICMS_Interno', 'T219_ICMS_Inter_Estadual_MVA', 'T219_ST_ICMS_Interno_MVA', 'T219_Percentual_ST'),
+                'pisCofins' => array('T219_Aliquota_PIS', 'T219_Aliquota_COFINS', 'T219_Flag_Isento_PIS', 'T219_Situacao_Tributaria_PIS', 'T219_Flag_Isento_COFINS', 'T219_Situacao_Tributaria_COFINS'),
+                'cfop' => array('T219_D006_Id'),
+                'origem' => array('T219_Flag_Origem_Produto'),
+                'ncm' => array('T219_D005_Id', 'T219_Classificacao_Fiscal', 'T219_D059_Id', 'T219_Flag_Situacao_Tributaria', 'T219_D005_Id_Info'),
+                'unidade' => array('T219_D037_Id'),
+                'peso' => array('T219_Peso_Unitario', 'T219_Peso_Bruto'),
+                'transparencia' => array('T219_Percentual_Trib_Transparencia'),
+                'precoTabela' => array('T219_Valor_Preco_Unitario')
+            );
+            foreach ($camposPorOpcao as $opcao => $campos) {
+                if (!$atualizarCampo($opcao)) {
+                    foreach ($campos as $campo) {
+                        $sql = preg_replace('/\\s*' . $campo . "\\s*=\\s*'[^']*'\\s*,?/", '', $sql);
+                    }
+                }
+            }
+        }
         mysql_query($sql);
         $erro = mysql_error();
         if (!empty($erro)) {
@@ -2356,22 +2460,80 @@ EOT;
             return "Erro atualizando item do orcamento ID {$T219_Id}: $erro";
         }
 
+        if ($atualizarCampo('icms')) {
         $T219A = mysql_query("SELECT T219A_Id FROM T219A WHERE T219A_T219_Id='$T219_Id'");
         if (mysql_num_rows($T219A) > 0) {
             $sql = "UPDATE T219A 
                        SET T219A_Percentual_Reducao_ICMS_IE_ST  = '{$Aliquotas['Percentual_Reducao_ICMS_IE_ST']}',
                            T219A_Percentual_Reducao_ICMS_INT_ST = '{$Aliquotas['Percentual_Reducao_ICMS_INT_ST']}', 
-                           T219A_Aliquota_FCP                   = '{$Aliquotas['Percentual_FCP']}'
+                           T219A_Aliquota_FCP                   = '{$Aliquotas['Percentual_FCP']}',
+                           T219A_Situacao_Tributaria_CBS_IBS = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                           T219A_Classificacao_Tributaria_CBS_IBS = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                           T219A_Aliquota_CBS = '{$Aliquotas['Aliquota_CBS']}',
+                           T219A_Aliquota_IBS_UF = '{$Aliquotas['Aliquota_IBS_UF']}',
+                           T219A_Aliquota_IBS_Municipal = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                           T219A_Percentual_Reducao_CBS = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                           T219A_Percentual_Reducao_IBS_UF = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                           T219A_Percentual_Reducao_IBS_Municipal = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                           T219A_Percentual_Diferimento_CBS = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                           T219A_Percentual_Diferimento_IBS_UF = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                           T219A_Percentual_Diferimento_IBS_Municipal = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                           T219A_Situacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                           T219A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                           T219A_Aliquota_CBS_Regular = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                           T219A_Aliquota_IBS_UF_Regular = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                           T219A_Aliquota_IBS_Municipal_Regular = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                           T219A_Percentual_Reducao_CBS_Regular = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                           T219A_Percentual_Reducao_IBS_UF_Regular = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                           T219A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}'
                      WHERE T219A_T219_Id='{$T219_Id}'";
         } else {
             $sql = "INSERT INTO T219A (T219A_T219_Id,
                                        T219A_Percentual_Reducao_ICMS_IE_ST,
                                        T219A_Percentual_Reducao_ICMS_INT_ST,
-                                       T219A_Aliquota_FCP)
+                                       T219A_Aliquota_FCP,
+                                       T219A_Situacao_Tributaria_CBS_IBS,
+                                       T219A_Classificacao_Tributaria_CBS_IBS,
+                                       T219A_Aliquota_CBS,
+                                       T219A_Aliquota_IBS_UF,
+                                       T219A_Aliquota_IBS_Municipal,
+                                       T219A_Percentual_Reducao_CBS,
+                                       T219A_Percentual_Reducao_IBS_UF,
+                                       T219A_Percentual_Reducao_IBS_Municipal,
+                                       T219A_Percentual_Diferimento_CBS,
+                                       T219A_Percentual_Diferimento_IBS_UF,
+                                       T219A_Percentual_Diferimento_IBS_Municipal,
+                                       T219A_Situacao_Tributaria_CBS_IBS_Regular,
+                                       T219A_Classificacao_Tributaria_CBS_IBS_Regular,
+                                       T219A_Aliquota_CBS_Regular,
+                                       T219A_Aliquota_IBS_UF_Regular,
+                                       T219A_Aliquota_IBS_Municipal_Regular,
+                                       T219A_Percentual_Reducao_CBS_Regular,
+                                       T219A_Percentual_Reducao_IBS_UF_Regular,
+                                       T219A_Percentual_Reducao_IBS_Municipal_Regular)
                                VALUES ('{$T219_Id}', 
                                        '{$Aliquotas['Percentual_Reducao_ICMS_IE_ST']}',
                                        '{$Aliquotas['Percentual_Reducao_ICMS_INT_ST']}',
-                                       '{$Aliquotas['Percentual_FCP']}')";
+                                       '{$Aliquotas['Percentual_FCP']}',
+                                       '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                                       '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                                       '{$Aliquotas['Aliquota_CBS']}',
+                                       '{$Aliquotas['Aliquota_IBS_UF']}',
+                                       '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                                       '{$Aliquotas['Percentual_Reducao_CBS']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                                       '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                                       '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                                       '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                                       '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                                       '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                                       '{$Aliquotas['Aliquota_CBS_Regular']}',
+                                       '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                                       '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                                       '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                                       '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}')";
         }
 
         mysql_query($sql);
@@ -2379,6 +2541,7 @@ EOT;
         if (!empty($erro)) {
             mysql_query("ROLLBACK");
             return "Erro atualizando item da cotação T219A ID T219_Id {$T219_Id}: $erro";
+        }
         }
 
         $T218A = mysql_query("SELECT T218A_Id FROM T218A WHERE T218A_T218_Id='{$T218_Id}'");
@@ -2395,11 +2558,11 @@ EOT;
         log($sql);
         mysql_query("call T219_Gravar_Totalizacao('{$T219_Id}');");  
 
-        if (!empty($produtoSemCFOP)){
+        if ($atualizarCampo('cfop') && !empty($produtoSemCFOP)){
             mysql_query("ROLLBACK");
             return 'O produto ' . $produtoSemCFOP . ' está com CFOP em branco na Tabela do Fornecedor.';
         }
-        if (!empty($produtoSemOrigem)){
+        if ($atualizarCampo('origem') && !empty($produtoSemOrigem)){
             mysql_query("ROLLBACK");
             return 'O produto ' . $produtoSemOrigem . ' está com Origem em branco na Tabela do Fornecedor.';
         }
@@ -7115,6 +7278,48 @@ EOT;
             $array['Flag_Pre_Cadastro']             = @$mProduto['D001_Flag_Pre_Cadastro'];
         }
 
+        /* [REFORMA TRIBUTÁRIA]
+         * Segue a mesma prioridade usada na venda: configuração da CFOP e,
+         * na ausência dela, a classificação fiscal da NCM do produto.
+         */
+        require_once('bibliotecas/classes/ReformaTributaria.php');
+        $reformaTributaria = new ReformaTributaria();
+
+        if (!empty($mD006['D006_Situacao_Tributaria_CBS_IBS']) && !empty($mD006['D006_Classificacao_Tributaria_CBS_IBS'])) {
+            $situacaoCBSIBS = $mD006['D006_Situacao_Tributaria_CBS_IBS'];
+            $classificacaoCBSIBS = $mD006['D006_Classificacao_Tributaria_CBS_IBS'];
+            $situacaoCBSIBSRegular = $mD006['D006_Situacao_Tributaria_CBS_IBS_Regular'];
+            $classificacaoCBSIBSRegular = $mD006['D006_Classificacao_Tributaria_CBS_IBS_Regular'];
+        } else {
+            $situacaoCBSIBS = $mProduto['D005_Situacao_Tributaria_CBS_IBS'];
+            $classificacaoCBSIBS = $mProduto['D005_Classificacao_Tributaria_CBS_IBS'];
+            $situacaoCBSIBSRegular = $mProduto['D005_Situacao_Tributaria_CBS_IBS_Regular'];
+            $classificacaoCBSIBSRegular = $mProduto['D005_Classificacao_Tributaria_CBS_IBS_Regular'];
+        }
+
+        $aliquotasReforma = $reformaTributaria->getAliquotas($classificacaoCBSIBS ?? '');
+        $aliquotasReformaRegular = $reformaTributaria->getAliquotas($classificacaoCBSIBSRegular ?? '');
+
+        $array['Situacao_Tributaria_CBS_IBS'] = $situacaoCBSIBS;
+        $array['Classificacao_Tributaria_CBS_IBS'] = $classificacaoCBSIBS;
+        $array['Aliquota_CBS'] = $aliquotasReforma['aliquotaCbs'] ?? 0;
+        $array['Aliquota_IBS_UF'] = $aliquotasReforma['aliquotaIbsUf'] ?? 0;
+        $array['Aliquota_IBS_Municipal'] = $aliquotasReforma['aliquotaIbsMunicipal'] ?? 0;
+        $array['Percentual_Reducao_CBS'] = $aliquotasReforma['percentualReducaoCbs'] ?? 0;
+        $array['Percentual_Reducao_IBS_UF'] = $aliquotasReforma['percentualReducaoIbsUf'] ?? 0;
+        $array['Percentual_Reducao_IBS_Municipal'] = $aliquotasReforma['percentualReducaoIbsMunicipal'] ?? 0;
+        $array['Percentual_Diferimento_CBS'] = $aliquotasReforma['percentualDiferimentoCbs'] ?? 0;
+        $array['Percentual_Diferimento_IBS_UF'] = $aliquotasReforma['percentualDiferimentoIbsUf'] ?? 0;
+        $array['Percentual_Diferimento_IBS_Municipal'] = $aliquotasReforma['percentualDiferimentoIbsMunicipal'] ?? 0;
+        $array['Situacao_Tributaria_CBS_IBS_Regular'] = $situacaoCBSIBSRegular;
+        $array['Classificacao_Tributaria_CBS_IBS_Regular'] = $classificacaoCBSIBSRegular;
+        $array['Aliquota_CBS_Regular'] = $aliquotasReformaRegular['aliquotaCbs'] ?? 0;
+        $array['Aliquota_IBS_UF_Regular'] = $aliquotasReformaRegular['aliquotaIbsUf'] ?? 0;
+        $array['Aliquota_IBS_Municipal_Regular'] = $aliquotasReformaRegular['aliquotaIbsMunicipal'] ?? 0;
+        $array['Percentual_Reducao_CBS_Regular'] = $aliquotasReformaRegular['percentualReducaoCbs'] ?? 0;
+        $array['Percentual_Reducao_IBS_UF_Regular'] = $aliquotasReformaRegular['percentualReducaoIbsUf'] ?? 0;
+        $array['Percentual_Reducao_IBS_Municipal_Regular'] = $aliquotasReformaRegular['percentualReducaoIbsMunicipal'] ?? 0;
+
         return $array;
     }
 
@@ -7159,9 +7364,10 @@ EOT;
      *
      * @param int $T218_Id
      */
-    public function est015atualizarCFOP($T218_Id)
+    public function est015atualizarCFOP($T218_Id, $opcoes = null)
     {
         global $g;
+        if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) return true;
         $sqlT218 = mysql_query("SELECT * FROM T218 LEFT JOIN T219 ON T218_Id = T219_T218_Id WHERE T218_Id = '{$T218_Id}'");
         while ($T218 = mysql_fetch_array($sqlT218)) {
             log("regra item: retornaCFOP({$T218['T218_D024_Id']}, {$T218['T219_D009_Id']}, {$g['empresaAtual']})");
@@ -7250,6 +7456,30 @@ EOT;
         $erro = mysql_error();
         if (!empty($erro)) {
             return "Erro atualizando item do orcamento ID {$T219_Id}: $erro";
+        }
+        mysql_query("UPDATE T219A SET
+                        T219A_Situacao_Tributaria_CBS_IBS = '{$Aliquotas['Situacao_Tributaria_CBS_IBS']}',
+                        T219A_Classificacao_Tributaria_CBS_IBS = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS']}',
+                        T219A_Aliquota_CBS = '{$Aliquotas['Aliquota_CBS']}',
+                        T219A_Aliquota_IBS_UF = '{$Aliquotas['Aliquota_IBS_UF']}',
+                        T219A_Aliquota_IBS_Municipal = '{$Aliquotas['Aliquota_IBS_Municipal']}',
+                        T219A_Percentual_Reducao_CBS = '{$Aliquotas['Percentual_Reducao_CBS']}',
+                        T219A_Percentual_Reducao_IBS_UF = '{$Aliquotas['Percentual_Reducao_IBS_UF']}',
+                        T219A_Percentual_Reducao_IBS_Municipal = '{$Aliquotas['Percentual_Reducao_IBS_Municipal']}',
+                        T219A_Percentual_Diferimento_CBS = '{$Aliquotas['Percentual_Diferimento_CBS']}',
+                        T219A_Percentual_Diferimento_IBS_UF = '{$Aliquotas['Percentual_Diferimento_IBS_UF']}',
+                        T219A_Percentual_Diferimento_IBS_Municipal = '{$Aliquotas['Percentual_Diferimento_IBS_Municipal']}',
+                        T219A_Situacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Situacao_Tributaria_CBS_IBS_Regular']}',
+                        T219A_Classificacao_Tributaria_CBS_IBS_Regular = '{$Aliquotas['Classificacao_Tributaria_CBS_IBS_Regular']}',
+                        T219A_Aliquota_CBS_Regular = '{$Aliquotas['Aliquota_CBS_Regular']}',
+                        T219A_Aliquota_IBS_UF_Regular = '{$Aliquotas['Aliquota_IBS_UF_Regular']}',
+                        T219A_Aliquota_IBS_Municipal_Regular = '{$Aliquotas['Aliquota_IBS_Municipal_Regular']}',
+                        T219A_Percentual_Reducao_CBS_Regular = '{$Aliquotas['Percentual_Reducao_CBS_Regular']}',
+                        T219A_Percentual_Reducao_IBS_UF_Regular = '{$Aliquotas['Percentual_Reducao_IBS_UF_Regular']}',
+                        T219A_Percentual_Reducao_IBS_Municipal_Regular = '{$Aliquotas['Percentual_Reducao_IBS_Municipal_Regular']}'
+                     WHERE T219A_T219_Id='{$T219_Id}'");
+        if ($erro = mysql_error()) {
+            return "Erro atualizando Reforma Tributária do item da cotação {$T219_Id}: {$erro}";
         }
         return true;
     }
@@ -8118,7 +8348,7 @@ EOT;
         $i = 1;
         while ($row = mysql_fetch_array($retorno)) {
             $T005_Id = $row['T005_Id'];
-            if($row['D049_Flag_Tipo'] != 'PD'){
+            if(!in_array($row['D049_Flag_Tipo'], array('PD', 'IN'), true)){
                 $row['D001_Codigo_Produto'] = mysql_real_escape_string($row['D001_Codigo_Produto']);
                 $row['D083_Codigo_Produto_Fornecedor'] = mysql_real_escape_string($row['D083_Codigo_Produto_Fornecedor']);
                 $row['D001_Descricao_Produto'] = mysql_real_escape_string($row['D001_Descricao_Produto']);
@@ -8798,7 +9028,7 @@ EOT;
 
             $i = 1;
             while ($row = mysql_fetch_array($retorno)) {
-                if($row['D049_Flag_Tipo'] != 'PD'){
+                if(!in_array($row['D049_Flag_Tipo'], array('PD', 'IN'), true)){
                     $row['D009_C004_Id'] = mysql_real_escape_string($row['D009_C004_Id']);
                     $row['D001_Codigo_Produto'] = mysql_real_escape_string($row['D001_Codigo_Produto']);
                     $row['D083_Codigo_Produto_Fornecedor'] = mysql_real_escape_string($row['D083_Codigo_Produto_Fornecedor']);
@@ -9529,6 +9759,92 @@ EOT;
                 return '10 Erro: ' . $erro;
             }
         }            
+
+        /* Snapshot da Reforma Tributária da cotação. Esta cópia em lote não
+         * consulta nem recalcula cada item da OC; o cálculo próprio da OC é da Task 07. */
+        $sqlSnapshotItens = "INSERT INTO T225A (
+                T225A_T225_Id,
+                T225A_Situacao_Tributaria_CBS_IBS,
+                T225A_Classificacao_Tributaria_CBS_IBS,
+                T225A_Situacao_Tributaria_CBS_IBS_Regular,
+                T225A_Classificacao_Tributaria_CBS_IBS_Regular,
+                T225A_Aliquota_CBS,
+                T225A_Percentual_Reducao_CBS,
+                T225A_Aliquota_CBS_Efetiva,
+                T225A_Valor_CBS,
+                T225A_Percentual_Diferimento_CBS,
+                T225A_Valor_Diferimento_CBS,
+                T225A_Aliquota_CBS_Regular,
+                T225A_Percentual_Reducao_CBS_Regular,
+                T225A_Aliquota_CBS_Efetiva_Regular,
+                T225A_Valor_CBS_Regular,
+                T225A_Aliquota_IBS_Municipal,
+                T225A_Percentual_Reducao_IBS_Municipal,
+                T225A_Aliquota_IBS_Municipal_Efetiva,
+                T225A_Valor_IBS_Municipal,
+                T225A_Percentual_Diferimento_IBS_Municipal,
+                T225A_Valor_Diferimento_IBS_Municipal,
+                T225A_Aliquota_IBS_Municipal_Regular,
+                T225A_Percentual_Reducao_IBS_Municipal_Regular,
+                T225A_Aliquota_IBS_Municipal_Efetiva_Regular,
+                T225A_Valor_IBS_Municipal_Regular,
+                T225A_Aliquota_IBS_UF,
+                T225A_Percentual_Reducao_IBS_UF,
+                T225A_Aliquota_IBS_UF_Efetiva,
+                T225A_Valor_IBS_UF,
+                T225A_Percentual_Diferimento_IBS_UF,
+                T225A_Valor_Diferimento_IBS_UF,
+                T225A_Aliquota_IBS_UF_Regular,
+                T225A_Percentual_Reducao_IBS_UF_Regular,
+                T225A_Aliquota_IBS_UF_Efetiva_Regular,
+                T225A_Valor_IBS_UF_Regular,
+                T225A_Valor_Base_CBS_IBS,
+                T225A_Valor_Total_Reforma,
+                T225A_Valor_IBS
+            )
+            SELECT T225_Id,
+                T219A_Situacao_Tributaria_CBS_IBS,
+                T219A_Classificacao_Tributaria_CBS_IBS,
+                T219A_Situacao_Tributaria_CBS_IBS_Regular,
+                T219A_Classificacao_Tributaria_CBS_IBS_Regular,
+                T219A_Aliquota_CBS,
+                T219A_Percentual_Reducao_CBS,
+                T219A_Aliquota_CBS_Efetiva,
+                T219A_Valor_CBS,
+                T219A_Percentual_Diferimento_CBS,
+                T219A_Valor_Diferimento_CBS,
+                T219A_Aliquota_CBS_Regular,
+                T219A_Percentual_Reducao_CBS_Regular,
+                T219A_Aliquota_CBS_Efetiva_Regular,
+                T219A_Valor_CBS_Regular,
+                T219A_Aliquota_IBS_Municipal,
+                T219A_Percentual_Reducao_IBS_Municipal,
+                T219A_Aliquota_IBS_Municipal_Efetiva,
+                T219A_Valor_IBS_Municipal,
+                T219A_Percentual_Diferimento_IBS_Municipal,
+                T219A_Valor_Diferimento_IBS_Municipal,
+                T219A_Aliquota_IBS_Municipal_Regular,
+                T219A_Percentual_Reducao_IBS_Municipal_Regular,
+                T219A_Aliquota_IBS_Municipal_Efetiva_Regular,
+                T219A_Valor_IBS_Municipal_Regular,
+                T219A_Aliquota_IBS_UF,
+                T219A_Percentual_Reducao_IBS_UF,
+                T219A_Aliquota_IBS_UF_Efetiva,
+                T219A_Valor_IBS_UF,
+                T219A_Percentual_Diferimento_IBS_UF,
+                T219A_Valor_Diferimento_IBS_UF,
+                T219A_Aliquota_IBS_UF_Regular,
+                T219A_Percentual_Reducao_IBS_UF_Regular,
+                T219A_Aliquota_IBS_UF_Efetiva_Regular,
+                T219A_Valor_IBS_UF_Regular,
+                T219A_Valor_Base_CBS_IBS,
+                T219A_Valor_Total_Reforma,
+                T219A_Valor_IBS
+              FROM T225
+        INNER JOIN T219A ON T219A_T219_Id=T225_T219_Id
+             WHERE T225_T224_Id='{$T224_Id}' AND T225_T219_Id IN({$listaT219})";
+        mysql_query($sqlSnapshotItens);
+        if ($erro = mysql_error()) { mysql_query("ROLLBACK"); return 'Erro ao copiar snapshot da Reforma para itens da OC: ' . $erro; }
 
         mysql_query("call T224_Gravar_Totalizacao_3($T224_Id)");
         if (mysql_error()) {
