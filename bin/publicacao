@@ -62,7 +62,7 @@ trap limpar_temporarios EXIT
 
 caminho_excluido() {
   local rel="$1"
-  local base baixo
+  local baixo
   case "$rel" in
     outros/personalizacoes|outros/personalizacoes/*) return 0 ;;
     bibliotecas/confUsuario.php|bibliotecas/confUsuario.original) return 0 ;;
@@ -76,10 +76,50 @@ caminho_excluido() {
     hardness/phpqrcode/cache|hardness/phpqrcode/cache/*) return 0 ;;
     scripts/backup|scripts/backup/*) return 0 ;;
     static/css/temas/tema_*_cache.css) return 0 ;;
-    *.p12|*.keystore|*.key|*.crt) return 0 ;;
+    *.p12|*.keystore) return 0 ;;
+    configuracoes/painel-comercial-inecel-root-63.json) return 0 ;;
+    bibliotecas/layouts_remessa/manual/Manual\ Remessa\ HSBC.pdf) return 0 ;;
+    bibliotecas/layouts_remessa/manual/cresol/Manual\ Especificacoes\ Tecnicas\ Cresol.pdf) return 0 ;;
+    bibliotecas/validadorNFe/Manual_de_Orientacao_Contribuinte_v_6.00.pdf) return 0 ;;
+    outros/etiquetas/manuais/impressoraArgox/sManual_Portuguese.pdf) return 0 ;;
+    outros/etiquetas/manuais/impressoraEPL/zsu-1191060.exe) return 0 ;;
+    outros/leitorBiometrico/desenvolvimento/nitgen\ enbsp.rar) return 0 ;;
+    scripts/TabelaTIPI/TIPI\ -\ I\ -\ SE__O\ VI.htm) return 0 ;;
+    smarty/B2B/images/img-hardness.png) return 0 ;;
+    static/download/ChromeStandaloneSetup.exe) return 0 ;;
+    static/download/jre-7u51-windows-i586.exe) return 0 ;;
+    static/download/leitorbio.zip) return 0 ;;
+    static/download/smt-print-1.0.0.exe) return 0 ;;
+    static/download/smt-print-1.0.0.pdf) return 0 ;;
+    static/js/monaco-editor/0.25.2/dev/vs/editor/editor.main.js) return 0 ;;
+    static/js/monaco-editor/0.25.2/dev/vs/editor/editor.main.js.map) return 0 ;;
+    static/js/monaco-editor/0.25.2/dev/vs/language/typescript/tsWorker.js) return 0 ;;
+    static/js/monaco-editor/0.25.2/esm/vs/language/typescript/lib/typescriptServices.js) return 0 ;;
+    static/js/monaco-editor/0.25.2/min-maps/vs/editor/editor.main.js.map) return 0 ;;
+    outros/apps/apps.key) return 0 ;;
+    bibliotecas/tcpdf/tcpdf.crt) return 0 ;;
+    mobile/cert/my-release-key.keystore) return 0 ;;
+    .idea|.idea/*) return 0 ;;
+    outros/java/.metadata|outros/java/.metadata/*) return 0 ;;
+    outros/mobileAndroid/workspace/.metadata|outros/mobileAndroid/workspace/.metadata/*) return 0 ;;
+    prog/sistema/progs/db.eurosul.serialized) return 0 ;;
+    prog/sistema/progs/db.sigmacar.serialized) return 0 ;;
+    scripts/notifications/notificacoes.sh) return 0 ;;
+    scripts/notifications/notificacoesHora.sh) return 0 ;;
+    site/conf.php) return 0 ;;
+    rest_api/config/app.local.php) return 0 ;;
+    Thumbs.db) return 0 ;;
+    ide|ide/*) return 0 ;;
+    apps|apps/*) return 0 ;;
+    framework|framework/*) return 0 ;;
+    bibliotecas/composer/vendor|bibliotecas/composer/vendor/*) return 0 ;;
+    bibliotecas/webservices/meli/README.md) return 0 ;;
+    bibliotecas/webservices/meli/CONEXAO_MELI_COMPLETA.md) return 0 ;;
+    bibliotecas/webservices/meli/conexaoMeli.php) return 0 ;;
+    .vscode|.vscode/*) return 0 ;;
+    rest_api/storage/cache|rest_api/storage/cache/*) return 0 ;;
   esac
-  base="$(basename "$rel")"
-  baixo="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+  baixo="$(printf '%s' "$rel" | tr '[:upper:]' '[:lower:]')"
   case "$baixo" in
     *ceigon*|*guimepa*|*eurosul*|*boticario*|*boticário*|*derosso*|*emprefix*|*nacomaq*|*panceri*|*vedapar*)
       return 0
@@ -129,7 +169,7 @@ distancia() {
 }
 
 candidatos() {
-  local our_tree commit dist assunto menor mostrados
+  local our_tree commit dist assunto menor
   buscar
   nossa_tmp="$(mktemp -d)"
   cmp_tmp="$(mktemp -d)"
@@ -149,16 +189,11 @@ candidatos() {
     exit 1
   fi
   menor="$(sort -t "$(printf '\t')" -k1,1n -k2,2 "$lista_tmp" | head -n 1 | cut -f1)"
-  mostrados=0
   while IFS="$(printf '\t')" read -r dist commit assunto; do
     if [ "$dist" != "$menor" ]; then
       break
     fi
-    if [ "$mostrados" -ge 5 ]; then
-      break
-    fi
     printf 'candidato %s %s %s\n' "$commit" "$dist" "$assunto"
-    mostrados=$((mostrados + 1))
   done < <(sort -t "$(printf '\t')" -k1,1n -k2,2 "$lista_tmp")
 }
 
@@ -274,7 +309,7 @@ trazer() {
   GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" update-index --add --cacheinfo "100644,$blob,publicacao/ponto"
   novo_tree="$(GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" write-tree)"
   parent="$(git -C "$raiz" rev-parse HEAD)"
-  novo="$(git -C "$raiz" commit-tree "$novo_tree" -p "$parent" -m "traz a publicação até $tip")"
+  novo="$(git -C "$raiz" commit-tree "$novo_tree" -p "$parent" -m "feat(publicacao): traz a publicação até $tip")"
   git -C "$raiz" branch "publicacao/$tip" "$novo"
   git -C "$raiz" update-ref -d refs/fixar/mergeado-tmp
   printf '%s\n' "$tip" >"$raiz/publicacao/ponto"

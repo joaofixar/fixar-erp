@@ -283,6 +283,8 @@ printf 'deles\n' >"$pub/outros/personalizacoes/fixar/regra.php"
 mkdir -p "$pub/bibliotecas"
 printf 'segredo\n' >"$pub/bibliotecas/confUsuario.php"
 printf 'outro cliente\n' >"$pub/ceigon-nota.txt"
+mkdir -p "$pub/ceigon"
+printf 'outro cliente\n' >"$pub/ceigon/nota.txt"
 sha_ponta="$(commitar "$pub" "ponta")"
 
 mkdir -p "$erp/src/hardness3/scripts/sql" "$erp/src/hardness3/outros/personalizacoes/fixar" "$erp/publicacao"
@@ -337,6 +339,12 @@ if git -C "$erp" cat-file -e "$ramo:src/hardness3/bibliotecas/confUsuario.php" 2
 fi
 if git -C "$erp" cat-file -e "$ramo:src/hardness3/ceigon-nota.txt" 2>/dev/null; then
   reclamar "arquivo de outro cliente entrou na branch"
+fi
+if git -C "$erp" cat-file -e "$ramo:src/hardness3/ceigon/nota.txt" 2>/dev/null; then
+  reclamar "pasta de outro cliente entrou na branch"
+fi
+if [ "$(git -C "$erp" log -1 --format='%s' "$ramo")" != "feat(publicacao): traz a publicação até $sha_ponta" ]; then
+  reclamar "o commit da branch não segue o padrão: $(git -C "$erp" log -1 --format='%s' "$ramo")"
 fi
 if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$sha_ponta" ]; then
   reclamar "o trazer limpo não avançou o ponto"
