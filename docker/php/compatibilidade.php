@@ -30,6 +30,35 @@ if (!function_exists('each')) {
     }
 }
 
+// O Hardness guarda diretórios, abas e tabelas no APC. Sem ele, toda requisição recria
+// a árvore de diretórios e refaz esses caches; o APCu da imagem faz o papel do APC.
+if (!function_exists('apc_fetch') && function_exists('apcu_fetch')) {
+    function apc_fetch($chave, &$sucesso = null)
+    {
+        return apcu_fetch($chave, $sucesso);
+    }
+
+    function apc_store($chave, $valor = null, $ttl = 0)
+    {
+        return apcu_store($chave, $valor, $ttl);
+    }
+
+    function apc_add($chave, $valor = null, $ttl = 0)
+    {
+        return apcu_add($chave, $valor, $ttl);
+    }
+
+    function apc_delete($chave)
+    {
+        return apcu_delete($chave);
+    }
+
+    function apc_inc($chave, $passo = 1, &$sucesso = null)
+    {
+        return apcu_inc($chave, $passo, $sucesso);
+    }
+}
+
 if (!function_exists('apc_fetch')) {
     function apc_fetch($chave, &$sucesso = null)
     {
