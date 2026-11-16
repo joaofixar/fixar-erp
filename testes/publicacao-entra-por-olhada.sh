@@ -270,6 +270,8 @@ preparar_erp "$erp"
 mkdir -p "$pub/scripts/sql" "$pub/outros/personalizacoes/fixar"
 printf 'base\n' >"$pub/leia.txt"
 printf 'base\n' >"$pub/outro.txt"
+printf 'intacto\n' >"$pub/intacto.txt"
+printf 'sai\n' >"$pub/sai.txt"
 printf 'antiga\n' >"$pub/scripts/sql/rotina.sql"
 printf 'nossa\n' >"$pub/outros/personalizacoes/fixar/regra.php"
 git init -q -b master "$pub"
@@ -278,6 +280,7 @@ sha_base="$(commitar "$pub" "base da copia")"
 git clone -q "$pub" "$clone"
 identificar "$clone"
 printf 'publicacao\n' >"$pub/outro.txt"
+rm -f "$pub/sai.txt"
 printf 'nova\n' >"$pub/scripts/sql/rotina.sql"
 printf 'deles\n' >"$pub/outros/personalizacoes/fixar/regra.php"
 mkdir -p "$pub/bibliotecas"
@@ -290,6 +293,8 @@ sha_ponta="$(commitar "$pub" "ponta")"
 mkdir -p "$erp/src/hardness3/scripts/sql" "$erp/src/hardness3/outros/personalizacoes/fixar" "$erp/publicacao"
 printf 'fixar\n' >"$erp/src/hardness3/leia.txt"
 printf 'base\n' >"$erp/src/hardness3/outro.txt"
+printf 'intacto\n' >"$erp/src/hardness3/intacto.txt"
+printf 'sai\n' >"$erp/src/hardness3/sai.txt"
 printf 'antiga\n' >"$erp/src/hardness3/scripts/sql/rotina.sql"
 printf 'nossa\n' >"$erp/src/hardness3/outros/personalizacoes/fixar/regra.php"
 printf 'local\n' >"$erp/src/hardness3/so-fixar.txt"
@@ -327,6 +332,12 @@ if [ "$(git -C "$erp" show "$ramo:src/hardness3/outro.txt")" != "publicacao" ]; 
 fi
 if [ "$(git -C "$erp" show "$ramo:src/hardness3/so-fixar.txt")" != "local" ]; then
   reclamar "o arquivo só da Fixar sumiu da branch"
+fi
+if [ "$(git -C "$erp" show "$ramo:src/hardness3/intacto.txt")" != "intacto" ]; then
+  reclamar "um arquivo que ninguém mexeu não permaneceu na branch"
+fi
+if git -C "$erp" cat-file -e "$ramo:src/hardness3/sai.txt" 2>/dev/null; then
+  reclamar "um arquivo apagado pela publicação permaneceu na branch"
 fi
 if [ "$(git -C "$erp" show "$ramo:src/hardness3/scripts/sql/rotina.sql")" != "nova" ]; then
   reclamar "o texto da rotina não entrou na branch"

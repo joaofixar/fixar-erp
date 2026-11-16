@@ -91,12 +91,10 @@ cmp_tmp=""
 lista_tmp=""
 indice_erp_tmp=""
 ponto_tmp=""
+mudancas_tmp=""
 limpar_temporarios() {
-  if [ -n "$raiz" ]; then
-    git -C "$raiz" update-ref -d refs/fixar/mergeado-tmp >/dev/null 2>&1 || true
-  fi
   rm -rf "$nossa_tmp" "$cmp_tmp"
-  rm -f "$lista_tmp" "$indice_erp_tmp" "$ponto_tmp"
+  rm -f "$lista_tmp" "$indice_erp_tmp" "$ponto_tmp" "$mudancas_tmp"
 }
 trap limpar_temporarios EXIT
 
@@ -170,23 +168,15 @@ caminho_excluido() {
 
 arvore_nossa() {
   local destino="$1"
-  local modo="${2:-enxuta}"
   local caminho rel copiados
   git init -q -b master "$destino"
   git -C "$destino" config user.email teste@fixar.local
   git -C "$destino" config user.name Teste
   copiados=0
   aviso "Copiando o Hardness versionado."
-  if [ "$modo" = "completa" ]; then
-    git -C "$raiz" archive --format=tar "HEAD:src/hardness3" | tar -C "$destino" -xf -
-    aviso "Árvore copiada. Registrando no git."
-    git -C "$destino" add -A
-    git -C "$destino" commit -q --allow-empty -m "nossa"
-    return
-  fi
   while IFS= read -r -d '' caminho; do
     rel="${caminho#src/hardness3/}"
-    if [ "$modo" != "completa" ] && caminho_excluido "$rel"; then
+    if caminho_excluido "$rel"; then
       continue
     fi
     if [ ! -f "$raiz/$caminho" ]; then
@@ -299,25 +289,85 @@ olhar() {
   candidatos
 }
 
+diretorio_objetos() {
+  local dir
+  dir="$(git -C "$1" rev-parse --path-format=absolute --git-common-dir)/objects"
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$dir"
+  else
+    printf '%s\n' "$dir"
+  fi
+}
+
+ligar_objetos() {
+  local destino="$1"
+  mkdir -p "$destino/.git/objects/info"
+  {
+    diretorio_objetos "$raiz"
+    diretorio_objetos "$publicacao"
+  } >"$destino/.git/objects/info/alternates"
+}
+
+# A exclusão e a cópia olham só o diff entre o ponto e a ponta.
+# Arquivo que ninguém mexeu permanece o da Fixar.
+listar_mudancas() {
+  local base_tree="$1"
+  local their_tree="$2"
+  local total
+  mudancas_tmp="$(mktemp)"
+  git -C "$publicacao" diff-tree -z -r --no-renames --name-only "$base_tree" "$their_tree" \
+    | tr '\0' '\n' >"$mudancas_tmp"
+  total="$(grep -c . "$mudancas_tmp" || true)"
+  if [ "$total" -eq 1 ]; then
+    aviso "A publicação mexeu em 1 caminho."
+  else
+    aviso "A publicação mexeu em $total caminhos."
+  fi
+}
+
 restaurar_exclusoes() {
   local indice="$1"
-  local caminho linha modo blob
+  local our_tree="$2"
+  local caminho linha modo blob vistos
+  vistos=0
   while IFS= read -r caminho; do
     [ -n "$caminho" ] || continue
     if ! caminho_excluido "$caminho"; then
       continue
     fi
+    vistos=$((vistos + 1))
     GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --force-remove -- "$caminho" || true
-    if git -C "$cmp_tmp" cat-file -e "refs/heads/nossa:${caminho}" 2>/dev/null; then
-      linha="$(git -C "$cmp_tmp" ls-tree refs/heads/nossa -- "$caminho")"
+    if git -C "$cmp_tmp" cat-file -e "${our_tree}:${caminho}" 2>/dev/null; then
+      linha="$(git -C "$cmp_tmp" ls-tree "$our_tree" -- "$caminho")"
       modo="${linha%% *}"
-      blob="$(git -C "$cmp_tmp" rev-parse "refs/heads/nossa:${caminho}")"
+      blob="$(git -C "$cmp_tmp" rev-parse "${our_tree}:${caminho}")"
       GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --add --cacheinfo "$modo,$blob,$caminho"
     fi
-  done < <({
-    GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files --format='%(path)'
-    GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files -u --format='%(path)'
-  } | sort -u)
+  done <"$mudancas_tmp"
+  if [ "$vistos" -eq 1 ]; then
+    aviso "Personalização, segredo e arquivo de outro cliente ficam de fora. 1 caminho."
+  elif [ "$vistos" -gt 1 ]; then
+    aviso "Personalização, segredo e arquivo de outro cliente ficam de fora. $vistos caminhos."
+  fi
+}
+
+importar_arvore() {
+  local our_tree="$1"
+  local merged="$2"
+  local faltando
+  faltando="$(mktemp)"
+  {
+    printf '%s\n' "$merged"
+    git -C "$cmp_tmp" -c core.abbrev=40 diff-tree --full-index -t -r --raw "$our_tree" "$merged" \
+      | awk '{ if ($4 !~ /^0+$/) print $4 }'
+  } | sort -u \
+    | git -C "$raiz" cat-file --batch-check='%(objectname) %(objecttype)' \
+    | awk '$2 == "missing" { print $1 }' >"$faltando"
+  if [ -s "$faltando" ]; then
+    aviso "Copiando o que a publicação mudou."
+    git -C "$cmp_tmp" pack-objects --stdout -q <"$faltando" | git -C "$raiz" unpack-objects -q
+  fi
+  rm -f "$faltando"
 }
 
 ficar_com_a_publicacao() {
@@ -342,7 +392,8 @@ ficar_com_a_publicacao() {
 }
 
 trazer() {
-  local base_sha tip indice merged temp_commit merged_tree parent novo caminho houve
+  local base_sha tip indice merged parent novo caminho houve blob novo_tree
+  local base_tree their_tree our_tree
   if [ ! -f "$raiz/publicacao/ponto" ]; then
     echo "Não há ponto gravado." >&2
     exit 1
@@ -356,22 +407,26 @@ trazer() {
     echo "A branch publicacao/$tip já existe." >&2
     exit 1
   fi
+  if ! our_tree="$(git -C "$raiz" rev-parse --verify 'HEAD:src/hardness3' 2>/dev/null)"; then
+    echo "O src/hardness3 não está no commit atual." >&2
+    exit 1
+  fi
+  if ! base_tree="$(git -C "$publicacao" rev-parse --verify "${base_sha}^{tree}" 2>/dev/null)"; then
+    echo "O ponto gravado não está na publicação." >&2
+    exit 1
+  fi
+  their_tree="$(git -C "$publicacao" rev-parse "${tip}^{tree}")"
+  listar_mudancas "$base_tree" "$their_tree"
 
-  nossa_tmp="$(mktemp -d)"
   cmp_tmp="$(mktemp -d)"
-  arvore_nossa "$nossa_tmp" completa
   git init -q -b master "$cmp_tmp"
-  git -C "$cmp_tmp" config user.email teste@fixar.local
-  git -C "$cmp_tmp" config user.name Teste
-  git -C "$cmp_tmp" fetch -q --no-tags "$publicacao" "${base_sha}:refs/heads/base"
-  git -C "$cmp_tmp" fetch -q --no-tags "$publicacao" 'refs/remotes/origin/master:refs/heads/deles'
-  git -C "$cmp_tmp" fetch -q --no-tags "$nossa_tmp" 'HEAD:refs/heads/nossa'
+  ligar_objetos "$cmp_tmp"
 
   indice="$cmp_tmp/indice"
   aviso "Juntando o ponto, o Hardness da Fixar e a ponta."
-  GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" read-tree -m refs/heads/base refs/heads/nossa refs/heads/deles
-  aviso "Tirando personalização, segredo e arquivo de outro cliente."
-  restaurar_exclusoes "$indice"
+  # Inclusão e exclusão em que só um lado mexeu entram, como no pull.
+  GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" read-tree -m --aggressive "$base_tree" "$our_tree" "$their_tree"
+  restaurar_exclusoes "$indice" "$our_tree"
   if [ "$sobrescrever" -eq 1 ]; then
     ficar_com_a_publicacao "$indice"
   fi
@@ -389,24 +444,20 @@ trazer() {
 
   aviso "Gravando a branch. O checkout atual não muda."
   merged="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" write-tree)"
-  temp_commit="$(git -C "$cmp_tmp" commit-tree "$merged" -m "mergeado")"
-  git -C "$cmp_tmp" update-ref refs/heads/mergeado "$temp_commit"
-  git -C "$raiz" fetch -q --no-tags "$cmp_tmp" 'refs/heads/mergeado:refs/fixar/mergeado-tmp'
-  merged_tree="$(git -C "$raiz" rev-parse 'refs/fixar/mergeado-tmp^{tree}')"
+  importar_arvore "$our_tree" "$merged"
 
   indice_erp_tmp="$(mktemp)"
   ponto_tmp="$(mktemp)"
   printf '%s\n' "$tip" >"$ponto_tmp"
   GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" read-tree HEAD
   GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" rm -r --cached -q --ignore-unmatch -- src/hardness3
-  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" read-tree --prefix=src/hardness3/ "$merged_tree"
+  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" read-tree --prefix=src/hardness3/ "$merged"
   blob="$(git -C "$raiz" hash-object -w -- "$ponto_tmp")"
   GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" update-index --add --cacheinfo "100644,$blob,publicacao/ponto"
   novo_tree="$(GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" write-tree)"
   parent="$(git -C "$raiz" rev-parse HEAD)"
   novo="$(git -C "$raiz" commit-tree "$novo_tree" -p "$parent" -m "feat(publicacao): traz a publicação até $tip")"
   git -C "$raiz" branch "publicacao/$tip" "$novo"
-  git -C "$raiz" update-ref -d refs/fixar/mergeado-tmp
   printf '%s\n' "$tip" >"$raiz/publicacao/ponto"
   printf 'publicacao/%s\n' "$tip"
 }
