@@ -8,6 +8,38 @@ $CAD002 = new CAD002;
  * Ações
  */
 switch($g['r'][3]) {
+	case 'cad002JuntarProdutosConsultar':
+	case 'cad002JuntarProdutosProcessar':
+		$JUN001_Id = isset($r_JUN001_Id) ? (int) $r_JUN001_Id : 0;
+		$token = isset($r_token) ? $r_token : '';
+		$sequencia = isset($r_sequencia) ? (int) $r_sequencia : 0;
+		if ($g['r'][3] == 'cad002JuntarProdutosConsultar') {
+			$retorno = $CAD002->juncaoProdutosConsultar($JUN001_Id, $token);
+		} else {
+			$retorno = $CAD002->juncaoProdutosProcessar($JUN001_Id, $token, $sequencia);
+		}
+		if (!is_array($retorno)) {
+			$resposta['code'] = false;
+			$resposta['data'] = $retorno;
+		} else {
+			$resposta['data'] = $retorno;
+		}
+	break;
+
+	case 'cad002JuntarProdutosPendente':
+		$resposta['data'] = $CAD002->juncaoProdutosPendente();
+	break;
+
+	case 'cad002JuntarProdutosLimpar':
+		$JUN001_Id = isset($r_JUN001_Id) ? (int) $r_JUN001_Id : 0;
+		$token = isset($r_token) ? $r_token : '';
+		$retorno = $CAD002->juncaoProdutosLimpar($JUN001_Id, $token);
+		if ($retorno !== true) {
+			$resposta['code'] = false;
+			$resposta['data'] = $retorno;
+		}
+	break;
+
 	case 'cad002atualizarCamposProdutos':
 		$D049_Id_Itens = isset($r_D049_Id_Itens) ? $r_D049_Id_Itens : false;
 		$D049_Id = isset($r_D049_Id) ? $r_D049_Id : false;

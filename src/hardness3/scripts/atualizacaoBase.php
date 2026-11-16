@@ -17376,3 +17376,117 @@ Criar_Campo("C004_Invoice_Our_Bank", "text");
 Criar_Campo("C004_Tipo_DANFE", "char(1) NOT NULL DEFAULT 'V' COMMENT 'V=RTC retrato; H=RTC paisagem'");
 Criar_Campo("C004_Flag_Usar_DANFE_RTC", "char(1) NOT NULL DEFAULT 'N' COMMENT 'N=Modelo atual; S=Usar DANFE RTC'");
 Criar_Campo("T007A_Tipo_DANFE", "char(1) NOT NULL DEFAULT '' COMMENT 'Vazio=Empresa; A=Atual; V=RTC vertical; H=RTC horizontal'");
+
+// A junção em etapas persiste o avanço e os dados necessários para compensar lotes já confirmados.
+$cClausula = <<<SQL
+    CREATE TABLE IF NOT EXISTS JUN001 (
+        JUN001_Id                         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        JUN001_D001_Id_Antigo             INT UNSIGNED NOT NULL,
+        JUN001_D001_Id_Novo               INT UNSIGNED NOT NULL,
+        JUN001_C004_Id                     INT UNSIGNED NOT NULL DEFAULT 0,
+        JUN001_C007_Id                     INT UNSIGNED NOT NULL DEFAULT 0,
+        JUN001_Banco                       VARCHAR(100) NOT NULL DEFAULT '',
+        JUN001_Token                       VARCHAR(64) NOT NULL,
+        JUN001_Estado                      VARCHAR(30) NOT NULL,
+        JUN001_Etapa                       VARCHAR(100) NOT NULL DEFAULT '',
+        JUN001_Cursor                      BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        JUN001_Sequencia                   INT UNSIGNED NOT NULL DEFAULT 0,
+        JUN001_Quantidade                  BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        JUN001_Bytes_Reversao              BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        JUN001_Dados                       LONGBLOB,
+        JUN001_Mapa_Referencias            LONGBLOB,
+        JUN001_Erro                        MEDIUMTEXT,
+        JUN001_Erro_Compensacao            MEDIUMTEXT,
+        JUN001_Data_Inicio                 DATETIME NOT NULL,
+        JUN001_Data_Alteracao              DATETIME NOT NULL,
+        JUN001_Data_Fim                    DATETIME DEFAULT NULL,
+        PRIMARY KEY (JUN001_Id),
+        KEY IDX_JUN001_Estado_Data (JUN001_Estado, JUN001_Data_Alteracao),
+        KEY IDX_JUN001_Usuario_Estado (JUN001_C007_Id, JUN001_Estado)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+SQL;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)) {
+    echo "$cClausula<hr>$cErro";
+}
+
+$cClausula = <<<SQL
+    CREATE TABLE IF NOT EXISTS JUN002 (
+        JUN002_Id                         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        JUN002_JUN001_Id                  BIGINT UNSIGNED NOT NULL,
+        JUN002_Sequencia                  INT UNSIGNED NOT NULL,
+        JUN002_Etapa                      VARCHAR(100) NOT NULL DEFAULT '',
+        JUN002_Estado                     VARCHAR(20) NOT NULL,
+        JUN002_Quantidade                 INT UNSIGNED NOT NULL DEFAULT 0,
+        JUN002_Bytes_Reversao             BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        JUN002_Tempo_Banco                DECIMAL(12,6) NOT NULL DEFAULT 0,
+        JUN002_Data_Inicio                DATETIME NOT NULL,
+        JUN002_Data_Fim                   DATETIME DEFAULT NULL,
+        PRIMARY KEY (JUN002_Id),
+        UNIQUE KEY UQ_JUN002_Operacao_Sequencia (JUN002_JUN001_Id, JUN002_Sequencia),
+        KEY IDX_JUN002_Operacao_Estado (JUN002_JUN001_Id, JUN002_Estado)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+SQL;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)) {
+    echo "$cClausula<hr>$cErro";
+}
+
+$cClausula = <<<SQL
+    CREATE TABLE IF NOT EXISTS JUN003 (
+        JUN003_Id                         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        JUN003_JUN001_Id                  BIGINT UNSIGNED NOT NULL,
+        JUN003_JUN002_Id                  BIGINT UNSIGNED NOT NULL,
+        JUN003_Sequencia                  INT UNSIGNED NOT NULL,
+        JUN003_Tabela                     VARCHAR(100) NOT NULL,
+        JUN003_Operacao                   CHAR(1) NOT NULL,
+        JUN003_Dados                      LONGBLOB NOT NULL,
+        JUN003_Bytes                      BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        JUN003_Compensado                 CHAR(1) NOT NULL DEFAULT 'N',
+        JUN003_Data                       DATETIME NOT NULL,
+        PRIMARY KEY (JUN003_Id),
+        KEY IDX_JUN003_Operacao_Compensado (JUN003_JUN001_Id, JUN003_Compensado, JUN003_Id),
+        KEY IDX_JUN003_Lote (JUN003_JUN002_Id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+SQL;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)) {
+    echo "$cClausula<hr>$cErro";
+}
+
+$cClausula = <<<SQL
+    CREATE TABLE IF NOT EXISTS JUN004 (
+        JUN004_D001_Id                    INT UNSIGNED NOT NULL,
+        JUN004_JUN001_Id                  BIGINT UNSIGNED NOT NULL,
+        JUN004_Data                       DATETIME NOT NULL,
+        PRIMARY KEY (JUN004_D001_Id),
+        KEY IDX_JUN004_Operacao (JUN004_JUN001_Id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+SQL;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)) {
+    echo "$cClausula<hr>$cErro";
+}
+
+// O diagnóstico da Inecel comprovou varredura integral da T030 durante a transferência de T066.
+$sqlIndiceT030 = <<<SQL
+    SELECT INDEX_NAME
+      FROM INFORMATION_SCHEMA.STATISTICS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'T030'
+       AND COLUMN_NAME = 'T030_T066_Id'
+       AND SEQ_IN_INDEX = 1
+     LIMIT 1
+SQL;
+$resIndiceT030 = mysql_query($sqlIndiceT030);
+if ($resIndiceT030 && mysql_num_rows($resIndiceT030) == 0) {
+    Criar_Indice('T030_T066_Id');
+}

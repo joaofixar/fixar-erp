@@ -10068,7 +10068,8 @@ SQL;
             $T014_Valor_Base_IPI = (($mT014['T014_Valor_Total_Custo'] + $despesasIPI) - $mT014['T014_Valor_Total_Desconto']) * $reducao;
         }
 
-        $valorIPI = ($T014_Valor_Base_IPI * ($aliquotaIPI / 100));
+        $T014_Valor_Base_IPI = round($T014_Valor_Base_IPI, 2);
+        $valorIPI = round($T014_Valor_Base_IPI * ($aliquotaIPI / 100), 2);
                 
         //Calculo ICMS
         if($aliquotaICMS > 0) {
@@ -10102,8 +10103,9 @@ SQL;
                                             ? $T014_Valor_Base_ICMS/((100 - $Aliquotas['ST_ICMS_Interno']) / 100)
                                             : $T014_Valor_Base_ICMS;                                                                                                                                               
 
-            //Calculo valor do ICMS                                                
-            $valorICMS = ($T014_Valor_Base_ICMS * ($aliquotaICMS / 100));
+            // A NF-e transmite base e valor monetario com duas casas decimais.
+            $T014_Valor_Base_ICMS = round($T014_Valor_Base_ICMS, 2);
+            $valorICMS = round($T014_Valor_Base_ICMS * ($aliquotaICMS / 100), 2);
 
             //ICMS ST
             $Valor_Base_ICMS_Substituicao = 0;
@@ -10129,18 +10131,19 @@ SQL;
             $ValorDestino            = 0;
             $ValorST                 = 0;
        
+            $Valor_Base_ICMS_Substituicao          = round($Valor_Base_ICMS_Substituicao, 2);
             $ValorOrigem                           = (($Valor_Base_ICMS_Substituicao * ($Aliquotas['Percentual_Reducao_ICMS_ST'] > 0 ?( (100-$Aliquotas['Percentual_Reducao_ICMS_ST'])/100) : 1))*($Aliquotas['ST_ICMS_Interno']/100));
             $ValorDestino                          = (($Valor_Total_Custo_Final *($Aliquotas['Percentual_Reducao_ICMS_ST'] > 0 ? ((100-$Aliquotas['Percentual_Reducao_ICMS_ST'])/100) : 1)) *  $Aliquotas['ICMS_Inter_Estadual']/100);
             $ValorST                               = $ValorOrigem - $ValorDestino;
-            $T014_Valor_ICMS_Substituicao_Retencao = $ValorST < 0 ? 0 : $ValorST;                 
+            $T014_Valor_ICMS_Substituicao_Retencao = round($ValorST < 0 ? 0 : $ValorST, 2);
             
             // Calculo FCP ST
-            $Valor_Base_FCP_ST = ($mT014['D006_Flag_Calcula_FCP_ST'] == 'S') ? $Valor_Base_ICMS_Substituicao : 0;
+            $Valor_Base_FCP_ST = round(($mT014['D006_Flag_Calcula_FCP_ST'] == 'S') ? $Valor_Base_ICMS_Substituicao : 0, 2);
             $Valor_FCP_ST      = 0;
             
             if($T014_Valor_ICMS_Substituicao_Retencao > 0) {
                 $Valor_FCP_ST = $Valor_Base_FCP_ST * ($percentualFCP / 100);
-                $Valor_FCP_ST = $Valor_FCP_ST < 0 ? $Valor_FCP_ST * (-1) : $Valor_FCP_ST;
+                $Valor_FCP_ST = round($Valor_FCP_ST < 0 ? $Valor_FCP_ST * (-1) : $Valor_FCP_ST, 2);
             }
 
             // $T014_Valor_ICMS_Substituicao_Retencao  -= $Valor_FCP_ST;            
@@ -10163,7 +10166,8 @@ SQL;
             $aliquotaCOFINS = 0;
         }
 
-        $valorCOFINS = ($T014_Valor_Base_COFINS * ($aliquotaCOFINS / 100));     
+        $T014_Valor_Base_COFINS = round($T014_Valor_Base_COFINS, 2);
+        $valorCOFINS = round($T014_Valor_Base_COFINS * ($aliquotaCOFINS / 100), 2);
         
         //Calculo PIS
         if($Aliquotas['Flag_Isento_PIS'] !== 'S') {
@@ -10182,7 +10186,8 @@ SQL;
             $aliquotaPIS = 0;
         }
 
-        $valorPIS = ($T014_Valor_Base_PIS * ($aliquotaPIS / 100));
+        $T014_Valor_Base_PIS = round($T014_Valor_Base_PIS, 2);
+        $valorPIS = round($T014_Valor_Base_PIS * ($aliquotaPIS / 100), 2);
                
         //CST
         $Situacao_Tributaria_COFINS = $Aliquotas['Situacao_Tributaria_COFINS'];

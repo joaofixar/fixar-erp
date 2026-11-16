@@ -13,6 +13,27 @@ require_once('prog/ven/ven001/form_func-js.php');
 $CAD002 = new CAD002();
 $XML = new xmlProduto();
 
+// Limita a descrição exibida em todas as versões do formulário de produto.
+$gerarSelectNcm = function ($selecionado = false) use ($g) {
+    $opcoes = gGeraSelect(
+        'D149',
+        'D005_Id',
+        'D005_Classificacao_Fiscal, D005_Flag_Aplicacao, LEFT(D005_Observacao[[virgula]] 60) AS descricaoCurta, D149_Aliquota_IPI',
+        "LEFT JOIN D005 ON D149_D005_Id=D005_Id AND D149_C004_Id='{$g['empresaAtual']}' WHERE D005_Flag_Ativo='S' ORDER BY D005_Classificacao_Fiscal, D005_Observacao",
+        true,
+        $selecionado,
+        '%1 - %2 - %3 - IPI: %4'
+    );
+
+    foreach ($opcoes as &$opcao) {
+        $texto = trim(preg_replace('/\s+/', ' ', $opcao['title']));
+        $opcao['title'] = htmlspecialchars($texto, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+    unset($opcao);
+
+    return $opcoes;
+};
+
 /**
 * Ações
 */
@@ -97,7 +118,7 @@ switch ($g['r'][3]) {
 						gGeraSelect('D037', 'D037_Id', 'D037_Descricao_Unidade', 'order by D037_Unidade', true)
 					),
 					'D001_D005_Id' => array('name' => 'D001_D005_Id', 'label'=>'NCM', 'type' => 'select', 'select' =>
-						gGeraSelect('D149', 'D005_Id', 'D005_Classificacao_Fiscal, D005_Flag_Aplicacao, D005_Observacao, D149_Aliquota_IPI', "LEFT JOIN D005 ON D149_D005_Id=D005_Id AND D149_C004_Id='{$g['empresaAtual']}' WHERE D005_Flag_Ativo='S' ORDER BY D005_Classificacao_Fiscal, D005_Observacao", true)
+						$gerarSelectNcm()
 					),
 					'D001_Especificacoes' => array('name' => 'D001_Especificacoes', 'label'=>'Especificações', 'type' => 'textarea', 'length' => array(4, 61)),
 					'D001_Flag_Tipo' => array('name' => 'D001_Flag_Tipo', 'label'=>'Origem', 'type' => 'select', 'select' =>
@@ -513,7 +534,7 @@ EOT;
 						gGeraSelect('D037', 'D037_Id', 'D037_Descricao_Unidade', 'order by D037_Unidade', true)
 					),
 					'D001_D005_Id' => array('name' => 'D001_D005_Id', 'label'=>'NCM', 'type' => 'select', 'select' =>
-						gGeraSelect('D149', 'D005_Id', 'D005_Classificacao_Fiscal, D005_Flag_Aplicacao, D005_Observacao, D149_Aliquota_IPI', "LEFT JOIN D005 ON D149_D005_Id=D005_Id AND D149_C004_Id='{$g['empresaAtual']}' WHERE D005_Flag_Ativo='S' ORDER BY D005_Classificacao_Fiscal, D005_Observacao", true)
+						$gerarSelectNcm()
 	                ),
 					'D001_Especificacoes' => array('name' => 'D001_Especificacoes', 'label'=>'Especificações', 'type' => 'textarea', 'length' => array(5, 61)),
 					'D001_Flag_Tipo' => array('name' => 'D001_Flag_Tipo', 'label'=>'Tipo', 'type' => 'select', 'select' =>
@@ -803,7 +824,7 @@ EOT;
 						gGeraSelect('D037', 'D037_Id', 'D037_Descricao_Unidade', 'order by D037_Unidade', true)
 					),
 					'D001_D005_Id' => array('name' => 'D001_D005_Id', 'label'=>'NCM', 'type' => 'select', 'select' =>
-						gGeraSelect('D149', 'D005_Id', 'D005_Classificacao_Fiscal, D005_Flag_Aplicacao, D005_Observacao, D149_Aliquota_IPI', "LEFT JOIN D005 ON D149_D005_Id=D005_Id AND D149_C004_Id='{$g['empresaAtual']}' WHERE D005_Flag_Ativo='S' ORDER BY D005_Classificacao_Fiscal, D005_Observacao", true)
+						$gerarSelectNcm()
                 	),
 					'D001_Especificacoes' => array('name' => 'D001_Especificacoes', 'label'=>'Especificações', 'type' => 'textarea', 'length' => array(3, 61) ),
 					'D001_Flag_Tipo' => array('name' => 'D001_Flag_Tipo', 'label'=>'Tipo', 'type' => 'select', 'select' =>
@@ -831,6 +852,7 @@ EOT;
 					       array('title' => 'PRODUZIDO', 'value' => 'PD'),
 					       array('title' => 'MONTADO', 'value' => 'MT'),
 					       array('title' => 'MODIFICADO', 'value' => 'MD'),
+					       array('title' => 'INDUSTRIALIZAÇÃO', 'value' => 'IN'),
 					    ),
 					),
 					'D001_Flag_Tipo_Item' => array('name' => 'D001_Flag_Tipo_Item', 'label' => 'Categoria', 'type' => 'select', 'select' =>
@@ -2042,6 +2064,7 @@ EOT;*/
 							array('title' => 'PRODUZIDO', 'value' => 'PD'),
 							array('title' => 'MONTADO', 'value' => 'MT'),
 							array('title' => 'MODIFICADO', 'value' => 'MD'),
+							array('title' => 'INDUSTRIALIZAÇÃO', 'value' => 'IN'),
 						),
 					),
 					'D049_Modelo' => array('name' => 'D049_Modelo', 'label' => 'Sub-item', 'type'=>'text'),
@@ -2426,6 +2449,7 @@ EOT;
 							array('title' => 'PRODUZIDO', 'value' => 'PD'),
 							array('title' => 'MONTADO', 'value' => 'MT'),
 							array('title' => 'MODIFICADO', 'value' => 'MD'),
+							array('title' => 'INDUSTRIALIZAÇÃO', 'value' => 'IN'),
 						),
 					),
 					'D049_Modelo' => array('name' => 'D049_Modelo', 'label' => 'Sub-item', 'type'=>'text', 'length' => array(26,30)),
@@ -4221,7 +4245,7 @@ EOT;
 					),
 					
 					'D001_D005_Id' => array('name' => 'D001_D005_Id', 'label'=>'NCM', 'type' => 'select', 'select' =>
-						gGeraSelect('D149', 'D005_Id', 'D005_Classificacao_Fiscal, D005_Flag_Aplicacao, D005_Observacao, D149_Aliquota_IPI', "LEFT JOIN D005 ON D149_D005_Id=D005_Id AND D149_C004_Id='{$g['empresaAtual']}' WHERE D005_Flag_Ativo='S' ORDER BY D005_Classificacao_Fiscal, D005_Observacao", true, @$r_D005_Id)
+						$gerarSelectNcm(@$r_D005_Id)
 					),
 					'D049_D082_Id' => array('name' => 'D049_D082_Id', 'label'=>'Marca', 'type' => 'select','reject'=>'true','select' =>
 						gGeraSelect('D082', 'D082_Id', 'D082_Marca', '', true, @$D082_Id)
@@ -5439,28 +5463,11 @@ EOT;
 				echo gGeraAlertMsgErroForm($form);
 				// Form sem erros
 			} else if ($formCodigo == 2) {
-				set_time_limit(0);
-				$retorno = $CAD002->juntarProdutos($form);
-				if ($retorno === true) {
-					$alert .= gGeraAlertMsg('OK', 'Os produtos foram juntados com sucesso!', false);
-					echo <<<EOT
-						<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
-							// Fecha a janela, recarrega o grid e abre a alteração
-							$("#{$g['divId']}").closest('.ui-dialog-content').bind( "dialogclose", function(data, ui) {
-								setTimeout(function() {
-									{$alert}
-								}, 150);
-								});
-							$("#{$g['divId']}").closest('.ui-dialog-content').dialog('close');
-							divRefresh('{$g['divIdParent']}', true);
-						} </script></div>
-EOT;
-				} else {
-					if (strpos($retorno, 'BLOQUEADO') !== false) {
-						$retorno = explode('-', $retorno);
-						$retorno = "O Produto Antigo possui registros em '{$retorno[1]}' e não pode ser juntado.";
-					}
+				$retorno = $CAD002->juncaoProdutosIniciar($form->campoValorEnviado('D001_Id_Antigo'), $form->campoValorEnviado('D001_Id_Novo'));
+				if (!is_array($retorno)) {
 					echo gGeraAlertMsg('Ocorreu um Erro', $retorno);
+				} else {
+					$operacaoJuncao = $retorno;
 				}
 			}
 		} else {
@@ -5503,6 +5510,153 @@ EOT;
 		$g['smarty']->assign('botoesMid', $botoesMid);
 		$g['smarty']->assign('botoesDir', $botoesDir);
 		$g['smarty']->display('buttons-floatBottom.tpl');
+
+		$operacaoJuncaoJson = isset($operacaoJuncao) ? json_encode($operacaoJuncao) : 'null';
+		echo <<<JS
+			<style type="text/css">
+				.cad002-juncao-dialog .ui-dialog-titlebar { padding: 12px; }
+				.cad002-juncao-dialog .ui-dialog-content { padding: 22px; }
+				.cad002-juncao-dialog .cad002-juncao-erro { padding: 12px; border: 1px solid #c9302c; border-radius: 4px; background: #fff0f0; color: #a12622; }
+				.cad002-juncao-barra { height: 16px; border-radius: 8px; overflow: hidden; margin: 18px 0; }
+				.cad002-juncao-barra div { height: 100%; border: 0; transition: width .3s; }
+				.cad002-juncao-indeterminado div { width: 30%; animation: cad002-juncao 1.4s ease-in-out infinite alternate; }
+				@keyframes cad002-juncao { from { margin-left: 0; } to { margin-left: 70%; } }
+			</style>
+			<script type="text/javascript">
+			(function() {
+				var raiz = $('#{$g['divId']}');
+				var anterior = raiz.data('cad002Juncao');
+				if (anterior) { anterior.destruir(); }
+				var operacao = {$operacaoJuncaoJson};
+				var timer, dialog, ocupado = false, preparando = false, encerrado = false;
+				var controlador = { destruir: function() {
+					encerrado = true;
+					clearTimeout(timer);
+					$(document).unbind('.cad002Juncao{$formId}');
+					if (dialog) { dialog.dialog('destroy').remove(); }
+				}};
+				raiz.data('cad002Juncao', controlador);
+				var abrir = function() {
+					$('#cad002FormBtnJuntar').attr('disabled', true);
+					if (!dialog) {
+						dialog = $('<div><h3 class="cad002-juncao-etapa"></h3><div class="cad002-juncao-barra ui-widget-content cad002-juncao-indeterminado"><div class="ui-widget-header"></div></div><p class="cad002-juncao-contagem"></p><p class="cad002-juncao-mensagem" style="white-space:pre-wrap;word-wrap:break-word;"></p></div>').appendTo('body').dialog({
+							title: 'Juntar produtos', modal: true, width: 520, resizable: false,
+							draggable: false, closeOnEscape: false, zIndex: 20000,
+							dialogClass: 'cad002-juncao-dialog',
+							open: function() { $(this).parent().find('.ui-dialog-titlebar-close').hide(); }
+						});
+					}
+					dialog.dialog('option', 'buttons', {});
+					dialog.find('.cad002-juncao-barra').show();
+					dialog.find('.cad002-juncao-mensagem').removeClass('cad002-juncao-erro');
+					dialog.find('.cad002-juncao-etapa').text('Preparando junção');
+					dialog.find('.cad002-juncao-mensagem').text('Aguarde. Não feche esta janela durante o processamento.');
+				};
+				var fechar = function() {
+					controlador.destruir();
+					// Reabrir consulta a operação persistida antes de permitir um novo envio.
+					fecharJanela('{$g['divId']}');
+				};
+				var falha = function(mensagem) {
+					ocupado = false;
+					abrir();
+					dialog.find('.cad002-juncao-etapa').text('Processamento interrompido');
+					dialog.find('.cad002-juncao-barra').hide();
+					dialog.find('.cad002-juncao-mensagem').addClass('cad002-juncao-erro').text(mensagem + (operacao ? ' | Operação: ' + operacao.id : ''));
+					var botoes = { 'Fechar': fechar };
+					if (operacao) { botoes = { 'Retomar': function() { abrir(); consultar(); }, 'Fechar': fechar }; }
+					dialog.dialog('option', 'buttons', botoes);
+				};
+				var receber = function(resposta) {
+					if (encerrado) { return; }
+					ocupado = false;
+					if (!resposta || resposta.code !== true || !resposta.data || !resposta.data.id ||
+						isNaN(parseInt(resposta.data.sequencia, 10)) ||
+						!/^(PENDENTE|PROCESSANDO|FINALIZANDO|ERRO|COMPENSANDO|SUCESSO|COMPENSADO|COMPENSACAO_ERRO)$/.test(resposta.data.estado)) {
+						falha(resposta && typeof resposta.data == 'string' ? resposta.data : 'Resposta inválida do servidor. Consulte o estado antes de continuar.');
+						return;
+					}
+					var token = operacao ? operacao.token : resposta.data.token;
+					operacao = resposta.data;
+					operacao.token = token;
+					abrir();
+					dialog.find('.cad002-juncao-etapa').text(operacao.etapa || operacao.estado);
+					dialog.find('.cad002-juncao-contagem').text('Operação ' + operacao.id + ' | Registros processados: ' + (operacao.quantidade || 0));
+					var total = parseInt(operacao.etapas_total, 10) || 0;
+					var concluidas = parseInt(operacao.etapas_concluidas, 10) || 0;
+					var sucesso = operacao.estado == 'SUCESSO';
+					var determinado = sucesso || (total > 0 && operacao.estado != 'COMPENSANDO');
+					dialog.find('.cad002-juncao-barra').toggleClass('cad002-juncao-indeterminado', !determinado)
+						.attr('role', 'progressbar').attr('aria-label', 'Tarefas concluídas')
+						.attr('aria-valuemin', 0).attr('aria-valuemax', total || 1).attr('aria-valuenow', sucesso ? (total || 1) : concluidas);
+					dialog.find('.cad002-juncao-barra div').css('width', determinado ? (sucesso ? 100 : Math.min(100, 100 * concluidas / total)) + '%' : '30%');
+					if (total && !sucesso) { dialog.find('.cad002-juncao-contagem').append(document.createTextNode(' | Tarefas: ' + concluidas + '/' + total)); }
+					if (operacao.erro || /^(ERRO|COMPENSANDO|COMPENSADO|COMPENSACAO_ERRO)$/.test(operacao.estado)) {
+						dialog.find('.cad002-juncao-barra').hide();
+						dialog.find('.cad002-juncao-mensagem').addClass('cad002-juncao-erro')
+							.text('A junção falhou. ' + (operacao.erro || '') + (operacao.estado == 'COMPENSANDO' ? ' Aguarde a restauração das alterações.' : ''));
+					}
+					if (sucesso || operacao.estado == 'COMPENSADO') {
+						dialog.find('.cad002-juncao-mensagem').text(sucesso ? 'Os produtos foram juntados com sucesso!' : 'A junção falhou e as alterações foram restauradas. Erro: ' + operacao.erro);
+						// Limpar somente após a confirmação persistida de conclusão/restauração.
+						requisitar('Limpar', {}, function(resposta) {
+							if (!resposta || resposta.code !== true) {
+								falha('A operação terminou, mas não foi possível limpar seus dados de controle. Reabra a tela para consultar.');
+								return;
+							}
+							dialog.dialog('option', 'buttons', { 'Fechar': function() {
+								fechar();
+								if (sucesso) { divRefresh('{$g['divIdParent']}', true); }
+							}});
+						});
+						return;
+					}
+					if (operacao.estado == 'COMPENSACAO_ERRO') {
+						falha('Compensação incompleta — contatar suporte. Erro da junção: ' + operacao.erro + ' | Erro da compensação: ' + operacao.erro_compensacao);
+						dialog.dialog('option', 'buttons', { 'Fechar': fechar });
+						return;
+					}
+					timer = setTimeout(processar, 50);
+				};
+				var requisitar = function(acao, dados, sucesso) {
+					if (encerrado || ocupado) { return; }
+					ocupado = true;
+					$.ajax({
+						url: '/cad/cad002/form_func-ajax/cad002JuntarProdutos' + acao + '/',
+						dataType: 'jsonp', timeout: 90000,
+						data: $.extend({ ajax: true, JUN001_Id: operacao ? operacao.id : 0, token: operacao ? operacao.token : '' }, dados),
+						success: function(resposta) { if (!encerrado) { ocupado = false; sucesso(resposta); } },
+						error: function(xhr, estado) {
+							if (!encerrado) { falha('Não foi possível obter uma resposta válida do servidor (' + estado + '). As tentativas automáticas foram interrompidas.'); }
+						}
+					});
+				};
+				var consultar = function() { requisitar('Consultar', {}, receber); };
+				var processar = function() { requisitar('Processar', { sequencia: parseInt(operacao.sequencia, 10) + 1 }, receber); };
+				$('#cad002FormBtnJuntar').bind('click.cad002Juncao', function(event) {
+					if (preparando || operacao) { event.stopImmediatePropagation(); return false; }
+					preparando = true;
+					abrir();
+				});
+				// O envio legado substitui o conteúdo do formulário; o novo script assume o diálogo.
+				$(document).bind('ajaxComplete.cad002Juncao{$formId}', function(event, xhr, opcoes) {
+					if (preparando && raiz.data('cad002Juncao') === controlador && opcoes.url.indexOf('/cad/cad002/form/cad002FormJuntar/') >= 0) {
+						preparando = false;
+						falha('Não foi possível confirmar o início da junção. Feche e reabra o formulário para consultar operações pendentes.');
+					}
+				});
+				if (operacao) {
+					abrir();
+					consultar();
+				} else {
+					requisitar('Pendente', {}, function(resposta) {
+						if (!resposta || resposta.code !== true) { falha('Não foi possível consultar operações pendentes.'); return; }
+						if (resposta.data) { operacao = resposta.data; abrir(); consultar(); }
+					});
+				}
+			})();
+			</script>
+		JS;
 	break;
 
 	case 'cad002FormProdutosSerie':

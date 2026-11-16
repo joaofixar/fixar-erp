@@ -12516,6 +12516,1558 @@ EOT;
         return true;
     }
 
+    private $limite = 200;
+    private $conexaoReversao = false;
+
+    public function juncaoProdutosIniciar($D001_Id_Antigo, $D001_Id_Novo)
+    {
+        global $g, $confUsuario;
+
+        $this->limparConcluidas();
+
+        $D001_Id_Antigo = (int) $D001_Id_Antigo;
+        $D001_Id_Novo = (int) $D001_Id_Novo;
+        if ($D001_Id_Antigo <= 0 || $D001_Id_Novo <= 0) {
+            return 'Os dois códigos devem ser preenchidos.';
+        }
+        if ($D001_Id_Antigo == $D001_Id_Novo) {
+            return 'Os códigos não podem ser o mesmo.';
+        }
+
+        $sqlD001 = <<<SQL
+            SELECT D001_Id,
+                   D001_Codigo_Produto
+              FROM D001
+             WHERE D001_Id IN ('{$D001_Id_Antigo}', '{$D001_Id_Novo}')
+        SQL;
+        $resD001 = mysql_query($sqlD001);
+        if (!$resD001 || mysql_num_rows($resD001) != 2) {
+            return 'Um dos produtos informados não existe.';
+        }
+        while ($D001 = mysql_fetch_assoc($resD001)) {
+            $Produtos[$D001['D001_Id']] = $D001;
+        }
+
+        $inicioPreparacao = microtime(true);
+        $mapa = $this->mapaReferencias();
+        if (!is_array($mapa)) {
+            return $mapa;
+        }
+        $tarefas = $this->prepararTarefas($D001_Id_Antigo, $D001_Id_Novo, $Produtos, $mapa);
+        if (!is_array($tarefas)) {
+            return $tarefas;
+        }
+
+        $token = hash('sha256', uniqid('', true) . mt_rand());
+        $dados = gzcompress(serialize(array('tarefas' => $tarefas, 'posicao' => 0)), 6);
+        $mapaCodificado = gzcompress(serialize($mapa), 6);
+        $C004_Id = isset($g['empresaAtual']) ? (int) $g['empresaAtual'] : 0;
+        $C007_Id = isset($g['usuarioAtual']) ? (int) $g['usuarioAtual'] : 0;
+        $banco = isset($confUsuario['dbDatabase']) ? mysql_real_escape_string($confUsuario['dbDatabase']) : '';
+        $tokenSql = mysql_real_escape_string($token);
+        // O SQL passa por limpeza de TABs; enviar os blobs em hexadecimal preserva todos os bytes.
+        $dadosSql = bin2hex($dados);
+        $mapaSql = bin2hex($mapaCodificado);
+
+        mysql_query('SET AUTOCOMMIT=0');
+        mysql_query('START TRANSACTION');
+
+        $sqlJUN001 = <<<SQL
+            INSERT INTO JUN001 (
+                JUN001_D001_Id_Antigo,
+                JUN001_D001_Id_Novo,
+                JUN001_C004_Id,
+                JUN001_C007_Id,
+                JUN001_Banco,
+                JUN001_Token,
+                JUN001_Estado,
+                JUN001_Etapa,
+                JUN001_Dados,
+                JUN001_Mapa_Referencias,
+                JUN001_Data_Inicio,
+                JUN001_Data_Alteracao
+            ) VALUES (
+                '{$D001_Id_Antigo}',
+                '{$D001_Id_Novo}',
+                '{$C004_Id}',
+                '{$C007_Id}',
+                '{$banco}',
+                '{$tokenSql}',
+                'PENDENTE',
+                'Validação concluída',
+                UNHEX('{$dadosSql}'),
+                UNHEX('{$mapaSql}'),
+                NOW(),
+                NOW()
+            )
+        SQL;
+        if (!mysql_query($sqlJUN001, false)) {
+            // O ROLLBACK substitui o erro da consulta; capturar antes de executá-lo.
+            $erro = mysql_error();
+            $codigoErro = mysql_errno();
+            mysql_query('ROLLBACK');
+            $this->log(0, 'erro ao iniciar operação', array('origem' => $D001_Id_Antigo, 'destino' => $D001_Id_Novo, 'banco' => $banco, 'erro_codigo' => $codigoErro, 'erro' => $erro, 'sql' => $sqlJUN001));
+            return 'Erro ao iniciar a junção (' . $codigoErro . '): ' . $erro;
+        }
+        // mysql_query já guarda o ID principal antes da auditoria, como nos demais cadastros.
+        $JUN001_Id = $g['mysqlLastId'];
+
+        $sqlJUN004 = <<<SQL
+            INSERT INTO JUN004 (JUN004_D001_Id, JUN004_JUN001_Id, JUN004_Data)
+            VALUES
+                ('{$D001_Id_Antigo}', '{$JUN001_Id}', NOW()),
+                ('{$D001_Id_Novo}', '{$JUN001_Id}', NOW())
+        SQL;
+        if (!mysql_query($sqlJUN004, false)) {
+            mysql_query('ROLLBACK');
+            return 'Um dos produtos já participa de outra junção em andamento.';
+        }
+
+        mysql_query('COMMIT');
+        mysql_query('SET AUTOCOMMIT=1');
+        $this->log($JUN001_Id, 'operação iniciada', array('origem' => $D001_Id_Antigo, 'destino' => $D001_Id_Novo, 'tarefas' => count($tarefas), 'tempo_preparacao' => round(microtime(true) - $inicioPreparacao, 6), 'memoria' => memory_get_usage(true)));
+
+        return array('id' => $JUN001_Id, 'token' => $token, 'sequencia' => 0, 'estado' => 'PENDENTE');
+    }
+
+    public function juncaoProdutosProcessar($JUN001_Id, $token, $sequencia)
+    {
+        global $g;
+
+        $JUN001_Id = (int) $JUN001_Id;
+        $sequencia = (int) $sequencia;
+        $token = mysql_real_escape_string($token);
+        $C007_Id = isset($g['usuarioAtual']) ? (int) $g['usuarioAtual'] : 0;
+
+        mysql_query('SET AUTOCOMMIT=0');
+        mysql_query('START TRANSACTION');
+        $sqlJUN001 = <<<SQL
+            SELECT *
+              FROM JUN001
+             WHERE JUN001_Id = '{$JUN001_Id}'
+               AND JUN001_Token = '{$token}'
+               AND JUN001_C007_Id = '{$C007_Id}'
+             FOR UPDATE
+        SQL;
+        $resJUN001 = mysql_query($sqlJUN001, false);
+        $JUN001 = $resJUN001 ? mysql_fetch_assoc($resJUN001) : false;
+        if (!$JUN001) {
+            mysql_query('ROLLBACK');
+            return 'Operação de junção não encontrada.';
+        }
+        if ($sequencia <= (int) $JUN001['JUN001_Sequencia']) {
+            mysql_query('ROLLBACK');
+            return $this->resposta($JUN001);
+        }
+        if ($sequencia != ((int) $JUN001['JUN001_Sequencia'] + 1)) {
+            mysql_query('ROLLBACK');
+            return 'Sequência inválida para a operação de junção.';
+        }
+        if (in_array($JUN001['JUN001_Estado'], array('SUCESSO', 'COMPENSADO', 'COMPENSACAO_ERRO'))) {
+            mysql_query('ROLLBACK');
+            return $this->resposta($JUN001);
+        }
+
+        if (in_array($JUN001['JUN001_Estado'], array('ERRO', 'COMPENSANDO'))) {
+            $retorno = $this->compensar($JUN001, $sequencia);
+        } else {
+            // Um lote persistido sem confirmação pode ter alterado MyISAM antes da interrupção.
+            // Compensar seus registros em vez de repetir uma alteração de resultado desconhecido.
+            $sqlJUN002 = <<<SQL
+                SELECT JUN002_Id
+                  FROM JUN002
+                 WHERE JUN002_JUN001_Id = '{$JUN001_Id}'
+                   AND JUN002_Estado = 'PROCESSANDO'
+                 LIMIT 1
+            SQL;
+            $resJUN002 = mysql_query($sqlJUN002, false);
+            if (!$resJUN002) {
+                $retorno = 'Erro ao consultar lote pendente: ' . mysql_error();
+            } else if (mysql_num_rows($resJUN002) > 0) {
+                $retorno = 'O lote anterior foi interrompido sem confirmação. As alterações serão compensadas.';
+            } else {
+                $retorno = $this->executarLote($JUN001, $sequencia);
+            }
+        }
+
+        if ($retorno !== true) {
+            mysql_query('ROLLBACK');
+            mysql_query('START TRANSACTION');
+            $this->marcarErro($JUN001, $retorno);
+            mysql_query('COMMIT');
+            mysql_query('SET AUTOCOMMIT=1');
+            return $this->juncaoProdutosConsultar($JUN001_Id, $token);
+        }
+
+        if (!mysql_query('COMMIT')) {
+            $erro = mysql_error();
+            mysql_query('ROLLBACK');
+            mysql_query('SET AUTOCOMMIT=1');
+            return 'Não foi possível confirmar o lote. Consulte a operação antes de continuar: ' . $erro;
+        }
+        mysql_query('SET AUTOCOMMIT=1');
+        return $this->juncaoProdutosConsultar($JUN001_Id, $token);
+    }
+
+    public function juncaoProdutosConsultar($JUN001_Id, $token)
+    {
+        global $g;
+
+        $JUN001_Id = (int) $JUN001_Id;
+        $token = mysql_real_escape_string($token);
+        $C007_Id = isset($g['usuarioAtual']) ? (int) $g['usuarioAtual'] : 0;
+        $sqlJUN001 = <<<SQL
+            SELECT *
+              FROM JUN001
+             WHERE JUN001_Id = '{$JUN001_Id}'
+               AND JUN001_Token = '{$token}'
+               AND JUN001_C007_Id = '{$C007_Id}'
+        SQL;
+        $resJUN001 = mysql_query($sqlJUN001);
+        if (!$resJUN001) {
+            return;
+        }
+        $JUN001 = $resJUN001 ? mysql_fetch_assoc($resJUN001) : false;
+        return $JUN001 ? $this->resposta($JUN001) : 'Operação de junção não encontrada.';
+    }
+
+    public function juncaoProdutosPendente()
+    {
+        global $g;
+
+        $this->limparConcluidas();
+
+        $C007_Id = isset($g['usuarioAtual']) ? (int) $g['usuarioAtual'] : 0;
+        $sqlJUN001 = <<<SQL
+            SELECT *
+              FROM JUN001
+             WHERE JUN001_C007_Id = '{$C007_Id}'
+               AND JUN001_Estado IN ('PENDENTE', 'PROCESSANDO', 'FINALIZANDO', 'ERRO', 'COMPENSANDO', 'SUCESSO', 'COMPENSADO')
+             ORDER BY JUN001_Id DESC
+             LIMIT 1
+        SQL;
+        $resJUN001 = mysql_query($sqlJUN001);
+        $JUN001 = $resJUN001 ? mysql_fetch_assoc($resJUN001) : false;
+        if (!$JUN001) {
+            return false;
+        }
+        $retorno = $this->resposta($JUN001);
+        $retorno['token'] = $JUN001['JUN001_Token'];
+        return $retorno;
+    }
+
+    public function juncaoProdutosLimpar($JUN001_Id, $token)
+    {
+        global $g;
+
+        $JUN001_Id = (int) $JUN001_Id;
+        $token = mysql_real_escape_string($token);
+        $C007_Id = isset($g['usuarioAtual']) ? (int) $g['usuarioAtual'] : 0;
+        mysql_query('SET AUTOCOMMIT=0');
+        mysql_query('START TRANSACTION');
+        $sqlJUN001 = <<<SQL
+            SELECT JUN001_Id
+              FROM JUN001
+             WHERE JUN001_Id = '{$JUN001_Id}'
+               AND JUN001_Token = '{$token}'
+               AND JUN001_C007_Id = '{$C007_Id}'
+               AND JUN001_Estado IN ('SUCESSO', 'COMPENSADO')
+             FOR UPDATE
+        SQL;
+        $resJUN001 = mysql_query($sqlJUN001, false);
+        if (!$resJUN001 || mysql_num_rows($resJUN001) != 1) {
+            mysql_query('ROLLBACK');
+            mysql_query('SET AUTOCOMMIT=1');
+            return 'A operação não está concluída ou não pode ser limpa.';
+        }
+        $this->limparDadosConcluidos($JUN001_Id);
+        $this->liberarProdutos($JUN001_Id);
+        $sqlPendencias = <<<SQL
+            SELECT
+                (SELECT COUNT(*) FROM JUN002 WHERE JUN002_JUN001_Id = '{$JUN001_Id}') +
+                (SELECT COUNT(*) FROM JUN003 WHERE JUN003_JUN001_Id = '{$JUN001_Id}') +
+                (SELECT COUNT(*) FROM JUN004 WHERE JUN004_JUN001_Id = '{$JUN001_Id}') Quantidade
+        SQL;
+        $resPendencias = mysql_query($sqlPendencias, false);
+        $Pendencias = $resPendencias ? mysql_fetch_assoc($resPendencias) : false;
+        if (!$Pendencias || !empty($Pendencias['Quantidade'])) {
+            mysql_query('ROLLBACK');
+            mysql_query('SET AUTOCOMMIT=1');
+            return 'Não foi possível limpar todos os dados auxiliares da operação.';
+        }
+        $sqlExcluirJUN001 = <<<SQL
+            DELETE FROM JUN001 WHERE JUN001_Id = '{$JUN001_Id}'
+        SQL;
+        if (!mysql_query($sqlExcluirJUN001, false)) {
+            $erro = mysql_error();
+            mysql_query('ROLLBACK');
+            mysql_query('SET AUTOCOMMIT=1');
+            return 'Erro ao limpar a operação concluída: ' . $erro;
+        }
+        mysql_query('COMMIT');
+        mysql_query('SET AUTOCOMMIT=1');
+        return true;
+    }
+
+    private function executarLote($JUN001, $sequencia)
+    {
+        global $g;
+
+        $conteudo = @gzuncompress((string) $JUN001['JUN001_Dados']);
+        $dados = $conteudo === false ? false : @unserialize($conteudo, array('allowed_classes' => false));
+        // Dados ilegíveis não significam que todas as etapas foram executadas.
+        if (!is_array($dados) || empty($dados['tarefas']) || !is_array($dados['tarefas'])
+            || !isset($dados['posicao']) || !is_int($dados['posicao'])
+            || $dados['posicao'] < 0 || $dados['posicao'] > count($dados['tarefas'])) {
+            return "Dados das etapas inválidos na operação {$JUN001['JUN001_Id']}.";
+        }
+        if ($dados['posicao'] == count($dados['tarefas'])) {
+            return $this->finalizar($JUN001, $sequencia);
+        }
+
+        $retorno = $this->conectarReversao();
+        if ($retorno !== true) {
+            return $retorno;
+        }
+        $tarefa = $dados['tarefas'][$dados['posicao']];
+        $inicio = microtime(true);
+        $tempoBancoInicio = isset($g['time']['sql']) ? $g['time']['sql'] : 0;
+        $sqlJUN002 = <<<SQL
+            INSERT INTO JUN002 (
+                JUN002_JUN001_Id,
+                JUN002_Sequencia,
+                JUN002_Etapa,
+                JUN002_Estado,
+                JUN002_Data_Inicio
+            ) VALUES (
+                '{$JUN001['JUN001_Id']}',
+                '{$sequencia}',
+                '{$tarefa['descricao']}',
+                'PROCESSANDO',
+                NOW()
+            )
+        SQL;
+        if (!mysqli_query($sqlJUN002, $this->conexaoReversao)) {
+            return 'Erro ao registrar o lote: ' . mysql_error($this->conexaoReversao);
+        }
+        $JUN002_Id = mysql_insert_id($this->conexaoReversao);
+
+        if ($tarefa['tipo'] == 'juntar') {
+            $retorno = $this->executarJuncao($JUN001, $JUN002_Id, $tarefa);
+        } else if ($tarefa['tipo'] == 'update') {
+            $retorno = $this->executarUpdate($JUN001, $JUN002_Id, $tarefa);
+        } else if ($tarefa['tipo'] == 'itens_abertos') {
+            $retorno = $this->executarItensAbertos($JUN001, $JUN002_Id, $tarefa);
+        } else if ($tarefa['tipo'] == 'delete') {
+            $retorno = $this->executarDelete($JUN001, $JUN002_Id, $tarefa);
+        } else if ($tarefa['tipo'] == 'historico') {
+            $retorno = $this->executarHistorico($JUN001, $JUN002_Id, $tarefa);
+        } else if ($tarefa['tipo'] == 'reprocessar') {
+            $retorno = $this->executarReprocessamento($JUN001, $tarefa);
+        } else {
+            $retorno = 'Etapa da junção não reconhecida.';
+        }
+        if (!is_array($retorno)) {
+            return $retorno;
+        }
+
+        if (!empty($retorno['concluida'])) {
+            $dados['posicao']++;
+        } else if (isset($retorno['tarefa'])) {
+            $dados['tarefas'][$dados['posicao']] = $retorno['tarefa'];
+        }
+        $dadosSql = bin2hex(gzcompress(serialize($dados), 6));
+        $quantidade = isset($retorno['quantidade']) ? (int) $retorno['quantidade'] : 0;
+        $bytes = isset($retorno['bytes']) ? (int) $retorno['bytes'] : 0;
+        $tempo = round(microtime(true) - $inicio, 6);
+        $tempoBanco = round((isset($g['time']['sql']) ? $g['time']['sql'] : 0) - $tempoBancoInicio, 6);
+        $estado = $dados['posicao'] >= count($dados['tarefas']) ? 'FINALIZANDO' : 'PROCESSANDO';
+        $finalizada = $dados['posicao'] >= count($dados['tarefas']);
+        if ($finalizada) {
+            $estado = 'SUCESSO';
+        }
+        $etapa = mysql_real_escape_string($finalizada ? 'Concluída' : $tarefa['descricao']);
+        $dataFim = $finalizada ? ', JUN001_Data_Fim = NOW()' : '';
+
+        $sqlJUN002 = <<<SQL
+            UPDATE JUN002
+               SET JUN002_Estado = 'CONFIRMADO',
+                   JUN002_Quantidade = '{$quantidade}',
+                   JUN002_Bytes_Reversao = '{$bytes}',
+                   JUN002_Tempo_Banco = '{$tempoBanco}',
+                   JUN002_Data_Fim = NOW()
+             WHERE JUN002_Id = '{$JUN002_Id}'
+        SQL;
+        if (!mysql_query($sqlJUN002, false)) {
+            return 'Erro ao confirmar o lote: ' . mysql_error();
+        }
+        $sqlJUN001 = <<<SQL
+            UPDATE JUN001
+               SET JUN001_Estado = '{$estado}',
+                   JUN001_Etapa = '{$etapa}',
+                   JUN001_Sequencia = '{$sequencia}',
+                   JUN001_Quantidade = JUN001_Quantidade + '{$quantidade}',
+                   JUN001_Bytes_Reversao = JUN001_Bytes_Reversao + '{$bytes}',
+                   JUN001_Dados = UNHEX('{$dadosSql}'),
+                   JUN001_Data_Alteracao = NOW()
+                   {$dataFim}
+             WHERE JUN001_Id = '{$JUN001['JUN001_Id']}'
+        SQL;
+        if (!mysql_query($sqlJUN001, false)) {
+            return 'Erro ao salvar o avanço da junção: ' . mysql_error();
+        }
+        if ($finalizada) {
+            $this->liberarProdutos($JUN001['JUN001_Id']);
+            $this->limparDadosConcluidos($JUN001['JUN001_Id']);
+        }
+        $this->log($JUN001['JUN001_Id'], 'lote confirmado', array('etapa' => $tarefa['descricao'], 'registros' => $quantidade, 'bytes' => $bytes, 'tempo_banco' => $tempoBanco, 'tempo_total' => $tempo));
+        return true;
+    }
+
+    private function executarJuncao($JUN001, $JUN002_Id, $tarefa, $inicio = false)
+    {
+        if ($inicio === false) {
+            $inicio = microtime(true);
+        }
+        $conteudo = @gzuncompress((string) $JUN001['JUN001_Mapa_Referencias']);
+        $mapa = $conteudo === false ? false : @unserialize($conteudo, array('allowed_classes' => false));
+        if (!is_array($mapa) || !isset($mapa[$tarefa['tabela']]) || !is_array($mapa[$tarefa['tabela']])) {
+            return "Mapa de referências inválido na operação {$JUN001['JUN001_Id']}.";
+        }
+        if (!isset($tarefa['referencia'])) {
+            $tarefa['referencia'] = 0;
+        }
+        if (isset($mapa[$tarefa['tabela']][$tarefa['referencia']])) {
+            $referencia = $mapa[$tarefa['tabela']][$tarefa['referencia']];
+            if (!$referencia['recuperavel']) {
+                $sqlNecessaria = <<<SQL
+                    SELECT {$referencia['campo']}
+                      FROM {$referencia['tabela']}
+                     WHERE {$referencia['campo']} = '{$tarefa['antigo']}'
+                     LIMIT 1
+                SQL;
+                $resNecessaria = mysql_query($sqlNecessaria);
+                if (!$resNecessaria) {
+                    return 'Erro ao validar a estrutura de ' . $referencia['tabela'] . ': ' . mysql_error();
+                }
+                if (mysql_num_rows($resNecessaria) > 0) {
+                    return "A tabela {$referencia['tabela']} possui referências sem chave primária simples para a compensação.";
+                }
+                $tarefa['referencia']++;
+                if (microtime(true) - $inicio < 4.5) {
+                    return $this->executarJuncao($JUN001, $JUN002_Id, $tarefa, $inicio);
+                }
+                return array('concluida' => false, 'tarefa' => $tarefa, 'quantidade' => 0, 'bytes' => 0);
+            }
+            if (in_array($referencia['tabela'], $tarefa['bloqueio'])) {
+                $sqlBloqueio = <<<SQL
+                    SELECT {$referencia['pk']}
+                      FROM {$referencia['tabela']}
+                     WHERE {$referencia['campo']} = '{$tarefa['antigo']}'
+                     LIMIT 1
+                SQL;
+                $resBloqueio = mysql_query($sqlBloqueio);
+                if (!$resBloqueio) {
+                    return 'Erro ao verificar bloqueio em ' . $referencia['tabela'] . ': ' . mysql_error();
+                }
+                if (mysql_num_rows($resBloqueio) > 0) {
+                    return 'BLOQUEADO-' . $referencia['tabela'];
+                }
+                $tarefa['referencia']++;
+                if (microtime(true) - $inicio < 4.5) {
+                    return $this->executarJuncao($JUN001, $JUN002_Id, $tarefa, $inicio);
+                }
+                return array('concluida' => false, 'tarefa' => $tarefa, 'quantidade' => 0, 'bytes' => 0);
+            }
+
+            $sqlRegistros = <<<SQL
+                SELECT {$referencia['pk']},
+                       {$referencia['campo']}
+                  FROM {$referencia['tabela']}
+                 WHERE {$referencia['campo']} = '{$tarefa['antigo']}'
+                 ORDER BY {$referencia['pk']}
+                 LIMIT {$this->limite}
+            SQL;
+            $resRegistros = mysql_query($sqlRegistros);
+            if (!$resRegistros) {
+                return 'Erro ao listar referências em ' . $referencia['tabela'] . ': ' . mysql_error();
+            }
+            $ids = array();
+            while ($Registro = mysql_fetch_assoc($resRegistros)) {
+                $ids[] = $Registro[$referencia['pk']];
+            }
+            if (empty($ids)) {
+                $tarefa['referencia']++;
+                if (microtime(true) - $inicio < 4.5) {
+                    return $this->executarJuncao($JUN001, $JUN002_Id, $tarefa, $inicio);
+                }
+                return array('concluida' => false, 'tarefa' => $tarefa, 'quantidade' => 0, 'bytes' => 0);
+            }
+
+            $dados = array('pk' => $referencia['pk'], 'ids' => $ids, 'campo' => $referencia['campo'], 'antes' => $tarefa['antigo'], 'depois' => $tarefa['novo']);
+            $idsSql = $this->idsSql($ids);
+            $sqlUpdate = <<<SQL
+                UPDATE {$referencia['tabela']}
+                   SET {$referencia['campo']} = '{$tarefa['novo']}'
+                 WHERE {$referencia['pk']} IN ({$idsSql})
+                   AND {$referencia['campo']} = '{$tarefa['antigo']}'
+            SQL;
+            $registro = $this->registrarAlteracao($JUN001['JUN001_Id'], $JUN002_Id, $referencia['tabela'], 'U', $dados, count($ids), false, $tarefa);
+            if (!is_array($registro)) {
+                return $registro;
+            }
+            if (!mysql_query($sqlUpdate, false)) {
+                if (!in_array($referencia['tabela'], $tarefa['restricao'])) {
+                    return 'Erro ao transferir ' . $referencia['tabela'] . '.' . $referencia['campo'] . ': ' . mysql_error();
+                }
+                $sqlLinhas = <<<SQL
+                    SELECT *
+                      FROM {$referencia['tabela']}
+                     WHERE {$referencia['pk']} IN ({$idsSql})
+                       AND {$referencia['campo']} = '{$tarefa['antigo']}'
+                SQL;
+                $resLinhas = mysql_query($sqlLinhas);
+                if (!$resLinhas) {
+                    return 'Erro ao listar duplicidades de ' . $referencia['tabela'] . ': ' . mysql_error();
+                }
+                $linhas = array();
+                while ($Registro = mysql_fetch_assoc($resLinhas)) {
+                    $linhas[] = $Registro;
+                }
+                $sqlDelete = <<<SQL
+                    DELETE FROM {$referencia['tabela']}
+                     WHERE {$referencia['pk']} IN ({$idsSql})
+                       AND {$referencia['campo']} = '{$tarefa['antigo']}'
+                SQL;
+                if (!empty($linhas)) {
+                    $exclusao = $this->registrarAlteracao($JUN001['JUN001_Id'], $JUN002_Id, $referencia['tabela'], 'D', array('pk' => $referencia['pk'], 'linhas' => $linhas), count($linhas), false, $tarefa);
+                    if (!is_array($exclusao)) {
+                        return $exclusao;
+                    }
+                    $registro['bytes'] += $exclusao['bytes'];
+                }
+                if (!mysql_query($sqlDelete, false)) {
+                    return 'Erro ao eliminar duplicidades de ' . $referencia['tabela'] . ': ' . mysql_error();
+                }
+            }
+            return $registro;
+        }
+
+        $sqlPendente = <<<SQL
+            SELECT {$tarefa['tabela']}_Id
+              FROM {$tarefa['tabela']}
+             WHERE {$tarefa['tabela']}_Id = '{$tarefa['antigo']}'
+        SQL;
+        $resPendente = mysql_query($sqlPendente);
+        if (!$resPendente) {
+            return 'Erro ao validar ' . $tarefa['tabela'] . ': ' . mysql_error();
+        }
+        if (mysql_num_rows($resPendente) == 0) {
+            return array('concluida' => true, 'quantidade' => 0, 'bytes' => 0);
+        }
+        $delete = array('tipo' => 'delete', 'descricao' => 'Excluir ' . $tarefa['tabela'] . ' antigo', 'tabela' => $tarefa['tabela'], 'pk' => $tarefa['tabela'] . '_Id', 'campo' => $tarefa['tabela'] . '_Id', 'valor' => $tarefa['antigo']);
+        $retorno = $this->executarDelete($JUN001, $JUN002_Id, $delete);
+        if (is_array($retorno)) {
+            $retorno['concluida'] = true;
+        }
+        return $retorno;
+    }
+
+    private function executarUpdate($JUN001, $JUN002_Id, $tarefa)
+    {
+        $ids = array_slice($tarefa['ids'], 0, $this->limite);
+        if (empty($ids)) {
+            return array('concluida' => true, 'quantidade' => 0, 'bytes' => 0);
+        }
+        $idsSql = $this->idsSql($ids);
+        $sqlAntes = <<<SQL
+            SELECT {$tarefa['pk']},
+                   {$tarefa['campo']}
+              FROM {$tarefa['tabela']}
+             WHERE {$tarefa['pk']} IN ({$idsSql})
+        SQL;
+        $resAntes = mysql_query($sqlAntes);
+        if (!$resAntes) {
+            return 'Erro ao consultar valores anteriores de ' . $tarefa['tabela'] . ': ' . mysql_error();
+        }
+        $alterados = array();
+        while ($Registro = mysql_fetch_assoc($resAntes)) {
+            if ($Registro[$tarefa['campo']] != $tarefa['valor']) {
+                $alterados[$Registro[$tarefa['pk']]] = $Registro[$tarefa['campo']];
+            }
+        }
+        if (!empty($alterados)) {
+            $idsAlterados = $this->idsSql(array_keys($alterados));
+            $valor = mysql_real_escape_string($tarefa['valor']);
+            $sqlUpdate = <<<SQL
+                UPDATE {$tarefa['tabela']}
+                   SET {$tarefa['campo']} = '{$valor}'
+                 WHERE {$tarefa['pk']} IN ({$idsAlterados})
+            SQL;
+            $dados = array('pk' => $tarefa['pk'], 'valores' => $alterados, 'campo' => $tarefa['campo'], 'depois' => $tarefa['valor']);
+            $registro = $this->registrarAlteracao($JUN001['JUN001_Id'], $JUN002_Id, $tarefa['tabela'], 'U', $dados, count($alterados), count($tarefa['ids']) <= $this->limite, $tarefa);
+            if (!is_array($registro)) {
+                return $registro;
+            }
+            if (!mysql_query($sqlUpdate, false)) {
+                return 'Erro ao atualizar ' . $tarefa['tabela'] . ': ' . mysql_error();
+            }
+        } else {
+            $registro = array('concluida' => count($tarefa['ids']) <= $this->limite, 'quantidade' => 0, 'bytes' => 0);
+        }
+        if (count($tarefa['ids']) > $this->limite) {
+            $tarefa['ids'] = array_slice($tarefa['ids'], $this->limite);
+            $registro['tarefa'] = $tarefa;
+            $registro['concluida'] = false;
+        }
+        return $registro;
+    }
+
+    private function executarItensAbertos($JUN001, $JUN002_Id, $tarefa)
+    {
+        if (!isset($tarefa['cursor'])) {
+            $tarefa['cursor'] = 0;
+        }
+        if ($tarefa['tabela'] == 'T004') {
+            $sqlItens = <<<SQL
+                SELECT T004.T004_Id Id,
+                       T004.T004_Codigo_Produto Codigo
+                  FROM T004
+                 INNER JOIN T003 ON T003.T003_Id = T004.T004_T003_Id
+                 INNER JOIN D009 ON D009.D009_Id = T004.T004_D009_Id
+                 INNER JOIN D049 ON D049.D049_Id = D009.D009_D049_Id
+                 WHERE D049.D049_D001_Id = '{$tarefa['D001_Id']}'
+                   AND T003.T003_Flag_Status_Orcamento IN ('P', 'V')
+                   AND T004.T004_Id > '{$tarefa['cursor']}'
+                 ORDER BY T004.T004_Id
+                 LIMIT {$this->limite}
+            SQL;
+        } else {
+            $sqlItens = <<<SQL
+                SELECT T006.T006_Id Id,
+                       T006.T006_Codigo_Produto Codigo
+                  FROM T006
+                 INNER JOIN D009 ON D009.D009_Id = T006.T006_D009_Id
+                 INNER JOIN D049 ON D049.D049_Id = D009.D009_D049_Id
+                  LEFT JOIN T008 ON T008.T008_T006_Id = T006.T006_Id
+                 WHERE D049.D049_D001_Id = '{$tarefa['D001_Id']}'
+                   AND T008.T008_Id IS NULL
+                   AND T006.T006_Id > '{$tarefa['cursor']}'
+                 ORDER BY T006.T006_Id
+                 LIMIT {$this->limite}
+            SQL;
+        }
+        $resItens = mysql_query($sqlItens);
+        if (!$resItens) {
+            return 'Erro ao listar itens abertos de ' . $tarefa['tabela'] . ': ' . mysql_error();
+        }
+        $valores = array();
+        while ($Item = mysql_fetch_assoc($resItens)) {
+            $tarefa['cursor'] = (int) $Item['Id'];
+            if ($Item['Codigo'] != $tarefa['valor']) {
+                $valores[$Item['Id']] = $Item['Codigo'];
+            }
+        }
+        if (empty($valores)) {
+            return array('concluida' => mysql_num_rows($resItens) < $this->limite, 'tarefa' => $tarefa, 'quantidade' => 0, 'bytes' => 0);
+        }
+        $idsSql = $this->idsSql(array_keys($valores));
+        $valor = mysql_real_escape_string($tarefa['valor']);
+        $sqlUpdate = <<<SQL
+            UPDATE {$tarefa['tabela']}
+               SET {$tarefa['campo']} = '{$valor}'
+             WHERE {$tarefa['pk']} IN ({$idsSql})
+        SQL;
+        $dados = array('pk' => $tarefa['pk'], 'valores' => $valores, 'campo' => $tarefa['campo'], 'depois' => $tarefa['valor']);
+        $registro = $this->registrarAlteracao($JUN001['JUN001_Id'], $JUN002_Id, $tarefa['tabela'], 'U', $dados, count($valores), mysql_num_rows($resItens) < $this->limite, $tarefa);
+        if (!is_array($registro)) {
+            return $registro;
+        }
+        if (!mysql_query($sqlUpdate, false)) {
+            return 'Erro ao atualizar itens abertos de ' . $tarefa['tabela'] . ': ' . mysql_error();
+        }
+        return $registro;
+    }
+
+    private function executarDelete($JUN001, $JUN002_Id, $tarefa)
+    {
+        $valor = mysql_real_escape_string($tarefa['valor']);
+        $sqlLinhas = <<<SQL
+            SELECT *
+              FROM {$tarefa['tabela']}
+             WHERE {$tarefa['campo']} = '{$valor}'
+             ORDER BY {$tarefa['pk']}
+             LIMIT {$this->limite}
+        SQL;
+        $resLinhas = mysql_query($sqlLinhas);
+        if (!$resLinhas) {
+            return 'Erro ao listar registros de ' . $tarefa['tabela'] . ': ' . mysql_error();
+        }
+        $linhas = array();
+        $ids = array();
+        while ($Registro = mysql_fetch_assoc($resLinhas)) {
+            $linhas[] = $Registro;
+            $ids[] = $Registro[$tarefa['pk']];
+        }
+        if (empty($ids)) {
+            return array('concluida' => true, 'quantidade' => 0, 'bytes' => 0);
+        }
+        $idsSql = $this->idsSql($ids);
+        $sqlDelete = <<<SQL
+            DELETE FROM {$tarefa['tabela']}
+             WHERE {$tarefa['pk']} IN ({$idsSql})
+        SQL;
+        $registro = $this->registrarAlteracao($JUN001['JUN001_Id'], $JUN002_Id, $tarefa['tabela'], 'D', array('pk' => $tarefa['pk'], 'linhas' => $linhas), count($linhas), count($linhas) < $this->limite, $tarefa);
+        if (!is_array($registro)) {
+            return $registro;
+        }
+        if (!mysql_query($sqlDelete, false)) {
+            return 'Erro ao excluir registros de ' . $tarefa['tabela'] . ': ' . mysql_error();
+        }
+        return $registro;
+    }
+
+    private function executarHistorico($JUN001, $JUN002_Id, $tarefa)
+    {
+        global $g;
+
+        if (!isset($tarefa['cursor'])) {
+            $tarefa['cursor'] = 0;
+        }
+        $sqlT066 = <<<SQL
+            SELECT T066_Id,
+                   T066_D004_Id,
+                   T066_Quantidade_Estoque
+              FROM T066
+             WHERE T066_D009_Id = '{$tarefa['D009_Id']}'
+               AND T066_Id > '{$tarefa['cursor']}'
+             ORDER BY T066_Id
+             LIMIT {$this->limite}
+        SQL;
+        $resT066 = mysql_query($sqlT066);
+        if (!$resT066) {
+            return 'Erro ao consultar locações do histórico: ' . mysql_error();
+        }
+        $quantidade = 0;
+        $bytes = 0;
+        while ($T066 = mysql_fetch_assoc($resT066)) {
+            $tarefa['cursor'] = (int) $T066['T066_Id'];
+            $FlagOperacao = in_array((int) $T066['T066_Id'], $tarefa['locacoes']) ? 'B' : 'N';
+            // O AUTO_INCREMENT só é conhecido depois do INSERT. O marcador identifica
+            // exclusivamente esta inclusão se o PHP parar antes de salvar seu ID.
+            // Após salvar o ID na reversão, a observação volta ao valor original vazio.
+            $marcador = 'JUNCAO:' . $JUN001['JUN001_Id'] . ':' . $JUN002_Id . ':' . $T066['T066_Id'];
+            $dados = array('pk' => 'T001_Id', 'ids' => array(), 'campo' => 'T001_Observacao', 'marcador' => $marcador);
+            $registro = $this->registrarAlteracao($JUN001['JUN001_Id'], $JUN002_Id, 'T001', 'I', $dados, 1, false, $tarefa);
+            if (!is_array($registro)) {
+                return $registro;
+            }
+            $sqlT001 = <<<SQL
+                INSERT INTO T001 (
+                    T001_D024_Id, T001_D009_Id, T001_T066_Id, T001_C004_Id,
+                    T001_Codigo_Produto, T001_Data_Lancamento, T001_Descricao_Operacao,
+                    T001_Quantidade, T001_Flag_Complemento, T001_Flag_Operacao,
+                    T001_Valor_Preco_Unitario, T001_Observacao, T001_Valor_Custo_Unitario,
+                    T001_Flag_Atualiza_Custo, T001_Quantidade_Saldo, T001_D004_Id
+                ) VALUES (
+                    '{$tarefa['D024_Id']}', '{$tarefa['D009_Id']}', '{$T066['T066_Id']}', '{$tarefa['C004_Id']}',
+                    '{$tarefa['codigo']}', CURRENT_DATE(), 'MUD.COD:{$tarefa['codigo_antigo']}',
+                    '{$T066['T066_Quantidade_Estoque']}', 'M', '{$FlagOperacao}',
+                    '0', '{$marcador}', '0', 'N', '0', '{$T066['T066_D004_Id']}'
+                )
+            SQL;
+            if (!mysql_query($sqlT001, false)) {
+                return 'Erro ao gravar o histórico da junção: ' . mysql_error();
+            }
+            $T001_Id = (int) $g['mysqlLastId'];
+            $sqlT001 = <<<SQL
+                SELECT * FROM T001 WHERE T001_Id = '{$T001_Id}' AND T001_Observacao = '{$marcador}'
+            SQL;
+            $resT001 = mysql_query($sqlT001);
+            $T001 = $resT001 ? mysql_fetch_assoc($resT001) : false;
+            if (!$T001) {
+                return 'Não foi possível identificar o histórico incluído pela junção.';
+            }
+            $dados['ids'] = array($T001_Id);
+            $T001['T001_Observacao'] = '';
+            $dados['linhas'] = array($T001);
+            $conteudo = gzcompress(serialize($dados), 6);
+            $conteudoSql = bin2hex($conteudo);
+            $bytes += strlen($conteudo);
+            $sqlJUN003 = <<<SQL
+                UPDATE JUN003
+                   SET JUN003_Dados = UNHEX('{$conteudoSql}'),
+                       JUN003_Bytes = LENGTH(UNHEX('{$conteudoSql}'))
+                 WHERE JUN003_Id = '{$registro['JUN003_Id']}'
+            SQL;
+            if (!mysqli_query($sqlJUN003, $this->conexaoReversao)) {
+                return 'Erro ao salvar a identificação do histórico na reversão: ' . mysql_error($this->conexaoReversao);
+            }
+            $sqlT001 = <<<SQL
+                UPDATE T001 SET T001_Observacao = ''
+                 WHERE T001_Id = '{$T001_Id}' AND T001_Observacao = '{$marcador}'
+            SQL;
+            if (!mysql_query($sqlT001, false)) {
+                return 'Erro ao concluir a inclusão do histórico da junção: ' . mysql_error();
+            }
+            $quantidade++;
+        }
+        return array('concluida' => $quantidade < $this->limite, 'tarefa' => $tarefa, 'quantidade' => $quantidade, 'bytes' => $bytes);
+    }
+
+    private function executarReprocessamento($JUN001, $tarefa)
+    {
+        require_once('bibliotecas/classes/CAD002.php');
+        $CAD002 = new CAD002();
+        $retorno = $CAD002->D001_reprocessa_historico(0, $tarefa['D009_Id']);
+        if ($retorno !== true) {
+            return 'Erro ao reprocessar o histórico: ' . $retorno;
+        }
+        return array('concluida' => true, 'quantidade' => 1, 'bytes' => 0);
+    }
+
+    private function conectarReversao()
+    {
+        global $g, $confUsuario;
+
+        if ($this->conexaoReversao) {
+            return true;
+        }
+        // Não usar a transação do lote: MyISAM não desfaz suas alterações no ROLLBACK.
+        // Esta conexão grava somente o controle da junção, com confirmação automática.
+        $conexao = mysqli_init();
+        $conexao->options(MYSQLI_OPT_CONNECT_TIMEOUT, 15);
+        $conexao->options(MYSQLI_OPT_READ_TIMEOUT, 30);
+        if (!@$conexao->real_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase'])) {
+            return 'Não foi possível conectar para salvar os dados de reversão da junção.';
+        }
+        if (!$conexao->set_charset($g['conexaoBanco']->character_set_name()) || !$conexao->autocommit(true)) {
+            $conexao->close();
+            return 'Não foi possível configurar a conexão de reversão da junção.';
+        }
+        $this->conexaoReversao = $conexao;
+        return true;
+    }
+
+    private function registrarAlteracao($JUN001_Id, $JUN002_Id, $tabela, $operacao, $dados, $quantidade, $concluida, $tarefa)
+    {
+        $inicio = microtime(true);
+        $retorno = $this->conectarReversao();
+        if ($retorno !== true) {
+            return $retorno;
+        }
+        $conteudo = gzcompress(serialize($dados), 6);
+        $bytes = strlen($conteudo);
+        $conteudoSql = bin2hex($conteudo);
+        $tabela = mysql_real_escape_string($tabela);
+        $sqlSequencia = <<<SQL
+            SELECT IFNULL(MAX(JUN003_Sequencia), 0) + 1 Sequencia
+              FROM JUN003
+             WHERE JUN003_JUN001_Id = '{$JUN001_Id}'
+        SQL;
+        $resSequencia = mysqli_query($sqlSequencia, $this->conexaoReversao);
+        if (!$resSequencia) {
+            return 'Erro ao consultar a sequência de reversão: ' . mysql_error($this->conexaoReversao);
+        }
+        $Sequencia = mysql_fetch_assoc($resSequencia);
+        $sqlJUN003 = <<<SQL
+            INSERT INTO JUN003 (
+                JUN003_JUN001_Id,
+                JUN003_JUN002_Id,
+                JUN003_Sequencia,
+                JUN003_Tabela,
+                JUN003_Operacao,
+                JUN003_Dados,
+                JUN003_Bytes,
+                JUN003_Data
+            ) VALUES (
+                '{$JUN001_Id}',
+                '{$JUN002_Id}',
+                '{$Sequencia['Sequencia']}',
+                '{$tabela}',
+                '{$operacao}',
+                UNHEX('{$conteudoSql}'),
+                '{$bytes}',
+                NOW()
+            )
+        SQL;
+        if (!mysqli_query($sqlJUN003, $this->conexaoReversao)) {
+            return 'Erro ao registrar os dados de reversão: ' . mysql_error($this->conexaoReversao);
+        }
+        $JUN003_Id = mysql_insert_id($this->conexaoReversao);
+        $this->log($JUN001_Id, 'reversão persistida antes da alteração', array('lote' => $JUN002_Id, 'alteracao' => $JUN003_Id, 'tabela' => $tabela, 'operacao' => $operacao, 'registros' => $quantidade, 'bytes' => $bytes, 'tempo' => round(microtime(true) - $inicio, 6)));
+        return array('concluida' => $concluida, 'tarefa' => $tarefa, 'quantidade' => $quantidade, 'bytes' => $bytes, 'JUN003_Id' => $JUN003_Id);
+    }
+
+    private function compensar($JUN001, $sequencia)
+    {
+        $inicio = microtime(true);
+        $sqlJUN003 = <<<SQL
+            SELECT *
+              FROM JUN003
+             WHERE JUN003_JUN001_Id = '{$JUN001['JUN001_Id']}'
+               AND JUN003_Compensado = 'N'
+             ORDER BY JUN003_Id DESC
+             LIMIT 1
+             FOR UPDATE
+        SQL;
+        $resJUN003 = mysql_query($sqlJUN003, false);
+        if (!$resJUN003) {
+            return 'Erro ao consultar os dados de reversão: ' . mysql_error();
+        }
+        $JUN003 = mysql_fetch_assoc($resJUN003);
+        if (!$JUN003) {
+            $sqlFinalizar = <<<SQL
+                UPDATE JUN001
+                   SET JUN001_Estado = 'COMPENSADO',
+                       JUN001_Etapa = 'Compensação concluída',
+                       JUN001_Sequencia = '{$sequencia}',
+                       JUN001_Data_Alteracao = NOW(),
+                       JUN001_Data_Fim = NOW()
+                 WHERE JUN001_Id = '{$JUN001['JUN001_Id']}'
+            SQL;
+            if (!mysql_query($sqlFinalizar, false)) {
+                return 'Erro ao concluir a compensação: ' . mysql_error();
+            }
+            $this->liberarProdutos($JUN001['JUN001_Id']);
+            $this->limparDadosConcluidos($JUN001['JUN001_Id']);
+            return true;
+        }
+
+        $conteudo = @gzuncompress((string) $JUN003['JUN003_Dados']);
+        $dados = $conteudo === false ? false : @unserialize($conteudo, array('allowed_classes' => false));
+        if (!is_array($dados) || empty($dados['pk'])) {
+            return "Dados de reversão inválidos na operação {$JUN001['JUN001_Id']}, alteração {$JUN003['JUN003_Id']}.";
+        }
+        if ($JUN003['JUN003_Operacao'] == 'U') {
+            $retorno = $this->compensarUpdate($JUN003['JUN003_Tabela'], $dados);
+        } else if ($JUN003['JUN003_Operacao'] == 'D') {
+            $retorno = $this->compensarDelete($JUN003['JUN003_Tabela'], $dados);
+        } else if ($JUN003['JUN003_Operacao'] == 'I') {
+            $retorno = $this->compensarInsert($JUN003['JUN003_Tabela'], $dados);
+        } else {
+            $retorno = 'Tipo de alteração desconhecido na compensação.';
+        }
+        if ($retorno !== true) {
+            return $retorno;
+        }
+
+        $sqlCompensado = <<<SQL
+            UPDATE JUN003
+               SET JUN003_Compensado = 'S'
+             WHERE JUN003_Id = '{$JUN003['JUN003_Id']}'
+        SQL;
+        if (!mysql_query($sqlCompensado, false)) {
+            return 'Erro ao confirmar a compensação: ' . mysql_error();
+        }
+        $sqlJUN001 = <<<SQL
+            UPDATE JUN001
+               SET JUN001_Estado = 'COMPENSANDO',
+                   JUN001_Etapa = 'Compensando {$JUN003['JUN003_Tabela']}',
+                   JUN001_Sequencia = '{$sequencia}',
+                   JUN001_Data_Alteracao = NOW()
+             WHERE JUN001_Id = '{$JUN001['JUN001_Id']}'
+        SQL;
+        if (!mysql_query($sqlJUN001, false)) {
+            return 'Erro ao salvar o avanço da compensação: ' . mysql_error();
+        }
+        $this->log($JUN001['JUN001_Id'], 'alteração compensada', array('tabela' => $JUN003['JUN003_Tabela'], 'alteracao' => $JUN003['JUN003_Id'], 'tempo_reversao' => round(microtime(true) - $inicio, 6), 'bytes' => $JUN003['JUN003_Bytes']));
+        return true;
+    }
+
+    private function compensarUpdate($tabela, $dados)
+    {
+        $valores = isset($dados['valores']) ? $dados['valores'] : array_fill_keys($dados['ids'], $dados['antes']);
+        foreach ($valores as $id => $antes) {
+            $idSql = mysql_real_escape_string($id);
+            // Comparar no banco respeita o tipo do campo (ex.: 5 e 5.00000 em DECIMAL).
+            // O hexadecimal também preserva TABs e binários no mysql_query do legado.
+            $depoisSql = is_null($dados['depois']) ? 'NULL' : "UNHEX('" . bin2hex((string) $dados['depois']) . "')";
+            $antesSql = is_null($antes) ? 'NULL' : "UNHEX('" . bin2hex((string) $antes) . "')";
+            $sqlAntes = <<<SQL
+                SELECT {$dados['campo']} <=> {$antesSql} Antes,
+                       {$dados['campo']} <=> {$depoisSql} Depois
+                  FROM {$tabela}
+                 WHERE {$dados['pk']} = '{$idSql}'
+            SQL;
+            $resAntes = mysql_query($sqlAntes);
+            if (!$resAntes) {
+                return 'Erro ao consultar a restauração de ' . $tabela . ': ' . mysql_error();
+            }
+            $Registro = mysql_fetch_assoc($resAntes);
+            if (!$Registro) {
+                return "Registro {$id} ausente ao restaurar {$tabela}.";
+            }
+            // A consulta pode não ter executado, ou o InnoDB já pode ter desfeito o lote.
+            if ((int) $Registro['Antes'] == 1) {
+                continue;
+            }
+            if ((int) $Registro['Depois'] != 1) {
+                return "Conflito ao restaurar {$tabela}.{$dados['campo']} do registro {$id}.";
+            }
+            $sqlUpdate = <<<SQL
+                UPDATE {$tabela}
+                   SET {$dados['campo']} = {$antesSql}
+                 WHERE {$dados['pk']} = '{$idSql}'
+                   AND {$dados['campo']} <=> {$depoisSql}
+            SQL;
+            if (!mysql_query($sqlUpdate, false)) {
+                return 'Erro ao restaurar ' . $tabela . ': ' . mysql_error();
+            }
+            $resAntes = mysql_query($sqlAntes);
+            $Registro = $resAntes ? mysql_fetch_assoc($resAntes) : false;
+            if (!$Registro || (int) $Registro['Antes'] != 1) {
+                return "Não foi possível verificar a restauração de {$tabela}.{$dados['campo']} do registro {$id}.";
+            }
+        }
+        return true;
+    }
+
+    private function compensarDelete($tabela, $dados)
+    {
+        foreach ($dados['linhas'] as $Registro) {
+            $id = mysql_real_escape_string($Registro[$dados['pk']]);
+            $sqlRegistro = <<<SQL
+                SELECT * FROM {$tabela} WHERE {$dados['pk']} = '{$id}'
+            SQL;
+            $resRegistro = mysql_query($sqlRegistro);
+            if (!$resRegistro) {
+                return 'Erro ao consultar registro excluído de ' . $tabela . ': ' . mysql_error();
+            }
+            $Atual = mysql_fetch_assoc($resRegistro);
+            if ($Atual) {
+                if ($Atual !== $Registro) {
+                    return "Conflito ao restaurar registro {$id} excluído de {$tabela}.";
+                }
+                continue;
+            }
+            $campos = array();
+            $valores = array();
+            foreach ($Registro as $campo => $valor) {
+                $campos[] = "`{$campo}`";
+                // Hexadecimal preserva TABs e binários ao passar pelo mysql_query do legado.
+                $valores[] = is_null($valor) ? 'NULL' : "UNHEX('" . bin2hex((string) $valor) . "')";
+            }
+            $camposSql = implode(',', $campos);
+            $valoresSql = implode(',', $valores);
+            $sqlInsert = <<<SQL
+                INSERT INTO {$tabela} ({$camposSql}) VALUES ({$valoresSql})
+            SQL;
+            if (!mysql_query($sqlInsert, false)) {
+                return 'Erro ao restaurar registro excluído de ' . $tabela . ': ' . mysql_error();
+            }
+            $resRegistro = mysql_query($sqlRegistro);
+            $Atual = $resRegistro ? mysql_fetch_assoc($resRegistro) : false;
+            if (!$Atual || $Atual !== $Registro) {
+                return "Não foi possível verificar a restauração do registro {$id} de {$tabela}.";
+            }
+        }
+        return true;
+    }
+
+    private function compensarInsert($tabela, $dados)
+    {
+        if (isset($dados['marcador'])) {
+            $marcador = mysql_real_escape_string($dados['marcador']);
+            if (empty($dados['ids'])) {
+                $sqlRegistros = <<<SQL
+                    SELECT * FROM {$tabela} WHERE {$dados['campo']} = '{$marcador}'
+                SQL;
+            } else {
+                $idsSql = $this->idsSql($dados['ids']);
+                $sqlRegistros = <<<SQL
+                    SELECT * FROM {$tabela} WHERE {$dados['pk']} IN ({$idsSql})
+                SQL;
+            }
+            $resRegistros = mysql_query($sqlRegistros);
+            if (!$resRegistros) {
+                return 'Erro ao consultar inclusões para reversão de ' . $tabela . ': ' . mysql_error();
+            }
+            $ids = array();
+            while ($Registro = mysql_fetch_assoc($resRegistros)) {
+                if (isset($dados['linhas'])) {
+                    // Aceitar o marcador ainda presente quando houve interrupção antes de removê-lo.
+                    $Atual = $Registro;
+                    if ($Atual[$dados['campo']] == $dados['marcador']) {
+                        $Atual[$dados['campo']] = '';
+                    }
+                    if ($Atual !== $dados['linhas'][0]) {
+                        return "Conflito ao remover inclusão da junção em {$tabela}.";
+                    }
+                }
+                $ids[] = $Registro[$dados['pk']];
+            }
+            if (empty($ids)) {
+                return true;
+            }
+            $dados['ids'] = $ids;
+        }
+        if (empty($dados['ids'])) {
+            return true;
+        }
+        $idsSql = $this->idsSql($dados['ids']);
+        $sqlDelete = <<<SQL
+            DELETE FROM {$tabela}
+             WHERE {$dados['pk']} IN ({$idsSql})
+        SQL;
+        if (!mysql_query($sqlDelete, false)) {
+            return 'Erro ao remover registros incluídos em ' . $tabela . ': ' . mysql_error();
+        }
+        $sqlRestantes = <<<SQL
+            SELECT {$dados['pk']} FROM {$tabela} WHERE {$dados['pk']} IN ({$idsSql}) LIMIT 1
+        SQL;
+        $resRestantes = mysql_query($sqlRestantes);
+        return $resRestantes && mysql_num_rows($resRestantes) == 0 ? true : 'Não foi possível verificar a remoção das inclusões em ' . $tabela . '.';
+    }
+
+    private function marcarErro($JUN001, $erro)
+    {
+        $erroSql = mysql_real_escape_string($erro);
+        $campo = in_array($JUN001['JUN001_Estado'], array('ERRO', 'COMPENSANDO')) ? 'JUN001_Erro_Compensacao' : 'JUN001_Erro';
+        $estado = $campo == 'JUN001_Erro' ? 'COMPENSANDO' : 'COMPENSACAO_ERRO';
+        $sqlJUN001 = <<<SQL
+            UPDATE JUN001
+               SET JUN001_Estado = '{$estado}',
+                   JUN001_Etapa = 'Erro',
+                   {$campo} = '{$erroSql}',
+                   JUN001_Data_Alteracao = NOW()
+             WHERE JUN001_Id = '{$JUN001['JUN001_Id']}'
+        SQL;
+        mysql_query($sqlJUN001, false);
+        if ($estado == 'COMPENSACAO_ERRO') {
+            $this->log($JUN001['JUN001_Id'], 'compensação incompleta', array('erro_original' => $JUN001['JUN001_Erro'], 'erro_compensacao' => $erro));
+        } else {
+            $this->log($JUN001['JUN001_Id'], 'erro na junção; compensação iniciada', array('erro' => $erro));
+        }
+    }
+
+    private function finalizar($JUN001, $sequencia)
+    {
+        $sqlJUN001 = <<<SQL
+            UPDATE JUN001
+               SET JUN001_Estado = 'SUCESSO',
+                   JUN001_Etapa = 'Concluída',
+                   JUN001_Sequencia = '{$sequencia}',
+                   JUN001_Data_Alteracao = NOW(),
+                   JUN001_Data_Fim = NOW()
+             WHERE JUN001_Id = '{$JUN001['JUN001_Id']}'
+        SQL;
+        if (!mysql_query($sqlJUN001, false)) {
+            return 'Erro ao finalizar a junção: ' . mysql_error();
+        }
+        $this->liberarProdutos($JUN001['JUN001_Id']);
+        $this->limparDadosConcluidos($JUN001['JUN001_Id']);
+        $this->log($JUN001['JUN001_Id'], 'operação concluída', array('registros' => $JUN001['JUN001_Quantidade'], 'bytes' => $JUN001['JUN001_Bytes_Reversao']));
+        return true;
+    }
+
+    private function liberarProdutos($JUN001_Id)
+    {
+        $sqlJUN004 = <<<SQL
+            DELETE FROM JUN004
+             WHERE JUN004_JUN001_Id = '{$JUN001_Id}'
+        SQL;
+        mysql_query($sqlJUN004, false);
+    }
+
+    private function limparDadosConcluidos($JUN001_Id)
+    {
+        $sqlJUN003 = <<<SQL
+            DELETE FROM JUN003 WHERE JUN003_JUN001_Id = '{$JUN001_Id}'
+        SQL;
+        mysql_query($sqlJUN003, false);
+        $sqlJUN002 = <<<SQL
+            DELETE FROM JUN002 WHERE JUN002_JUN001_Id = '{$JUN001_Id}'
+        SQL;
+        mysql_query($sqlJUN002, false);
+        $sqlJUN001 = <<<SQL
+            UPDATE JUN001
+               SET JUN001_Dados = NULL,
+                   JUN001_Mapa_Referencias = NULL
+             WHERE JUN001_Id = '{$JUN001_Id}'
+        SQL;
+        mysql_query($sqlJUN001, false);
+    }
+
+    private function limparConcluidas()
+    {
+        $sqlJUN001 = <<<SQL
+            SELECT JUN001_Id
+              FROM JUN001
+             WHERE JUN001_Estado IN ('SUCESSO', 'COMPENSADO')
+               AND JUN001_Data_Fim < DATE_SUB(NOW(), INTERVAL 1 DAY)
+             ORDER BY JUN001_Id
+             LIMIT 20
+        SQL;
+        $resJUN001 = mysql_query($sqlJUN001);
+        $ids = array();
+        while ($JUN001 = mysql_fetch_assoc($resJUN001)) {
+            $ids[] = $JUN001['JUN001_Id'];
+        }
+        if (empty($ids)) {
+            return;
+        }
+        $idsSql = $this->idsSql($ids);
+        $sqlJUN003 = <<<SQL
+            DELETE FROM JUN003 WHERE JUN003_JUN001_Id IN ({$idsSql})
+        SQL;
+        mysql_query($sqlJUN003, false);
+        $sqlJUN002 = <<<SQL
+            DELETE FROM JUN002 WHERE JUN002_JUN001_Id IN ({$idsSql})
+        SQL;
+        mysql_query($sqlJUN002, false);
+        $sqlJUN004 = <<<SQL
+            DELETE FROM JUN004 WHERE JUN004_JUN001_Id IN ({$idsSql})
+        SQL;
+        mysql_query($sqlJUN004, false);
+        $sqlExcluirJUN001 = <<<SQL
+            DELETE FROM JUN001 WHERE JUN001_Id IN ({$idsSql})
+        SQL;
+        mysql_query($sqlExcluirJUN001, false);
+    }
+
+    private function resposta($JUN001)
+    {
+        // O avanço representa tarefas concluídas, sem estimar o tempo das consultas.
+        $dados = !empty($JUN001['JUN001_Dados']) ? @gzuncompress($JUN001['JUN001_Dados']) : false;
+        $dados = $dados !== false ? @unserialize($dados, array('allowed_classes' => false)) : false;
+        return array(
+            'etapas_concluidas' => isset($dados['posicao']) ? (int) $dados['posicao'] : 0,
+            'etapas_total' => isset($dados['tarefas']) && is_array($dados['tarefas']) ? count($dados['tarefas']) : 0,
+            'id' => (int) $JUN001['JUN001_Id'],
+            'estado' => $JUN001['JUN001_Estado'],
+            'etapa' => $JUN001['JUN001_Etapa'],
+            'sequencia' => (int) $JUN001['JUN001_Sequencia'],
+            'quantidade' => (int) $JUN001['JUN001_Quantidade'],
+            'bytes' => (int) $JUN001['JUN001_Bytes_Reversao'],
+            'erro' => $JUN001['JUN001_Erro'],
+            'erro_compensacao' => $JUN001['JUN001_Erro_Compensacao'],
+        );
+    }
+
+    private function mapaReferencias()
+    {
+        $mapa = array('T066' => array(), 'D009' => array(), 'D049' => array(), 'D001' => array());
+        $sqlColunas = <<<SQL
+            SELECT C.TABLE_NAME,
+                   C.COLUMN_NAME,
+                   P.PK,
+                   P.QUANTIDADE_PK
+              FROM INFORMATION_SCHEMA.COLUMNS C
+             INNER JOIN INFORMATION_SCHEMA.TABLES T
+                ON T.TABLE_SCHEMA = C.TABLE_SCHEMA
+               AND T.TABLE_NAME = C.TABLE_NAME
+              LEFT JOIN (
+                    SELECT TABLE_SCHEMA,
+                           TABLE_NAME,
+                           MIN(COLUMN_NAME) PK,
+                           COUNT(*) QUANTIDADE_PK
+                      FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                     WHERE CONSTRAINT_NAME = 'PRIMARY'
+                     GROUP BY TABLE_SCHEMA, TABLE_NAME
+              ) P
+                ON P.TABLE_SCHEMA = C.TABLE_SCHEMA
+               AND P.TABLE_NAME = C.TABLE_NAME
+             WHERE C.TABLE_SCHEMA = DATABASE()
+               AND T.TABLE_TYPE = 'BASE TABLE'
+             ORDER BY C.TABLE_NAME, C.ORDINAL_POSITION
+        SQL;
+        $resColunas = mysql_query($sqlColunas);
+        if (!$resColunas) {
+            return 'Erro ao preparar as referências: ' . mysql_error();
+        }
+        while ($Colunas = mysql_fetch_assoc($resColunas)) {
+            $nomeTabela = strtoupper($Colunas['TABLE_NAME']);
+            if (in_array($nomeTabela, array('JUN001', 'JUN002', 'JUN003', 'JUN004'))) {
+                continue;
+            }
+            if (strpos(" {$nomeTabela} ", 'DIM0') || strpos(" {$nomeTabela} ", 'FAC0')) {
+                continue;
+            }
+            foreach ($mapa as $tabela => $referencias) {
+                if (stripos($Colunas['COLUMN_NAME'], "{$tabela}_Id") === false || $Colunas['COLUMN_NAME'] == "{$tabela}_Id") {
+                    continue;
+                }
+                $recuperavel = !empty($Colunas['PK']) && $Colunas['QUANTIDADE_PK'] == 1;
+                $mapa[$tabela][] = array('tabela' => $nomeTabela, 'campo' => $Colunas['COLUMN_NAME'], 'pk' => $Colunas['PK'], 'recuperavel' => $recuperavel);
+            }
+        }
+        $mapa['_triggers'] = array();
+        $sqlTriggers = <<<SQL
+            SELECT TRIGGER_NAME,
+                   EVENT_OBJECT_TABLE,
+                   ACTION_TIMING,
+                   EVENT_MANIPULATION,
+                   ACTION_STATEMENT
+              FROM INFORMATION_SCHEMA.TRIGGERS
+             WHERE TRIGGER_SCHEMA = DATABASE()
+             ORDER BY EVENT_OBJECT_TABLE, TRIGGER_NAME
+        SQL;
+        $resTriggers = mysql_query($sqlTriggers);
+        if (!$resTriggers) {
+            return 'Erro ao inventariar as triggers da junção: ' . mysql_error();
+        }
+        while ($Trigger = mysql_fetch_assoc($resTriggers)) {
+            $mapa['_triggers'][] = $Trigger;
+        }
+        return $mapa;
+    }
+
+    private function prepararTarefas($D001_Id_Antigo, $D001_Id_Novo, $Produtos, $mapa)
+    {
+        global $g;
+
+        $tarefas = array();
+        $D009_Reprocessar = array();
+        $tarefas[] = array('tipo' => 'itens_abertos', 'descricao' => 'Atualizar códigos dos orçamentos em aberto', 'tabela' => 'T004', 'pk' => 'T004_Id', 'campo' => 'T004_Codigo_Produto', 'valor' => $Produtos[$D001_Id_Novo]['D001_Codigo_Produto'], 'D001_Id' => $D001_Id_Antigo, 'cursor' => 0);
+        $tarefas[] = array('tipo' => 'itens_abertos', 'descricao' => 'Atualizar códigos dos pedidos em aberto', 'tabela' => 'T006', 'pk' => 'T006_Id', 'campo' => 'T006_Codigo_Produto', 'valor' => $Produtos[$D001_Id_Novo]['D001_Codigo_Produto'], 'D001_Id' => $D001_Id_Antigo, 'cursor' => 0);
+
+        $sqlD049 = <<<SQL
+            SELECT D049_Id,
+                   D049_D082_Id,
+                   D049_D024_Id
+              FROM D049
+             WHERE D049_D001_Id = '{$D001_Id_Antigo}'
+             ORDER BY D049_Id
+        SQL;
+        $resD049 = mysql_query($sqlD049);
+        if (!$resD049) {
+            return 'Erro ao listar as marcas do produto antigo: ' . mysql_error();
+        }
+        if ($g['C031']['multimarcas'] == 'N' && mysql_num_rows($resD049) > 1) {
+            return 'Erro - Empresa não utiliza multi-marcas, mais tem mais de uma marca para o produto Antigo!';
+        }
+
+        while ($D049 = mysql_fetch_assoc($resD049)) {
+            if ($g['C031']['multimarcas'] == 'N') {
+                $sqlD049Novo = <<<SQL
+                    SELECT D049_Id,
+                           D049_D024_Id
+                      FROM D049
+                     WHERE D049_D001_Id = '{$D001_Id_Novo}'
+                     ORDER BY D049_Id
+                SQL;
+            } else {
+                $sqlD049Novo = <<<SQL
+                    SELECT D049_Id,
+                           D049_D024_Id
+                      FROM D049
+                     WHERE D049_D082_Id = '{$D049['D049_D082_Id']}'
+                       AND D049_D001_Id = '{$D001_Id_Novo}'
+                     ORDER BY D049_Id
+                SQL;
+            }
+            $resD049Novo = mysql_query($sqlD049Novo);
+            if (!$resD049Novo) {
+                return 'Erro ao localizar a marca correspondente no produto novo: ' . mysql_error();
+            }
+            if ($g['C031']['multimarcas'] == 'N' && mysql_num_rows($resD049Novo) > 1) {
+                return 'Erro - Empresa não utiliza multi-marcas, mais tem mais de uma marca para o produto Novo!';
+            }
+            if (mysql_num_rows($resD049Novo) == 0) {
+                $tarefas[] = array(
+                    'tipo' => 'update',
+                    'descricao' => 'Transferir marca para o produto novo',
+                    'tabela' => 'D049',
+                    'pk' => 'D049_Id',
+                    'campo' => 'D049_D001_Id',
+                    'valor' => $D001_Id_Novo,
+                    'ids' => array($D049['D049_Id']),
+                );
+                $sqlD009Reprocessar = <<<SQL
+                    SELECT D009_Id
+                      FROM D009
+                     WHERE D009_D049_Id = '{$D049['D049_Id']}'
+                SQL;
+                $resD009Reprocessar = mysql_query($sqlD009Reprocessar);
+                while ($D009Reprocessar = mysql_fetch_assoc($resD009Reprocessar)) {
+                    $D009_Reprocessar[] = (int) $D009Reprocessar['D009_Id'];
+                }
+                continue;
+            }
+
+            $D049Novo = mysql_fetch_assoc($resD049Novo);
+            $tarefas[] = array('tipo' => 'delete', 'descricao' => 'Excluir preços da marca antiga', 'tabela' => 'D041', 'pk' => 'D041_Id', 'campo' => 'D041_D049_Id', 'valor' => $D049['D049_Id']);
+            $sqlD009 = <<<SQL
+                SELECT D009_Id,
+                       D009_C004_Id,
+                       D009_Quantidade_Estoque
+                  FROM D009
+                 WHERE D009_D049_Id = '{$D049['D049_Id']}'
+                 ORDER BY D009_Id
+            SQL;
+            $resD009 = mysql_query($sqlD009);
+            while ($D009 = mysql_fetch_assoc($resD009)) {
+                $sqlD009Novo = <<<SQL
+                    SELECT D009_Id,
+                           D009_Quantidade_Estoque,
+                           D009_C004_Id
+                      FROM D009
+                     WHERE D009_D049_Id = '{$D049Novo['D049_Id']}'
+                       AND D009_C004_Id = '{$D009['D009_C004_Id']}'
+                SQL;
+                $resD009Novo = mysql_query($sqlD009Novo);
+                if (!$resD009Novo) {
+                    return 'Erro ao localizar o produto por empresa no destino: ' . mysql_error();
+                }
+                if (mysql_num_rows($resD009Novo) == 0) {
+                    $tarefas[] = array(
+                        'tipo' => 'update',
+                        'descricao' => 'Transferir produto da empresa para a marca nova',
+                        'tabela' => 'D009',
+                        'pk' => 'D009_Id',
+                        'campo' => 'D009_D049_Id',
+                        'valor' => $D049Novo['D049_Id'],
+                        'ids' => array($D009['D009_Id']),
+                    );
+                    $D009_Reprocessar[] = (int) $D009['D009_Id'];
+                    continue;
+                }
+
+                $D009Novo = mysql_fetch_assoc($resD009Novo);
+                $D009_Reprocessar[] = (int) $D009Novo['D009_Id'];
+                $locacoes = array();
+                $sqlT066 = <<<SQL
+                    SELECT T066_Id,
+                           T066_D004_Id,
+                           T066_Quantidade_Estoque
+                      FROM T066
+                     WHERE T066_D009_Id = '{$D009['D009_Id']}'
+                     ORDER BY T066_Id
+                SQL;
+                $resT066 = mysql_query($sqlT066);
+                while ($T066 = mysql_fetch_assoc($resT066)) {
+                    $sqlT066Novo = <<<SQL
+                        SELECT T066_Id,
+                               T066_Quantidade_Estoque
+                          FROM T066
+                         WHERE T066_D009_Id = '{$D009Novo['D009_Id']}'
+                           AND T066_D004_Id = '{$T066['T066_D004_Id']}'
+                         ORDER BY T066_Id
+                    SQL;
+                    $resT066Novo = mysql_query($sqlT066Novo);
+                    $sqlT066Duplicada = <<<SQL
+                        SELECT T066_Id
+                          FROM T066
+                         WHERE T066_D009_Id = '{$D009['D009_Id']}'
+                           AND T066_D004_Id = '{$T066['T066_D004_Id']}'
+                    SQL;
+                    $resT066Duplicada = mysql_query($sqlT066Duplicada);
+                    if (mysql_num_rows($resT066Novo) <= 0 || mysql_num_rows($resT066Novo) > 1 || mysql_num_rows($resT066Duplicada) > 1) {
+                        $tarefas[] = array(
+                            'tipo' => 'update',
+                            'descricao' => 'Transferir locação para o produto novo',
+                            'tabela' => 'T066',
+                            'pk' => 'T066_Id',
+                            'campo' => 'T066_D009_Id',
+                            'valor' => $D009Novo['D009_Id'],
+                            'ids' => array($T066['T066_Id']),
+                        );
+                        $locacoes[] = (int) $T066['T066_Id'];
+                    } else {
+                        $T066Novo = mysql_fetch_assoc($resT066Novo);
+                        $tarefas[] = array(
+                            'tipo' => 'juntar',
+                            'descricao' => 'Juntar locações',
+                            'tabela' => 'T066',
+                            'antigo' => (int) $T066['T066_Id'],
+                            'novo' => (int) $T066Novo['T066_Id'],
+                            'bloqueio' => array(),
+                            'restricao' => array('T066A'),
+                            'referencia' => 0,
+                        );
+                        $tarefas[] = array(
+                            'tipo' => 'update',
+                            'descricao' => 'Somar estoque da locação',
+                            'tabela' => 'T066',
+                            'pk' => 'T066_Id',
+                            'campo' => 'T066_Quantidade_Estoque',
+                            'valor' => $T066Novo['T066_Quantidade_Estoque'] + $T066['T066_Quantidade_Estoque'],
+                            'ids' => array($T066Novo['T066_Id']),
+                        );
+                        $locacoes[] = (int) $T066Novo['T066_Id'];
+                    }
+                }
+                $tarefas[] = array(
+                    'tipo' => 'juntar',
+                    'descricao' => 'Juntar produtos por empresa',
+                    'tabela' => 'D009',
+                    'antigo' => (int) $D009['D009_Id'],
+                    'novo' => (int) $D009Novo['D009_Id'],
+                    'bloqueio' => array(),
+                    'restricao' => array('D009A'),
+                    'referencia' => 0,
+                );
+                $tarefas[] = array(
+                    'tipo' => 'historico',
+                    'descricao' => 'Registrar histórico da junção',
+                    'D024_Id' => $D049Novo['D049_D024_Id'],
+                    'D009_Id' => $D009Novo['D009_Id'],
+                    'C004_Id' => $D009Novo['D009_C004_Id'],
+                    'codigo' => $Produtos[$D001_Id_Novo]['D001_Codigo_Produto'],
+                    'codigo_antigo' => $Produtos[$D001_Id_Antigo]['D001_Codigo_Produto'],
+                    'locacoes' => array_values(array_unique($locacoes)),
+                );
+            }
+            $tarefas[] = array(
+                'tipo' => 'juntar',
+                'descricao' => 'Juntar marcas',
+                'tabela' => 'D049',
+                'antigo' => (int) $D049['D049_Id'],
+                'novo' => (int) $D049Novo['D049_Id'],
+                'bloqueio' => array(),
+                'restricao' => array('D049A'),
+                'referencia' => 0,
+            );
+        }
+
+        $tarefas[] = array(
+            'tipo' => 'juntar',
+            'descricao' => 'Transferir referências do produto',
+            'tabela' => 'D001',
+            'antigo' => (int) $D001_Id_Antigo,
+            'novo' => (int) $D001_Id_Novo,
+            'bloqueio' => array(),
+            'restricao' => array('T241', 'D001A'),
+            'referencia' => 0,
+        );
+        $tarefas[] = array(
+            'tipo' => 'update',
+            'descricao' => 'Registrar código anterior no produto novo',
+            'tabela' => 'D001',
+            'pk' => 'D001_Id',
+            'campo' => 'D001_Id_Antigo',
+            'valor' => $D001_Id_Antigo,
+            'ids' => array($D001_Id_Novo),
+        );
+        foreach (array_values(array_unique($D009_Reprocessar)) as $D009_Id) {
+            $tarefas[] = array('tipo' => 'reprocessar', 'descricao' => 'Reprocessar histórico e estoques', 'D009_Id' => $D009_Id);
+        }
+
+        return $tarefas;
+    }
+
+    private function idsSql($ids)
+    {
+        $retorno = array();
+        foreach ($ids as $id) {
+            $retorno[] = "'" . mysql_real_escape_string($id) . "'";
+        }
+        return implode(',', $retorno);
+    }
+
+    private function log($JUN001_Id, $mensagem, $dados = array())
+    {
+        $linha = date('Y-m-d H:i:s') . " | operacao={$JUN001_Id} | {$mensagem}";
+        foreach ($dados as $campo => $valor) {
+            $linha .= " | {$campo}=" . str_replace(array("\r", "\n"), ' ', (string) $valor);
+        }
+        $linha .= PHP_EOL;
+        $arquivo = Personalizacoes::getDirLogs() . 'juntar-produtos-' . date('Y-m-d') . '.log';
+        if (@file_put_contents($arquivo, $linha, FILE_APPEND | LOCK_EX) === false) {
+            error_log('Não foi possível gravar o log da junção de produtos em ' . $arquivo);
+        }
+    }
 }
 
 $CAD002 = new CAD002();
