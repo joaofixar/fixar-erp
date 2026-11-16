@@ -1,0 +1,4 @@
+# Scripts rodam no bash do contêiner; CRLF do checkout no Windows quebra o `set -o pipefail`.
+*.sh text eol=lf
+subir text eol=lf
+bin/publicacao text eol=lf
