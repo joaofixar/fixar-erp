@@ -19,9 +19,9 @@ else
   exit 1
 fi
 "$py" bin/preparar-base.py
-if ! docker image inspect fixar-erp-web >/dev/null 2>&1; then
-  docker build -t fixar-erp-web ./docker/php
-fi
+# Sempre constrói: o cache de camadas deixa isso rápido, e uma mudança no Dockerfile
+# chega a quem já tinha a imagem. --load põe a imagem no engine do Kiri.
+docker build --load -q -t fixar-erp-web ./docker/php >/dev/null
 # A fotografia entra só com o volume vazio. Um volume já preenchido permanece.
 docker compose up -d --no-build --wait
 echo "Base no ar: http://web.fixar-erp.kiri.localhost/login"
