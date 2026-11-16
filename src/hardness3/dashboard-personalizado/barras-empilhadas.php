@@ -28,7 +28,7 @@ function dashboardBarrasEmpilhadasPreparar($indicador, $entrada, &$parametros, &
     $periodo = isset($entrada['listaGraficoPeriodo']) ? $entrada['listaGraficoPeriodo'] : '';
     $serie = isset($entrada['listaGraficoSerie']) ? $entrada['listaGraficoSerie'] : '';
     if (!is_string($periodo) || !is_string($serie) || strlen($serie) > 240
-        || ($serie !== '' && $periodo === '')
+        || ($serie !== '' && ($periodo === '' || (isset($grafico['agruparPorCategoria']) && $grafico['agruparPorCategoria'] === false)))
         || ($periodo !== '' && (!preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])$/D', $periodo)
             || $periodo < substr($inicio, 0, 7) || $periodo > substr($fim, 0, 7)))) {
         $erro = 'Seleção do gráfico de barras inválida.'; return false;
@@ -42,7 +42,7 @@ function dashboardBarrasEmpilhadasPreparar($indicador, $entrada, &$parametros, &
         if ($serie !== '') $parametros['graficoSerie'] = $serie;
         $indicador['listagem']['_barras'] = array('campoData' => $grafico['campoData'], 'campoGrupo' => $grafico['campoGrupo']);
         $indicador['listagem']['observacaoRodape'] = 'Seleção do gráfico: ' . substr($periodo, 5) . '/' . substr($periodo, 0, 4)
-            . ($serie !== '' ? ' · ' . $serie : ' · todas as categorias') . '. Os cartões mantêm o total do período.';
+            . ($serie !== '' ? ' · ' . $serie : (isset($grafico['agruparPorCategoria']) && $grafico['agruparPorCategoria'] === false ? ' · todos os títulos do mês' : ' · todas as categorias')) . '. Os cartões mantêm o total do período.';
     }
     return $indicador;
 }
@@ -63,7 +63,8 @@ function dashboardBarrasEmpilhadasConsultar($conexao, $sqlBase, $grafico, $param
     $data = dashboardIndicadorIdentificador($grafico['campoData']);
     $grupo = dashboardIndicadorIdentificador($grafico['campoGrupo']);
     $valor = dashboardIndicadorIdentificador($grafico['campoValor']);
-    $sql = "SELECT DATE_FORMAT(`{$data}`, '%Y-%m') AS periodo, COALESCE(NULLIF(`{$grupo}`, ''), 'Não informado') AS serie,"
+    $serie = isset($grafico['agruparPorCategoria']) && $grafico['agruparPorCategoria'] === false ? "''" : "COALESCE(NULLIF(`{$grupo}`, ''), 'Não informado')";
+    $sql = "SELECT DATE_FORMAT(`{$data}`, '%Y-%m') AS periodo, {$serie} AS serie,"
         . " COALESCE(SUM(`{$valor}`), 0) AS valor, COUNT(*) AS quantidade FROM ({$sqlBase}) AS dashboard_barras"
         . " WHERE `{$data}` IS NOT NULL GROUP BY periodo, serie ORDER BY periodo, serie LIMIT 5001";
     $linhas = dashboardIndicadorConsultar($conexao, $sql, $parametros, $erro);

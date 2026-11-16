@@ -32,7 +32,11 @@ function dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros)
         }
     }
     $comp = isset($i['composicao']) ? $i['composicao'] : array();
-    if ($ativo($comp, 'habilitada') && empty($comp['sqlBase'])) {
+    $composicoes = array($comp);
+    if ($ativo($comp, 'habilitada')) foreach (isset($comp['blocos']) && is_array($comp['blocos']) ? $comp['blocos'] : array() as $bloco) {
+        if (!empty($bloco['campo'])) $composicoes[] = array_merge($comp, array('campo' => $bloco['campo'], 'sqlBase' => ''));
+    }
+    foreach ($composicoes as $comp) if ($ativo($comp, 'habilitada') && empty($comp['sqlBase'])) {
         $campo = dashboardIndicadorIdentificador(isset($comp['campo']) ? $comp['campo'] : 'situacao', 'situacao');
         $valor = dashboardIndicadorIdentificador(isset($comp['campoValor']) ? $comp['campoValor'] : $campoCard, $campoCard);
         $calculo = isset($comp['calculo']) ? $comp['calculo'] : 'soma';

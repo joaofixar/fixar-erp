@@ -1457,6 +1457,7 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
     }
 
     $composicaoResultado = array();
+    $composicaoBlocos = array();
     $composicao = isset($indicador['composicao']) && is_array($indicador['composicao']) ? $indicador['composicao'] : array();
     if (!empty($composicao) && (!isset($composicao['habilitada']) || $composicao['habilitada'])) {
         $campoComposicao = dashboardIndicadorIdentificador(isset($composicao['campo']) ? $composicao['campo'] : 'situacao', 'situacao');
@@ -1489,6 +1490,21 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
                 $composicaoResultado[] = isset($porChave[$chave]) ? array_merge($porChave[$chave], array('rotulo' => isset($item['rotulo']) ? $item['rotulo'] : $chave)) : array('chave' => $chave, 'rotulo' => isset($item['rotulo']) ? $item['rotulo'] : $chave, 'valor' => 0);
             }
         } else $composicaoResultado = array_values($porChave);
+        // Blocos com campo próprio agrupam a mesma base filtrada do indicador.
+        foreach (isset($composicao['blocos']) && is_array($composicao['blocos']) ? $composicao['blocos'] : array() as $indice => $bloco) {
+            if (empty($bloco['campo'])) continue;
+            $campoBloco = dashboardIndicadorIdentificador($bloco['campo']);
+            if ($campoBloco === '') { $erro = 'Campo de agrupamento da composição inválido.'; return false; }
+            $valorBloco = $calculoComposicao === 'contagem' ? 'COUNT(*)' : ($calculoComposicao === 'media' ? 'AVG(`' . $campoValorComposicao . '`)' : 'SUM(`' . $campoValorComposicao . '`)');
+            $sqlBloco = 'SELECT `' . $campoBloco . '` AS chave, COALESCE(' . $valorBloco . ', 0) AS valor FROM (' . $sqlBase . ') AS dashboard_base GROUP BY `' . $campoBloco . '`';
+            $linhasBloco = dashboardIndicadorConsultar($conexao, $sqlBloco, $parametros, $erro);
+            if ($linhasBloco === false) return false;
+            $composicaoBlocos[$indice] = array();
+            foreach ($linhasBloco as $linha) {
+                $chave = (string) $linha['chave'];
+                $composicaoBlocos[$indice][] = array('chave' => $chave, 'rotulo' => $chave !== '' ? $chave : 'Não informado', 'valor' => (float) $linha['valor']);
+            }
+        }
     }
 
     $graficoResultado = array();
@@ -1762,6 +1778,7 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
         ),
         'geografia' => $geografiaResultado,
         'composicao' => $composicaoResultado,
+        'composicaoBlocos' => $composicaoBlocos,
         'grafico' => $graficoResultado,
         'graficoDetalhes' => $graficoDetalhes,
         'previsaoCaixa' => isset($previsaoCaixa) ? array('lancamentos' => $previsaoCaixa['lancamentos'], 'pedidosPendentes' => $previsaoCaixa['pedidosPendentes'], 'simulacao' => array_merge($previsaoCaixa['simulacao'], array('mensagem' => dashboardCaixaPrevisaoMensagem($previsaoCaixa['simulacao'])))) : null,

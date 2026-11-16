@@ -9,6 +9,7 @@
   }
   function mount(container, rows, definition, options) {
     var active = true, busy = false, selected = definition.selecao || { periodo: '', serie: '' };
+    var grouped = definition.agruparPorCategoria !== false;
     var period = definition.periodoFiltrado, months = [], series = [], values = Object.create(null);
     var cursor = new Date(period.dataInicio.slice(0, 7) + '-01T00:00:00Z');
     var finalMonth = period.dataFim.slice(0, 7);
@@ -17,7 +18,7 @@
     }
     (rows || []).forEach(function (row) {
       if (months.indexOf(row.periodo) < 0) return;
-      var name = String(row.serie), number = Number(row.valor);
+      var name = grouped ? String(row.serie) : '', number = Number(row.valor);
       if (!Number.isFinite(number)) return;
       if (series.indexOf(name) < 0) series.push(name);
       if (!values[row.periodo]) values[row.periodo] = Object.create(null);
@@ -28,7 +29,7 @@
     series.sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
     var colors = ['#4275c5', '#f48432', '#9ca3af', '#eab308', '#16a477', '#7c5ce6', '#0ea5a7', '#bc4ed7'];
     function color(name, index) {
-      var configured = definition.cores && definition.cores[name];
+      var configured = grouped ? definition.cores && definition.cores[name] : definition.cor;
       return /^#[a-f0-9]{6}$/i.test(configured || '') ? configured : (colors[index] || 'hsl(' + Math.round(index * 137.508 % 360) + ',55%,43%)');
     }
     var width = Math.max(1080, months.length * 84 + 160), height = 400, left = 150, right = 24, top = 30, bottom = 78;
@@ -54,7 +55,7 @@
     }
     function small(value) { return Math.abs(y(0) - y(value)) < 4; }
     var step = (width - left - right) / Math.max(1, months.length), barWidth = Math.min(52, step * .66);
-    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="min-width:' + width + 'px" role="group" aria-label="Valores mensais por categoria"><title>' + esc(definition.titulo || 'Parcelas por vencimento') + '</title>';
+    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" style="min-width:' + width + 'px" role="group" aria-label="' + (grouped ? 'Valores mensais por categoria' : 'Valores mensais') + '"><title>' + esc(definition.titulo || 'Parcelas por vencimento') + '</title>';
     for (var tick = 0; tick <= 4; tick++) {
       var value = negative + (positive - negative) * tick / 4;
       svg += '<path class="stacked-grid" d="M' + left + ' ' + y(value) + 'H' + (width - right) + '"/><text x="' + (left - 12) + '" y="' + (y(value) + 4) + '" text-anchor="end">' + esc(money(value)) + '</text>';
@@ -68,16 +69,16 @@
         var before = point.valor > 0 ? plus : minus, after = before + point.valor;
         if (point.valor > 0) plus = after; else minus = after;
         total += point.valor;
-        var text = label(month) + ' · ' + name + ' · ' + money(point.valor) + ' · ' + point.quantidade + ' títulos';
+        var text = label(month) + (grouped ? ' · ' + name : '') + ' · ' + money(point.valor) + ' · ' + point.quantidade + ' títulos';
         svg += '<rect class="stacked-segment" x="' + (x - barWidth / 2) + '" y="' + Math.min(y(before), y(after)) + '" width="' + barWidth + '" height="' + Math.abs(y(before) - y(after)) + '" fill="' + color(name, si) + '" role="button" tabindex="0" data-stack-month="' + month + '" data-stack-series="' + esc(name) + '" aria-label="Ver títulos: ' + esc(text) + '"></rect>';
       });
       svg += '<text class="stacked-total" x="' + x + '" y="' + (y(plus) - 9) + '" text-anchor="middle"><title>' + esc(money(total)) + '</title>' + esc(compact(total)) + '</text>';
       svg += '<g role="button" tabindex="0" class="stacked-month" data-stack-month="' + month + '" aria-label="Ver todos os títulos de ' + esc(label(month)) + '"><rect x="' + (x - step / 2 + 1) + '" y="' + (height - bottom + 8) + '" width="' + (step - 2) + '" height="28" fill="transparent"/><text x="' + x + '" y="' + (height - 49) + '" text-anchor="middle">' + label(month) + '</text></g>';
       var count = entries(month).length;
-      if (count) svg += '<g role="button" tabindex="0" class="stacked-breakdown-toggle" data-stack-breakdown="' + month + '" aria-expanded="false" aria-haspopup="dialog" aria-label="Ver as ' + count + ' categorias de ' + label(month) + ', incluindo as faixas pequenas"><rect x="' + (x - step / 2 + 2) + '" y="' + (height - 36) + '" width="' + (step - 4) + '" height="28" rx="5"/><text x="' + x + '" y="' + (height - 18) + '" text-anchor="middle">' + count + ' categorias ▾</text></g>';
+      if (grouped && count) svg += '<g role="button" tabindex="0" class="stacked-breakdown-toggle" data-stack-breakdown="' + month + '" aria-expanded="false" aria-haspopup="dialog" aria-label="Ver as ' + count + ' categorias de ' + label(month) + ', incluindo as faixas pequenas"><rect x="' + (x - step / 2 + 2) + '" y="' + (height - 36) + '" width="' + (step - 4) + '" height="28" rx="5"/><text x="' + x + '" y="' + (height - 18) + '" text-anchor="middle">' + count + ' categorias ▾</text></g>';
     });
     svg += '</svg>';
-    container.innerHTML = '<article class="wide-card stacked-bars"><header><div><h3>' + esc(definition.titulo || 'Parcelas por vencimento') + '</h3><p>Clique em uma faixa para ver os títulos. Em Categorias, consulte também os menores valores de cada mês.</p></div></header>'
+    container.innerHTML = '<article class="wide-card stacked-bars"><header><div><h3>' + esc(definition.titulo || 'Parcelas por vencimento') + '</h3><p>' + (grouped ? 'Clique em uma faixa para ver os títulos. Em Categorias, consulte também os menores valores de cada mês.' : 'Clique em uma barra para atualizar a lista com os títulos daquele mês.') + '</p></div></header>'
       + '<div class="stacked-selection" hidden><strong data-stack-selection></strong><button type="button" data-stack-clear>Mostrar todos os títulos</button></div>'
       + (series.length ? '<div class="stacked-scroll">' + svg + '</div>' : '<p class="empty-state">Não há títulos para o período e os filtros selecionados.</p>')
       + '<p class="stacked-status" role="status" aria-live="polite"></p><div class="stacked-tooltip" role="tooltip" hidden></div>'
@@ -94,7 +95,7 @@
     function showTooltip(node) {
       if (busy || !breakdown.hidden) return;
       var month = node.getAttribute('data-stack-month'), name = node.getAttribute('data-stack-series'), point = values[month][name];
-      tooltip.innerHTML = '<small>' + label(month) + ' · ' + esc(percentage(month, point.valor)) + ' do mês</small><strong>' + esc(name) + '</strong><b>' + esc(money(point.valor)) + '</b><span>' + point.quantidade + ' títulos · Clique para abrir</span>';
+      tooltip.innerHTML = '<small>' + label(month) + (grouped ? ' · ' + esc(percentage(month, point.valor)) + ' do mês' : '') + '</small><strong>' + (grouped ? esc(name) : 'Total do mês') + '</strong><b>' + esc(money(point.valor)) + '</b><span>' + point.quantidade + ' títulos · Clique para abrir</span>';
       tooltip.hidden = false; position(tooltip, node);
     }
     function closeBreakdown(restoreFocus) {
@@ -127,7 +128,7 @@
       (search || breakdown.querySelector('.stacked-category') || breakdown.querySelector('button')).focus();
     }
     function update() {
-      container.querySelector('[data-stack-selection]').textContent = selected.periodo ? 'Títulos de ' + label(selected.periodo) + (selected.serie ? ' · ' + selected.serie : ' · todas as categorias') : 'Listagem: todos os títulos do período';
+      container.querySelector('[data-stack-selection]').textContent = selected.periodo ? 'Títulos de ' + label(selected.periodo) + (selected.serie ? ' · ' + selected.serie : (grouped ? ' · todas as categorias' : ' · todos os títulos do mês')) : 'Listagem: todos os títulos do período';
       container.querySelector('.stacked-selection').hidden = !selected.periodo;
       container.querySelector('[data-stack-clear]').hidden = !selected.periodo;
       container.querySelectorAll('[data-stack-month]').forEach(function (node) {

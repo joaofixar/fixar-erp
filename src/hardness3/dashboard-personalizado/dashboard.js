@@ -1682,25 +1682,25 @@
     return '<span class="contextual-help"><button type="button" class="contextual-help-trigger" aria-label="' + escapeHtml(label) + '" data-help="' + escapeHtml(text) + '"><span aria-hidden="true">?</span></button></span>';
   }
 
-  function compositionCard(values, title, valueFormat, help) {
+  function compositionCard(values, title, valueFormat, help, showTotal) {
     var total = values.reduce(function (sum, item) { return sum + Number(item.valor || 0); }, 0);
     var offset = 0, colors = ['#2860dc', '#14a7a0', '#8b5cf6', '#f59e0b', '#ef476f'];
     var slices = values.map(function (item, index) { var pct = total ? Number(item.valor || 0) * 100 / total : 0, dash = pct.toFixed(3) + ' ' + (100 - pct).toFixed(3), out = '<circle class="pie-slice" cx="50" cy="50" r="32" pathLength="100" stroke="' + colors[index % colors.length] + '" stroke-dasharray="' + dash + '" stroke-dashoffset="-' + offset.toFixed(3) + '"/>'; offset += pct; return out; }).join('');
     var rows = values.map(function (item, index) { var pct = total ? Number(item.valor || 0) * 100 / total : 0; return '<div class="composition-row"><span><i style="background:' + colors[index % colors.length] + '"></i>' + escapeHtml(item.rotulo || item.chave) + '</span><b>' + escapeHtml(format(item.valor, valueFormat)) + '<small>' + escapeHtml(format(pct, 'percentual')) + '</small></b></div>'; }).join('');
+    if (showTotal) rows += '<div class="composition-row composition-total"><span>Total</span><b>' + escapeHtml(format(total, valueFormat)) + '</b></div>';
     return '<article class="detail-card composition-card"><p class="card-kicker">COMPOSIÇÃO</p><div class="card-title-with-help"><h3>' + escapeHtml(title || 'Situação') + '</h3>' + contextualHelp(help, title) + '</div><div class="composition-content"><svg class="pie-chart" viewBox="0 0 100 100"><circle class="pie-track" cx="50" cy="50" r="32"/><g transform="rotate(-90 50 50)">' + slices + '</g><text x="50" y="48" class="pie-total">' + (total ? '100%' : '0%') + '</text><text x="50" y="57" class="pie-caption">do bloco</text></svg><div class="composition-legend">' + rows + '</div></div></article>';
   }
 
-  function composition(items, definition, valueFormat) {
+  function composition(items, definition, valueFormat, blockItems) {
     if (!definition || definition.habilitada === false) return '';
     var values = items || [];
-    if (!values.length) return '';
     var blocks = Array.isArray(definition.blocos) ? definition.blocos : [];
-    if (!blocks.length) return compositionCard(values, definition.titulo || 'Situação', valueFormat, definition.ajuda);
-    var byKey = {};
+    if (!blocks.length) return values.length ? compositionCard(values, definition.titulo || 'Situação', valueFormat, definition.ajuda, definition.mostrarTotal) : '';
+    var byKey = Object.create(null);
     values.forEach(function (item) { byKey[String(item.chave)] = item; });
-    return blocks.map(function (block) {
-      var blockValues = (block.itens || []).map(function (key) { return byKey[String(key)] || null; }).filter(Boolean);
-      return blockValues.length ? compositionCard(blockValues, block.titulo || definition.titulo || 'Situação', valueFormat, block.ajuda || definition.ajuda) : '';
+    return blocks.map(function (block, index) {
+      var blockValues = block.campo ? ((blockItems || {})[index] || []) : (block.itens || []).map(function (key) { return byKey[String(key)] || null; }).filter(Boolean);
+      return blockValues.length || block.campo ? compositionCard(blockValues, block.titulo || definition.titulo || 'Situação', block.formato || valueFormat, block.ajuda || definition.ajuda, block.mostrarTotal) : '';
     }).join('');
   }
 
@@ -1901,7 +1901,7 @@
       return;
     }
     var compositionDefinition = indicator.composicao || {};
-    var detail = composition(data.composicao, compositionDefinition, compositionDefinition.formato || data.card.formato);
+    var detail = composition(data.composicao, compositionDefinition, compositionDefinition.formato || data.card.formato, data.composicaoBlocos);
     $('#indicatorSummary').classList.toggle('composition-split', Array.isArray(compositionDefinition.blocos) && compositionDefinition.blocos.length > 1);
     if (!detail && compositionDefinition.habilitada !== false) detail = '<article class="detail-card"><p class="card-kicker">COMPOSIÇÃO</p><h3>Registros considerados</h3><div class="detail-row"><span>Quantidade</span><b>' + escapeHtml(format(data.card.quantidade, 'numero')) + '</b></div></article>';
     var compactSummary = $('#indicatorCompactSummary');
@@ -2003,7 +2003,7 @@
           indicator.listagem = page.indicador.listagem;
           indicator.listagem.paginacaoAtual = page.listagemPaginacao;
           indicator.listagem.titulo = selection.periodo ? 'Títulos considerados — ' + selection.periodo.slice(5) + '/' + selection.periodo.slice(0, 4)
-            + (selection.serie ? ' · ' + selection.serie : ' · todas as categorias') : originalListTitle;
+            + (selection.serie ? ' · ' + selection.serie : (indicator.grafico.agruparPorCategoria === false ? ' · todos os títulos do mês' : ' · todas as categorias')) : originalListTitle;
           listTarget.innerHTML = list(data.listagem, indicator.listagem, data.listagemDetalhes);
           bindListPagination(data, indicator, listTarget); bindListDetails(data, indicator);
           var heading = listTarget.querySelector('h3') || listTarget;
