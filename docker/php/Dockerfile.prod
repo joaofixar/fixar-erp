@@ -10,7 +10,20 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove $PHPIZE_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
-COPY apache.prod.conf /etc/apache2/sites-available/000-default.conf
-COPY mpm-prefork.prod.conf /etc/apache2/mods-available/mpm_prefork.conf
-COPY compatibilidade.prod.php /usr/local/etc/php/compatibilidade.php
-COPY php.prod.ini /usr/local/etc/php/conf.d/fixar.ini
+COPY docker/php/apache.prod.conf /etc/apache2/sites-available/000-default.conf
+COPY docker/php/mpm-prefork.prod.conf /etc/apache2/mods-available/mpm_prefork.conf
+COPY docker/php/servername.conf /etc/apache2/conf-enabled/servername.conf
+COPY docker/php/compatibilidade.prod.php /usr/local/etc/php/compatibilidade.php
+COPY docker/php/php.prod.ini /usr/local/etc/php/conf.d/fixar.ini
+COPY docker/php/gravar-conf.php /usr/local/bin/gravar-conf.php
+COPY docker/php/entrada.sh /usr/local/bin/entrada
+COPY src /var/www/html
+
+RUN chmod +x /usr/local/bin/entrada \
+    && mkdir -p /var/lib/php/sessions \
+        /var/www/html/hardness3/dados_usuarios \
+        /var/www/html/hardness3/smarty/templates_c \
+        /var/www/html/hardness3/smarty/cache
+
+ENTRYPOINT ["/usr/local/bin/entrada"]
+CMD ["apache2-foreground"]

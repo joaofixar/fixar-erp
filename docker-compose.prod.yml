@@ -3,9 +3,10 @@
 # boleto, e-mail), o MariaDB não tem porta publicada e a fotografia de ensaio
 # não entra no volume.
 #
+# O código entra na imagem. Um volume ./src no Coolify nasce vazio e o Apache
+# responde 403. O confUsuario.php é gravado na subida com o host db.
 # O volume do banco nasce vazio. A cópia de produção é restaurada nele.
-# O confUsuario.php do servidor aponta o host do banco para db.
-# Código novo vale depois do reinício: o opcache não relê o arquivo a cada pedido.
+# Código novo vale depois do rebuild: o opcache não relê o arquivo a cada pedido.
 #
 #   docker compose -f docker-compose.prod.yml up -d --build
 #
@@ -16,8 +17,8 @@ name: fixar-erp-producao
 services:
   web:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: docker/php/Dockerfile.prod
     image: fixar-erp-producao
     restart: unless-stopped
     mem_limit: 3072m
@@ -27,8 +28,11 @@ services:
     environment:
       SERVICE_FQDN_WEB: ${SERVICE_FQDN_WEB:-}
       TZ: America/Sao_Paulo
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-fixar}
+      MARIADB_USER: ${MARIADB_USER:-fixar}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?defina MARIADB_PASSWORD}
+      DB_HOST: db
     volumes:
-      - ./src:/var/www/html
       - dados-usuarios:/var/www/html/hardness3/dados_usuarios
       - sessoes:/var/lib/php/sessions
     expose:
