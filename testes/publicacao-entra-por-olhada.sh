@@ -446,6 +446,13 @@ cat >"$pub/sistema/index-framework.php" <<'EOF'
 jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
 wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
 EOF
+cat >"$pub/sistema/interfaceUsuario.php" <<'EOF'
+class interfaceUsuario { public $gridFiltro, $colunasOcultar;
+NTwn6: $value[0] = isset($value[0]) ? $value[0] : '';
+PQbU1: $callbackParameterBase64 = isset($grid_valor['callbackParameter']) ? base64_encode($grid_valor['callbackParameter']) : '';
+in_array($tabelaId, $tables)
+if (!(count($tables) > 0)) { goto OMmQM; }
+EOF
 git init -q -b master "$pub"
 identificar "$pub"
 sha_base="$(commitar "$pub" "base da copia")"
@@ -468,6 +475,14 @@ cat >"$pub/sistema/index-framework.php" <<'EOF'
 jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
 wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
 EOF
+cat >"$pub/sistema/interfaceUsuario.php" <<'EOF'
+// deles
+class interfaceUsuario { public $gridFiltro, $colunasOcultar;
+NTwn6: $value[0] = isset($value[0]) ? $value[0] : '';
+PQbU1: $callbackParameterBase64 = isset($grid_valor['callbackParameter']) ? base64_encode($grid_valor['callbackParameter']) : '';
+in_array($tabelaId, $tables)
+if (!(count($tables) > 0)) { goto OMmQM; }
+EOF
 sha_ponta="$(commitar "$pub" "ponta")"
 cat >"$erp/src/hardness3/bibliotecas/conexaoBanco.php" <<'EOF'
 <?php
@@ -484,6 +499,14 @@ cat >"$erp/src/hardness3/sistema/index-framework.php" <<'EOF'
 // fixar
 jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
 wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
+EOF
+cat >"$erp/src/hardness3/sistema/interfaceUsuario.php" <<'EOF'
+// fixar
+class interfaceUsuario { public $gridFiltro, $colunasOcultar;
+NTwn6: $value[0] = isset($value[0]) ? $value[0] : '';
+PQbU1: $callbackParameterBase64 = isset($grid_valor['callbackParameter']) ? base64_encode($grid_valor['callbackParameter']) : '';
+in_array($tabelaId, $tables)
+if (!(count($tables) > 0)) { goto OMmQM; }
 EOF
 printf '%s\n' "$sha_base" >"$erp/bin/ponto"
 git -C "$erp" add -A
@@ -525,6 +548,21 @@ if ! grep -q "is_array(\$g\['divIdChain'\])" <<<"$(git -C "$erp" show "publicaca
 fi
 if ! grep -q '// deles' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/index-framework.php")"; then
   reclamar "o texto da publicação saiu ao ajustar a cadeia de telas"
+fi
+if ! grep -q 'colunasOcultar = array()' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/interfaceUsuario.php")"; then
+  reclamar "a lista de colunas ocultas não foi ajustada na branch"
+fi
+if grep -q 'public \$gridFiltro, \$colunasOcultar;' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/interfaceUsuario.php")"; then
+  reclamar "a lista nula de colunas ocultas permaneceu na branch"
+fi
+if ! grep -q 'is_string(\$value)' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/interfaceUsuario.php")"; then
+  reclamar "o filtro de data não foi ajustado na branch"
+fi
+if ! grep -q 'is_scalar(\$grid_valor\['"'"'callbackParameter'"'"'\])' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/interfaceUsuario.php")"; then
+  reclamar "o parâmetro do callback não foi ajustado na branch"
+fi
+if ! grep -q 'is_array(\$tables)' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/interfaceUsuario.php")"; then
+  reclamar "a lista de tabelas não foi ajustada na branch"
 fi
 if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_ponta" ]; then
   reclamar "a adaptação não avançou o ponto"

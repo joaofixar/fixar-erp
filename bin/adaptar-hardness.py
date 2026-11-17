@@ -73,6 +73,78 @@ CONSULTAS = (
 )
 
 
+URLENCODE = (
+    (
+        b"function gSubstituirVariaveisParametros(",
+        b"J4HNX: if (!(is_array($value) || is_object($value))) { goto hqhm0; }",
+        b"J4HNX: if (is_scalar($value) || $value === null) { goto hqhm0; }",
+    ),
+    (
+        b"function gSubstituirVariaveisParametros(",
+        b"WMhAt: if (!(is_array($value) || is_object($value))) { goto HdfZJ; }",
+        b"WMhAt: if (is_scalar($value) || $value === null) { goto HdfZJ; }",
+    ),
+    (
+        b"function gSubstituirVariaveisParametros(",
+        b"NPd5B: if (!(is_array($value) || is_object($value))) { goto mHdBj; }",
+        b"NPd5B: if (is_scalar($value) || $value === null) { goto mHdBj; }",
+    ),
+)
+
+
+GRID = (
+    (
+        b"class interfaceUsuario",
+        b"public $gridFiltro, $colunasOcultar;",
+        b"public $gridFiltro, $colunasOcultar = array();",
+    ),
+    (
+        b"class interfaceUsuario",
+        b"NTwn6: $value[0] = isset($value[0]) ? $value[0] : '';",
+        b"NTwn6: if (is_string($value)) { $value = array($value, ''); } $value[0] = isset($value[0]) ? $value[0] : '';",
+    ),
+    (
+        b"class interfaceUsuario",
+        b"PQbU1: $callbackParameterBase64 = isset($grid_valor['callbackParameter']) ? base64_encode($grid_valor['callbackParameter']) : '';",
+        b"PQbU1: $callbackParameterBase64 = isset($grid_valor['callbackParameter']) && is_scalar($grid_valor['callbackParameter']) ? base64_encode($grid_valor['callbackParameter']) : '';",
+    ),
+    (
+        b"class interfaceUsuario",
+        b"in_array($tabelaId, $tables)",
+        b"in_array($tabelaId, is_array($tables) ? $tables : array())",
+    ),
+    (
+        b"class interfaceUsuario",
+        b"if (!(count($tables) > 0))",
+        b"if (!(is_array($tables) && count($tables) > 0))",
+    ),
+)
+
+
+def adaptar_grid(texto):
+    # O PHP 8 recusa in_array em nulo e string vazia numa posição de string.
+    for marca, cru, seguro in GRID:
+        if marca not in texto:
+            return texto
+        if cru in texto:
+            texto = texto.replace(cru, seguro)
+        elif seguro not in texto:
+            return None
+    return texto
+
+
+def adaptar_urlencode(texto):
+    # O PHP 8 recusa resource no urlencode. A função percorre os globais.
+    for marca, cru, seguro in URLENCODE:
+        if marca not in texto:
+            return texto
+        if cru in texto:
+            texto = texto.replace(cru, seguro)
+        elif seguro not in texto:
+            return None
+    return texto
+
+
 def adaptar_consultas(texto):
     for marca, cru, seguro in CONSULTAS:
         if marca not in texto:
@@ -122,7 +194,23 @@ def adaptar(raiz):
                     file=sys.stderr,
                 )
                 return 1
-            novo = consultas
+            urlencode = adaptar_urlencode(consultas)
+            if urlencode is None:
+                print(
+                    "A adaptação de bibliotecas/funcoesGerais.php não encaixa.",
+                    file=sys.stderr,
+                )
+                return 1
+            novo = urlencode
+        if relativo == "sistema/interfaceUsuario.php":
+            grid = adaptar_grid(novo)
+            if grid is None:
+                print(
+                    "A adaptação de sistema/interfaceUsuario.php não encaixa.",
+                    file=sys.stderr,
+                )
+                return 1
+            novo = grid
         if relativo == "sistema/index-framework.php":
             if CADEIA in novo:
                 novo = novo.replace(CADEIA, CADEIA_SEGURA)
