@@ -115,7 +115,6 @@ caminho_excluido() {
     bibliotecas/tcpdf/cache|bibliotecas/tcpdf/cache/*) return 0 ;;
     hardness/phpqrcode/cache|hardness/phpqrcode/cache/*) return 0 ;;
     scripts/backup|scripts/backup/*) return 0 ;;
-    static/css/temas/tema_*_cache.css) return 0 ;;
     *.p12|*.keystore) return 0 ;;
     configuracoes/painel-comercial-inecel-root-63.json) return 0 ;;
     bibliotecas/layouts_remessa/manual/Manual\ Remessa\ HSBC.pdf) return 0 ;;

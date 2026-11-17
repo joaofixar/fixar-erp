@@ -12,7 +12,6 @@
 /site/conf.php
 /rest_api/config/app.local.php
 Thumbs.db
-/static/css/temas/tema_*_cache.css
 /ide*
 /apps
 /bibliotecas/composer/vendor/

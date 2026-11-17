@@ -12,7 +12,6 @@ sistema-legado/
 smarty/templates_c/
 dados_usuarios/
 scripts/backup/
-static/css/temas/tema_*_cache.css
 bin/__pycache__/
 
 # Override local de porta. O compose commitado publica 8080.
@@ -36,7 +35,6 @@ src/hardness3/smarty/cache/
 src/hardness3/bibliotecas/tcpdf/cache/
 src/hardness3/hardness/phpqrcode/cache/
 src/hardness3/scripts/backup/
-src/hardness3/static/css/temas/tema_*_cache.css
 src/hardness3/configuracoes/painel-comercial-inecel-root-63.json
 src/hardness3/bibliotecas/layouts_remessa/manual/Manual Remessa HSBC.pdf
 src/hardness3/bibliotecas/layouts_remessa/manual/cresol/Manual Especificacoes Tecnicas Cresol.pdf

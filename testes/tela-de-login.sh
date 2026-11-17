@@ -26,7 +26,7 @@ while IFS= read -r arquivo; do
         .env.example) ;;
         *) reclamar "credencial no git: $arquivo" ;;
       esac ;;
-    */templates_c/*|*/dados_usuarios/*|*/tema_*_cache.css)
+    */templates_c/*|*/dados_usuarios/*)
       reclamar "cache ou arquivo de uso no git: $arquivo" ;;
     */inecel/*|*/loginBoticario/*|*/personalizacoes/Aneis*|*/personalizacoes/ceigon/*|*/personalizacoes/guimepa/*)
       reclamar "pasta de outro cliente no git: $arquivo" ;;
