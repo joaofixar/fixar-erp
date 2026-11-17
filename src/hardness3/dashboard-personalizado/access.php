@@ -3,7 +3,7 @@ namespace hardness;
 
 /*
  * As permissões vivem fora do JSON que monta os indicadores. Dessa forma o
- * diretor pode administrar acessos sem risco de alterar uma personalização.
+ * gestor autorizado pode administrar acessos sem alterar uma personalização.
  */
 function dashboardPersonalizadoArquivoAcessos($empresaId)
 {
@@ -91,13 +91,14 @@ function dashboardPersonalizadoLerAcessos($empresaId, $indicadoresValidos = arra
             $vendedorNome = isset($restricao['vendedorNome']) ? trim((string) $restricao['vendedorNome']) : '';
             if ($vendedorId > 0 && $vendedorNome !== '') {
                 $restricoes[$indicadorId] = array('vendedorId' => $vendedorId, 'vendedorNome' => $vendedorNome);
+                if (isset($restricao['escopo']) && $restricao['escopo'] === 'equipe') $restricoes[$indicadorId]['escopo'] = 'equipe';
                 if (!in_array($indicadorId, $indicadores, true)) {
                     $indicadores[] = $indicadorId;
                 }
             }
         }
-        if (!empty($indicadores) || !empty($restricoes)) {
-            $usuariosNormalizados[$id] = array('indicadores' => array_values($indicadores), 'restricoes' => $restricoes);
+        if (!empty($indicadores) || !empty($restricoes) || !empty($regra['gestor'])) {
+            $usuariosNormalizados[$id] = array('indicadores' => array_values($indicadores), 'restricoes' => $restricoes, 'gestor' => isset($regra['gestor']) && $regra['gestor'] === true);
         }
     }
     $acessos['usuarios'] = $usuariosNormalizados;
@@ -135,18 +136,88 @@ function dashboardPersonalizadoEhRoot($autorizacao)
     return !empty($autorizacao['root']) || (isset($autorizacao['usuario']) && (int) $autorizacao['usuario'] === 63);
 }
 
-function dashboardPersonalizadoPodeGerenciarAcessos($autorizacao, $acessos)
+function dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos)
 {
     return dashboardPersonalizadoEhRoot($autorizacao)
         || in_array((int) $autorizacao['perfil'], (array) $acessos['perfisGestores'], true);
 }
 
+function dashboardPersonalizadoPodeGerenciarAcessos($autorizacao, $acessos)
+{
+    return dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos)
+        || !empty($acessos['usuarios'][(int) $autorizacao['usuario']]['gestor']);
+}
+
+function dashboardPersonalizadoIndicadoresGerenciaveis($autorizacao, $configuracao, $acessos)
+{
+    if (dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos)) return $configuracao['indicadores'];
+    if (!dashboardPersonalizadoPodeGerenciarAcessos($autorizacao, $acessos)) return array();
+    $ids = (array) $acessos['usuarios'][(int) $autorizacao['usuario']]['indicadores'];
+    return array_values(array_filter($configuracao['indicadores'], function ($i) use ($ids) {
+        return in_array($i['id'], $ids, true);
+    }));
+}
+
+function dashboardPersonalizadoAcessosVisiveis($acessos, $indicadores)
+{
+    $ids = array_fill_keys(array_column($indicadores, 'id'), true);
+    $resultado = dashboardPersonalizadoAcessosPadrao();
+    foreach ($acessos['perfis'] as $id => $lista) $resultado['perfis'][$id] = dashboardPersonalizadoNormalizarIndicadores($lista, $ids);
+    foreach ($acessos['usuarios'] as $id => $regra) $resultado['usuarios'][$id] = array(
+        'indicadores' => dashboardPersonalizadoNormalizarIndicadores($regra['indicadores'], $ids),
+        'restricoes' => array_intersect_key($regra['restricoes'], $ids),
+        'gestor' => !empty($regra['gestor'])
+    );
+    return $resultado;
+}
+
+// O gestor individual administra somente seus indicadores, preservando todos
+// os demais acessos e sem poder alterar sua própria autorização ou delegar
+// uma visão de dados mais ampla do que a que recebeu.
+function dashboardPersonalizadoMesclarAcessosGestor($autorizacao, $configuracao, $atuais, $novo, &$erro)
+{
+    if (dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $atuais)) {
+        if (!dashboardPersonalizadoEhRoot($autorizacao)) {
+            foreach ($novo['usuarios'] as $id => &$regra) $regra['gestor'] = !empty($atuais['usuarios'][$id]['gestor']);
+            unset($regra);
+            foreach ($atuais['usuarios'] as $id => $regra) if (!empty($regra['gestor']) && !isset($novo['usuarios'][$id])) {
+                $novo['usuarios'][$id] = array('indicadores' => array(), 'restricoes' => array(), 'gestor' => true);
+            }
+        }
+        return $novo;
+    }
+    $ids = array_fill_keys(array_column(dashboardPersonalizadoIndicadoresGerenciaveis($autorizacao, $configuracao, $atuais), 'id'), true);
+    $resultado = $atuais;
+    $ator = (int) $autorizacao['usuario'];
+    $limites = isset($atuais['usuarios'][$ator]['restricoes']) ? $atuais['usuarios'][$ator]['restricoes'] : array();
+    foreach ($novo['perfis'] as $id => $lista) {
+        foreach ($lista as $indicador) if (!isset($ids[$indicador])) { $erro = 'Você pode distribuir apenas os indicadores liberados para você.'; return false; }
+        $anterior = isset($atuais['perfis'][$id]) ? $atuais['perfis'][$id] : array();
+        foreach ($lista as $indicador) if (isset($limites[$indicador]) && !in_array($indicador, $anterior, true)) { $erro = 'Um indicador com visão individual deve ser liberado por usuário, com a mesma restrição.'; return false; }
+        $resultado['perfis'][$id] = array_values(array_unique(array_merge(array_values(array_filter($anterior, function ($i) use ($ids) { return !isset($ids[$i]); })), $lista)));
+    }
+    foreach ($novo['usuarios'] as $id => $regra) {
+        foreach (array_merge($regra['indicadores'], array_keys($regra['restricoes'])) as $indicador) if (!isset($ids[$indicador])) { $erro = 'Você pode distribuir apenas os indicadores liberados para você.'; return false; }
+        if ((int) $id === $ator) continue;
+        foreach ($regra['indicadores'] as $indicador) if (isset($limites[$indicador])) {
+            $r = isset($regra['restricoes'][$indicador]) ? $regra['restricoes'][$indicador] : array();
+            if (empty($r['vendedorId']) || (int) $r['vendedorId'] !== (int) $limites[$indicador]['vendedorId'] || (isset($r['escopo']) ? $r['escopo'] : '') !== (isset($limites[$indicador]['escopo']) ? $limites[$indicador]['escopo'] : '')) {
+                $erro = 'Você não pode liberar uma visão mais ampla que a sua.'; return false;
+            }
+        }
+        $anterior = isset($atuais['usuarios'][$id]) ? $atuais['usuarios'][$id] : array('indicadores' => array(), 'restricoes' => array());
+        $lista = array_values(array_filter($anterior['indicadores'], function ($i) use ($ids) { return !isset($ids[$i]); }));
+        $resultado['usuarios'][$id] = array('indicadores' => array_values(array_unique(array_merge($lista, $regra['indicadores']))),
+            'restricoes' => array_merge(array_diff_key($anterior['restricoes'], $ids), $regra['restricoes']), 'gestor' => !empty($anterior['gestor']));
+    }
+    return $resultado;
+}
+
 function dashboardPersonalizadoIndicadoresPermitidos($autorizacao, $configuracao, $acessos)
 {
-    $acessoDiretorAutomatico = !array_key_exists('acessoDiretorAutomatico', $configuracao)
-        || $configuracao['acessoDiretorAutomatico'] === true;
-    if (dashboardPersonalizadoPodeGerenciarAcessos($autorizacao, $acessos)
-        || (!empty($autorizacao['diretor']) && $acessoDiretorAutomatico)) {
+    // JSONs legados podem conter acessoDiretorAutomatico=true. Esse campo não
+    // concede mais acesso: somente ROOT e as liberações explícitas da ACL.
+    if (dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos)) {
         return $configuracao['indicadores'];
     }
 
@@ -201,7 +272,7 @@ function dashboardPersonalizadoIndicadorSuportaRestricaoVendedor($indicador)
 
 function dashboardPersonalizadoRestricaoUsuarioIndicador($autorizacao, $acessos, $indicadorId)
 {
-    if (dashboardPersonalizadoPodeGerenciarAcessos($autorizacao, $acessos)) {
+    if (dashboardPersonalizadoGerenciaTodosAcessos($autorizacao, $acessos)) {
         return false;
     }
     $usuario = (int) $autorizacao['usuario'];
@@ -239,6 +310,15 @@ function dashboardPersonalizadoAplicarRestricaoUsuario($indicador, $restricao, &
     if ($restricao === false) {
         return $indicador;
     }
+    if (!empty($indicador['painelCotacoes']['habilitado'])) {
+        // O painel novo tem abas e datas livres; somente o universo de vendedores é restrito.
+        $indicador['_cotacoesRestricao'] = $restricao;
+        return $indicador;
+    }
+    if (isset($restricao['escopo']) && $restricao['escopo'] === 'equipe') {
+        $erro = 'O acesso por equipe exige um indicador compatível.';
+        return false;
+    }
     if (isset($indicador['clientesInativos']['habilitado']) && $indicador['clientesInativos']['habilitado'] === true) {
         $erro = 'A restrição individual de vendedor não é compatível com este indicador.';
         return false;
@@ -250,14 +330,23 @@ function dashboardPersonalizadoAplicarRestricaoUsuario($indicador, $restricao, &
     }
 
     $entrada['f_' . $filtroVendedor['id']] = dashboardPersonalizadoValorBloqueadoVendedor($filtroVendedor, $restricao);
-    unset($entrada['f_dataInicio'], $entrada['f_dataFim']);
-    $bloquearFiltros = function (&$definicao) use ($filtroVendedor, $restricao) {
+    $datasLivres = !empty($indicador['desempenhoComercial']['carregamentoProgressivo']);
+    if (!$datasLivres) unset($entrada['f_dataInicio'], $entrada['f_dataFim']);
+    if (!empty($indicador['desempenhoComercial']['equipes'])) {
+        // Gestores sem restrição mantêm o filtro; o acesso individual ignora
+        // também valores forjados ou preferências antigas de equipe.
+        unset($entrada['f_equipe']);
+        $indicador['filtros'] = array_values(array_filter($indicador['filtros'], function ($filtro) {
+            return !isset($filtro['id']) || $filtro['id'] !== 'equipe';
+        }));
+    }
+    $bloquearFiltros = function (&$definicao) use ($filtroVendedor, $restricao, $datasLivres) {
         if (empty($definicao['filtros']) || !is_array($definicao['filtros'])) {
             return;
         }
         foreach ($definicao['filtros'] as &$filtro) {
             $id = isset($filtro['id']) ? (string) $filtro['id'] : '';
-            if ($id === 'dataInicio' || $id === 'dataFim' || $id === $filtroVendedor['id']) {
+            if ((!$datasLivres && ($id === 'dataInicio' || $id === 'dataFim')) || $id === $filtroVendedor['id']) {
                 $filtro['bloqueado'] = true;
                 if ($id === $filtroVendedor['id']) {
                     $filtro['valor'] = dashboardPersonalizadoValorBloqueadoVendedor($filtro, $restricao);

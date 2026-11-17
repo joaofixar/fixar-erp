@@ -67,6 +67,8 @@ switch ($g['r'][3]) {
 			array_push($tabsList, array($tab7Id, '/est/est016/grid/est016GridHistorico/', 'Histórico', "&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T224_Id=" . urlencode($_REQUEST['acaoId']),false,true));
 			$tab8Id = uniqid();
 			array_push($tabsList, array($tab8Id, '/est/est016/content/est016ContentEmail/', 'E-mail', "&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T224_Id=" . urlencode($_REQUEST['acaoId'])));
+			$tabMoedaId = uniqid();
+			array_push($tabsList, array($tabMoedaId, '/est/est016/form/est016FormMoeda/', 'Moeda', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T224_Id=" . urlencode($_REQUEST['acaoId'])));
 			$tab9Id = uniqid();
 			array_push($tabsList, array($tab9Id, '/est/est016/form/est016FormConfiguracoes/', 'Configurações', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T224_Id=" . urlencode($_REQUEST['acaoId'])));
 			//array_push($tabsList, array($tab9Id, '/est/est016/form/est016FormPedidoFaturamento/', 'Faturamento', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T224_Id=" . urlencode($_REQUEST['acaoId'])));

@@ -10,6 +10,7 @@ use HardnessMcp\OAuth\OAuthGrantRepository;
 use HardnessMcp\OAuth\PermissionResolver;
 use HardnessMcp\Eligibility\McpConnectionEligibilityResolver;
 use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -19,9 +20,9 @@ final class OAuthAdminService
 {
     private PDO $pdo; private OAuthClientRepository $clients; private OAuthGrantRepository $grants; private ScopeCatalog $catalog; private McpAuditService $audit;
     private string $host; private string $ip; private ?int $actor;
-    public function __construct(PDO $pdo, string $host, string $ip, ?int $actor = null)
+    public function __construct(PDO $pdo, string $host, string $ip, ?int $actor = null, ?string $installationProfile = null)
     {
-        $this->pdo = $pdo; $this->clients = new OAuthClientRepository($pdo); $this->grants = new OAuthGrantRepository($pdo); $this->catalog = new ScopeCatalog(); $this->audit = new McpAuditService($pdo);
+        $this->pdo = $pdo; $this->clients = new OAuthClientRepository($pdo); $this->grants = new OAuthGrantRepository($pdo); $this->catalog = ScopeCatalogFactory::forPdo($pdo, $installationProfile); $this->audit = new McpAuditService($pdo);
         $this->host = $host; $this->ip = $ip; $this->actor = $actor !== null && $actor > 0 ? $actor : null;
     }
     /** @param string[] $redirectUris @return array{id:int,client_id:string} */

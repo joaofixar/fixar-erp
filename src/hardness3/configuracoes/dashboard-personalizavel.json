@@ -1,6 +1,6 @@
 {
   "habilitado": true,
-  "acessoDiretorAutomatico": true,
+  "acessoDiretorAutomatico": false,
   "titulo": "Painel de Indicadores",
   "indicadores": [
     {
@@ -666,7 +666,7 @@
       "habilitado": true,
       "ordem": 4,
       "titulo": "Representantes",
-      "subtitulo": "Comparativo do faturamento líquido com o ano anterior",
+      "subtitulo": "Portal dos representantes e comparativos de faturamento",
       "icone": "users",
       "cor": "cyan",
       "filtros": [
@@ -725,10 +725,36 @@
         "calculo": "soma",
         "formato": "moeda"
       },
-      "grafico": { "habilitado": false },
-      "listagem": { "habilitada": false },
+      "grafico": {
+        "habilitado": false
+      },
+      "listagem": {
+        "habilitada": false
+      },
       "abas": [
-        { "id": "anual", "titulo": "Comparativo anual" },
+        {
+          "id": "portal",
+          "titulo": "Acessos ao portal",
+          "subtitulo": "Representantes ativos, envio de links e acompanhamento dos acessos",
+          "filtros": [],
+          "portalRepresentantes": {
+            "habilitado": true
+          },
+          "card": {
+            "habilitada": false
+          },
+          "comparativoRepresentantes": {},
+          "grafico": {
+            "habilitado": false
+          },
+          "listagem": {
+            "habilitada": false
+          }
+        },
+        {
+          "id": "anual",
+          "titulo": "Comparativo anual"
+        },
         {
           "id": "mensal",
           "titulo": "Comparativo mensal",

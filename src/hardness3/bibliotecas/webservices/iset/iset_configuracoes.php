@@ -282,6 +282,30 @@ class iset_configuracoes_
         );
     }
 
+    /** Acrescenta os campos ao editor sem gravar C031 nem substituir escolhas existentes. */
+    public static function adicionarPesoMedidas($json)
+    {
+        $validacao = self::validarJsonProdutos($json);
+        if (!$validacao['ok']) return $validacao;
+        $dados = json_decode($json, true);
+        $novos = array(
+            'peso' => array('titulo' => 'Peso bruto (kg)', 'origem' => 'D001_Peso_Unitario_Bruto', 'payload' => 'weight', 'tipo' => 'numero', 'visivel' => true, 'enviar' => true, 'obrigatorio' => false),
+            'medidas' => array('titulo' => 'Medidas (C × L × A, cm)', 'origem' => 'ISET_Dimensoes', 'payload' => 'dimensions', 'tipo' => 'dimensoes', 'visivel' => true, 'enviar' => true, 'obrigatorio' => false),
+        );
+        foreach ($novos as $grupo => $novo) {
+            $existe = false;
+            foreach ($validacao['campos'] as $campo) {
+                if ($campo['origem'] !== $novo['origem'] && $campo['payload'] !== $novo['payload']) continue;
+                if ($campo['origem'] !== $novo['origem'] || $campo['payload'] !== $novo['payload'] || $campo['tipo'] !== $novo['tipo']) {
+                    return array('ok' => false, 'erros' => array('Mapeamento conflitante para ' . $novo['titulo'] . '. Corrija o JSON antes de adicionar os campos.'), 'json' => $json);
+                }
+                $existe = true;
+            }
+            if (!$existe) $dados[$grupo][] = $novo;
+        }
+        return self::validarJsonProdutos(json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
     /**
      * Aceita somente o schema conhecido. A lista permitida é intencionalmente
      * pequena: origem jamais é interpolada como SQL fornecido pelo usuário.
@@ -319,7 +343,8 @@ class iset_configuracoes_
                 if ($titulo === '') $erros[] = $rotulo . ' possui título vazio.';
                 if (!isset($permitidas[$origem])) $erros[] = $rotulo . ' usa origem não permitida: ' . ($origem ?: '(vazia)') . '.';
                 if (!preg_match('/^[a-z][a-z0-9_]{0,63}$/', $payload)) $erros[] = $rotulo . ' possui payload inválido.';
-                if (!in_array($tipo, array('texto', 'numero', 'inteiro', 'booleano', 'imagens'), true)) $erros[] = $rotulo . ' possui tipo inválido.';
+                if (!in_array($tipo, array('texto', 'numero', 'inteiro', 'booleano', 'imagens', 'dimensoes'), true)) $erros[] = $rotulo . ' possui tipo inválido.';
+                if (($tipo === 'dimensoes' || $origem === 'ISET_Dimensoes' || $payload === 'dimensions') && ($tipo !== 'dimensoes' || $origem !== 'ISET_Dimensoes' || $payload !== 'dimensions')) $erros[] = $rotulo . ' deve usar ISET_Dimensoes, payload dimensions e tipo dimensoes juntos.';
                 if ($tipo === 'imagens' && $origem !== 'T172_Imagens') $erros[] = $rotulo . ' do tipo imagens deve usar exclusivamente a origem T172_Imagens.';
                 if ($tipo === 'imagens' && !empty($campo['enviar']) && $payload !== 'images') $erros[] = $rotulo . ' do tipo imagens deve enviar exclusivamente o payload images.';
                 foreach (array('visivel', 'enviar', 'obrigatorio') as $propriedade) {
@@ -338,6 +363,7 @@ class iset_configuracoes_
             if (!$encontrado) $erros[] = 'O payload obrigatório da ISET "' . $obrigatorioIset . '" deve ser enviado e marcado como obrigatório.';
         }
         $regrasFixas = array(
+            'weight' => array('origem' => 'D001_Peso_Unitario_Bruto', 'tipo' => 'numero'),
             'price' => array('origem' => 'D009_Preco_1', 'tipo' => 'numero'),
             'quantity' => array('origem' => 'D009_Quantidade_Estoque_Liquido', 'tipo' => 'inteiro'),
             'status' => array('origem' => 'ISET_Status_Produto', 'tipo' => 'inteiro'),
@@ -353,7 +379,7 @@ class iset_configuracoes_
 
     public static function origensProdutosPermitidas()
     {
-        return array('D001_Codigo_Produto', 'D001_Descricao_Produto', 'D009_Preco_1', 'D009_Quantidade_Estoque_Liquido', 'ISET_Status_Produto', 'ISET_Allow_Buy', 'T172_Imagens');
+        return array('D001_Peso_Unitario_Bruto', 'ISET_Dimensoes', 'D001_Codigo_Produto', 'D001_Descricao_Produto', 'D009_Preco_1', 'D009_Quantidade_Estoque_Liquido', 'ISET_Status_Produto', 'ISET_Allow_Buy', 'T172_Imagens');
     }
 
     private function validar($urlBase, $identificador, $chave, $status, $transportadora, $portadorPagamento)

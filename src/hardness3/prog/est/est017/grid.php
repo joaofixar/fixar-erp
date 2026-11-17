@@ -79,7 +79,7 @@ switch($g['r'][3]){
 			AND T003_Flag_Perdido != 'S'
 			AND D009_C004_Id='{$g['empresaAtual']}'
 			AND T006_Id IS NULL
-			AND D049_Flag_Tipo = 'PD'
+			AND D049_Flag_Tipo IN ('PD', 'IN')
 			GROUP BY T004_Id
 EOT;
 
@@ -235,7 +235,7 @@ EOT;
 			AND (if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)+T006_Quantidade_OP) < T006_Quantidade 
 			AND (T005_Flag_Status = 0 OR T005_Flag_Status = '' OR T005_Flag_Status=14)
 			AND IF(IFNULL(T006_C004_Id_Estoque,0) > 0, T006_C004_Id_Estoque, T005_C004_Id) = T005_C004_Id
-			AND D049_Flag_Tipo = 'PD'
+			AND D049_Flag_Tipo IN ('PD', 'IN')
 			GROUP BY T006_Id
 EOT;
 
@@ -397,7 +397,7 @@ EOT;
             array('colunaValor' => 'D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001_Id', '1000,583')),
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
-            array('colunaValor' => 'D037_Unidade', 'colunaTitulo' => 'Un', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D037_Unidade', 'colunaTitulo' => 'Un', 'colunaAlinhar' => center),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
             array('colunaValor' => 'T256_Quantidade_Produzida', 'colunaTitulo' => 'Produzido', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
             array('colunaValor' => 'T256_Quantidade_Entrada_Estoque', 'colunaTitulo' => 'Estoque', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
@@ -757,10 +757,10 @@ EOT;
             array('colunaValor' => 'T255_Id', 'colunaTitulo' => 'OP', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
-            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001_Id', '1000,583')),
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
-            array('colunaValor' => 'D037_Unidade', 'colunaTitulo' => 'Un', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D037_Unidade', 'colunaTitulo' => 'Un', 'colunaAlinhar' => center),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
             array('colunaValor' => 'T256_Quantidade_Produzida', 'colunaTitulo' => 'Produzido', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
             array('colunaValor' => 'T256_Quantidade_Saldo', 'colunaTitulo' => 'Saldo', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
@@ -924,10 +924,10 @@ EOT;
             array('colunaValor' => 'T255_Id', 'colunaTitulo' => 'OP', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
-            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001_Id', '1000,583')),
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
-            array('colunaValor' => 'D037_Unidade', 'colunaTitulo' => 'Un', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D037_Unidade', 'colunaTitulo' => 'Un', 'colunaAlinhar' => center),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
             array('colunaValor' => 'T256_Quantidade_Produzida', 'colunaTitulo' => 'Produzido', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
             array('colunaValor' => 'T256_Quantidade_Saldo', 'colunaTitulo' => 'Saldo', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
@@ -1055,7 +1055,7 @@ EOT;
             array('colunaValor' => 'T255_Id', 'colunaTitulo' => 'OP', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D009PD.D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001PD.D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
-            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001PD.D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001PD.D001_Id', '1000,583')),
             array('colunaValor' => 'D001PD.D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
@@ -1192,7 +1192,7 @@ EOT;
             array('colunaValor' => 'T255_Id', 'colunaTitulo' => 'OP', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D009PD.D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001PD.D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
-            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001PD.D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001PD.D001_Id', '1000,583')),
             array('colunaValor' => 'D001PD.D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
@@ -1331,7 +1331,7 @@ EOT;
             array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
-            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => 'center', 'colunaDimensao' => true),
+            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => center, 'colunaDimensao' => true),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001_Id', '1000,583')),
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),
@@ -1473,7 +1473,7 @@ EOT;
             array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),
             array('colunaValor' => 'D001_Id', 'colunaTitulo' => 'D001_Id', 'colunaExibir' => false),
-            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => 'center', 'colunaDimensao' => true),
+            array('colunaValor' => 'T255_Data_Emissao', 'colunaTitulo' => 'Data OP', 'callback' => 'gCorrigeData', 'style' => 'width:1%;', 'colunaAlinhar' => center, 'colunaDimensao' => true),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;', 'callback' => 'abrirJanela', 'callbackParameter' => array('Produto', '/cad/cad002/content/form2/', 'D001_Id', '1000,583')),
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descrição'),
             array('colunaValor' => 'T256_Quantidade', 'colunaTitulo' => 'Quantidade', 'colunaAlinhar' => 'right', 'colunaCasasDecimais' => '3', 'style' => 'width:1%;'),

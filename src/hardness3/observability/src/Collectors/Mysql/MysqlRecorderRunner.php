@@ -32,7 +32,7 @@ final class MysqlRecorderRunner
             return array('active' => false, 'reason' => 'another_collection_is_active', 'samples' => 0, 'partial' => false, 'failures' => array());
         }
 
-        $started = $this->now(); $deadline = $started + $durationSeconds; $samples = 0; $failures = array(); $limits = array();
+        $started = $this->now(); $deadline = $started + $durationSeconds; $samples = 0; $failures = array(); $limits = array(); $collectionPartials=0; $collectionFailureSections=array();
         try {
             try {
                 $retention = $this->storage->retain($retentionDays, (int) $started);
@@ -40,16 +40,20 @@ final class MysqlRecorderRunner
             }
             catch (\Throwable $exception) { $retention = array('removed' => array(), 'failures' => array('retention_failed'), 'retention_days' => $retentionDays); $failures[] = $this->failure('retention', $exception); }
 
+            $loadedState=$this->storage->loadState($database);$state=is_array($loadedState)?$loadedState:array();$stateDirty=$loadedState===null;
+            if(($state['schema_version']??null)!==1||($state['database']??null)!==$database){$state['schema_version']=1;$state['database']=$database;$stateDirty=true;}
+
             do {
                 $sampleStarted = $this->now();
-                $state = $this->storage->loadState($database) ?? array('schema_version' => 1, 'database' => $database);
                 $fast = $this->collector->collectFast($database, $longQuerySeconds, $longTransactionSeconds);
+                $this->noteCollection($fast['collection'],$collectionPartials,$collectionFailureSections);
                 $fast['runner'] = array('started_at_epoch' => $sampleStarted, 'success' => !$fast['collection']['partial']);
                 $this->persist('events', $fast, $limits, $failures);
 
                 $restart = false;
                 if ($this->due($state['status_collected_at'] ?? null, $sampleStarted, self::STATUS_INTERVAL_SECONDS)) {
                     $status = $this->collector->collectStatus();
+                    $this->noteCollection($status['collection'],$collectionPartials,$collectionFailureSections);
                     $status['database'] = $database;
                     $statusFailed = $this->collectionFailed($status['collection'], 'status');
                     $errorsFailed = $this->collectionFailed($status['collection'], 'errors');
@@ -70,10 +74,12 @@ final class MysqlRecorderRunner
                     /* State keeps the collector shape, not the persisted absolute/delta envelope. */
                     if (!$errorsFailed) { $state['errors_absolute'] = $this->rawErrors($calculated['errors']); }
                     if ($restart) { $state['mysql_restart_at'] = $sampleStarted; }
+                    $stateDirty=true;
                 }
 
                 if ($this->due($state['digests_collected_at'] ?? null, $sampleStarted, self::DIGEST_INTERVAL_SECONDS)) {
                     $digests = $this->collector->collectDigests($database);
+                    $this->noteCollection($digests['collection'],$collectionPartials,$collectionFailureSections);
                     $restartSinceLastDigest = $restart || (isset($state['mysql_restart_at']) && (!isset($state['digests_collected_at']) || (float) $state['mysql_restart_at'] > (float) $state['digests_collected_at']));
                     $digestsFailed = $this->collectionFailed($digests['collection'], 'digests');
                     $calculated = $digestsFailed
@@ -89,10 +95,10 @@ final class MysqlRecorderRunner
                     unset($digests['digests']);
                     if ($this->hasDigestHistory($digests['counters'])) { $this->persist('digests', $digests, $limits, $failures); }
                     $state['digests_collected_at'] = $sampleStarted;
+                    $stateDirty=true;
                 }
 
-                $state['schema_version'] = 1; $state['database'] = $database; $state['updated_at'] = date('c', (int) $sampleStarted);
-                try { $this->storage->saveState($database, $state); } catch (\Throwable $exception) { $failures[] = $this->failure('state', $exception); }
+                if($stateDirty){$state['updated_at']=date('c',(int)$sampleStarted);try{$this->storage->saveState($database,$state);$stateDirty=false;}catch(\Throwable $exception){$failures[]=$this->failure('state',$exception);}}
                 $samples++;
                 if ($once) { break; }
                 $next = min($deadline, $sampleStarted + $intervalSeconds);
@@ -103,7 +109,7 @@ final class MysqlRecorderRunner
             if ($limits !== array() || $failures !== array()) { $this->persistHealth($database, $limits, $failures); }
             return array(
                 'active' => true, 'samples' => $samples, 'duration_ms' => round(($this->now() - $started) * 1000, 2),
-                'partial' => $failures !== array() || $limits !== array(), 'failures' => $failures, 'file_limits' => array_values(array_unique($limits)), 'retention' => $retention,
+                'partial' => $failures !== array() || $limits !== array() || $collectionPartials>0, 'failures' => $failures, 'collection_partial_samples'=>$collectionPartials, 'collection_failure_sections'=>array_values(array_keys($collectionFailureSections)), 'file_limits' => array_values(array_unique($limits)), 'retention' => $retention,
             );
         } finally { $lock->release(); }
     }
@@ -128,6 +134,7 @@ final class MysqlRecorderRunner
     }
 
     private function due($last, float $now, int $frequency): bool { return !is_numeric($last) || $now - (float) $last >= $frequency; }
+    private function noteCollection(array $collection,int &$partialSamples,array &$sections):void{if(empty($collection['partial'])){return;}$partialSamples++;foreach($collection['failures']??array() as $failure){$section=(string)($failure['section']??'');if($section!==''){$sections[$section]=true;}}}
     private function collectionFailed(array $collection, string $section): bool
     {
         foreach ($collection['failures'] ?? array() as $failure) { if (($failure['section'] ?? '') === $section) { return true; } }

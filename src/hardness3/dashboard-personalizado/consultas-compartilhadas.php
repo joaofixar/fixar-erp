@@ -7,11 +7,57 @@ function dashboardConsultasCompartilhadasChave($sql, $parametros)
     return hash('sha256', serialize(array($sql, $parametros)));
 }
 
-function dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros)
+function dashboardConsultasCompartilhadasHabilitadas($indicador)
 {
-    $consultas = array();
-    $adicionar = function ($sql, $campos, $ordem = '') use (&$consultas) {
+    return getenv('HARDNESS_DASHBOARD_SHARED_QUERIES') !== '0'
+        && (!isset($indicador['consultasCompartilhadas']) || $indicador['consultasCompartilhadas'] === true);
+}
+
+// Descobre apenas projeções explícitas e inequívocas. Não interpreta nem
+// reescreve filtros/subconsultas. Expressões sem alias conservam o fluxo normal.
+function dashboardConsultasCompartilhadasCampos($sql)
+{
+    if (!preg_match('/^SELECT\s+(?:(?:DISTINCT|ALL)\s+)?/i', $sql, $inicio)) return null;
+    $campos = array(); $partes = array(); $parte = ''; $nivel = 0; $aspas = '';
+    for ($n = strlen($inicio[0]), $fim = strlen($sql); $n < $fim; $n++) {
+        $c = $sql[$n];
+        if ($aspas !== '') {
+            $parte .= $c;
+            if ($c === '\\' && $n + 1 < $fim) $parte .= $sql[++$n];
+            elseif ($c === $aspas) {
+                if ($n + 1 < $fim && $sql[$n + 1] === $aspas) $parte .= $sql[++$n];
+                else $aspas = '';
+            }
+            continue;
+        }
+        if ($c === "'" || $c === '"' || $c === '`') $aspas = $c;
+        elseif ($c === '(') $nivel++;
+        elseif ($c === ')') { if (--$nivel < 0) return null; }
+        elseif ($nivel === 0 && preg_match('/\G(?:FROM|UNION|ORDER\s+BY|LIMIT)\b/i', $sql, $m, 0, $n)
+            && ($n === 0 || !preg_match('/[a-zA-Z0-9_]/', $sql[$n - 1]))) break;
+        elseif ($c === ',' && $nivel === 0) { $partes[] = trim($parte); $parte = ''; continue; }
+        $parte .= $c;
+    }
+    if ($nivel !== 0 || $aspas !== '') return null;
+    $partes[] = trim($parte);
+    foreach ($partes as $item) {
+        if (preg_match('/\s+AS\s+(`?)([a-zA-Z_][a-zA-Z0-9_]{0,63})\1$/i', $item, $m)) $campo = $m[2];
+        elseif (preg_match('/^(?:`?[a-zA-Z_][a-zA-Z0-9_]*`?\.)?`?([a-zA-Z_][a-zA-Z0-9_]{0,63})`?$/', $item, $m)) $campo = $m[1];
+        else return null;
+        if (isset($campos[strtolower($campo)])) return null;
+        $campos[strtolower($campo)] = $campo;
+    }
+    return $campos ? array_values($campos) : null;
+}
+
+function dashboardConsultasCompartilhadasConsultas($i, $base, $card, $parametros)
+{
+    $consultas = array(); $incluidas = array();
+    $adicionar = function ($sql, $campos, $ordem = '') use (&$consultas, &$incluidas) {
+        if (isset($incluidas[$sql])) return $incluidas[$sql];
+        $incluidas[$sql] = count($consultas);
         $consultas[] = array('sql' => $sql, 'campos' => $campos, 'ordem' => $ordem);
+        return count($consultas) - 1;
     };
     $camposCard = array('quantidade', 'valor');
     foreach (array_slice(isset($i['resumos']) ? $i['resumos'] : array(), 0, 8) as $n => $r) $camposCard[] = 'resumo' . $n;
@@ -55,6 +101,34 @@ function dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros)
         $periodo = $dia ? '%Y-%m-%d' : '%Y-%m'; $rotulo = $dia ? '%d/%m' : '%m/%Y';
         $adicionar("SELECT DATE_FORMAT(`{$data}`, '{$periodo}') AS periodo, DATE_FORMAT(`{$data}`, '{$rotulo}') AS rotulo, COALESCE({$agg}, 0) AS valor FROM ({$base}) AS dashboard_base GROUP BY periodo, rotulo ORDER BY periodo", array('periodo', 'rotulo', 'valor'), '`periodo` ASC');
     }
+    if (getenv('HARDNESS_DASHBOARD_SHARED_COMPONENTS') !== '0') {
+        if (dashboardBarrasEmpilhadasHabilitado($i)) {
+            $adicionar(dashboardBarrasEmpilhadasSql($base, $graf), array('periodo', 'serie', 'valor', 'quantidade'), '`periodo` ASC, `serie` ASC');
+        }
+        foreach (isset($i['calendarios']) ? $i['calendarios'] : array() as $calendario) {
+            if (!is_array($calendario) || (isset($calendario['habilitado']) && !$calendario['habilitado'])) continue;
+            // Calendários fixos continuam independentes quando mudam as datas.
+            // Não amplia nem recorta a fonte materializada para atendê-los.
+            if (dashboardIndicadorParametrosCalendario($calendario, $parametros) !== $parametros) continue;
+            $adicionar(dashboardIndicadorSqlCalendario($base, $calendario, $campoCard), array('data', 'valor'), '`data` ASC');
+        }
+        $listaTotal = isset($i['listagem']) ? $i['listagem'] : array();
+        if (dashboardIndicadorListagemPaginadaHabilitada($i) && empty($listaTotal['_barras'])
+            && dashboardPersonalizadoSqlTexto($listaTotal['sqlBase']) === $base) {
+            $aliases = array(); $erroTotais = '';
+            $sqlTotais = dashboardIndicadorListagemSqlTotais($listaTotal, $base, $aliases, $erroTotais);
+            if ($sqlTotais !== false) $adicionar($sqlTotais, array_merge(array('totalLinhas'), array_keys($aliases)));
+            $camposPagina = dashboardConsultasCompartilhadasCampos($base);
+            if ($camposPagina !== null && !(defined('HARDNESS_DASHBOARD_EXPORTAR_LISTAGEM_COMPLETA') && HARDNESS_DASHBOARD_EXPORTAR_LISTAGEM_COMPLETA)) {
+                $ordemPagina = '';
+                $pagina = dashboardIndicadorListagemSqlPagina($listaTotal, $base, 0, false, $ordemPagina, $erroTotais);
+                preg_match_all('/`([^`]+)`/', $ordemPagina, $camposOrdem);
+                if ($pagina !== false && !array_diff(array_map('strtolower', $camposOrdem[1]), array_map('strtolower', $camposPagina))) {
+                    $adicionar($pagina, $camposPagina, $ordemPagina);
+                }
+            }
+        }
+    }
     $grupos = isset($i['graficosPorGrupo']) ? $i['graficosPorGrupo'] : array();
     if ($ativo($grupos, 'habilitado')) {
         $campo = dashboardIndicadorIdentificador(isset($grupos['campoGrupo']) ? $grupos['campoGrupo'] : 'grupo', 'grupo');
@@ -66,7 +140,8 @@ function dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros)
         $adicionar($sql, array('grupo', 'data', 'valor'), '`grupo` ASC, `data` ASC');
     }
     $lista = isset($i['listagem']) ? $i['listagem'] : array();
-    // Listas simples, Pareto, paginação e detalhes seguem seus contratos atuais.
+    // Listas simples só participam quando todos os campos retornados são
+    // conhecidos. A projeção completa preserva os campos usados pelos detalhes.
     if ($ativo($lista, 'habilitada') && !empty($lista['agrupamento']) && !dashboardIndicadorListagemPaginadaHabilitada($i)) {
         $agr = $lista['agrupamento'];
         $campo = dashboardIndicadorIdentificador(isset($agr['campo']) ? $agr['campo'] : 'descricao', 'descricao');
@@ -99,7 +174,44 @@ function dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros)
         // Se a ordenação usa campo não projetado, deixa a consulta original.
         preg_match('/^`([^`]+)`/', $ordem, $m);
         if (isset($m[1]) && in_array($m[1], $campos, true)) $adicionar($sql, $campos, $ordem);
+    } elseif ($ativo($lista, 'habilitada') && !dashboardIndicadorListagemPaginadaHabilitada($i)) {
+        $campos = dashboardConsultasCompartilhadasCampos($base);
+        if ($campos !== null) {
+            $ordem = '';
+            if (!empty($lista['ordenacao'])) {
+                $campo = dashboardIndicadorIdentificador(isset($lista['ordenacao']['campo']) ? $lista['ordenacao']['campo'] : 'valor', 'valor');
+                if (!in_array($campo, $campos, true)) $campos = null;
+                $ordem = '`' . $campo . '` ' . (isset($lista['ordenacao']['direcao']) && strtoupper($lista['ordenacao']['direcao']) === 'ASC' ? 'ASC' : 'DESC');
+            }
+            if ($campos !== null) {
+                $limite = isset($lista['limite']) ? max(1, min(500, (int) $lista['limite'])) : 200;
+                $adicionar('SELECT * FROM (' . $base . ') AS dashboard_base' . ($ordem === '' ? '' : ' ORDER BY ' . $ordem) . ' LIMIT ' . $limite, $campos, $ordem);
+            }
+        }
     }
+    foreach (array_slice(isset($i['secoes']) ? $i['secoes'] : array(), 0, 6) as $secao) {
+        if (!empty($secao['paginacao']['habilitada'])) continue;
+        $sql = dashboardPersonalizadoSqlTexto(isset($secao['sqlBase']) ? $secao['sqlBase'] : '');
+        if (substr_count('(' . $sql . ')', '(' . $base . ')') !== 1
+            || !dashboardIndicadorValidarSql($sql, $erroSecao, false, !empty($secao['permitirUnionAll']))) continue;
+        $campos = array();
+        foreach (isset($secao['colunas']) ? $secao['colunas'] : array() as $coluna) {
+            $campo = dashboardIndicadorIdentificador(isset($coluna['campo']) ? $coluna['campo'] : '', '');
+            if ($campo === '' || in_array($campo, $campos, true)) { $campos = array(); break; }
+            $campos[] = $campo;
+        }
+        if (!$campos) continue;
+        $indice = $adicionar('SELECT `' . implode('`, `', $campos) . '` FROM (' . $sql . ') AS dashboard_bloco LIMIT 501', $campos);
+        $consultas[$indice]['secao'] = isset($secao['id']) ? $secao['id'] : '';
+    }
+    // O executor também usa estes SQLs para localizar os resultados da fonte
+    // compartilhada. Mantém a mesma projeção, ordenação, limites e parâmetros.
+    return $consultas;
+}
+
+function dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros)
+{
+    $consultas = dashboardConsultasCompartilhadasConsultas($i, $base, $card, $parametros);
     if (count($consultas) < 2) return null;
     $partes = array();
     foreach ($consultas as $n => $q) {
@@ -138,12 +250,14 @@ function dashboardConsultasCompartilhadasSeparar($linhas, $plano, &$erro)
 
 function dashboardConsultasCompartilhadasPreparar($conexao, $i, $base, $card, $parametros, &$erro)
 {
-    if (!isset($i['consultasCompartilhadas']) || $i['consultasCompartilhadas'] !== true || (dashboardCargaAtiva() && !dashboardCargaGeralAtiva())
+    if (!dashboardConsultasCompartilhadasHabilitadas($i) || (dashboardCargaAtiva() && !dashboardCargaGeralAtiva())
         || !empty($i['baseCompartilhada']['habilitada'])) return true;
-    $versao = mysqli_get_server_info($conexao);
-    if (stripos($versao, 'mariadb') !== false || version_compare($versao, '8.0.0', '<')) return true;
+    if (!isset($i['consultasCompartilhadas']) && preg_match('/\b(RAND|UUID|UUID_SHORT|SYSDATE)\b|@/i', $base)) return true;
     $plano = dashboardConsultasCompartilhadasPlanejar($i, $base, $card, $parametros);
     if ($plano === null) return true;
+    if (!function_exists('mysqli_get_server_info') && !function_exists(__NAMESPACE__ . '\\mysqli_get_server_info')) return true;
+    $versao = mysqli_get_server_info($conexao);
+    if (stripos($versao, 'mariadb') !== false || version_compare($versao, '8.0.0', '<')) return true;
     $linhas = dashboardIndicadorConsultar($conexao, $plano['sql'], $parametros, $erro);
     if ($linhas === false) return false;
     $resultados = dashboardConsultasCompartilhadasSeparar($linhas, $plano, $erro);

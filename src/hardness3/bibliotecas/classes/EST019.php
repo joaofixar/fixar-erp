@@ -533,7 +533,7 @@ EOT;
 
         while ($row = mysql_fetch_array($retorno)) {
             log("entrou no while para inserir os itens");
-            if($row['D049_Flag_Tipo'] != 'PD'){
+            if(!in_array($row['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 
                 $row['D001_Codigo_Produto']            = mysql_real_escape_string($row['D001_Codigo_Produto']);
                 $row['D083_Codigo_Produto_Fornecedor'] = mysql_real_escape_string($row['D083_Codigo_Produto_Fornecedor']);
@@ -774,7 +774,7 @@ EOT;
 
             while ($row = mysql_fetch_array($retorno)) {
 
-                if($row['D049_Flag_Tipo'] != 'PD'){
+                if(!in_array($row['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 
                     $row['D009_C004_Id']                           = mysql_real_escape_string($row['D009_C004_Id']);
                     $row['D001_Codigo_Produto']                    = mysql_real_escape_string($row['D001_Codigo_Produto']);

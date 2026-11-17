@@ -9,6 +9,38 @@ function dashboardIndicadorListagemPaginadaHabilitada($indicador)
         && dashboardPersonalizadoSqlTexto(isset($lista['sqlBase']) ? $lista['sqlBase'] : '') !== '';
 }
 
+function dashboardIndicadorListagemSqlTotais($lista, $sql, &$aliases, &$erro)
+{
+    $campos = array();
+    foreach ((isset($lista['rodapeTotais']['campos']) ? $lista['rodapeTotais']['campos'] : array()) as $campo) {
+        $valido = dashboardIndicadorIdentificador($campo, '');
+        if ($valido === '') { $erro = 'Coluna inválida no total da tabela.'; return false; }
+        $campos[$valido] = $valido;
+    }
+    $resumo = 'COUNT(*) AS totalLinhas';
+    $aliases = array();
+    foreach (array_values($campos) as $indice => $campo) {
+        $aliases['total' . $indice] = $campo;
+        $resumo .= ', COALESCE(SUM(`' . $campo . '`), 0) AS total' . $indice;
+    }
+    return 'SELECT ' . $resumo . ' FROM (' . $sql . ') AS dashboard_lista_total';
+}
+
+function dashboardIndicadorListagemSqlPagina($lista, $sql, $offset, $completa, &$ordenacao, &$erro)
+{
+    $paginacao = isset($lista['paginacao']) ? $lista['paginacao'] : array();
+    $chave = dashboardIndicadorIdentificador(isset($paginacao['campoChave']) ? $paginacao['campoChave'] : 'id', '');
+    $campo = dashboardIndicadorIdentificador(isset($lista['ordenacao']['campo']) ? $lista['ordenacao']['campo'] : 'valor', '');
+    if ($chave === '' || $campo === '') { $erro = 'Ordenação inválida na tabela.'; return false; }
+    $direcao = isset($lista['ordenacao']['direcao']) && strtoupper($lista['ordenacao']['direcao']) === 'ASC' ? 'ASC' : 'DESC';
+    $ordenacao = '`' . $campo . '` ' . $direcao;
+    if ($chave !== $campo) $ordenacao .= ', `' . $chave . '` ASC';
+    $consulta = 'SELECT * FROM (' . $sql . ') AS dashboard_lista_pagina ORDER BY ' . $ordenacao;
+    $tamanho = isset($paginacao['tamanhoPagina']) ? max(1, min(100, (int) $paginacao['tamanhoPagina'])) : 50;
+    if (!$completa) $consulta .= ' LIMIT ' . $tamanho . ' OFFSET ' . (int) $offset;
+    return $consulta;
+}
+
 function dashboardIndicadorConsultarListagemPaginada($conexao, $lista, $parametros, $entrada, &$erro, $completa = false)
 {
     $erro = '';
@@ -30,31 +62,17 @@ function dashboardIndicadorConsultarListagemPaginada($conexao, $lista, $parametr
         return false;
     }
     $offset = $completa ? 0 : (int) $offset;
-    $chave = dashboardIndicadorIdentificador(isset($paginacao['campoChave']) ? $paginacao['campoChave'] : 'id', '');
-    $ordem = dashboardIndicadorIdentificador(isset($lista['ordenacao']['campo']) ? $lista['ordenacao']['campo'] : 'valor', '');
-    if ($chave === '' || $ordem === '') { $erro = 'Ordenação inválida na tabela.'; return false; }
-    $campos = array();
-    foreach ((isset($lista['rodapeTotais']['campos']) ? $lista['rodapeTotais']['campos'] : array()) as $campo) {
-        $valido = dashboardIndicadorIdentificador($campo, '');
-        if ($valido === '') { $erro = 'Coluna inválida no total da tabela.'; return false; }
-        $campos[$valido] = $valido;
-    }
-    $resumo = 'COUNT(*) AS totalLinhas';
+    $ordenacao = '';
+    $consulta = dashboardIndicadorListagemSqlPagina($lista, $sql, $offset, $completa, $ordenacao, $erro);
+    if ($consulta === false) return false;
     $aliases = array();
-    foreach (array_values($campos) as $indice => $campo) {
-        $aliases['total' . $indice] = $campo;
-        $resumo .= ', COALESCE(SUM(`' . $campo . '`), 0) AS total' . $indice;
-    }
-    $contagem = dashboardIndicadorConsultar($conexao, 'SELECT ' . $resumo . ' FROM (' . $sql . ') AS dashboard_lista_total', $parametros, $erro);
+    $sqlTotais = dashboardIndicadorListagemSqlTotais($lista, $sql, $aliases, $erro);
+    if ($sqlTotais === false) return false;
+    $contagem = dashboardIndicadorConsultar($conexao, $sqlTotais, $parametros, $erro);
     if ($contagem === false) return false;
     $total = isset($contagem[0]['totalLinhas']) ? (int) $contagem[0]['totalLinhas'] : 0;
     $totais = array();
     foreach ($aliases as $alias => $campo) $totais[$campo] = isset($contagem[0][$alias]) ? (float) $contagem[0][$alias] : 0;
-    $direcao = isset($lista['ordenacao']['direcao']) && strtoupper($lista['ordenacao']['direcao']) === 'ASC' ? 'ASC' : 'DESC';
-    $ordenacao = ' ORDER BY `' . $ordem . '` ' . $direcao;
-    if ($chave !== $ordem) $ordenacao .= ', `' . $chave . '` ASC';
-    $consulta = 'SELECT * FROM (' . $sql . ') AS dashboard_lista_pagina' . $ordenacao;
-    if (!$completa) $consulta .= ' LIMIT ' . $tamanho . ' OFFSET ' . $offset;
     $linhas = $total > 0 ? dashboardIndicadorConsultar($conexao, $consulta, $parametros, $erro) : array();
     if ($linhas === false) return false;
     return array(

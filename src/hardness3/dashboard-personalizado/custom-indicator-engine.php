@@ -223,7 +223,14 @@ function dashboardIndicadorConsultar($conexao, $sql, $parametros, &$erro)
             return $GLOBALS['dashboardConsultasCompartilhadas'][$chaveCompartilhada];
         }
     }
-    return dashboardCargaAtiva() ? dashboardCargaConsultar($conexao,$sql,$parametros,$erro) : dashboardIndicadorConsultarDireto($conexao,$sql,$parametros,$erro);
+    $chaveMemoria = dashboardConsultaMemoriaChave($conexao, $sql, $parametros);
+    if ($chaveMemoria !== null && array_key_exists($chaveMemoria, $GLOBALS['dashboardConsultaMemoria']['consultas'])) {
+        $erro = '';
+        return $GLOBALS['dashboardConsultaMemoria']['consultas'][$chaveMemoria];
+    }
+    $linhas = dashboardCargaAtiva() ? dashboardCargaConsultar($conexao,$sql,$parametros,$erro) : dashboardIndicadorConsultarDireto($conexao,$sql,$parametros,$erro);
+    if ($chaveMemoria !== null && $linhas !== false) dashboardConsultaMemoriaGuardar($chaveMemoria, $linhas);
+    return $linhas;
 }
 function dashboardIndicadorErroLeitura($stmt)
 {
@@ -1117,11 +1124,15 @@ function dashboardIndicadorConfigurarDetalheSecao($indicador, $entrada, &$erro)
 function dashboardIndicadorExecutar($conexao, $indicador, $empresa, $entrada, &$erro)
 {
     $anterior = isset($GLOBALS['dashboardConsultasCompartilhadas']) ? $GLOBALS['dashboardConsultasCompartilhadas'] : null;
+    $memoriaAnterior = isset($GLOBALS['dashboardConsultaMemoria']) ? $GLOBALS['dashboardConsultaMemoria'] : null;
+    $GLOBALS['dashboardConsultaMemoria'] = array('consultas' => array(), 'bytes' => 0);
     unset($GLOBALS['dashboardConsultasCompartilhadas']);
     try { return dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entrada, $erro); }
     finally {
         if ($anterior === null) unset($GLOBALS['dashboardConsultasCompartilhadas']);
         else $GLOBALS['dashboardConsultasCompartilhadas'] = $anterior;
+        if ($memoriaAnterior === null) unset($GLOBALS['dashboardConsultaMemoria']);
+        else $GLOBALS['dashboardConsultaMemoria'] = $memoriaAnterior;
     }
 }
 
@@ -1370,7 +1381,7 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
         $fonteCompartilhada = dashboardFonteCompartilhadaConsultar($conexao, $indicador, $sqlCard, $parametros, $erro);
         if ($fonteCompartilhada === false) return false;
     }
-    if (!empty($indicador['consultasCompartilhadas']) && $detalheGrupo === '' && $faixaPareto === null && $classePareto === null && $ufMapa === '') {
+    if ($fonteCompartilhada === null && dashboardConsultasCompartilhadasHabilitadas($indicador) && $detalheGrupo === '' && $faixaPareto === null && $classePareto === null && $ufMapa === '') {
         require_once __DIR__ . '/consultas-compartilhadas.php';
         if (!dashboardConsultasCompartilhadasPreparar($conexao, $indicador, $sqlBase, $sqlCard, $parametros, $erro)) return false;
     }
@@ -1499,11 +1510,23 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
             $sqlBloco = 'SELECT `' . $campoBloco . '` AS chave, COALESCE(' . $valorBloco . ', 0) AS valor FROM (' . $sqlBase . ') AS dashboard_base GROUP BY `' . $campoBloco . '`';
             $linhasBloco = dashboardIndicadorConsultar($conexao, $sqlBloco, $parametros, $erro);
             if ($linhasBloco === false) return false;
-            $composicaoBlocos[$indice] = array();
+            $porChaveBloco = array();
             foreach ($linhasBloco as $linha) {
                 $chave = (string) $linha['chave'];
-                $composicaoBlocos[$indice][] = array('chave' => $chave, 'rotulo' => $chave !== '' ? $chave : 'Não informado', 'valor' => (float) $linha['valor']);
+                $porChaveBloco[$chave] = array('chave' => $chave, 'rotulo' => $chave !== '' ? $chave : 'Não informado', 'valor' => (float) $linha['valor']);
             }
+            $composicaoBlocos[$indice] = array();
+            $incluidos = array();
+            foreach (isset($bloco['itens']) && is_array($bloco['itens']) ? $bloco['itens'] : array() as $item) {
+                $chave = is_array($item) ? (isset($item['chave']) ? (string) $item['chave'] : '') : (string) $item;
+                if ($chave === '' || isset($incluidos[$chave])) continue;
+                $incluidos[$chave] = true;
+                $rotulo = is_array($item) && isset($item['rotulo']) ? (string) $item['rotulo'] : $chave;
+                $composicaoBlocos[$indice][] = array('chave' => $chave, 'rotulo' => $rotulo, 'valor' => isset($porChaveBloco[$chave]) ? $porChaveBloco[$chave]['valor'] : 0.0);
+                unset($porChaveBloco[$chave]);
+            }
+            // Conserva categorias adicionais retornadas pela base, sem perder valores.
+            $composicaoBlocos[$indice] = array_merge($composicaoBlocos[$indice], array_values($porChaveBloco));
         }
     }
 
@@ -1589,11 +1612,7 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
             $calendariosResultado[] = array();
             continue;
         }
-        $campoDataCalendario = dashboardIndicadorIdentificador(isset($calendario['campoData']) ? $calendario['campoData'] : 'data', 'data');
-        $campoValorCalendario = dashboardIndicadorIdentificador(isset($calendario['campoValor']) ? $calendario['campoValor'] : $campoCard, $campoCard);
-        $calculoCalendario = isset($calendario['calculo']) ? $calendario['calculo'] : 'soma';
-        $valorCalendario = $calculoCalendario === 'contagem' ? 'COUNT(*)' : ($calculoCalendario === 'media' ? 'AVG(`' . $campoValorCalendario . '`)' : 'SUM(`' . $campoValorCalendario . '`)');
-        $sqlCalendario = "SELECT DATE(`{$campoDataCalendario}`) AS data, COALESCE({$valorCalendario}, 0) AS valor FROM ({$sqlBase}) AS dashboard_base WHERE `{$campoDataCalendario}` IS NOT NULL GROUP BY DATE(`{$campoDataCalendario}`) ORDER BY data";
+        $sqlCalendario = dashboardIndicadorSqlCalendario($sqlBase, $calendario, $campoCard);
         $parametrosCalendario = dashboardIndicadorParametrosCalendario($calendario, $parametros);
         $resultadoCalendario = dashboardIndicadorConsultar($conexao, $sqlCalendario, $parametrosCalendario, $erro);
         if ($resultadoCalendario === false) {

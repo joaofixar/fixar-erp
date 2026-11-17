@@ -3,6 +3,7 @@ namespace hardness;
 
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/../bibliotecas/confUsuario.php';
+require_once __DIR__ . '/connection.php';
 require_once __DIR__ . '/access.php';
 
 function dashboardLogoEmpresaResponder($codigo)
@@ -21,7 +22,7 @@ if ($empresa <= 0) {
     dashboardLogoEmpresaResponder(404);
 }
 
-$conexao = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
+$conexao = dashboardPersonalizadoConectarLeitura($confUsuario, isset($confUsuarioEspelhado) ? $confUsuarioEspelhado : null);
 if (!$conexao) {
     dashboardLogoEmpresaResponder(503);
 }

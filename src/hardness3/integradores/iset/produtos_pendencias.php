@@ -50,7 +50,7 @@ integradores_iset_produtos_abas('pendencias');
 <td><?php echo integradores_h(isset($situacoes[$INT006['INT006_Motivo']]) ? $situacoes[$INT006['INT006_Motivo']] : $INT006['INT006_Motivo']); ?><small><?php echo integradores_h($INT006['INT006_Mensagem_Erro']); ?></small><?php if ($INT006['INT006_Flag_Processando'] === 'S'): ?><small>Em processamento</small><?php endif; ?></td>
 <td><?php echo integradores_h($INT006['INT006_Data_Hora_Pendente']); ?></td>
 <td><?php echo integradores_h($INT006['INT006_Data_Hora_Processando'] ?: ($INT006['INT006_Data_Hora_Processado'] ?: 'Sem tentativa')); ?><small><?php echo (int) $INT006['INT006_Tentativas']; ?> tentativa(s)</small></td>
-<td><?php echo integradores_h($INT006['INT006_Proxima_Tentativa']); ?></td>
+<td><?php echo $INT006['INT006_Status'] === 'A' ? 'Aguardando alteração ou tentativa manual' : integradores_h($INT006['INT006_Proxima_Tentativa']); ?></td>
 <td><?php echo integradores_h($INT006['Ultima_Sincronizacao'] ?: 'Não registrada'); ?></td>
 <td class="acoes"><a class="integradores-button integradores-button--secundario" href="<?php echo integradores_h(integradores_base_path('iset/logs.php') . '?produto=' . (int) $INT006['INT006_D009_Id']); ?>">Ver logs</a>
 <form method="post"><input type="hidden" name="csrf" value="<?php echo integradores_h($_SESSION['iset_pendencias_csrf']); ?>"><input type="hidden" name="acao" value="consultar"><input type="hidden" name="D009_Id" value="<?php echo (int) $INT006['INT006_D009_Id']; ?>"><button class="integradores-button integradores-button--secundario" type="submit">Consultar novamente</button></form></td></tr>

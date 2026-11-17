@@ -21,7 +21,7 @@ final class McpAdminController
     {
         $this->tenantContext = $tenantContext;
         $this->queries = $queries;
-        $this->scopeCatalog = new ScopeCatalog();
+        $this->scopeCatalog = $queries->scopeCatalog();
         $this->publicMcpUrl = $publicMcpUrl;
     }
 

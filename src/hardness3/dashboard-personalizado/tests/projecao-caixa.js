@@ -6,6 +6,13 @@ var path = require('path');
 var vm = require('vm');
 var assert = require('assert');
 var source = fs.readFileSync(path.join(__dirname, '..', 'dashboard.js'), 'utf8');
+// A primeira consulta já precisa receber a data final, antes do payload do PHP.
+['2024-02-15T12:00:00', '2026-12-15T12:00:00'].forEach(function (today, index) {
+  class FixtureDate extends Date { constructor() { super(...(arguments.length ? Array.from(arguments) : [today])); } }
+  var defaults = { Date: FixtureDate };
+  vm.runInNewContext(source.slice(source.indexOf('  function localDate('), source.indexOf('  function filterPreferenceTabKey(')), defaults);
+  assert.strictEqual(defaults.defaultValue({ padrao: 'fim_mes' }), ['2024-02-29', '2026-12-31'][index]);
+});
 var start = source.indexOf('  function cashFlowDate(');
 var end = source.indexOf('  function paretoChart(', start);
 assert(start >= 0 && end > start);

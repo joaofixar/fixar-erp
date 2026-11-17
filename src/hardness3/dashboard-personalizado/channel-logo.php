@@ -3,6 +3,7 @@ namespace hardness;
 
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/../bibliotecas/confUsuario.php';
+require_once __DIR__ . '/connection.php';
 
 function dashboardCanalLogoResponder($codigo)
 {
@@ -25,7 +26,7 @@ if ($canal === '' || strlen($canal) > 200) {
     dashboardCanalLogoResponder(400);
 }
 
-$conexao = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
+$conexao = dashboardPersonalizadoConectarLeitura($confUsuario, isset($confUsuarioEspelhado) ? $confUsuarioEspelhado : null);
 if (!$conexao) {
     dashboardCanalLogoResponder(503);
 }

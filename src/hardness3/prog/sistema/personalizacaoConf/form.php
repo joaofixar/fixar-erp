@@ -1,5 +1,5 @@
 <?php
- namespace hardness; if (!($g['r'][3] === 'alterarPainel')) { goto r49W6; } require 'painel-personalizado/editor-form.php'; return; r49W6: $pathDados = $g['pathDados']; if ($g['modoDesenvolvedor']) { goto zSFDP; } if (!$g['modoDesenvolvedorApp']) { goto tHCRY; } Personalizacoes::$rootDir = Apps::getDirEditor(); $pathDados = Apps::getDirEditor(); tHCRY: goto VJDsU; zSFDP: Personalizacoes::$rootDir = 'ide/'; $pathDados = 'ide/'; VJDsU: echo <<<EOT
+ namespace hardness; if (!($g['r'][3] === 'alterarPortalRepresentante')) { goto uWi5G; } require 'portal-representante/editor-form.php'; return; uWi5G: if (!($g['r'][3] === 'alterarPainel')) { goto bk44U; } require 'painel-personalizado/editor-form.php'; return; bk44U: $pathDados = $g['pathDados']; if ($g['modoDesenvolvedor']) { goto GDXTl; } if (!$g['modoDesenvolvedorApp']) { goto mkQLl; } Personalizacoes::$rootDir = Apps::getDirEditor(); $pathDados = Apps::getDirEditor(); mkQLl: goto njFT3; GDXTl: Personalizacoes::$rootDir = 'ide/'; $pathDados = 'ide/'; njFT3: echo <<<EOT
 \t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t    \$divId = \$('#{$r_divId}');
         \$textarea = \$divId.find('textarea.itemForm');
@@ -12,7 +12,7 @@
 \t\t\$textarea.height(height - 75);
 \t} </script></div>
 EOT;
-$tab = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : false; $tipo = $g['r'][3]; $formNaoRecarregar = true; $formMultiTab = false; if ($formMultiTab) { goto S907j; } $formId = uniqid(); goto MYO36; S907j: $formId = isset($r_formcad001FormCadastro) ? $r_formcad001FormCadastro['formId'] : $r_formId; MYO36: $form_tabela = 'D000'; $form_campo_pk = 'D000_Id'; $enviar_btnId = $tipo . $r_empresa . 'Btn'; $enviar_acaoHref = '/sistema/personalizacaoConf/form/' . $tipo . '/'; $dir = "{$pathDados}personalizacaoConf/"; is_dir($dir) or mkdir($dir, 0777, true); if ($tipo == 'alterarDashboard') { goto RoyVK; } if ($tipo == 'cssVars') { goto nmEOz; } if ($tipo == 'alterarCSS') { goto pzN6g; } if ($tipo == 'alterarFlag') { goto mIAvS; } $r_acaoId = trim(urldecode($r_acaoId), '()'); $arquivo = $dir . $r_empresa . $r_acaoId . '-' . $tipo . '.php'; goto FumSp; mIAvS: $arquivo = $g['pathDadosUsuario'] . strtolower($r_acaoId); FumSp: goto RHnad; pzN6g: $arquivo = $dir . $r_empresa . $r_acaoId . '-' . $tipo . '.css'; RHnad: goto Vjbyk; nmEOz: $arquivo = $dir . $r_empresa . $r_acaoId . '-' . $tipo . '.ini'; Vjbyk: goto K8Trt; RoyVK: if (!empty($r_empresa)) { goto TXJGs; } echo gGeraAlertMsg('Empresa não informada', 'Selecione a empresa antes de personalizar o dashboard.'); return; TXJGs: $arquivo = $dir . (int) $r_empresa . 'DASHBOARD PERSONALIZAVEL-alterarDashboard.json'; $arquivosDashboard = array_values(array_unique(array($arquivo, $dir . (int) $r_empresa . 'DASHBOARD+PERSONALIZAVEL-alterarDashboard.json', $dir . (int) $r_empresa . 'DASHBOARD-PERSONALIZAVEL-alterarDashboard.json'))); $arquivosDashboardExistentes = array_values(array_filter($arquivosDashboard, 'file_exists')); usort($arquivosDashboardExistentes, function ($arquivoA, $arquivoB) { return (int) @filemtime($arquivoB) - (int) @filemtime($arquivoA); }); $arquivoLeitura = !empty($arquivosDashboardExistentes) ? $arquivosDashboardExistentes[0] : $arquivo; foreach ($arquivosDashboardExistentes as $arquivoDashboardExistente) { goto Sln1a; gV12q: hp6KO: goto E3xJR; Sln1a: $configuracaoDashboardExistente = json_decode(file_get_contents($arquivoDashboardExistente), true); goto frxNY; W2tw2: goto i05e6; goto PMJog; PMJog: q3W2G: goto gV12q; hSar5: $arquivoLeitura = $arquivoDashboardExistente; goto W2tw2; frxNY: if (!(is_array($configuracaoDashboardExistente) && !empty($configuracaoDashboardExistente['habilitado']))) { goto q3W2G; } goto hSar5; E3xJR: } i05e6: K8Trt: if (!isset($r_remover)) { goto qUySc; } if ($tipo == 'alterarDashboard') { goto hyorK; } unlink($arquivo); goto RH2Rk; hyorK: foreach ($arquivosDashboard as $arquivoDashboard) { goto hhDtG; M3BsS: dkgcb: goto h7WkF; h7WkF: cDFDW: goto S9grc; hhDtG: if (!file_exists($arquivoDashboard)) { goto dkgcb; } goto oN1gO; oN1gO: unlink($arquivoDashboard); goto M3BsS; S9grc: } RGXND: $arquivosDashboardExistentes = array(); RH2Rk: echo gGeraAlertMsg('Removido', 'Configuração removida!'); qUySc: if (file_exists(isset($arquivoLeitura) ? $arquivoLeitura : $arquivo)) { goto CW7FN; } if ($tipo == 'alterarDashboard' && file_exists('configuracoes/dashboard-personalizavel.json')) { goto HWILz; } if ($tipo == 'menu') { goto uQl4w; } if ($tipo == 'colunaEditarRestricoes') { goto UKMB9; } $Code = getCodeDefault($tipo); goto Ad0tY; UKMB9: $Code = <<<'EOT'
+$tab = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : false; $tipo = $g['r'][3]; $formNaoRecarregar = true; $formMultiTab = false; if ($formMultiTab) { goto kbX0t; } $formId = uniqid(); goto a3nnQ; kbX0t: $formId = isset($r_formcad001FormCadastro) ? $r_formcad001FormCadastro['formId'] : $r_formId; a3nnQ: $form_tabela = 'D000'; $form_campo_pk = 'D000_Id'; $enviar_btnId = $tipo . $r_empresa . 'Btn'; $enviar_acaoHref = '/sistema/personalizacaoConf/form/' . $tipo . '/'; $dir = "{$pathDados}personalizacaoConf/"; is_dir($dir) or mkdir($dir, 0777, true); if ($tipo == 'alterarDashboard') { goto FwfIJ; } if ($tipo == 'cssVars') { goto IeVMN; } if ($tipo == 'alterarCSS') { goto zacyd; } if ($tipo == 'alterarFlag') { goto QPfIn; } $r_acaoId = trim(urldecode($r_acaoId), '()'); $arquivo = $dir . $r_empresa . $r_acaoId . '-' . $tipo . '.php'; goto GnGN6; QPfIn: $arquivo = $g['pathDadosUsuario'] . strtolower($r_acaoId); GnGN6: goto Nk8Jw; zacyd: $arquivo = $dir . $r_empresa . $r_acaoId . '-' . $tipo . '.css'; Nk8Jw: goto f5DE1; IeVMN: $arquivo = $dir . $r_empresa . $r_acaoId . '-' . $tipo . '.ini'; f5DE1: goto HmOp_; FwfIJ: if (!empty($r_empresa)) { goto XW6sn; } echo gGeraAlertMsg('Empresa não informada', 'Selecione a empresa antes de personalizar o dashboard.'); return; XW6sn: $arquivo = $dir . (int) $r_empresa . 'DASHBOARD PERSONALIZAVEL-alterarDashboard.json'; $arquivosDashboard = array_values(array_unique(array($arquivo, $dir . (int) $r_empresa . 'DASHBOARD+PERSONALIZAVEL-alterarDashboard.json', $dir . (int) $r_empresa . 'DASHBOARD-PERSONALIZAVEL-alterarDashboard.json'))); $arquivosDashboardExistentes = array_values(array_filter($arquivosDashboard, 'file_exists')); usort($arquivosDashboardExistentes, function ($arquivoA, $arquivoB) { return (int) @filemtime($arquivoB) - (int) @filemtime($arquivoA); }); $arquivoLeitura = !empty($arquivosDashboardExistentes) ? $arquivosDashboardExistentes[0] : $arquivo; foreach ($arquivosDashboardExistentes as $arquivoDashboardExistente) { goto VGC8r; nPXAJ: b7Gkv: goto vXzBp; T0qI9: qFeeY: goto nPXAJ; VGC8r: $configuracaoDashboardExistente = json_decode(file_get_contents($arquivoDashboardExistente), true); goto Lsjsi; Lsjsi: if (!(is_array($configuracaoDashboardExistente) && !empty($configuracaoDashboardExistente['habilitado']))) { goto qFeeY; } goto m4btL; wMzHD: goto zKwYJ; goto T0qI9; m4btL: $arquivoLeitura = $arquivoDashboardExistente; goto wMzHD; vXzBp: } zKwYJ: HmOp_: if (!isset($r_remover)) { goto dw0Al; } if ($tipo == 'alterarDashboard') { goto AAgZT; } unlink($arquivo); goto DHaTQ; AAgZT: foreach ($arquivosDashboard as $arquivoDashboard) { goto ZOj9j; ZOj9j: if (!file_exists($arquivoDashboard)) { goto PdN8M; } goto kY0oB; T2HlV: PdN8M: goto FFJ9b; FFJ9b: xL7Vy: goto y6GH7; kY0oB: unlink($arquivoDashboard); goto T2HlV; y6GH7: } QjCQp: $arquivosDashboardExistentes = array(); DHaTQ: echo gGeraAlertMsg('Removido', 'Configuração removida!'); dw0Al: if (file_exists(isset($arquivoLeitura) ? $arquivoLeitura : $arquivo)) { goto G9Sy2; } if ($tipo == 'alterarDashboard' && file_exists('configuracoes/dashboard-personalizavel.json')) { goto gb_Bi; } if ($tipo == 'menu') { goto sUZZw; } if ($tipo == 'colunaEditarRestricoes') { goto yCy6r; } $Code = getCodeDefault($tipo); goto bgya1; yCy6r: $Code = <<<'EOT'
 <?php
 // Adicionar novos campos
 //$g['restricaoCamposEditar'] = array_merge($g['restricaoCamposEditar'], array('NOME_CAMPO', 'NOME_CAMPO_02'));
@@ -23,7 +23,7 @@ $tab = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : false; $tipo = $g['r'][3]; $
 // Substituir todos os registros
 //$g['restricaoCamposEditar'] = array('NOME_CAMPO', 'NOME_CAMPO_02');
 EOT;
-Ad0tY: goto q5gCt; uQl4w: $Code = file_get_contents('bibliotecas/menu.php'); q5gCt: goto S7E6q; HWILz: $Code = file_get_contents('configuracoes/dashboard-personalizavel.json'); S7E6q: goto Q1KxC; CW7FN: $Code = file_get_contents(isset($arquivoLeitura) ? $arquivoLeitura : $arquivo); Q1KxC: $form = new Formulario($tipo . 'Form'); $tabela = $r_acaoId == 'GLOBAL' || $r_acaoId == 'CAMPOS_LIVRE' ? '_GLOBAL' : ''; $tabela = $r_acaoId == 'GLOBAL' && $tipo == 'altText' ? '_alteracoesTextuais' : $tabela; $tabela = $r_acaoId == 'GLOBAL' && $tipo == 'cssVars' ? '_cssVars' : $tabela; $tabela = empty($tabela) ? $r_acaoId : $tabela; $codeLanguage = 'php'; if ($tipo == 'alterarDashboard') { goto L7xIw; } if ($tipo == 'cssVars') { goto cg9tZ; } if ($tipo == 'alterarMetodos') { goto ll_aB; } if ($tipo == 'menu') { goto k5ORw; } if ($tipo == 'menuBuiler') { goto zVrJ_; } if ($tipo == 'colunaEditarRestricoes') { goto knPMd; } if ($tipo == 'alterarSQL') { goto jnz3F; } if ($tipo == 'alterarCSS') { goto M08AY; } if ($tipo == 'alterarFlag') { goto MEx80; } if ($tipo == 'menu') { goto RPDGw; } if (!($tipo == 'colunaEditarRestricoes')) { goto py5K3; } $original = "configuracoes/_colunaEditarRestricoes.php"; py5K3: goto SLYjV; RPDGw: $original = "bibliotecas/menu.php"; SLYjV: if ($tipo == 'alterarPrograma') { goto ivDdT; } $original = "configuracoes/{$tabela}.php"; goto bwBYi; ivDdT: $prog = explode('-', $tabela); if ($prog[0] == 'per') { goto W3yXz; } if (!(count($prog) > 4)) { goto dOgGA; } $prog = array($prog[0], $prog[1], $prog[2] . '-' . $prog[3], $prog[4]); dOgGA: $original = "prog/{$prog[0]}/{$prog[1]}/{$prog[2]}.php"; goto IYrt0; W3yXz: $original = "{$pathDados}/builder/prog/{$prog[1]}/{$prog[2]}.php"; IYrt0: bwBYi: goto DwJt_; MEx80: $codeLanguage = 'json'; $original = ''; DwJt_: goto BkKt0; M08AY: $codeLanguage = 'css'; $original = strtolower("static/css/{$tabela}"); BkKt0: goto WFQrt; jnz3F: $codeLanguage = 'sql'; $original = "scripts/sql/{$tabela}"; WFQrt: goto XWC3h; knPMd: $original = 'configuracoes/_colunaEditarRestricoes.php'; XWC3h: goto xgcN3; zVrJ_: $original = 'bibliotecas/menu.php'; xgcN3: goto lQSJD; k5ORw: $original = 'bibliotecas/menu.php'; lQSJD: goto hp1bY; ll_aB: $original = "bibliotecas/classes/{$tabela}"; $original = str_replace('PHP', 'php', $original); hp1bY: goto uJ1rW; cg9tZ: $codeLanguage = 'css'; $original = "configuracoes/{$tabela}.ini"; uJ1rW: goto zzeC8; L7xIw: $codeLanguage = 'json'; $original = 'configuracoes/dashboard-personalizavel.json'; zzeC8: if (file_exists($original)) { goto RCcWu; } $original = false; if (!($tipo == 'alterarCallback')) { goto Q5VKC; } $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator('bibliotecas/funcoesCallback/')); foreach ($iterator as $path) { goto XjSgF; EFSm3: $original2 = $src; goto sJlr3; XjSgF: $src = file_get_contents($path); goto EFSm3; sJlr3: preg_match_all('/function ' . $r_acaoId . ' ?\\((.*)(function|$)/sUu', $src, $matches); goto hSlq8; B0Oq9: $original = $matches[0][0]; goto gjIFF; cyThE: wV2aE: goto nzdi8; hSlq8: if (!(isset($matches[1]) && !empty($matches[1]))) { goto nwBaJ; } goto B0Oq9; gjIFF: nwBaJ: goto cyThE; nzdi8: } tOmKr: $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator('prog/')); foreach ($iterator as $path) { goto feshf; XdbqI: $src = file_get_contents($path); goto jJfwq; czdT8: if (!(isset($matches[1]) && !empty($matches[1]))) { goto NhKqg; } goto bbZ7y; lZRx1: TOyuB: goto mWxRc; jJfwq: $original2 = $src; goto qbV53; bbZ7y: $original = $matches[0][0]; goto Ad8zB; feshf: if (!(strpos($path, '-callback.php') !== false)) { goto Mzjd1; } goto XdbqI; qbV53: preg_match_all('/function ' . $r_acaoId . ' ?\\((.*)(function|$)/sUu', $src, $matches); goto czdT8; Ad8zB: NhKqg: goto hsS5H; hsS5H: Mzjd1: goto lZRx1; mWxRc: } YywBX: Q5VKC: goto gMbrX; RCcWu: $original = file_get_contents($original); if (!($tipo == 'alterarPrograma')) { goto AKE0y; } $original2 = $original; preg_match("/case '{$prog[3]}':(.*)break;/msUu", $original, $matches); if (!isset($matches[1])) { goto azt05; } $original = $matches[1]; azt05: AKE0y: gMbrX: $original2 = !isset($original2) ? '' : $original2; $formArray = array('campos' => array('geral' => array($tipo . $r_empresa . 'Code' => array('name' => $tipo . $r_empresa . 'Code', 'label' => '', 'type' => 'textarea', 'uppercase' => false, 'value' => $Code, 'code' => $codeLanguage)))); $formArray['campos']['geral'][$tipo . $r_empresa . 'Btn'] = array('name' => $tipo . $r_empresa . 'Btn', 'type' => 'button', 'reload' => false, 'value' => 'Alterar (CTRL+S)', 'reject' => true); $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnCopiar'] = array('name' => $tipo . $r_empresa . 'BtnCopiar', 'type' => 'button', 'reload' => false, 'value' => 'Copiar', 'align' => 'right', 'reject' => true); $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnOriginal'] = array('name' => $tipo . $r_empresa . 'Btn', 'type' => 'button', 'reload' => false, 'value' => 'Visualizar Original', 'reject' => true, 'align' => 'right', 'style' => !$original ? 'opacity: 0.5;' : ''); $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnOriginal2'] = array('name' => $tipo . $r_empresa . 'Btn2', 'type' => 'button', 'reload' => false, 'value' => 'Visualizar Original (arquivo inteiro)', 'reject' => true, 'align' => 'right', 'style' => !$original2 ? 'opacity: 0.5;' : ''); if (!($tipo == 'cssVars')) { goto g1EGs; } $formArray['campos']['geral']['addTemaBtn'] = array('name' => 'addTemaBtn', 'type' => 'button', 'reload' => false, 'value' => 'Adicionar Tema', 'reject' => true, 'align' => 'right'); g1EGs: if (!($tipo == 'alterarDashboard' ? !empty($arquivosDashboardExistentes) : file_exists($arquivo))) { goto LiJ6W; } $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnRemover'] = array('name' => $tipo . $r_empresa . 'BtnRemover', 'type' => 'button', 'reload' => false, 'value' => 'Remover', 'reject' => true, 'align' => 'right'); LiJ6W: $form->definirFormularioArray($formArray); if (!($formCodigo = $form->processarFormulario($form_tabela))) { goto KQMw4; } if ($formCodigo == 1) { goto rpFue; } if (!($formCodigo == 2)) { goto d2B89; } $Code = $form->campoValorEnviado($tipo . $r_empresa . 'Code'); if (!($tipo == 'alterarCallback')) { goto W6cFZ; } $Code = preg_replace('/function ' . $r_acaoId . ' ?\\(/sUu', 'function _' . $r_acaoId . ' (', trim($Code)); W6cFZ: if (!($tipo == 'alterarDashboard')) { goto y3ESC; } $dashboardConfiguracao = json_decode($Code, true); if (json_last_error() !== JSON_ERROR_NONE) { goto o2nue; } require_once 'dashboard-personalizado/config.php'; $dashboardErros = array(); if (dashboardPersonalizadoValidarConfiguracao($dashboardConfiguracao, $dashboardErros, false)) { goto nD773; } echo gGeraAlertMsg('Dashboard inválido', implode(' ', $dashboardErros)); $Code = false; nD773: goto TqwwD; o2nue: echo gGeraAlertMsg('JSON inválido', 'Corrija a configuração antes de salvar: ' . json_last_error_msg()); $Code = false; TqwwD: y3ESC: if (!($Code === false)) { goto YnuPb; } goto dashboardPersonalizadoNaoSalvar; YnuPb: file_put_contents($arquivo, $Code . "\n"); echo gGeraAlertMsg('Operação OK', 'Registro Alterado com Sucesso!'); dashboardPersonalizadoNaoSalvar: d2B89: goto Sexna; rpFue: echo gGeraAlertMsgErroForm($form); Sexna: KQMw4: $gerado = gGeraCamposForm($form, $tab, $r_acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk); $g['smarty']->assign('formularioID', $form->formularioID()); $g['smarty']->assign('table', $gerado['table']); $g['smarty']->assign('form_tabela', isset($form_tabela) ? $form_tabela : ''); echo $gerado['pagina']; if ($formMultiTab) { goto WFHWH; } $g["smarty"]->assign("formId", $formId); WFHWH: $g['smarty']->display('form.tpl'); if (!$original) { goto Tuo1x; } $original = htmlspecialchars($original, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); echo <<<EOT
+bgya1: goto AWW6J; sUZZw: $Code = file_get_contents('bibliotecas/menu.php'); AWW6J: goto N6yQx; gb_Bi: $Code = file_get_contents('configuracoes/dashboard-personalizavel.json'); N6yQx: goto wImO9; G9Sy2: $Code = file_get_contents(isset($arquivoLeitura) ? $arquivoLeitura : $arquivo); wImO9: $form = new Formulario($tipo . 'Form'); $tabela = $r_acaoId == 'GLOBAL' || $r_acaoId == 'CAMPOS_LIVRE' ? '_GLOBAL' : ''; $tabela = $r_acaoId == 'GLOBAL' && $tipo == 'altText' ? '_alteracoesTextuais' : $tabela; $tabela = $r_acaoId == 'GLOBAL' && $tipo == 'cssVars' ? '_cssVars' : $tabela; $tabela = empty($tabela) ? $r_acaoId : $tabela; $codeLanguage = 'php'; if ($tipo == 'alterarDashboard') { goto hWFYB; } if ($tipo == 'cssVars') { goto Djdhv; } if ($tipo == 'alterarMetodos') { goto oqE1h; } if ($tipo == 'menu') { goto CRZjd; } if ($tipo == 'menuBuiler') { goto dOMSt; } if ($tipo == 'colunaEditarRestricoes') { goto bL6ft; } if ($tipo == 'alterarSQL') { goto TTwp9; } if ($tipo == 'alterarCSS') { goto jjoP5; } if ($tipo == 'alterarFlag') { goto gzwnX; } if ($tipo == 'menu') { goto kM1Qz; } if (!($tipo == 'colunaEditarRestricoes')) { goto c3wmq; } $original = "configuracoes/_colunaEditarRestricoes.php"; c3wmq: goto OyfxT; kM1Qz: $original = "bibliotecas/menu.php"; OyfxT: if ($tipo == 'alterarPrograma') { goto lK4Yt; } $original = "configuracoes/{$tabela}.php"; goto wVlmL; lK4Yt: $prog = explode('-', $tabela); if ($prog[0] == 'per') { goto L8TMD; } if (!(count($prog) > 4)) { goto M3klE; } $prog = array($prog[0], $prog[1], $prog[2] . '-' . $prog[3], $prog[4]); M3klE: $original = "prog/{$prog[0]}/{$prog[1]}/{$prog[2]}.php"; goto Bj4qm; L8TMD: $original = "{$pathDados}/builder/prog/{$prog[1]}/{$prog[2]}.php"; Bj4qm: wVlmL: goto yEt97; gzwnX: $codeLanguage = 'json'; $original = ''; yEt97: goto ZVNWk; jjoP5: $codeLanguage = 'css'; $original = strtolower("static/css/{$tabela}"); ZVNWk: goto MkdWA; TTwp9: $codeLanguage = 'sql'; $original = "scripts/sql/{$tabela}"; MkdWA: goto KoX0b; bL6ft: $original = 'configuracoes/_colunaEditarRestricoes.php'; KoX0b: goto j2KW8; dOMSt: $original = 'bibliotecas/menu.php'; j2KW8: goto DmzHn; CRZjd: $original = 'bibliotecas/menu.php'; DmzHn: goto RxPae; oqE1h: $original = "bibliotecas/classes/{$tabela}"; $original = str_replace('PHP', 'php', $original); RxPae: goto SGC7X; Djdhv: $codeLanguage = 'css'; $original = "configuracoes/{$tabela}.ini"; SGC7X: goto cYCwG; hWFYB: $codeLanguage = 'json'; $original = 'configuracoes/dashboard-personalizavel.json'; cYCwG: if (file_exists($original)) { goto Ib86X; } $original = false; if (!($tipo == 'alterarCallback')) { goto RTzSU; } $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator('bibliotecas/funcoesCallback/')); foreach ($iterator as $path) { goto XodkL; qalC4: $original = $matches[0][0]; goto YAE56; ylP89: $original2 = $src; goto PcXRK; YAE56: qnQMp: goto Uksqh; yLNEu: if (!(isset($matches[1]) && !empty($matches[1]))) { goto qnQMp; } goto qalC4; XodkL: $src = file_get_contents($path); goto ylP89; PcXRK: preg_match_all('/function ' . $r_acaoId . ' ?\\((.*)(function|$)/sUu', $src, $matches); goto yLNEu; Uksqh: DnIL7: goto PrYwV; PrYwV: } IaAty: $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator('prog/')); foreach ($iterator as $path) { goto a50ut; GMMNL: preg_match_all('/function ' . $r_acaoId . ' ?\\((.*)(function|$)/sUu', $src, $matches); goto C3Hc0; xsRNq: $original2 = $src; goto GMMNL; oRWXa: nJaQS: goto DBLU7; Rhmij: ahDow: goto baaj7; a50ut: if (!(strpos($path, '-callback.php') !== false)) { goto oYNXm; } goto czY4X; baaj7: oYNXm: goto oRWXa; czY4X: $src = file_get_contents($path); goto xsRNq; C3Hc0: if (!(isset($matches[1]) && !empty($matches[1]))) { goto ahDow; } goto e5nx3; e5nx3: $original = $matches[0][0]; goto Rhmij; DBLU7: } JSQbe: RTzSU: goto U5uB8; Ib86X: $original = file_get_contents($original); if (!($tipo == 'alterarPrograma')) { goto pLMDj; } $original2 = $original; preg_match("/case '{$prog[3]}':(.*)break;/msUu", $original, $matches); if (!isset($matches[1])) { goto EjDl3; } $original = $matches[1]; EjDl3: pLMDj: U5uB8: $original2 = !isset($original2) ? '' : $original2; $formArray = array('campos' => array('geral' => array($tipo . $r_empresa . 'Code' => array('name' => $tipo . $r_empresa . 'Code', 'label' => '', 'type' => 'textarea', 'uppercase' => false, 'value' => $Code, 'code' => $codeLanguage)))); $formArray['campos']['geral'][$tipo . $r_empresa . 'Btn'] = array('name' => $tipo . $r_empresa . 'Btn', 'type' => 'button', 'reload' => false, 'value' => 'Alterar (CTRL+S)', 'reject' => true); $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnCopiar'] = array('name' => $tipo . $r_empresa . 'BtnCopiar', 'type' => 'button', 'reload' => false, 'value' => 'Copiar', 'align' => 'right', 'reject' => true); $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnOriginal'] = array('name' => $tipo . $r_empresa . 'Btn', 'type' => 'button', 'reload' => false, 'value' => 'Visualizar Original', 'reject' => true, 'align' => 'right', 'style' => !$original ? 'opacity: 0.5;' : ''); $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnOriginal2'] = array('name' => $tipo . $r_empresa . 'Btn2', 'type' => 'button', 'reload' => false, 'value' => 'Visualizar Original (arquivo inteiro)', 'reject' => true, 'align' => 'right', 'style' => !$original2 ? 'opacity: 0.5;' : ''); if (!($tipo == 'cssVars')) { goto qySkq; } $formArray['campos']['geral']['addTemaBtn'] = array('name' => 'addTemaBtn', 'type' => 'button', 'reload' => false, 'value' => 'Adicionar Tema', 'reject' => true, 'align' => 'right'); qySkq: if (!($tipo == 'alterarDashboard' ? !empty($arquivosDashboardExistentes) : file_exists($arquivo))) { goto UC3bg; } $formArray['campos']['geral'][$tipo . $r_empresa . 'BtnRemover'] = array('name' => $tipo . $r_empresa . 'BtnRemover', 'type' => 'button', 'reload' => false, 'value' => 'Remover', 'reject' => true, 'align' => 'right'); UC3bg: $form->definirFormularioArray($formArray); if (!($formCodigo = $form->processarFormulario($form_tabela))) { goto La3bL; } if ($formCodigo == 1) { goto z0rTR; } if (!($formCodigo == 2)) { goto Pnxcu; } $Code = $form->campoValorEnviado($tipo . $r_empresa . 'Code'); if (!($tipo == 'alterarCallback')) { goto Da982; } $Code = preg_replace('/function ' . $r_acaoId . ' ?\\(/sUu', 'function _' . $r_acaoId . ' (', trim($Code)); Da982: if (!($tipo == 'alterarDashboard')) { goto DJxkf; } $dashboardConfiguracao = json_decode($Code, true); if (json_last_error() !== JSON_ERROR_NONE) { goto RMRy6; } require_once 'dashboard-personalizado/config.php'; $dashboardErros = array(); if (dashboardPersonalizadoValidarConfiguracao($dashboardConfiguracao, $dashboardErros, false)) { goto QT3qz; } echo gGeraAlertMsg('Dashboard inválido', implode(' ', $dashboardErros)); $Code = false; QT3qz: goto eKjum; RMRy6: echo gGeraAlertMsg('JSON inválido', 'Corrija a configuração antes de salvar: ' . json_last_error_msg()); $Code = false; eKjum: DJxkf: if (!($Code === false)) { goto AYD32; } goto dashboardPersonalizadoNaoSalvar; AYD32: file_put_contents($arquivo, $Code . "\n"); echo gGeraAlertMsg('Operação OK', 'Registro Alterado com Sucesso!'); dashboardPersonalizadoNaoSalvar: Pnxcu: goto Gcuj6; z0rTR: echo gGeraAlertMsgErroForm($form); Gcuj6: La3bL: $gerado = gGeraCamposForm($form, $tab, $r_acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk); $g['smarty']->assign('formularioID', $form->formularioID()); $g['smarty']->assign('table', $gerado['table']); $g['smarty']->assign('form_tabela', isset($form_tabela) ? $form_tabela : ''); echo $gerado['pagina']; if ($formMultiTab) { goto Fh60I; } $g["smarty"]->assign("formId", $formId); Fh60I: $g['smarty']->display('form.tpl'); if (!$original) { goto YQ_y_; } $original = htmlspecialchars($original, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); echo <<<EOT
 <div id="{$tipo}{$r_empresa}OriginalCode" style="display: none;">
 <textarea style="width: 800px; height: 400px; text-transform: none;">
 {$original}
@@ -37,7 +37,7 @@ echo <<<EOT
 \t\t});
 \t} </script></div>
 EOT;
-Tuo1x: if (!$original2) { goto gtGXO; } $original2 = htmlspecialchars($original2, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); echo <<<EOT
+YQ_y_: if (!$original2) { goto hXlVr; } $original2 = htmlspecialchars($original2, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); echo <<<EOT
 <div id="{$tipo}{$r_empresa}OriginalCode2" style="display: none;">
 <textarea style="width: 800px; height: 400px; text-transform: none;">
 {$original2}
@@ -51,7 +51,7 @@ echo <<<EOT
 \t\t});
 \t} </script></div>
 EOT;
-gtGXO: echo <<<EOT
+hXlVr: echo <<<EOT
 \t<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 \t\t\$('#{$tipo}{$r_empresa}BtnRemover').click(function() {
 \t\t\tvar buttons = {
@@ -66,7 +66,7 @@ gtGXO: echo <<<EOT
 \t\t});
 \t} </script></div>
 EOT;
-function getCodeDefault($tipo) { goto Ks_6n; Ks_6n: global $r_acaoId; goto yfUnz; yfUnz: switch ($tipo) { case 'ini': return <<<DEFAULT
+function getCodeDefault($tipo) { goto xvW7j; xvW7j: global $r_acaoId; goto selsH; selsH: switch ($tipo) { case 'ini': return <<<DEFAULT
 <?php
 /**
 * Variáveis de Configurações do Sistema
@@ -80,10 +80,10 @@ Exemplo:
 EOT;
 */
 DEFAULT;
-goto HhDuv; case 'cssVars': return <<<DEFAULT
+goto kKFBz; case 'cssVars': return <<<DEFAULT
 // Substituição de variáveis no CSS (veja arquivo original)
 DEFAULT;
-goto HhDuv; case 'restricaoIncluirUpdate': return <<<DEFAULT
+goto kKFBz; case 'restricaoIncluirUpdate': return <<<DEFAULT
 <?php
 /**
 * restricaoIncluirUpdate
@@ -103,7 +103,7 @@ Exemplo:
 EOT;
 */
 DEFAULT;
-goto HhDuv; case 'restricaoExcluir': return <<<DEFAULT
+goto kKFBz; case 'restricaoExcluir': return <<<DEFAULT
 <?php
 /**
 * ignorarRelacionamentoExcluir
@@ -119,7 +119,7 @@ Exemplo:
 );
 */
 DEFAULT;
-goto HhDuv; case 'restricaoTravar': return <<<DEFAULT
+goto kKFBz; case 'restricaoTravar': return <<<DEFAULT
 <?php
 /**
 * restricaoTravar
@@ -139,7 +139,7 @@ Exemplo:
 EOT;
 */
 DEFAULT;
-goto HhDuv; case 'camposNaoUsar': return <<<DEFAULT
+goto kKFBz; case 'camposNaoUsar': return <<<DEFAULT
 <?php
 /**
 * camposNaoUsar
@@ -154,7 +154,7 @@ Exemplo:
 ));
 */
 DEFAULT;
-goto HhDuv; case 'tabsNaoUsar': return <<<'DEFAULT'
+goto kKFBz; case 'tabsNaoUsar': return <<<'DEFAULT'
 <?php
 /**
 * tabsNaoUsar
@@ -169,7 +169,7 @@ $conf['tabsNaoUsar'] = array_merge($conf['tabsNaoUsar'], array(
 ));
 */
 DEFAULT;
-goto HhDuv; case 'camposValorPadrao': return <<<DEFAULT
+goto kKFBz; case 'camposValorPadrao': return <<<DEFAULT
 <?php
 /**
 * camposValorPadrao
@@ -182,7 +182,7 @@ Exemplo:
 \$conf['camposValorPadrao']['{$r_acaoId}_Campo'] = date('d/m/Y');
 */
 DEFAULT;
-goto HhDuv; case 'camposLabelForm': return <<<DEFAULT
+goto kKFBz; case 'camposLabelForm': return <<<DEFAULT
 <?php
 /**
 * camposLabelForm
@@ -195,7 +195,7 @@ Exemplo:
 \$conf['camposLabelForm']['{$r_acaoId}_Campo'] = 'Novo Label';
 */
 DEFAULT;
-goto HhDuv; case 'camposTipo': return <<<DEFAULT
+goto kKFBz; case 'camposTipo': return <<<DEFAULT
 <?php
 /**
 * camposTipo
@@ -212,7 +212,7 @@ Exemplos:
 \$conf['camposTipo']['{$r_acaoId}_Campo'] = array('cpf');
 */
 DEFAULT;
-goto HhDuv; case 'triggers': return <<<DEFAULT
+goto kKFBz; case 'triggers': return <<<DEFAULT
 <?php
 /**
 * triggers
@@ -244,7 +244,7 @@ EOT;
 EOT;
 */
 DEFAULT;
-goto HhDuv; case 'altText': return <<<DEFAULT
+goto kKFBz; case 'altText': return <<<DEFAULT
 <?php
 /**
 * Alterações de Textos
@@ -259,7 +259,7 @@ Exemplo:
 ));
 */
 DEFAULT;
-goto HhDuv; case 'alterarMetodos': goto lMCyn; lMCyn: $classe = explode('.', $r_acaoId); goto YxmaZ; Csj0V: return <<<DEFAULT
+goto kKFBz; case 'alterarMetodos': goto pK2ra; uyXmk: goto kKFBz; goto r3_Yn; e3eVi: $classe = $classe[0]; goto W0XhF; pK2ra: $classe = explode('.', $r_acaoId); goto e3eVi; W0XhF: return <<<DEFAULT
 <?php
 namespace hardness;
 /**
@@ -270,7 +270,7 @@ class {$classe} extends {$classe}_ {
 \t// defina os métodos para sobreescrever
 }
 DEFAULT;
-goto dmv0q; YxmaZ: $classe = $classe[0]; goto Csj0V; dmv0q: goto HhDuv; goto uqF8w; uqF8w: case 'alterarPrograma': goto C5MhU; C5MhU: $programa = trim($r_acaoId, '/'); goto XN7R0; DwBRK: return <<<DEFAULT
+goto uyXmk; r3_Yn: case 'alterarPrograma': goto FqTsD; KkmRR: goto kKFBz; goto kAUVn; hvZPd: return <<<DEFAULT
 <?php
 namespace hardness;
 /**
@@ -283,7 +283,7 @@ namespace hardness;
 */
 
 DEFAULT;
-goto KvHnW; KvHnW: goto HhDuv; goto wel97; XN7R0: $programa = "/{$programa}/"; goto DwBRK; wel97: case 'alterarCallback': $programa = trim($r_acaoId, '()'); return <<<DEFAULT
+goto KkmRR; kqevT: $programa = "/{$programa}/"; goto hvZPd; FqTsD: $programa = trim($r_acaoId, '/'); goto kqevT; kAUVn: case 'alterarCallback': $programa = trim($r_acaoId, '()'); return <<<DEFAULT
 <?php
 namespace hardness;
 /**
@@ -293,11 +293,11 @@ namespace hardness;
 DEFAULT;
 case 'alterarSQL': return <<<DEFAULT
 DEFAULT;
-goto HhDuv; case 'alterarCSS': return <<<DEFAULT
+goto kKFBz; case 'alterarCSS': return <<<DEFAULT
 DEFAULT;
 case 'alterarFlag': return <<<DEFAULT
 DEFAULT;
-goto HhDuv; case 'auditoriaCampos': return <<<DEFAULT
+goto kKFBz; case 'auditoriaCampos': return <<<DEFAULT
 <?php
 /**
 * auditoriaCampos
@@ -312,7 +312,7 @@ Exemplo:
 ));
 */
 DEFAULT;
-goto HhDuv; case 'menuBuilder': goto WrfO0; LFTK1: goto HhDuv; goto R56bD; WrfO0: $programa = trim($r_acaoId, '()'); goto Lncb9; Lncb9: return <<<'DEFAULT'
+goto kKFBz; case 'menuBuilder': goto ulmnm; ulmnm: $programa = trim($r_acaoId, '()'); goto V_plN; V_plN: return <<<'DEFAULT'
 <?php
 namespace hardness;
 /**
@@ -322,4 +322,4 @@ namespace hardness;
 //$menu['Vendas']['Orçamentos'] = "abrirJanela(event, divIdRootAberto(), '', menuId('per001'), 'Grid: Orçamentos', 'Orçamentos', '/per/per001/content/contentOrcamentoGrid/', '', 'auto', false, 'center');";
 
 DEFAULT;
-goto LFTK1; R56bD: } goto g0wDP; g0wDP: eaRyJ: goto Aazdc; Aazdc: HhDuv: goto SIpWL; SIpWL: }
+goto XrRp5; XrRp5: goto kKFBz; goto JqUvr; JqUvr: } goto sGfct; Wh7Mc: kKFBz: goto W0Bmw; sGfct: t1UGE: goto Wh7Mc; W0Bmw: }

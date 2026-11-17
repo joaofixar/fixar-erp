@@ -58,15 +58,20 @@ function dashboardBarrasEmpilhadasFiltrarSql($sql, $lista, $parametros)
     return $sql;
 }
 
-function dashboardBarrasEmpilhadasConsultar($conexao, $sqlBase, $grafico, $parametros, &$erro)
+function dashboardBarrasEmpilhadasSql($sqlBase, $grafico)
 {
     $data = dashboardIndicadorIdentificador($grafico['campoData']);
     $grupo = dashboardIndicadorIdentificador($grafico['campoGrupo']);
     $valor = dashboardIndicadorIdentificador($grafico['campoValor']);
     $serie = isset($grafico['agruparPorCategoria']) && $grafico['agruparPorCategoria'] === false ? "''" : "COALESCE(NULLIF(`{$grupo}`, ''), 'Não informado')";
-    $sql = "SELECT DATE_FORMAT(`{$data}`, '%Y-%m') AS periodo, {$serie} AS serie,"
+    return "SELECT DATE_FORMAT(`{$data}`, '%Y-%m') AS periodo, {$serie} AS serie,"
         . " COALESCE(SUM(`{$valor}`), 0) AS valor, COUNT(*) AS quantidade FROM ({$sqlBase}) AS dashboard_barras"
         . " WHERE `{$data}` IS NOT NULL GROUP BY periodo, serie ORDER BY periodo, serie LIMIT 5001";
+}
+
+function dashboardBarrasEmpilhadasConsultar($conexao, $sqlBase, $grafico, $parametros, &$erro)
+{
+    $sql = dashboardBarrasEmpilhadasSql($sqlBase, $grafico);
     $linhas = dashboardIndicadorConsultar($conexao, $sql, $parametros, $erro);
     if ($linhas === false) return false;
     if (count($linhas) > 5000) { $erro = 'O gráfico excedeu 5.000 grupos. Reduza o período.'; return false; }

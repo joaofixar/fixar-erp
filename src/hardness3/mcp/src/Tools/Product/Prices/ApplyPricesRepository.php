@@ -91,11 +91,12 @@ final class ApplyPricesRepository
         $extra=$this->query('SELECT * FROM D009A WHERE D009A_D009_Id=? FOR UPDATE',[$p['D009_Id']])->fetchAll(PDO::FETCH_ASSOC);
         if(count($extra)>1)return 'ambiguous_product';
         $a=$extra[0]??null; $set=[]; $values=[];
-        // Compare all five snapshot prices to retain an accurate complete before/after history.
+        // The snapshot keeps all five prices for audit, but only selected prices are writes.
+        // An unrelated price must not prevent applying a selected price.
         for($n=1;$n<=5;$n++) {
             $current=$n===5?($a['D009A_Preco_5']??null):$p['D009_Preco_'.$n];
-            if($current!==$item['MCP021_Preco_'.$n.'_Antes'])return 'price_changed';
             if(!$item['MCP021_Selecionado_'.$n])continue;
+            if(!$this->samePrice($current,$item['MCP021_Preco_'.$n.'_Antes']))return 'price_changed';
             if($n===5 && !$a)return 'price_5_record_missing';
             if((float)($n===5?$a['D009A_IPT_5']:$p['D009_IPT_'.$n])>0)return 'automatic_price';
             $new=$item['MCP021_Preco_'.$n.'_Depois'];
@@ -111,7 +112,19 @@ final class ApplyPricesRepository
         if($item['MCP021_Selecionado_5'])$this->query('UPDATE D009A SET D009A_Preco_5=? WHERE D009A_Id=? AND D009A_D009_Id=?',[$item['MCP021_Preco_5_Depois'],$a['D009A_Id'],$p['D009_Id']]);
         $after=$this->query('SELECT D009_Preco_1,D009_Preco_2,D009_Preco_3,D009_Preco_4 FROM D009 WHERE D009_Id=?',[$p['D009_Id']])->fetch(PDO::FETCH_ASSOC);
         $fifth=$this->query('SELECT D009A_Preco_5 FROM D009A WHERE D009A_D009_Id=?',[$p['D009_Id']])->fetch(PDO::FETCH_ASSOC);
-        for($n=1;$n<=5;$n++)if(($n===5?($fifth['D009A_Preco_5']??null):$after['D009_Preco_'.$n])!==$item['MCP021_Preco_'.$n.'_Depois'])throw new \RuntimeException('price_not_persisted');
+        for($n=1;$n<=5;$n++) {
+            if(!$item['MCP021_Selecionado_'.$n])continue;
+            $current=$n===5?($fifth['D009A_Preco_5']??null):$after['D009_Preco_'.$n];
+            if(!$this->samePrice($current,$item['MCP021_Preco_'.$n.'_Depois']))throw new \RuntimeException('price_not_persisted');
+        }
         return null;
+    }
+
+    private function samePrice(?string $current, ?string $snapshot): bool {
+        try {
+            return PreparePricesInput::decimal($current)===PreparePricesInput::decimal($snapshot);
+        } catch(\InvalidArgumentException $e) {
+            return false;
+        }
     }
 }

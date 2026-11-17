@@ -15,6 +15,8 @@ BEGIN
     DECLARE xFlag_Deb_Crd_PIS VARCHAR(1);
     DECLARE xFlag_Deb_Crd_COFINS VARCHAR(1);
     DECLARE xT014A_Valor_Acrescimo_Custo DECIMAL(20,10);
+    DECLARE xT014A_Valor_Frete_NFS DECIMAL(15,2) DEFAULT 0;
+    DECLARE xQuantidade_Item DECIMAL(20,10);
 
     
     SELECT D006_Flag_Substituicao_Tributaria,
@@ -28,7 +30,9 @@ BEGIN
            T014_Valor_Base_ICMS,
            D006_Flag_Deb_Crd_PIS,
            D006_Flag_Deb_Crd_COFINS,
-           IFNULL(T014A_Valor_Acrescimo_Custo,0)
+           IFNULL(T014A_Valor_Acrescimo_Custo,0),
+           IFNULL(T014A_Valor_Frete_NFS,0),
+           T014_Quantidade
       INTO xFlag_Substituicao_Tributaria,
            xFlag_Deb_Crd_ICMS,
            xFlag_Credita_IPI,
@@ -40,7 +44,9 @@ BEGIN
            xT014_Valor_Base_ICMS,
            xFlag_Deb_Crd_PIS,
            xFlag_Deb_Crd_COFINS,
-           xT014A_Valor_Acrescimo_Custo
+           xT014A_Valor_Acrescimo_Custo,
+           xT014A_Valor_Frete_NFS,
+           xQuantidade_Item
       FROM T014
  LEFT JOIN D006 ON D006_Id=T014_D006_Id
  LEFT JOIN T013 ON T013_Id=T014_T013_Id     
@@ -81,13 +87,15 @@ BEGIN
                                                        T014_Valor_Despesas_Acessorias + 
                                                        T014_Valor_ICMS_Diferenca_Aliquotas) - 
                                                        T014_Valor_Total_Desconto) / xT014_Quantidade) +
-                                                       xT014A_Valor_Acrescimo_Custo,
+                                                       xT014A_Valor_Acrescimo_Custo +
+                                                       IFNULL(xT014A_Valor_Frete_NFS / NULLIF(xQuantidade_Item,0),0),
            T014_Valor_Total_Custo_Final           = T014_Valor_Custo_Final_Unitario * T014_Quantidade
     WHERE T014_Id=xT014_Id;
 
    UPDATE T014A
 LEFT JOIN T014 ON T014_Id = T014A_T014_Id 
-      SET T014A_Valor_Custo_Final_Liquido_Unitario = (T014_Valor_Total_Custo_Final - IF(xFlag_Deb_Crd_ICMS='S', T014_Valor_ICMS,0) - IF(xFlag_Deb_Crd_PIS = 'S', T014_Valor_PIS, 0) - IF(xFlag_Deb_Crd_COFINS = 'S', T014_Valor_COFINS, 0)) / xT014_Quantidade                                             
+      SET T014A_Valor_Custo_Final_Liquido_Unitario = (T014_Valor_Total_Custo_Final - xT014A_Valor_Frete_NFS - IF(xFlag_Deb_Crd_ICMS='S', T014_Valor_ICMS,0) - IF(xFlag_Deb_Crd_PIS = 'S', T014_Valor_PIS, 0) - IF(xFlag_Deb_Crd_COFINS = 'S', T014_Valor_COFINS, 0)) / xT014_Quantidade
+                                                   + IFNULL(xT014A_Valor_Frete_NFS / NULLIF(xQuantidade_Item,0),0)
     WHERE T014A_T014_Id=xT014_Id;
 
 END;

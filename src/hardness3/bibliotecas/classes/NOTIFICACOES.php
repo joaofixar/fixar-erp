@@ -1732,7 +1732,7 @@ EOT;
                                AND T225_Id IS NULL
                                AND (T005_T005_Id_Agrupado<=0 OR T005_T005_Id_Agrupado IS NULL)
                                AND (T006_Quantidade-T006_Quantidade_Estoque-T006_Quantidade_OC)>0
-                               AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')            
+                               AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
                                AND T006_Flag_Nao_Comprar != 'S'
                           GROUP BY D009_C007_Id_Comprador");
 
@@ -1968,7 +1968,7 @@ EOT;
                                AND (if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)+T006_Quantidade_OP) < T006_Quantidade
                                AND (T005_Flag_Status = 0 OR T005_Flag_Status = '' OR T005_Flag_Status=14)
                                AND IF(IFNULL(T006_C004_Id_Estoque,0) > 0, T006_C004_Id_Estoque, T005_C004_Id) = T005_C004_Id
-                               AND D049_Flag_Tipo = 'PD'");
+                               AND D049_Flag_Tipo IN ('PD', 'IN')");
         // exibir mensagem
         $row = mysql_fetch_assoc($sql);
         if($row['totalT006'] > 0){
@@ -2440,7 +2440,7 @@ EOT;
                                AND T004_Flag_Comprar = 'S' 
                                AND T003_Flag_Perdido != 'S' 
                                AND T003_Flag_Status_Orcamento != 'V'
-                               AND T006_Id IS NULL AND D049_Flag_Tipo = 'PD'");
+                               AND T006_Id IS NULL AND D049_Flag_Tipo IN ('PD', 'IN')");
         $rows = mysql_num_rows($sql);
         if($rows > 0){
             $resposta['titulo'] = ($rows == 1) ? "Existe <b>1</b> item para análise de custo" : "Existem <b>{$rows}</b> itens para análise de custo";
@@ -2474,7 +2474,7 @@ EOT;
                                AND T003_C004_Id='{$g['empresaAtual']}'
                                AND T003_Flag_Perdido != 'S'
                                AND T003_Flag_Status_Orcamento != 'V'
-                               AND T006_Id IS NULL AND D049_Flag_Tipo = 'PD'
+                               AND T006_Id IS NULL AND D049_Flag_Tipo IN ('PD', 'IN')
                           GROUP BY T003_Id");
         if(mysql_num_rows($sql) > 0){
             while($row = mysql_fetch_array($sql)){
@@ -2754,7 +2754,7 @@ EOT;
 			                   AND T296_Id IS NULL
 			                   AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado IS NULL)
 			                   AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			                   AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			                   AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			                   AND T006_Flag_Nao_Comprar != 'S'
 			                   AND D006_Flag_Estoque = 'D'
 			                   AND (D049_Origem_Mercadoria = 1 OR D049_Origem_Mercadoria = 2 OR D049_Origem_Mercadoria = 6 OR D049_Origem_Mercadoria = 7)
@@ -2809,7 +2809,7 @@ EOT;
                                AND T006_Id is null
                                AND T294_Id is null
                                AND T004_Flag_Comprar='S'
-                               AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')
+                               AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
                                AND D006_Flag_Estoque = 'D'
                                AND (D049_Origem_Mercadoria = 1 OR D049_Origem_Mercadoria = 2 OR D049_Origem_Mercadoria = 6 OR D049_Origem_Mercadoria = 7)
                           GROUP BY D009_C004_Id, D009_C007_Id_Comprador");

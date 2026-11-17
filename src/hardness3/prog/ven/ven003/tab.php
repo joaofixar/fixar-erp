@@ -150,11 +150,11 @@ switch ($g['r'][3]) {
 			//}
 			//$tabsList[] = array(uniqid(), '/ven/ven003/content/ven003ContentServicosNF/', 'Serviços', "&acaoId=" . urlencode($r_acaoId) . "&T007_Id=" . urlencode($r_acaoId) .'&formId=' . urlencode($formId), true);
 			$tabsList[] = array(uniqid(), '/ven/ven003/form/ven003FormTotais/', 'Totais', "&tab=geral&acaoId=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId),false,true);
-			$tabsList[] = array(uniqid(), '/ven/ven003/grid/ven003GridObservacoes/', 'Observações', "&tab=geral&acaoId=" . urlencode($r_acaoId) . '&T007_Id=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId), true, true);
 			$tabsList[] = array($tabTransporte, '/ven/ven003/form/ven003FormPrincipal/', 'Transporte', "&tab=transporte&acaoId=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId));
 			$tabsList[] = array(uniqid(), '/ven/ven003/form/ven003FormPrincipal/', 'Adicionais', "&tab=adicionais&acaoId=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId));
 			$tabsList[] = array(uniqid(), '/ven/ven003/form/ven003FormPrincipal/', 'Exportação', "&tab=exportacao&acaoId=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId));
 			$tabsList[] = array(uniqid(), '/ven/ven003/content/ven003ContentReferenciada/', 'Referenciada', "&T007_Id=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId), true);
+			$tabsList[] = array(uniqid(), '/ven/ven003/grid/ven003GridObservacoes/', 'Observações', "&tab=geral&acaoId=" . urlencode($r_acaoId) . '&T007_Id=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId), true, true);
 			$tabsList[] = array(uniqid(), '/ven/ven003/form/ven003FormPrincipal/', 'Mais', "&tab=mais&acaoId=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId));
 			$tabsList[] = array(uniqid(), '/ven/ven003/content/ven003ContentTecnico/', 'Técnico', "&tab=geral&acaoId=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId), true);
 			$tabsList[] = array(uniqid(), '/etc/etc017/content/etc017ContentAtividadesT007/', 'Atividades', "&T007_Id=" . urlencode($r_acaoId) . '&formId=' . urlencode($formId), true);

@@ -17,16 +17,41 @@ switch ($g['r'][3]) {
 	break;
 
 	case 'removerNotificacaoPedidoLiberacaoCredito':	
-		$acaoId = isset($r_acaoId) ? $r_acaoId : false;
-		//mysql_query("UPDATE T005 SET T005_Flag_Notificacao_Financeiro = '' WHERE T005_Id = '{$acaoId}'");
-		$resposta = true;
+		$resposta = false;
+		$acaoId = isset($r_acaoId) && is_numeric($r_acaoId) ? (int) $r_acaoId : false;
+		$Uniqid_Mensagem = isset($r_Uniqid_Mensagem) ? $r_Uniqid_Mensagem : false;
+
+		if ($acaoId > 0) {
+			$uniqId = '917' . $acaoId . $g['empresaAtual'] . '0' . $g['usuarioAtual'];
+			if (empty($Uniqid_Mensagem) || $Uniqid_Mensagem == 'undefined') {
+				$resposta = marcarNotificacaoLido($uniqId, '917', $acaoId);
+			} else if ($Uniqid_Mensagem == $uniqId) {
+				$resposta = marcarNotificacaoLido($Uniqid_Mensagem, '917', $acaoId);
+			}
+		}
+
 		echo $_REQUEST['callback'] . "(" . json_encode($resposta) . ");";
 	break;
 
 	case 'removerNotificacaoPedidoEntradaEstoque':	
-		$acaoId = isset($r_acaoId) ? $r_acaoId : false;
-		//mysql_query("UPDATE T005 SET T005_Flag_Notificacao_Estoque = 'N' WHERE T005_Id = '{$acaoId}'");
-		$resposta = true;
+		$resposta = false;
+		$acaoId = isset($r_acaoId) && is_numeric($r_acaoId) ? (int) $r_acaoId : false;
+		$Uniqid_Mensagem = isset($r_Uniqid_Mensagem) ? $r_Uniqid_Mensagem : false;
+
+		if ($acaoId > 0) {
+			$uniqId918 = '918' . $acaoId . $g['empresaAtual'] . '0' . $g['usuarioAtual'];
+			$uniqId985 = '985' . $acaoId . $g['empresaAtual'] . $g['usuarioAtual'];
+			if (empty($Uniqid_Mensagem) || $Uniqid_Mensagem == 'undefined') {
+				$resposta918 = marcarNotificacaoLido($uniqId918, '918', $acaoId);
+				$resposta985 = marcarNotificacaoLido($uniqId985, '985', $acaoId);
+				$resposta = $resposta918 && $resposta985;
+			} else if ($Uniqid_Mensagem == $uniqId918) {
+				$resposta = marcarNotificacaoLido($Uniqid_Mensagem, '918', $acaoId);
+			} else if ($Uniqid_Mensagem == $uniqId985) {
+				$resposta = marcarNotificacaoLido($Uniqid_Mensagem, '985', $acaoId);
+			}
+		}
+
 		echo $_REQUEST['callback'] . "(" . json_encode($resposta) . ");";
 	break;
 
@@ -89,27 +114,97 @@ switch ($g['r'][3]) {
 }
 
 
-function marcarNotificacaoLido($Uniqid_Mensagem)
+function marcarNotificacaoLido($Uniqid_Mensagem, $Id = false, $acaoId = false)
 {
 	global $g, $confUsuario;
 
+	if (empty($Uniqid_Mensagem) || $Uniqid_Mensagem == 'undefined') {
+		error_log("marcarNotificacaoLido: identificador inválido | Uniqid_Mensagem={$Uniqid_Mensagem}");
+		return false;
+	}
+
 	//Recupera o cache da memória
 	$Dir = $g['pathDados'] . 'tmp/notificacoes/';
-	is_dir($Dir) or mkdir($Dir, 0777, true);
-	$notificacoes = scandir("{$Dir}");
-	foreach ($notificacoes as $key => $arquivo)
+	if (!is_dir($Dir)) {
+		return true;
+	}
+
+	if ($Id) {
+		$notificacoes = array("cacheN001Notificacoes_{$Id}.txt");
+	} else {
+		$notificacoes = scandir("{$Dir}");
+		if ($notificacoes === false) {
+			error_log("marcarNotificacaoLido: erro ao listar diretório | diretorio={$Dir} | Uniqid_Mensagem={$Uniqid_Mensagem}");
+			return false;
+		}
+	}
+
+	$cacheCorrompido = false;
+	foreach ($notificacoes as $arquivo) {
+		if (strpos($arquivo, 'cacheN001Notificacoes_') !== 0 || substr($arquivo, -4) != '.txt') {
+			continue;
+		}
+
 		$arquivoNome = $Dir . $arquivo;
+		if (!is_file($arquivoNome)) {
+			continue;
+		}
+
 		$cacheN001 = file_get_contents($arquivoNome);
-		if ($cacheN001){
-			$cacheN001 = unserialize($cacheN001);
+		if ($cacheN001 === false) {
+			error_log("marcarNotificacaoLido: erro ao ler cache | arquivo={$arquivoNome} | Uniqid_Mensagem={$Uniqid_Mensagem}");
+			return false;
+		}
 
-			//Cria nova notificação
-			$cacheN001[$Uniqid_Mensagem]['lido'] = 'S';
-			$cacheN001['lastUpdate'] = time();
+		$cacheN001 = @unserialize($cacheN001);
+		if (!is_array($cacheN001)) {
+			error_log("marcarNotificacaoLido: cache inválido | arquivo={$arquivoNome} | Uniqid_Mensagem={$Uniqid_Mensagem}");
+			$cacheCorrompido = true;
+			continue;
+		}
 
-			//Grava o cache
-			$h = fopen($arquivoNome, "w");
-			$r = fwrite($h, serialize($cacheN001));
+		if (!isset($cacheN001[$Uniqid_Mensagem])) {
+			continue;
+		}
+
+		$N001 = $cacheN001[$Uniqid_Mensagem];
+		if (!is_array($N001)
+			|| ($Id && (!isset($N001['N001_Id_Mensagem']) || $N001['N001_Id_Mensagem'] != $Id))
+			|| ($Id && (!isset($N001['N001_C004_Id']) || $N001['N001_C004_Id'] != $g['empresaAtual']))
+			|| ($Id && (!isset($N001['N001_C007_Id']) || $N001['N001_C007_Id'] != $g['usuarioAtual']))
+			|| ($acaoId && strpos($Uniqid_Mensagem, (string) $acaoId) === false)) {
+			error_log("marcarNotificacaoLido: notificação não pertence ao usuário atual | arquivo={$arquivoNome} | Uniqid_Mensagem={$Uniqid_Mensagem}");
+			return false;
+		}
+
+		$cacheN001[$Uniqid_Mensagem]['lido'] = 'S';
+		$cacheN001['lastUpdate'] = time();
+		$cacheN001 = serialize($cacheN001);
+		$arquivoTmp = $arquivoNome . '.tmp';
+		$h = fopen($arquivoTmp, "w");
+		$r = $h ? fwrite($h, $cacheN001) : false;
+		if ($h) {
 			fclose($h);
 		}
+
+		if ($r === false || $r != strlen($cacheN001)) {
+			is_file($arquivoTmp) and unlink($arquivoTmp);
+			error_log("marcarNotificacaoLido: erro ao gravar cache | arquivo={$arquivoNome} | Uniqid_Mensagem={$Uniqid_Mensagem}");
+			return false;
+		}
+
+		if (!rename($arquivoTmp, $arquivoNome)) {
+			is_file($arquivoTmp) and unlink($arquivoTmp);
+			error_log("marcarNotificacaoLido: erro ao substituir cache | arquivo={$arquivoNome} | Uniqid_Mensagem={$Uniqid_Mensagem}");
+			return false;
+		}
+
+		return true;
+	}
+
+	if ($cacheCorrompido) {
+		return false;
+	}
+
+	return true;
 }

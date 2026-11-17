@@ -645,6 +645,9 @@ EOT;
 		$arquivoTrigger = $dir . $idGridImp . '-trigger';
 		// Importar
 		$cacheConversorCampos = array();
+		$campoConversorCampos = array();
+		$tiposNumericos = array('DECIMAL', 'NUMERIC', 'FLOAT', 'DOUBLE', 'REAL', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'INT', 'INTEGER', 'BIGINT');
+		$tiposData = array('DATE', 'DATETIME', 'TIMESTAMP');
 		$resposta['erros'] = '';
 		$resposta['logInsert'] = '';
 		$resposta['logUpdate'] = '';
@@ -737,6 +740,65 @@ EOT;
 			if (($r_tipo == 'update' || $r_tipo == 'both') && empty($infoPk)) {
 				$resposta['code'] = false;
 				$resposta['erros'] .= "Não foi definido uma coluna de chave primária (PK).";
+			}
+			if (!preg_match('/^[a-zA-Z0-9_]+$/', $r_tabela)) {
+				$resposta['code'] = false;
+				$resposta['erros'] .= "Tabela inválida para identificar os tipos: {$r_tabela}<br />";
+			}
+			if ($resposta['code']) {
+				foreach ($info as $key => $value) {
+					if (strpos($key, 'pularLinha') !== false) { continue; }
+					if (!isset($value[0]) || empty($value[0])) { continue; }
+
+					// Quando existe uma FK, o valor do CSV pesquisa o campo relacionado.
+					// O tipo desse campo, e não o tipo do ID, deve definir a conversão.
+					if (isset($value[2]) && !empty($value[2])) {
+						$campoConversor = $value[2];
+						$tabelaConversor = explode('_', $campoConversor);
+						$tabelaConversor = $tabelaConversor[0];
+					} else {
+						$campoConversor = $value[0];
+						$tabelaConversor = $r_tabela;
+					}
+
+					// Campos JSON utilizam o tipo da coluna que armazena o documento.
+					$campoConversor = explode('->', $campoConversor);
+					$campoConversor = trim($campoConversor[0]);
+
+					if (!preg_match('/^[a-zA-Z0-9_]+$/', $tabelaConversor) || !preg_match('/^[a-zA-Z0-9_]+$/', $campoConversor)) {
+						$resposta['code'] = false;
+						$resposta['erros'] .= "Tabela ou campo inválido para identificar o tipo: {$tabelaConversor}.{$campoConversor}<br />";
+						continue;
+					}
+
+					if (!array_key_exists($tabelaConversor, $cacheConversorCampos)) {
+						$sqlCampos = <<<SQL
+							SHOW COLUMNS FROM `{$tabelaConversor}`
+						SQL;
+						$resCampos = mysqli_query($sqlCampos);
+						if (!$resCampos) {
+							$cacheConversorCampos[$tabelaConversor] = false;
+							$resposta['code'] = false;
+							$resposta['erros'] .= "Erro ao consultar tipos da tabela {$tabelaConversor}: " . mysql_error() . '<br />';
+							continue;
+						}
+
+						$cacheConversorCampos[$tabelaConversor] = array();
+						while ($campoTabela = mysql_fetch_assoc($resCampos)) {
+							preg_match('/^[a-zA-Z]+/', $campoTabela['Type'], $tipoCampo);
+							$cacheConversorCampos[$tabelaConversor][$campoTabela['Field']] = strtoupper($tipoCampo[0]);
+						}
+					}
+
+					if ($cacheConversorCampos[$tabelaConversor] === false) { continue; }
+					if (!isset($cacheConversorCampos[$tabelaConversor][$campoConversor])) {
+						$resposta['code'] = false;
+						$resposta['erros'] .= "Campo {$tabelaConversor}.{$campoConversor} não existe para identificar o tipo.<br />";
+						continue;
+					}
+
+					$campoConversorCampos[$key] = $cacheConversorCampos[$tabelaConversor][$campoConversor];
+				}
 			}
 			// não continuar em caso de erro
 			if ($resposta['code']) {
@@ -872,13 +934,20 @@ EOT;
 									// Padronização de valores
 									$value = trim($value);
 									if (preg_match('#^[0-9]+,[0-9]+$#', $value)) {
-										$value = str_replace(',', '.', $value);
+										// A aparência do valor não diferencia um decimal de um código textual.
+										if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+											$value = str_replace(',', '.', $value);
+										}
 									} else if (preg_match('#^([0-9]+\.)+[0-9]+,[0-9]+$#', $value)) {
-										$value = str_replace('.', '', $value);
-										$value = str_replace(',', '.', $value);
+										if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+											$value = str_replace('.', '', $value);
+											$value = str_replace(',', '.', $value);
+										}
 									} else if (preg_match('#^[0-9]{2}/[0-9]{2}/[0-9]{4}$#', $value)) {
-										$value = explode('/', $value);
-										$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+										if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposData)) {
+											$value = explode('/', $value);
+											$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+										}
 									} else {
 										if($functionPersonalizaLimparAcentos){
 											// Só entra aqui se existir arquivo personalizado
@@ -916,13 +985,20 @@ EOT;
 			    				// Padronização de valores
 			    				$value = trim($value);
 								if (preg_match('#^[0-9]+,[0-9]+$#', $value)) {
-									$value = str_replace(',', '.', $value);
+									// A aparência do valor não diferencia um decimal de um código textual.
+									if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+										$value = str_replace(',', '.', $value);
+									}
 								} else if (preg_match('#^([0-9]+\.)+[0-9]+,[0-9]+$#', $value)) {
-									$value = str_replace('.', '', $value);
-									$value = str_replace(',', '.', $value);
+									if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+										$value = str_replace('.', '', $value);
+										$value = str_replace(',', '.', $value);
+									}
 								} else if (preg_match('#^[0-9]{2}/[0-9]{2}/[0-9]{4}$#', $value)) {
-									$value = explode('/', $value);
-									$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+									if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposData)) {
+										$value = explode('/', $value);
+										$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+									}
 								} else {
 									if($functionPersonalizaLimparAcentos){
 										// Só entra aqui se existir arquivo personalizado
@@ -954,9 +1030,6 @@ EOT;
 										$value = $rowFK[0];
 									}
 								}
-								// conversões de campos
-								//$cacheConversorCampos
-								//SHOW COLUMNS FROM T002 WHERE `Field` = 'T002_Valor_Juros'
 			        			// é a chave primária?
 			        			if ($r_tipo == 'update' || $r_tipo_both == 'update') {
 			        				if (isset($info[$key]) && isset($info[$key][1]) && $info[$key][1]) {

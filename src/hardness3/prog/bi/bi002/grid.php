@@ -183,7 +183,7 @@ EOT;
 
 		$grid = array(
             array('colunaValor' => 'D177_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true,'colunaExibir' => false),
-            array('colunaValor' => 'D176_Id', 'colunaTitulo' => 'Código', 'colunaAlinhar' => 'center', 'style' => 'width:1%;font-weight:bold'),
+            array('colunaValor' => 'D176_Id', 'colunaTitulo' => 'Código', 'colunaAlinhar' => center, 'style' => 'width:1%;font-weight:bold'),
             array('colunaValor' => 'D177_C021_Id', 'colunaTitulo' => 'C021_Id', 'colunaExibir' => false),
 			array('colunaValor' => 'D176_Titulo', 'colunaTitulo' => 'Link', 'style' => 'width:1%'),
             array('colunaValor' => 'D176_Descricao', 'colunaTitulo' => 'Descrição','style' => 'max-width:250px; overflow: hidden;'),

@@ -39,15 +39,24 @@ foreach ($empresas as $index => $empresa){
 		include("bibliotecas/confUsuario.php");
 	    include('bibliotecas/conexaoBanco.php');
 
+		// O include_once da conexão inicializa a auditoria apenas no primeiro cliente.
+		if (empty($g['conexaoBancoAuditoria'])) {
+			include('bibliotecas/conexaoBancoAuditoria.php');
+		}
+
         echo "ATUALIZANDO DB: " . $confUsuario['dbDatabase'] . " - " . $confUsuario['urlRaiz'] . "\n";
 	    $g['pathDados'] = "dados_usuarios/{$confUsuario['dbDatabase']}/";
 		
 		include('scripts/atualizacaoBase.php');
 
+		if (!empty($g['conexaoBancoAuditoria']) && $g['conexaoBancoAuditoria'] !== $con) {
+			mysqli_close($g['conexaoBancoAuditoria']);
+		}
 		mysqli_close($con);
+		unset($g['conexaoBanco'], $g['conexaoBancoAuditoria'], $g['erroSomenteAuditoria']);
 		session_destroy();
 		unset($_SESSION);
-		unset($confUsuario);
+		unset($confUsuario, $confUsuarioAuditoria);
 
 		echo "\n\n\n";
 	}

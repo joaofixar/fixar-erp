@@ -14992,6 +14992,12 @@ EOT;
             // Gera registro na tabela estendida
             mysqli_query("INSERT INTO T007A (T007A_T007_Id, T007A_Flag_Calcular_Reforma_Tributaria_Nota_Devolucao) VALUES ($nT007_Id, '{$T007A_Flag_Calcular_Reforma_Tributaria_Nota_Devolucao}')");
 
+            $retorno = $this->triggerAposInclusaoT007NotaTransporte($T007_Id, $nT007_Id);
+            if ($retorno !== true) {
+                mysql_query("ROLLBACK");
+                return $retorno;
+            }
+
             /*****************************CARLOS CARVALHO *****************************************************/
             
             $this->BaixarRNC($listaT007s);
@@ -19526,6 +19532,17 @@ EOT;
          */	
         public function triggerAntesInsertT008NotaTransporte(&$mT008, &$mT007, &$mD006){
             // Parametros por referencia para mudar algum valor antes da insercao T008
+        }
+
+        /**
+         * Trigger após incluir o cabeçalho e a tabela estendida da nota espelho.
+         *
+         * @param int $T007_Id_Origem
+         * @param int $T007_Id_Novo
+         * @return bool|string
+         */
+        public function triggerAposInclusaoT007NotaTransporte($T007_Id_Origem, $T007_Id_Novo){
+            return true;
         }
 
         /**

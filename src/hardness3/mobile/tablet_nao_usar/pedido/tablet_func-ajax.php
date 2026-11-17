@@ -53,7 +53,7 @@ if($opcaoAcao == "verificaAlcadaNovo") {
     if($retornoRestricao !== true){
          $resposta['code'] = 'erro';
 		$resposta['data'] = $retornoRestricao;
-		return;
+		break;
     }
 
     $T005=mysql_query("SELECT T005_FLag_Status_Liberacao, T005_D024_Id, T005_Flag_Frete, T005_Valor_Frete, ROUND(SUM(T006_Valor_Total_Frete),2) AS FreteProdutos FROM T005 LEFT JOIN T006 ON T006_T005_Id=T005_Id WHERE T005_Id='{$T005_Id}' GROUP BY T005_Id");
@@ -63,7 +63,7 @@ if($opcaoAcao == "verificaAlcadaNovo") {
 	if($mT005['T005_Valor_Frete'] != $mT005['FreteProdutos'] && $g['C031']['ratearFreteVendaNoCusto'] == 'S' && $mT005['T005_Flag_Frete'] == '0'){
 		$resposta['code'] = 'erro';
 		$resposta['data'] = "A soma do frete dos produtos é diferente do valor do frete no cabeçalho do pedido. <p>Para corrigir clique no botão \"Atualizar\" em seguida a opção \"Atualizar preço tabela\".";
-		return;
+		break;
 	}
 
 	require_once("bibliotecas/classes/VEN001.php");

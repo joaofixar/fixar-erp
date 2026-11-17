@@ -1574,9 +1574,6 @@ switch($g['r'][3]) {
 	break;
 
 	case 'enviarEmailNotas':
-		$resposta['code'] = false;
-		$resposta['data'] = 'A base local não envia e-mail.';
-		break;
 		require_once("bibliotecas/classes/VEN012.php");
 		$VEN012 = new VEN012();
 		$erros = '';

@@ -102,7 +102,7 @@ final class OAuthTokenIntegrationStatement extends PDOStatement
     public function bindValue($parameter,$value,$type=PDO::PARAM_STR){$this->bound[ltrim((string)$parameter,":")]=$value;return true;}
     public function execute($parameters=null){$params=$this->bound;if(is_array($parameters))foreach($parameters as $key=>$value)$params[ltrim((string)$key,":")]=$value;[$this->rows,$this->affected]=$this->pdo->run($this->sql,$params);return true;}
     public function fetch($fetchStyle=null,$cursorOrientation=null,$cursorOffset=null){if(strpos($this->sql,"FROM MCP001 c WHERE")!==false)return ["MCP001_Id"=>1];return $this->rows[0]??false;}
-    public function fetchAll(int $mode = \PDO::FETCH_DEFAULT, mixed ...$args): array{return $this->rows;}
+    public function fetchAll($how=null,$class_name=null,$ctor_args=null){return $this->rows;}
     public function rowCount(): int{return $this->affected;}
 }
 final class OAuthTokenIntegrationPdo extends PDO

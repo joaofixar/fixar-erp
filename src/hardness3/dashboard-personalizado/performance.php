@@ -1,6 +1,41 @@
 <?php
 namespace hardness;
 
+// Somente durante uma execução autorizada: uma nova abertura lê dados novos.
+function dashboardConsultaMemoriaChave($conexao, $sql, $parametros)
+{
+    if (empty($GLOBALS['dashboardConsultaMemoria']) || !empty($GLOBALS['dashboardFiltrosCache']['ignorar']) || getenv('HARDNESS_DASHBOARD_QUERY_MEMO') === '0'
+        || !preg_match('/^\s*SELECT\b/i', $sql)
+        || preg_match('/\b(RAND|UUID|UUID_SHORT|SYSDATE|NOW|CURDATE|CURTIME|CURRENT_DATE|CURRENT_TIME|CURRENT_TIMESTAMP|LOCALTIME|LOCALTIMESTAMP|UTC_DATE|UTC_TIME|UTC_TIMESTAMP|FOUND_ROWS|LAST_INSERT_ID)\b|@/i', $sql)) return null;
+    preg_match_all('/:([a-z][a-zA-Z0-9_]*)/', $sql, $nomes);
+    $usados = array();
+    foreach (array_unique($nomes[1]) as $nome) {
+        if (!array_key_exists($nome, $parametros)) return null;
+        $usados[$nome] = $parametros[$nome];
+    }
+    ksort($usados);
+    $id = is_object($conexao) ? spl_object_hash($conexao) : (is_resource($conexao) ? (int) $conexao : $conexao);
+    return hash('sha256', serialize(array($id, $sql, $usados)));
+}
+
+function dashboardConsultaMemoriaGuardar($chave, $linhas)
+{
+    $ctx = &$GLOBALS['dashboardConsultaMemoria'];
+    if (count($ctx['consultas']) >= 64 || count($linhas) > 2000) return;
+    $bytes = 0;
+    foreach ($linhas as $linha) {
+        if (!is_array($linha)) return;
+        $bytes += 96;
+        foreach ($linha as $valor) {
+            if (!is_scalar($valor) && $valor !== null) return;
+            $bytes += 64 + (is_string($valor) ? strlen($valor) : 16);
+        }
+        if ($bytes + $ctx['bytes'] > 4194304) return;
+    }
+    $ctx['bytes'] += $bytes;
+    $ctx['consultas'][$chave] = $linhas;
+}
+
 // Contexto definido pelos endpoints somente após autorização e restrições.
 function dashboardFiltrosCacheContexto($tenant, $autorizacao, $acessos, $indicador)
 {
@@ -248,6 +283,15 @@ function dashboardIndicadorParametrosCalendario($calendario, $parametros)
         $parametros['dataFim'] = date('Y-m-d', strtotime('+29 days'));
     }
     return $parametros;
+}
+
+function dashboardIndicadorSqlCalendario($sqlBase, $calendario, $campoCard)
+{
+    $data = dashboardIndicadorIdentificador(isset($calendario['campoData']) ? $calendario['campoData'] : 'data', 'data');
+    $valor = dashboardIndicadorIdentificador(isset($calendario['campoValor']) ? $calendario['campoValor'] : $campoCard, $campoCard);
+    $calculo = isset($calendario['calculo']) ? $calendario['calculo'] : 'soma';
+    $agregacao = $calculo === 'contagem' ? 'COUNT(*)' : ($calculo === 'media' ? 'AVG(`' . $valor . '`)' : 'SUM(`' . $valor . '`)');
+    return "SELECT DATE(`{$data}`) AS data, COALESCE({$agregacao}, 0) AS valor FROM ({$sqlBase}) AS dashboard_base WHERE `{$data}` IS NOT NULL GROUP BY DATE(`{$data}`) ORDER BY data";
 }
 
 function dashboardIndicadorConsultarDetalheCalendario($conexao, $sqlBase, $calendario, $campoCard, $parametros, $data, &$erro)

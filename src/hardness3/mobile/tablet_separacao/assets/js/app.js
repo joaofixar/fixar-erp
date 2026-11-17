@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (scanInput) {
         var scanForm = scanInput.closest('form');
         var quantityFieldInitial = scanForm ? scanForm.querySelector('input[name="quantity"]') : null;
-        if (quantityFieldInitial && quantityFieldInitial.value.trim() === '') {
+        if (scanInput.value.trim() !== '' && quantityFieldInitial && quantityFieldInitial.value.trim() === '') {
             quantityFieldInitial.focus();
         } else {
             scanInput.focus();

@@ -575,7 +575,7 @@ switch($g['r'][3]) {
 		$extraOriginal = base64_decode($r_extra);
 		$extra = gPegarParteWhere(gInsertExtraWhere($extraOriginal, "T006_Flag_Gerar_Cotacao='S' AND T006_C007_Id_Comprador = '{$g['usuarioAtual']}'"), true);
 
-		$sql = "SELECT COUNT(distinct T006_Id) as Total_Cotar, SUM(IF(ifnull(D049_Flag_Tipo,'CP') = 'PD' AND D074_Id IS NULL, 1, 0)) as Itens_Sem_Engenharia FROM T006 
+		$sql = "SELECT COUNT(distinct T006_Id) as Total_Cotar, SUM(IF(ifnull(D049_Flag_Tipo,'CP') IN ('PD', 'IN') AND D074_Id IS NULL, 1, 0)) as Itens_Sem_Engenharia FROM T006
 				LEFT JOIN T006A ON T006A_T006_Id = T006_Id
 				LEFT JOIN T261 on T006_Id=T261_T006_Id
 				LEFT JOIN D009 on D009_Id=T006_D009_Id
@@ -815,7 +815,7 @@ switch($g['r'][3]) {
 			}
 
 			while($row = mysql_fetch_array($retorno)){
-				if($row['D049_Flag_Tipo'] == 'PD' && empty($row['D074_Id'])){
+				if(in_array($row['D049_Flag_Tipo'], array('PD', 'IN'), true) && empty($row['D074_Id'])){
 					$semEngenharia++;
 				} else if(empty($row['D024_Id']) || $row['D024_Id'] == 0){
 					$semFornecedor = $row['count'];

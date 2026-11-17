@@ -13,6 +13,7 @@ class Response
 
     /** @var array<string, mixed>|null */
     private ?array $payload;
+    private ?string $filePath = null;
 
     /**
      * @param array<string, string> $headers
@@ -50,6 +51,7 @@ class Response
         ], $headers), null);
     }
     public static function redirect(string $location): self { return self::empty(302,['Location'=>$location]); }
+    public static function file(string $path, string $name, string $contentType='application/pdf'): self { $r=new self(200,['Content-Type'=>$contentType,'Content-Disposition'=>'attachment; filename="'.str_replace(['"',"\r","\n"],'_', $name).'"','Cache-Control'=>'no-store','X-Content-Type-Options'=>'nosniff'],null);$r->filePath=$path;return $r; }
 
     public function getStatus(): int
     {
@@ -79,6 +81,7 @@ class Response
             header($name . ': ' . $value);
         }
 
+        if ($this->filePath !== null) { readfile($this->filePath); return; }
         if ($this->payload !== null) {
             echo json_encode($this->payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }

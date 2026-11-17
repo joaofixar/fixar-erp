@@ -7,8 +7,56 @@ class iset_historico_
     {
         $empresaId = (int) $empresaId;
         $limite = max(1, min(200, (int) $limite));
-        $sql = "SELECT T005.T005_Id,T005.T005_Id_Pedido_Externo,T005.T005_Data_Emissao,T005.T005_Valor_Total,T005.T005_Valor_Frete,T005.T005_Valor_Desconto,COALESCE(NULLIF(D024.D024_Nome_Empresa,''),NULLIF(D024.D024_Nome_Fantasia,''),CONCAT('Cliente #',T005.T005_D024_Id)) AS Cliente,COUNT(T006.T006_Id) AS Quantidade_Itens,COALESCE(SUM(T006.T006_Quantidade),0) AS Quantidade_Produtos FROM T005 LEFT JOIN D024 ON D024.D024_Id=T005.T005_D024_Id LEFT JOIN T006 ON T006.T006_T005_Id=T005.T005_Id WHERE T005.T005_C004_Id='{$empresaId}' AND T005.T005_Flag_Plataforma_Ecommerce='7' AND T005.T005_Id_Pedido_Externo IS NOT NULL AND T005.T005_Id_Pedido_Externo<>'' GROUP BY T005.T005_Id,T005.T005_Id_Pedido_Externo,T005.T005_Data_Emissao,T005.T005_Valor_Total,T005.T005_Valor_Frete,T005.T005_Valor_Desconto,T005.T005_D024_Id,D024.D024_Nome_Empresa,D024.D024_Nome_Fantasia ORDER BY T005.T005_Id DESC LIMIT {$limite}";
-        return $this->linhas($sql);
+        // O status nulo representa pedido pendente; apenas o status 8 indica cancelamento.
+        $sqlT005 = <<<SQL
+            SELECT
+                T005.T005_Id,
+                T005.T005_Id_Pedido_Externo,
+                T005.T005_Data_Emissao,
+                T005.T005_Nome_Status,
+                T005.T005_Valor_Total,
+                T005.T005_Valor_Frete,
+                T005.T005_Valor_Desconto,
+                MAX(T007.T007_Id) AS T007_Id,
+                MAX(T007.T007_Numero_Nota_Fiscal) AS T007_Numero_Nota_Fiscal,
+                MAX(T007.T007_Serie) AS T007_Serie,
+                MAX(T007.T007_Flag_ACP) AS T007_Flag_ACP,
+                MAX(CASE
+                    WHEN T007.T007_Flag_Cancelada='S' THEN 'nf-cancelada'
+                    WHEN T007.T007_Flag_Inutilizado='S' THEN 'nf-inutilizada'
+                    WHEN TRIM(COALESCE(T007.T007_Chave_Acesso_Nfe,''))<>''
+                        AND TRIM(COALESCE(T007.T007_Numero_Protocolo_Nfe,''))<>'' THEN 'nf-transmitida'
+                    WHEN T007.T007_Id IS NOT NULL THEN 'nf-gerada'
+                    WHEN T005.T005_Flag_Status IN (1,2,3,10,24) THEN 'expedicao'
+                    ELSE 'pendente'
+                END) AS Situacao_Visual,
+                COALESCE(NULLIF(D024.D024_Nome_Empresa,''),NULLIF(D024.D024_Nome_Fantasia,''),CONCAT('Cliente #',T005.T005_D024_Id)) AS Cliente,
+                COUNT(T006.T006_Id) AS Quantidade_Itens,
+                COALESCE(SUM(T006.T006_Quantidade),0) AS Quantidade_Produtos
+            FROM T005
+                LEFT JOIN D024 ON D024.D024_Id=T005.T005_D024_Id
+                LEFT JOIN T006 ON T006.T006_T005_Id=T005.T005_Id
+                LEFT JOIN T007 ON T007.T007_Id=T005.T005_T007_Id
+                    AND T007.T007_T005_Id=T005.T005_Id
+            WHERE T005.T005_C004_Id='{$empresaId}'
+                AND IFNULL(T005.T005_Flag_Status,0)<>8
+                AND T005.T005_Flag_Plataforma_Ecommerce='7'
+                AND T005.T005_Id_Pedido_Externo IS NOT NULL
+                AND T005.T005_Id_Pedido_Externo<>''
+            GROUP BY T005.T005_Id,
+                T005.T005_Nome_Status,
+                T005.T005_Id_Pedido_Externo,
+                T005.T005_Data_Emissao,
+                T005.T005_Valor_Total,
+                T005.T005_Valor_Frete,
+                T005.T005_Valor_Desconto,
+                T005.T005_D024_Id,
+                D024.D024_Nome_Empresa,
+                D024.D024_Nome_Fantasia
+            ORDER BY T005.T005_Id DESC
+            LIMIT {$limite}
+SQL;
+        return $this->linhas($sqlT005);
     }
 
     public function logs($empresaId, array $filtros = array(), $limite = 50)

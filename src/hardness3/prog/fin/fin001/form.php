@@ -2031,6 +2031,7 @@ EOT;
 					if(empty($codigoBanco)){
 						echo gGeraAlertMsg('Erro', 'Código do banco não localizado');
 					} else {
+						$erroValidacaoRetorno = '';
 						//Verifica o codigo do banco, para o Banco do Brasil, verifica se o codigo, agencia, e digitos verificadores
 						if($codigoBanco == '001'){
 							
@@ -2099,6 +2100,47 @@ EOT;
 							$C004 = mysql_fetch_array($C004);
 							$dadoEmpresa = substr(str_replace(array('-','.','/',' '), '', $C004['C004_Cnpj']),0,8);
 							$dadoRetorno = substr(substr($arrayArquivo[0], 18, 14),0,8);
+						// Alguns retornos do Bradesco passaram a informar 12 espaços e 04 no campo do CNPJ.
+						// Nesse padrão, o código da empresa no cabeçalho identifica o cadastro bancário da empresa atual.
+						} else if(
+							$codigoBanco == '237'
+							&& isset($arrayArquivo[1])
+							&& substr($arrayArquivo[1], 0, 1) == '1'
+							&& substr($arrayArquivo[1], 1, 2) == '02'
+							&& substr($arrayArquivo[1], 3, 14) === str_repeat(' ', 12) . '04'
+						){
+							$dadoEmpresa = '';
+							$dadoRetorno = ltrim(substr($arrayArquivo[0], 26, 20), '0');
+
+							if(strlen(rtrim($arrayArquivo[0], "\r\n")) != 400 || strlen(rtrim($arrayArquivo[1], "\r\n")) != 400){
+								$erroValidacaoRetorno = 'O arquivo de retorno do Bradesco não possui registros com 400 caracteres.';
+							} else if(!ctype_digit(substr($arrayArquivo[0], 26, 20)) || empty($dadoRetorno)){
+								$erroValidacaoRetorno = 'Código da empresa não localizado no cabeçalho do retorno do Bradesco.';
+							} else {
+								$empresaAtual = (int) $g['empresaAtual'];
+								$sqlD007 = <<<SQL
+									SELECT D007_Id
+									FROM D007
+										LEFT JOIN D062 ON D062_Id = D007_D062_Id
+									WHERE (
+										D007_Numero_Convenio = '{$dadoRetorno}'
+										OR D007_Codigo_Cedente = '{$dadoRetorno}'
+									)
+										AND D062_Numero_Banco = '237'
+										AND D007_C004_Id = '{$empresaAtual}'
+								SQL;
+								$sqlD007 = mysql_query($sqlD007);
+
+								if($erro = mysql_error()){
+									$erroValidacaoRetorno = 'Erro ao validar empresa do retorno Bradesco: ' . $erro;
+								} else if(mysql_num_rows($sqlD007) == 0){
+									$erroValidacaoRetorno = "Não foi possível localizar um banco Bradesco da empresa atual com o código {$dadoRetorno}.";
+								} else if(mysql_num_rows($sqlD007) > 1){
+									$erroValidacaoRetorno = "Foi identificado mais de um banco Bradesco da empresa atual com o código {$dadoRetorno}.";
+								} else {
+									$dadoEmpresa = $dadoRetorno;
+								}
+							}
 						//Para os demais bancos, verifica se o CNPJ da empresa
 						} else {
 
@@ -2115,7 +2157,9 @@ EOT;
 								}
 							}
 						}
-						if($dadoEmpresa != $dadoRetorno){
+						if(!empty($erroValidacaoRetorno)){
+							echo gGeraAlertMsg('Erro', $erroValidacaoRetorno);
+						} else if($dadoEmpresa != $dadoRetorno){
 							echo gGeraAlertMsg('Erro', "O retorno selecionado não é desta empresa ou o arquivo não está no formato correto! Favor verificar. (banco $codigoBanco). $dadoEmpresa != $dadoRetorno");
 						} else {
 							

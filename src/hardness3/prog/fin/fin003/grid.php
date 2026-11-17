@@ -309,7 +309,7 @@ EOT;
 		*/
 		$grid = array(
 	        array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('T215_Id', $g['divId'])),
-			array('colunaValor' => "T215_Id", 'colunaTitulo' => 'Id','chavePrimaria'=>true, 'colunaAlinhar' => 'center'),
+			array('colunaValor' => "T215_Id", 'colunaTitulo' => 'Id','chavePrimaria'=>true, 'colunaAlinhar' => center),
 			array('colunaValor' => "T215_Data", 'colunaTitulo' => 'Data Import.', 'callback' => 'gCorrigeData'),
 			array('colunaValor' => "T215_Data_Processado", 'colunaTitulo' => 'Data Process.', 'callback' => 'gCorrigeData'),
 			array('colunaValor' => "T215_Nome_Arquivo", 'colunaTitulo' => 'Arquivo'),

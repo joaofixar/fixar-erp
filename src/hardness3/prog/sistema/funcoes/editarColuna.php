@@ -1135,7 +1135,7 @@ EOT;
                 $tabelaPk = $tabelaPrincipal ? $tabelaPrincipal : $tabela;
 				$id = $row["{$tabelaPk}_Id"];
 				if (empty($id)) { continue; } // por segurança
-				if ($r_valor[0] == '=') {
+				if ($r_valor{0} == '=') {
 					$valor = trim($r_valor, '=');
 				} else {
 					$valor = "'" . $r_valor . "'";
@@ -1483,7 +1483,7 @@ EOT;
 	
 			} else {
 
-				if ($r_valor[0] == '=') {
+				if ($r_valor{0} == '=') {
 					$valor = trim($r_valor, '=');
 				} else {
 					$valor = "'" . $r_valor . "'";

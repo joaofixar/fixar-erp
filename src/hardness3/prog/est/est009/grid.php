@@ -1173,7 +1173,7 @@ EOT;
 			AND T219_Id is null
 			AND T006_Id is null
 			AND T003_Flag_Status_Orcamento = 'P'
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND D006_Flag_Estoque = 'D'
 			GROUP BY T004_Id
 EOT;
@@ -1591,7 +1591,7 @@ EOT;
 			AND T225_Id is null
 			AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado is null)
 			AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND T006_Flag_Nao_Comprar != 'S'
 			AND D006_Flag_Estoque = 'D'
 			GROUP BY T006_Id
@@ -2102,7 +2102,7 @@ EOT;
 			AND T225_Id is null
 			AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado is null)
 			AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND T006_Flag_Nao_Comprar != 'S'
 			AND D006_Flag_Estoque = 'D'
 			AND IFNULL(T005A_Flag_Tipo,1) != 2
@@ -2437,7 +2437,7 @@ EOT;
 			AND IF(IFNULL(T005A_Flag_Tipo,1) = 1 , IFNULL(T006_T219_Id,0) <= 0 , IFNULL(T225_Id,0) <= 0)
 			AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado is null)
 			AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND T006_Flag_Nao_Comprar != 'S'
 			AND D006_Flag_Estoque = 'D'
 			GROUP BY T006_Id
@@ -3145,7 +3145,7 @@ EOT;
 			AND (if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)+T006_Quantidade_OC) < T006_Quantidade 
 			AND (T005_Flag_Status = 0 OR T005_Flag_Status = '' OR T005_Flag_Status=14)
 			AND IF(IFNULL(T006_C004_Id_Estoque,0) > 0, T006_C004_Id_Estoque, T005_C004_Id) = T005_C004_Id
-			AND D049_Flag_Tipo = 'PD'
+			AND D049_Flag_Tipo IN ('PD', 'IN')
 			GROUP BY T006_Id
 EOT;
 

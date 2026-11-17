@@ -13,11 +13,66 @@ const BALANCO_SESSION = 'balanco';
 
 function balanco_config(string $key, $default = null)
 {
-    static $config;
-    if ($config === null) {
-        $config = require BALANCO_MODULE . '/config/module.php';
+    static $baseConfig = null;
+    static $customConfig = null;
+
+    if ($baseConfig === null) {
+        $baseConfig = (array) require BALANCO_MODULE . '/config/module.php';
     }
+
+    // Algumas rotas do Balanço consultam a configuração antes de o contexto
+    // legado estar disponível. Nesse caso, preserva a configuração padrão e
+    // aplica a personalização assim que a classe puder ser carregada.
+    if ($customConfig === null && isset($GLOBALS['g'])) {
+        $customConfig = balanco_apply_class_override($baseConfig);
+    }
+
+    $config = $customConfig ?? $baseConfig;
     return $config[$key] ?? $default;
+}
+
+function balanco_apply_class_override(array $config): array
+{
+    $classFile = BALANCO_ROOT . '/bibliotecas/classes/BALANCO.php';
+    if (is_file($classFile)) {
+        require_once $classFile;
+    }
+
+    foreach (['BALANCO', 'BALANCO_', '\\hardness\\BALANCO', '\\hardness\\BALANCO_'] as $className) {
+        if (!is_callable([$className, 'overrides'])) {
+            continue;
+        }
+
+        $override = call_user_func([$className, 'overrides'], $config);
+        return balanco_config_merge($config, is_array($override) ? $override : []);
+    }
+
+    return $config;
+}
+
+function balanco_config_merge(array $baseConfig, array $overrideConfig): array
+{
+    foreach ($overrideConfig as $key => $value) {
+        if (
+            isset($baseConfig[$key])
+            && is_array($baseConfig[$key])
+            && is_array($value)
+            && !balanco_config_is_list($baseConfig[$key])
+            && !balanco_config_is_list($value)
+        ) {
+            $baseConfig[$key] = balanco_config_merge($baseConfig[$key], $value);
+            continue;
+        }
+
+        $baseConfig[$key] = $value;
+    }
+
+    return $baseConfig;
+}
+
+function balanco_config_is_list(array $value): bool
+{
+    return $value === [] || array_keys($value) === range(0, count($value) - 1);
 }
 
 function balanco_url(string $path = ''): string
@@ -467,6 +522,24 @@ function balanco_label_context_for_t066(int $t066Id, array $context): ?array
             LIMIT 1";
     $result = mysqli_query($g['conexaoBanco'], $sql);
     return $result ? (mysqli_fetch_assoc($result) ?: null) : null;
+}
+
+function balanco_label_context_field(array $model): string
+{
+    $idType = (string) ($model['id_type'] ?? '');
+    $fieldsByIdType = [
+        'D001_Id' => 'D001_Id',
+        'D004_Id' => 'T066_D004_Id',
+        'T066_Id' => 'T066_Id',
+    ];
+
+    if (isset($fieldsByIdType[$idType])) {
+        return $fieldsByIdType[$idType];
+    }
+
+    // Compatibilidade com configurações anteriores que informavam o campo
+    // de contexto explicitamente para modelos fora do mapeamento padrão.
+    return (string) ($model['context_field'] ?? '');
 }
 
 function balanco_generate_label_pdf(array $model, int $contextId, array $context): array

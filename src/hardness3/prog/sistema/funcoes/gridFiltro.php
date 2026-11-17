@@ -67,7 +67,7 @@ switch ($g['r'][3]) {
 							//unset($filtro_['busca']);
 							$filtro_['busca'] = '';
 						}
-						$count = ($count > 15) ? 15 : (($count < 0) ? 0 : $count);
+						$count = ($count > 15) ? 15 : ($count < 0) ? 0 : $count;
 						$filtro_['count'] = $count;
 						$gridFiltro['busca'] = '!--advanced--!';
 						// remover modo antigo (para filtros antigos) (pode ser retirado no futuro) 07/03/2012
@@ -135,7 +135,7 @@ switch ($g['r'][3]) {
 								//unset($filtro_['busca']);
 								$filtro_['busca'] = '';
 							}
-							$count = ($count > 15) ? 15 : (($count < 0) ? 0 : $count);
+							$count = ($count > 15) ? 15 : ($count < 0) ? 0 : $count;
 							$filtro_['count'] = $count;
 							$gridFiltro['busca'] = '!--advanced--!';
 							// remover modo antigo (para filtros antigos) (pode ser retirado no futuro) 07/03/2012

@@ -894,7 +894,9 @@ if($IND_MOV == '0'){
 									T013_Id, 
 									T013_Tipo,
 									T013_D024_Id,  
-									T013_Numero_Nota_Fiscal,  
+									T013_Numero_Nota_Fiscal,
+									IFNULL(T013_Serie, '') AS T013_Serie,
+									IFNULL(T013_Chave_Acesso_Nfe, '') AS T013_Chave_Acesso_Nfe,
 									T013_Data_Emissao,
 									DATE({$dataNFRecebidaLancarSPED}) as {$dataNFRecebidaLancarSPED},
 									T013_Valor_Total,
@@ -932,7 +934,7 @@ if($IND_MOV == '0'){
 				$COD_PART = $T013['T013_D024_Id'],										#060	Código do participante do fornecedor (campo 02 do Registro 0150). 
 				$COD_MOD = $modelo,														#002*	Código do modelo do documento fiscal
 				$COD_SIT = "00",														#002*	Código da situação do documento fiscal
-				$SER = "",																#004	Série do documento fiscal
+				$SER = $T013['T013_Serie'],														#004	Série do documento fiscal
 				$SUB = "",																#003	Subsérie do documento fiscal
 				$NUM_DOC = $T013['T013_Numero_Nota_Fiscal'],							#009	Número do documento fiscal
 				$DT_DOC = formataData(substr($T013['T013_Data_Emissao'],0,10)),			#008*	Data da emissão do documento fiscal
@@ -942,7 +944,7 @@ if($IND_MOV == '0'){
 				$COD_INF = '',															#006	Código da informação complementar do documento
 				$VL_PIS = formataDecimal($T013['T013_Valor_Total_PIS']),				#		Valor do PIS/PASEP
 				$VL_COFINS =formataDecimal( $T013['T013_Valor_Total_COFINS']),			#		Valor da COFINS
-				$CHV_DOCe = ''															#044*	Chave do Documento Fiscal Eletrônico
+				$CHV_DOCe = $T013['T013_Chave_Acesso_Nfe']															#044*	Chave do Documento Fiscal Eletrônico
 			);
 
 			$C500 = str_replace('|', '', $C500);

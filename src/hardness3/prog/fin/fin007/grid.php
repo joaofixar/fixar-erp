@@ -201,7 +201,7 @@ EOT;
 			array('colunaValor'=>'D020_Nome_Cidade', 'colunaTitulo'=>'Cidade'),
 			array('colunaValor'=>'D018_UF', 'colunaTitulo'=>'UF'),
 			array('colunaValor'=>'D046_Nome', 'colunaTitulo'=>'Grupo'),
-			array('colunaValor'=>'D024_Flag_Liberado', 'colunaTitulo'=>'Créd.liberado(S/N)?', 'colunaAlinhar' => 'center', 'colunaEditarOculto' => true, 'colunaEditarTodos' => true),
+			array('colunaValor'=>'D024_Flag_Liberado', 'colunaTitulo'=>'Créd.liberado(S/N)?', 'colunaAlinhar' => center, 'colunaEditarOculto' => true, 'colunaEditarTodos' => true),
 			array('colunaValor'=> 'D024_Valor_Limite', 'colunaTitulo'=>'Valor Limite', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'colunaEditar' => true),		    
 			array('colunaValor'=> 'D024_Observacao_Financeiro', 'colunaTitulo'=>'Observação Financeira<br/>Comercial', 'style' => 'font-weight:bold', 'colunaEditar' => true),
 			array('colunaValor'=> 'D024_Observacao_Administracao', 'colunaTitulo'=>'Observação Financeira<br/>Administração', 'style' => 'font-weight:bold', 'colunaEditar' => true),

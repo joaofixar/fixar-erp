@@ -21,23 +21,23 @@ if (!$con) {
 
 //echo 'Conexão banco: ' . $confUsuario['dbUser'] .' '. $confUsuario['dbPass']
 
-$con -> options(MYSQLI_OPT_CONNECT_TIMEOUT, 3);
+$con -> options(MYSQLI_OPT_CONNECT_TIMEOUT, 240);
 $con -> real_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
 
 //$con=mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-$Error=mysqli_connect_error();
+$Error=mysqli_connect_error($con);
 
-if (function_exists(__NAMESPACE__ . '\\log')) { log('conexaoBanco'); }
+log('conexaoBanco');
 
 if (!empty($Error)) {
 	// Efetua mais uma tentativa, para verificar se não foi alterado a senha do usuário no banco
-	if (function_exists(__NAMESPACE__ . '\\log')) { log('ERRO Conexao mysql = ' .$Error); }
+	log('ERRO Conexao mysql = ' .$Error);
 	unset($_SESSION['authDB']);
 	mysqli_close($con);
 	$confUsuario['dbUser'] = $confUsuario['dbUser_'];
 	$confUsuario['dbPass'] = $confUsuario['dbPass_'];
 	$con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-	$Error1=mysqli_connect_error();
+	$Error1=mysqli_connect_error($con);
 	if (!empty($Error1)) {
 		echo "Ocorreu um erro ao conectar com banco de dados {$confUsuario['dbDatabase']} (2): <br><br> Erro 1: ".$Error."<br><br> Erro 2: ".$Error1;
 		die();

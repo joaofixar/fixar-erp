@@ -5,6 +5,45 @@ $resposta = array('code' => true, 'data' => array());
 
 switch($g['r'][3]) {
 
+	case 'est002ConfirmarImpressaoPedido':
+		require_once('bibliotecas/classes/EST002.php');
+
+		$T005_Id = isset($r_T005_Id) ? (int)$r_T005_Id : 0;
+		$token = isset($r_token) ? (string)$r_token : '';
+		$pendentes = isset($_SESSION['est002ImpressaoPendente']) ? $_SESSION['est002ImpressaoPendente'] : array();
+		foreach ($pendentes as $tokenPendente => $dadosPendentes) {
+			if (empty($dadosPendentes['expira']) || $dadosPendentes['expira'] < time()) {
+				unset($pendentes[$tokenPendente]);
+			}
+		}
+		$_SESSION['est002ImpressaoPendente'] = $pendentes;
+		$pendente = isset($pendentes[$token]) ? $pendentes[$token] : false;
+
+		if (!$T005_Id || !$pendente || empty($pendente['expira']) || $pendente['expira'] < time() || !in_array($T005_Id, $pendente['pedidos'], true)) {
+			$resposta['code'] = false;
+			$resposta['data'] = 'Confirmação de impressão inválida ou expirada.';
+			break;
+		}
+
+		$EST002 = new EST002();
+		$retorno = $EST002->efetivarImpressaoPedido(
+			$T005_Id,
+			isset($pendente['C007_Id']) ? $pendente['C007_Id'] : 0
+		);
+		if ($retorno !== true) {
+			$resposta['code'] = false;
+			$resposta['data'] = $retorno;
+			break;
+		}
+
+		$pendentes[$token]['pedidos'] = array_values(array_diff($pendentes[$token]['pedidos'], array($T005_Id)));
+		if (empty($pendentes[$token]['pedidos'])) {
+			unset($pendentes[$token]);
+		}
+		$_SESSION['est002ImpressaoPendente'] = $pendentes;
+		$resposta['data'] = 'Pedido confirmado para impressão.';
+	break;
+
 	case 'carregarLocacoes':
 		$T006_Id = mysql_real_escape_string($r_T006_Id);
 		$sql = "SELECT T006_D009_Id, T006_T066_Id FROM T006 WHERE T006_Id = '{$T006_Id}'";

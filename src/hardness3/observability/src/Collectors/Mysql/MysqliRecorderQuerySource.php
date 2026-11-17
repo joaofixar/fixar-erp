@@ -54,14 +54,14 @@ final class MysqliRecorderQuerySource implements RecorderQuerySource
         if ($parameters === array()) {
             $result = @$this->connection->query($sql);
             if (!$result instanceof \mysqli_result) {
-                throw new \RuntimeException('mysql_recorder_query_failed: ' . $this->connection->error);
+                throw new \RuntimeException('mysql_recorder_query_failed: ' . $this->connection->error, (int) $this->connection->errno);
             }
             return $this->fetch($result);
         }
 
         $statement = @$this->connection->prepare($sql);
         if (!$statement instanceof \mysqli_stmt) {
-            throw new \RuntimeException('mysql_recorder_prepare_failed: ' . $this->connection->error);
+            throw new \RuntimeException('mysql_recorder_prepare_failed: ' . $this->connection->error, (int) $this->connection->errno);
         }
         try {
             $types = str_repeat('s', count($parameters));
@@ -69,11 +69,11 @@ final class MysqliRecorderQuerySource implements RecorderQuerySource
             $references = array($types);
             foreach ($values as $index => $value) { $references[] = &$values[$index]; }
             if (!call_user_func_array(array($statement, 'bind_param'), $references) || !$statement->execute()) {
-                throw new \RuntimeException('mysql_recorder_query_failed: ' . $statement->error);
+                throw new \RuntimeException('mysql_recorder_query_failed: ' . $statement->error, (int) $statement->errno);
             }
             $result = $statement->get_result();
             if (!$result instanceof \mysqli_result) {
-                throw new \RuntimeException('mysql_recorder_result_unavailable');
+                throw new \RuntimeException('mysql_recorder_result_unavailable', (int) $statement->errno);
             }
             return $this->fetch($result);
         } finally {

@@ -43,7 +43,7 @@ if (!$labelContext) {
     balanco_label_error('A etiqueta só pode ser gerada para a locação atualmente em contagem.', 403);
 }
 
-$contextKey = (string) ($model['context_field'] ?? '');
+$contextKey = balanco_label_context_field($model);
 $contextId = (int) ($labelContext[$contextKey] ?? 0);
 $result = balanco_generate_label_pdf($model, $contextId, $context);
 if (!$result['ok']) balanco_label_error((string) $result['message'], 500);

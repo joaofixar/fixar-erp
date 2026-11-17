@@ -13,6 +13,7 @@ switch ($g['r'][3]) {
 			if(D024_Cnpj='',D024_Cpf,D024_Cnpj) as D024_Cnpj
 		FROM 
 			T013
+		left join T013A on T013A_T013_Id=T013_Id
 		left join D024 on T013_D024_Id=D024_Id
 		left join D020 on D024_D020_Id=D020_Id
 		left join D018 on D020_D018_Id=D018_Id
@@ -23,6 +24,16 @@ switch ($g['r'][3]) {
 EOT;
 		$resultado = mysql_query($sql);
 		$row = mysql_fetch_assoc($resultado);
+
+		$aliquotaCredito = isset($row['T013A_Aliquota_ICMS_Credito_Recebida'])
+			? (float) $row['T013A_Aliquota_ICMS_Credito_Recebida']
+			: 0;
+		$valorCredito = isset($row['T013A_Valor_ICMS_Credito_Recebida'])
+			? (float) $row['T013A_Valor_ICMS_Credito_Recebida']
+			: 0;
+		$creditoSimples = ($aliquotaCredito > 0 || $valorCredito > 0)
+			? number_format($aliquotaCredito, 4, ',', '.') . '% | R$ ' . gCorrigeNumero($valorCredito)
+			: '&mdash;';
 		
 		// Registro vazios = FALTA
 		foreach ($row as &$row_) {
@@ -51,7 +62,7 @@ EOT;
 						<td width='140px'>Emissão</td>
 						<td width='70px'>Entrada</td>
 						<td width='70px'>Valor total</td>
-						<td></td>
+						<td style='white-space:nowrap; padding-left:8px;'>Crédito SN (%) | Crédito SN (R$)</td>
 					</tr>
 					<tr class="linhaVal" style="cursor:pointer;" onclick="{$abrirJanela}">
 						<td align=center>{$row['T013_Numero_Nota_Fiscal']}</td>
@@ -62,7 +73,7 @@ EOT;
 						<td>{$dataEmissao}</td>
 						<td>{$dataEntrada}</td>
 						<td>{$valorTotal}</td>
-						<td></td>
+						<td style='white-space:nowrap; padding-left:8px;'>{$creditoSimples}</td>
 					</tr>
 				</table>
 			</div>

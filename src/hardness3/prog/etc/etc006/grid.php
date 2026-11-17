@@ -28,7 +28,7 @@ if ($g['r'][3] == 'etc006Xml' || $g['r'][3] == 'etc006XmlFornecedor') {
 		array('colunaValor' => "Usuario",'colunaTipo'=>'livre', 'colunaTitulo' => 'Usuário', 'callback' => 'retornaUsuario' ,'style' => 'width: 1%;text-align:center;'),
 		array('colunaValor' => "T139_C007_Id", 'colunaTitulo' => 'Usuário', 'colunaExibir' => false),
 		array('colunaValor' => "T139_Id", 'colunaTitulo' => 'ID', 'chavePrimaria' => true, 'colunaExibir' => false),
-		array('colunaValor' => "D085_T259_Id", 'colunaTitulo' => 'Tarefa', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),
+		array('colunaValor' => "D085_T259_Id", 'colunaTitulo' => 'Tarefa', 'style' => 'width:1%', 'colunaAlinhar' => center),
 	);
 } else {
 	$grid = array(
@@ -36,7 +36,7 @@ if ($g['r'][3] == 'etc006Xml' || $g['r'][3] == 'etc006XmlFornecedor') {
 		array('colunaValor' => "T139_Flag_Selecionado", 'colunaTitulo' => '', 'callback' => 'checkBoxLido', 'style' => 'width: 20px;', 'colunaEditarTodos' => true, 'colunaEditarTipo' => 'flag', 'colunaEditarExtra' => '1|0'),
 		array('colunaValor' => "T139_Flag_Lido", 'colunaTitulo' => 'Lido', 'callback' => 'campoLido', 'style' => 'width: 1%', 'colunaAlinhar' => 'center'),
 		array('colunaValor' => "temAnexo", 'colunaTipo' => 'livre', 'colunaTitulo' => '', 'callback' => 'temAnexo', 'style' => 'width: 16px;'),
-		array('colunaValor' => "D085_T259_Id", 'colunaTitulo' => 'Tarefa', 'style' => 'width:1%', 'colunaAlinhar' => 'center', 'callback' => 'abrirJanela', 'callbackParameter' => array('Tarefa', '/etc/etc017/content/etc017ContentTarefa/', 'D085_T259_Id', '900,600')),
+		array('colunaValor' => "D085_T259_Id", 'colunaTitulo' => 'Tarefa', 'style' => 'width:1%', 'colunaAlinhar' => center, 'callback' => 'abrirJanela', 'callbackParameter' => array('Tarefa', '/etc/etc017/content/etc017ContentTarefa/', 'D085_T259_Id', '900,600')),
 		//array('colunaValor' => "spam", 'colunaTipo' => 'livre', 'colunaTitulo' => '', 'callback' => 'spam', 'style' => 'width: 16px;'),
 		array('colunaValor' => "T139_De", 'colunaTitulo' => 'De', 'callback' => 'campoLidoNegrito', 'callbackParameter' => 'T139_De', 'style' => 'width: 1%'),
 		array('colunaValor' => "T139_Para", 'colunaTitulo' => 'Para', 'callback' => 'campoLidoNegrito', 'callbackParameter' => 'T139_Para', 'style' => 'width: 1%'),

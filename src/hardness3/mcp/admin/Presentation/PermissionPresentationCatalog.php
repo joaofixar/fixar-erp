@@ -14,6 +14,12 @@ final class PermissionPresentationCatalog
     public function forScope(string $scopeId): array
     {
         $catalog = [
+            'legacy_reports:read' => [
+                'summary' => 'Permite consultar os mesmos relatórios disponibilizados na tela API GET do ERP.',
+                'allows' => 'Permite listar e executar os relatórios padrão e as AppApis personalizadas que estiverem disponíveis para a instalação, mantendo os parâmetros e o retorno JSON do link legado.',
+                'limitations' => ['Não permite alterar dados no ERP.', 'Consultas extensas podem ser retornadas em páginas.', 'Respeita as mesmas restrições de horário e regras existentes nos links da API GET.'],
+                'recommended_use' => 'Indicada para permitir que um assistente consulte relatórios já publicados pela API GET, sem recriar as consultas do ERP.',
+            ],
             'company:read' => [
                 'allows' => 'Permite consultar os dados básicos da empresa vinculada à conexão, como identificação, CNPJ, cidade, estado e situação cadastral.',
                 'limitations' => ['Não permite alterar dados da empresa.', 'Não permite consultar dados de outra empresa.'],

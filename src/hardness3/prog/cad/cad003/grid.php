@@ -1,6 +1,8 @@
 <?php
 namespace hardness;
 
+require_once __DIR__ . '/portal-acesso.php';
+
 // Carrega funções callback
 //require_once('prog/cad/cad016/grid_func-callback.php');
 
@@ -25,6 +27,12 @@ switch ($g['r'][3]) {
 			array('colunaValor' => 'D021_CPF', 'colunaTitulo' => 'CPF'),
 			array('colunaValor' => 'C007_Primeiro_Nome', 'colunaTitulo' => 'Vendedor'),
 		);
+
+        if (cad003PortalPodeGerenciar($g, $_SESSION)) {
+            array_splice($grid, 3, 0, array(array('colunaValor' => 'portalRepresentanteAcesso', 'colunaTitulo' => 'Disponibilizar link',
+                'colunaTipo' => 'livre', 'callback' => 'cad003PortalRepresentanteColuna', 'colunaAlinhar' => 'center')));
+            echo '<link rel="stylesheet" href="/hardness3/portal-representante/cadastro.css?v=7"><script src="/hardness3/portal-representante/cadastro.js?v=5"></script>';
+        }
 
 		/**
 		* Definição da SQL

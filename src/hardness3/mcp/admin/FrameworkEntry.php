@@ -13,6 +13,7 @@ use HardnessMcp\AdminUi\Security\CsrfGuard;
 use HardnessMcp\AdminUi\Security\AdministrativeRequestGuard;
 use HardnessMcp\AdminUi\Authorization\AdminAuthorizationException;
 use HardnessMcp\AdminUi\Context\ErpAdminContextFactory;
+use HardnessMcp\Tenant\McpInstallationRegistry;
 use HardnessMcp\AdminUi\Http\McpAdminController;
 use PDOException;
 use RuntimeException;
@@ -27,7 +28,7 @@ final class FrameworkEntry
         $factory = new ErpAdminContextFactory();
         $context = $factory->createTenantContext($frameworkContext, $connectionConfiguration);
         $pdo = $factory->createPdo($connectionConfiguration);
-        return new McpAdminController($context, new McpConnectionAdminQueryService($pdo), self::publicMcpUrl($connectionConfiguration));
+        return new McpAdminController($context, new McpConnectionAdminQueryService($pdo, self::installationProfile($connectionConfiguration)), self::publicMcpUrl($connectionConfiguration));
     }
 
     /** @param array<string,mixed> $frameworkContext @param array<string,mixed> $connectionConfiguration */
@@ -44,7 +45,7 @@ final class FrameworkEntry
         $factory = new ErpAdminContextFactory();
         $context = $factory->createTenantContext($frameworkContext, $connectionConfiguration);
         $config = require dirname(__DIR__) . '/config/app.php';
-        return new McpConnectionAdminService($factory->createPdo($connectionConfiguration), $config, $context->getInstallationHost(), $context->getClientIp(), $context->getUserId());
+        return new McpConnectionAdminService($factory->createPdo($connectionConfiguration), $config, $context->getInstallationHost(), $context->getClientIp(), $context->getUserId(), self::installationProfile($connectionConfiguration));
     }
 
     /** @param array<string,mixed> $frameworkContext @param array<string,mixed> $connectionConfiguration */
@@ -52,7 +53,7 @@ final class FrameworkEntry
     {
         $factory = new ErpAdminContextFactory();
         $context = $factory->createTenantContext($frameworkContext, $connectionConfiguration);
-        return new OAuthAdminService($factory->createPdo($connectionConfiguration), $context->getInstallationHost(), $context->getClientIp(), $context->getUserId());
+        return new OAuthAdminService($factory->createPdo($connectionConfiguration), $context->getInstallationHost(), $context->getClientIp(), $context->getUserId(), self::installationProfile($connectionConfiguration));
     }
     private static function createEligibilityService(array $frameworkContext, array $connectionConfiguration): McpConnectionEligibilityAdminService
     { $factory=new ErpAdminContextFactory();$context=$factory->createTenantContext($frameworkContext,$connectionConfiguration);return new McpConnectionEligibilityAdminService($factory->createPdo($connectionConfiguration),$context->getInstallationHost(),$context->getClientIp(),$context->getUserId()); }
@@ -64,7 +65,7 @@ final class FrameworkEntry
         $tx=(string)($_REQUEST['tx']??'');$cookieName='__Host-hrd_oauth_'.$tx;$cookie=(string)($_COOKIE[$cookieName]??'');$user=(int)($frameworkContext['usuarioAtual']??0);
         if(preg_match('/^[A-Za-z0-9_-]{16,48}$/',$tx)!==1||$cookie===''||$user<1){self::oauthBridgeError($cookieName);return;}
         try {
-            $factory=new ErpAdminContextFactory();$config=require dirname(__DIR__).'/config/app.php';$service=new \HardnessMcp\OAuth\OAuthAuthorizationConsentService($factory->createPdo($connectionConfiguration),$config);$fullCookie=$tx.'.'.$cookie;
+            $factory=new ErpAdminContextFactory();$config=require dirname(__DIR__).'/config/app.php';$service=new \HardnessMcp\OAuth\OAuthAuthorizationConsentService($factory->createPdo($connectionConfiguration),$config,self::installationProfile($connectionConfiguration));$fullCookie=$tx.'.'.$cookie;
             $action=(string)($_POST['action']??'');
             if ($action !== '') { self::assertAdministrativeMutationRequest(); }
             if($action==='cancel') { $result=$service->cancel($fullCookie,$user);self::clearOAuthCookie($cookieName);self::oauthRedirect($result['redirect_uri'],'access_denied',$result['state']);return; }
@@ -394,6 +395,13 @@ final class FrameworkEntry
     {
         if (filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) { throw new RuntimeException('Invalid administrative request.'); }
         return (int) $value;
+    }
+
+    /** @param array<string,mixed> $connectionConfiguration */
+    private static function installationProfile(array $connectionConfiguration): ?string
+    {
+        $installations = require dirname(__DIR__) . '/config/installations.php';
+        return (new McpInstallationRegistry(is_array($installations) ? $installations : []))->profileForConfiguration($connectionConfiguration);
     }
 
     /** @param array<string,mixed> $connectionConfiguration */

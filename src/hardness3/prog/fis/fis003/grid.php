@@ -192,9 +192,9 @@ EOT;
 		
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D005_Id', $g['divId']), 'colunaExibir' => true),
-            array('colunaValor' => 'D005_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaExibir' => true, 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D005_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaExibir' => true, 'colunaAlinhar' => center),
             array('colunaValor' => 'D005_Flag_Ativo', 'colunaTitulo' => 'Ativo', 'colunaEditarOculto' => true, 'colunaAlinhar' => 'center', 'colunaEditarTodos' => true),
-            array('colunaValor' => 'D005_Classificacao_Fiscal', 'colunaTitulo' => 'NCM', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D005_Classificacao_Fiscal', 'colunaTitulo' => 'NCM', 'colunaAlinhar' => center),
             array('colunaValor' => 'D005_Flag_Aplicacao', 'colunaTitulo' => 'EX', 'colunaAlinhar' => 'center', 'colunaEditarOculto' => true, 'colunaEditarTodos' => true),
 			/* [REFORMA TRIBUTÁRIA] - Gabriel Cegantini 03/12/2025 
 			=============================================================================*/

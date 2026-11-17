@@ -333,6 +333,133 @@ class danfe
         return $caminhoImg;
     }
 
+    function montarFaturasDuplicatas($dup, $detPag, $parcelas = array())
+    {
+        $valorTag = function ($no, $tag) {
+            $item = $no->getElementsByTagName($tag)->item(0);
+            return $item ? $item->nodeValue : '';
+        };
+
+        $pagamentos = array();
+        $tiposPagamento = array();
+        $tiposComValor = array();
+        foreach ($detPag as $pagamento) {
+            $tipo = $valorTag($pagamento, 'tPag');
+            $valor = $valorTag($pagamento, 'vPag');
+            $pagamentos[] = array('tipo' => $tipo, 'valor' => $valor);
+            $tiposPagamento[$tipo] = true;
+            if ($tipo != '90' && (float) $valor > 0) {
+                $tiposComValor[$tipo] = $tipo;
+            }
+        }
+
+        $linhas = array();
+        $semPagamentoEmDuplicatas = 0;
+        foreach ($dup as $duplicata) {
+            $numero = $valorTag($duplicata, 'nDup');
+            $vencimento = $valorTag($duplicata, 'dVenc');
+            $valor = $valorTag($duplicata, 'vDup');
+            $tiposParcela = array();
+            // dup e detPag podem ter ordens e quantidades diferentes.
+            // Identifica a parcela pelo numero, vencimento e valor do XML.
+            foreach ($parcelas as $parcela) {
+                $tipo = $parcela['D027_Tipo_Forma_Pagamento_NFCE'];
+                if (str_pad($parcela['T118_Numero_Parcela'], 3, '0', STR_PAD_LEFT) == $numero
+                    && $parcela['T118_Data_Vencimento'] == $vencimento
+                    && round($parcela['T118_Valor_Parcela'] * 100) == round((float) $valor * 100)
+                    && isset($tiposPagamento[$tipo])
+                    && ($tipo != '90' || (float) $valor == 0)) {
+                    $tiposParcela[$tipo] = $tipo;
+                }
+            }
+            $tipo = '';
+            if (count($tiposParcela) == 1) {
+                $tipo = reset($tiposParcela);
+            } elseif (count($tiposComValor) == 1) {
+                // Um unico meio pode cobrir varias duplicatas no XML.
+                $tipo = reset($tiposComValor);
+            }
+            if ($tipo == '90') {
+                $semPagamentoEmDuplicatas++;
+            }
+            $linhas[] = array('numero' => $numero, 'vencimento' => $vencimento,
+                             'tipo' => $tipo, 'valor' => $valor);
+        }
+
+        foreach ($pagamentos as $pagamento) {
+            if ($dup->length > 0 && $pagamento['tipo'] != '90') {
+                continue;
+            }
+            if ($pagamento['tipo'] == '90' && $semPagamentoEmDuplicatas > 0) {
+                $semPagamentoEmDuplicatas--;
+                continue;
+            }
+            // SEM PAGAMENTO fica em detPag mesmo quando a parcela zerada
+            // nao gera dup. Exibe seu proprio valor, sem rotular outra parcela.
+            $linha = array('numero' => '', 'vencimento' => '',
+                           'tipo' => $pagamento['tipo'], 'valor' => $pagamento['valor']);
+            $linhas[] = $linha;
+        }
+
+        // Quando o XML e gerado a partir de T002, a parcela zerada de
+        // T118 pode nao ter titulo correspondente. Acrescenta somente sua
+        // indicacao SEM PAGAMENTO; os valores financeiros continuam no XML.
+        $semPagamentoNoXML = 0;
+        foreach ($linhas as $linha) {
+            if ($linha['tipo'] == '90' && (float) $linha['valor'] == 0) {
+                $semPagamentoNoXML++;
+            }
+        }
+        if ($dup->length > 0 || $detPag->length > 0) {
+            foreach ($parcelas as $parcela) {
+                if ($parcela['D027_Tipo_Forma_Pagamento_NFCE'] != '90'
+                    || !is_numeric($parcela['T118_Valor_Parcela'])
+                    || round($parcela['T118_Valor_Parcela'] * 100) != 0) {
+                    continue;
+                }
+                if ($semPagamentoNoXML > 0) {
+                    $semPagamentoNoXML--;
+                    continue;
+                }
+                $linhas[] = array('numero' => '', 'vencimento' => '',
+                                 'tipo' => '90', 'valor' => '0.00');
+            }
+        }
+
+        $portadores = array('01' => 'DINHEIRO ', '02' => 'CHEQUE ',
+                            '03' => 'CARTÃO DE CRÉDITO ', '04' => 'CARTÃO DE DÉBITO ',
+                            '05' => 'CRÉDITO LOJA ', '10' => 'VALE ALIMENTAÇÃO ',
+                            '11' => 'VALE REFEIÇÃO ', '12' => 'VALE PRESENTE ',
+                            '13' => 'VALE COMBUSTÍVEL ', '14' => 'DUPLICATA MERCANTIL ',
+                            '15' => 'BOLETO BANCÁRIO ', '16' => 'DEPÓSITO BANCÁRIO ',
+                            '17' => 'PIX ', '18' => 'TRANSFERÊNCIA BANCÁRIA ',
+                            '19' => 'PROGRAMA FIDELIDADE ', '90' => 'SEM PAGAMENTO ',
+                            '99' => 'OUTROS ');
+        if (count($linhas) >= 7) {
+            $portadores = array('01' => 'DINH ', '02' => 'CHEQ ', '03' => 'CART CRÉD ',
+                                '04' => 'CART DÉB ', '05' => 'CRÉD LOJ ', '10' => 'VAL ALIM ',
+                                '11' => 'VAL REF ', '12' => 'VAL PRES ', '13' => 'VAL COMB ',
+                                '14' => 'DUPL MERC ', '15' => 'BOL BANC ', '16' => 'DEP BANC ',
+                                '17' => 'PIX ', '18' => 'TRA BANC ', '19' => 'PROG FID ',
+                                '90' => 'SEM PAG ', '99' => 'OUTROS ');
+        }
+
+        $texto = '';
+        foreach (array_slice($linhas, 0, 9) as $linha) {
+            if ($linha['numero'] !== '') {
+                $texto .= htmlspecialchars($linha['numero'], ENT_QUOTES, 'UTF-8') . ' ';
+            }
+            $texto .= isset($portadores[$linha['tipo']]) ? $portadores[$linha['tipo']] : '';
+            if ($linha['vencimento'] !== '') {
+                $texto .= '<b>' . date('d/m/y', strtotime($linha['vencimento'])) . '</b>';
+            } elseif ($linha['tipo'] != '90') {
+                $texto .= 'À VISTA ';
+            }
+            $texto .= '<b> R$' . number_format((float) $linha['valor'], 2, ',', '.') . '&nbsp;&nbsp;</b>';
+        }
+        return $texto;
+    }
+
     function geraHtml($caminhoSistema=null)
     {
         global $Banco_Dados, $g, $id, $sys;
@@ -717,83 +844,31 @@ class danfe
             }
         }
         
-        // Verifica se o tipo é E-commerce e se o cliente habilitou para imprimir as duplicatas desse tipo
-        $sqlD027 = mysqli_query("SELECT D027_Flag_Tipo 
-                                  FROM T007 
-                             LEFT JOIN T118 ON T118_T007_Id = T007_Id 
+        // Consulta as parcelas da nota para identificar o portador e a regra de E-commerce.
+        $sqlD027 = mysqli_query("SELECT T118_Numero_Parcela,
+                                       T118_Data_Vencimento,
+                                       T118_Valor_Parcela,
+                                       D027_Tipo_Forma_Pagamento_NFCE,
+                                       D027_Flag_Tipo
+                                  FROM T118
                              LEFT JOIN D027 ON D027_Id = T118_D027_Id
-                                 WHERE T007_Id = '{$mT007['T007_Id']}' AND IFNULL(D027_Flag_Tipo,'0') = 4 ");
-        
-        // Imprime no DANFE as informações da Faturas e Duplicatas, essas informações só irão aparecer na página 1
-        // Imprime as faturas e duplicatas no DANFE
-        if ((count($dup) > 0 || count($detPag) > 0) && (mysql_num_rows($sqlD027) <= 0 || (mysql_num_rows($sqlD027) > 0 && $g['C031']['imprimirDuplicatasPortadorTipoECommerce'] == 'S'))){
-            // Verifica a quantidade de duplicatas
-            $countDup = $dup->length;
-            $countDetPag = $detPag->length;
-            $tpag = "";
-
-            $referencia = ($dup->length > 0) ? $dup : $detPag;
-            
-            foreach($referencia as $k => $d){
-                // Só imprime 9 duplicatas
-                if($k==9){ 
-                    break;
-                }
-                // Obtém a informação do tipo de pagamento através do código informado no XML
-                if($k<$countDetPag){
-                    $tpag = $detPag->item($k)->getElementsByTagName('tPag')->item(0)->nodeValue;
-                }else{
-                    $tpag = $tpag;
-                }
-
-                if(!empty($tpag)){
-                    if($countDup >=7){
-                        $portador = array('01' => 'DINH ', 
-                                          '02' => 'CHEQ ', 
-                                          '03' => 'CART CRÉD ', 
-                                          '04' => 'CART DÉB ', 
-                                          '05' => 'CRÉD LOJ ',
-                                          '10' => 'VAL ALIM ', 
-                                          '11' => 'VAL REF ', 
-                                          '12' => 'VAL PRES ',
-                                          '13' => 'VAL COMB ', 
-                                          '14' => 'DUPL MERC ',
-                                          '15' => 'BOL BANC ', 
-                                          '16' => 'DEP BANC ',
-                                          '17' => 'PIX ',
-                                          '18' => 'TRA BANC ',
-                                          '19' => 'PROG FID ',
-                                          '90' => 'SEM PAG ', 
-                                          '99' => 'OUTROS ');
-                    }else{
-                        $portador = array('01' => 'DINHEIRO ',
-                                          '02' => 'CHEQUE ',
-                                          '03' => 'CARTÃO DE CRÉDITO ', 
-                                          '04' => 'CARTÃO DE DÉBITO ', 
-                                          '05' => 'CRÉDITO LOJA ', 
-                                          '10' => 'VALE ALIMENTAÇÃO ', 
-                                          '11' => 'VALE REFEIÇÃO ', 
-                                          '12' => 'VALE PRESENTE ', 
-                                          '13' => 'VALE COMBUSTÍVEL ',
-                                          '14' => 'DUPLICATA MERCANTIL ', 
-                                          '15' => 'BOLETO BANCÁRIO ', 
-                                          '16' => 'DEPÓSITO BANCÁRIO ',
-                                          '17' => 'PIX ',
-                                          '18' => 'TRANSFERÊNCIA BANCÁRIA ',
-                                          '19' => 'PROGRAMA FIDELIDADE ',
-                                          '90' => 'SEM PAGAMENTO ', 
-                                          '99' => 'OUTROS ');
-                    } 
-                }
-                
-                // Monta o texto que será impresso em faturas/duplicatas
-                $dups.= ($dup->length > 0) ? $dup->item($k)->getElementsByTagName('nDup')->item(0)->nodeValue." " : '';
-                $dups.= $portador[$tpag];
-                $dups.= ($dup->length > 0) ? "<b>".date('d/m/y', strtotime($dup->item($k)->getElementsByTagName('dVenc')->item(0)->nodeValue))."</b>" : 'À VISTA ';
-                $dups.= "<b> R$".number_format(($dup->length > 0) ? $dup->item($k)->getElementsByTagName('vDup')->item(0)->nodeValue : $detPag->item($k)->getElementsByTagName('vPag')->item(0)->nodeValue, 2, ",", ".")."&nbsp;&nbsp;</b>";
+                                 WHERE T118_T007_Id = '{$mT007['T007_Id']}'
+                              ORDER BY T118_Numero_Parcela");
+        $parcelasDanfe = array();
+        $temPortadorECommerce = false;
+        while ($parcelaDanfe = mysql_fetch_assoc($sqlD027)) {
+            $parcelasDanfe[] = $parcelaDanfe;
+            if ($parcelaDanfe['D027_Flag_Tipo'] == '4') {
+                $temPortadorECommerce = true;
             }
         }
-        
+
+        // As duplicatas e os pagamentos sao grupos independentes no XML.
+        if (($dup->length > 0 || $detPag->length > 0)
+            && (!$temPortadorECommerce || $g['C031']['imprimirDuplicatasPortadorTipoECommerce'] == 'S')) {
+            $dups = $this->montarFaturasDuplicatas($dup, $detPag, $parcelasDanfe);
+        }
+
         // Redimensiona a logo no DANFE
         $alturaLargura = $this->redimencionaImagem($this->logomarca);
         $Largura_Imagem = $alturaLargura[0];

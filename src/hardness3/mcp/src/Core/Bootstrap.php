@@ -7,6 +7,8 @@ namespace HardnessMcp\Core;
 use HardnessMcp\Auth\Authenticator;
 use HardnessMcp\Auth\OAuthAccessTokenAuthenticator;
 use HardnessMcp\Audit\McpAuditService;
+use HardnessMcp\Capabilities\CapabilitySet;
+use HardnessMcp\Capabilities\InstallationCapabilityCatalog;
 use HardnessMcp\Context\ExecutionContext;
 use HardnessMcp\Database\ConnectionFactory;
 use HardnessMcp\Endpoint\McpEndpointResolver;
@@ -23,7 +25,9 @@ use HardnessMcp\RateLimit\RateLimitDecision;
 use HardnessMcp\RateLimit\RateLimiterInterface;
 use HardnessMcp\RateLimit\RateLimitPolicy;
 use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use HardnessMcp\Tenant\TenantResolver;
+use HardnessMcp\Tenant\McpInstallationRegistry;
 use HardnessMcp\Tenant\ResolvedTenantContext;
 use HardnessMcp\Tools\Catalog\CompanyToolsModule;
 use HardnessMcp\Tools\Catalog\ProductToolsModule;
@@ -35,6 +39,11 @@ use HardnessMcp\Tools\Catalog\ItemReportToolsModule;
 use HardnessMcp\Tools\Catalog\CommercialToolsModule;
 use HardnessMcp\Tools\Catalog\SystemToolsModule;
 use HardnessMcp\Tools\Catalog\IdeSmtToolsModule;
+use HardnessMcp\Tools\Catalog\LogisticsToolsModule;
+use HardnessMcp\Tools\Catalog\InecelCertificateToolsModule;
+use HardnessMcp\Tools\Catalog\LegacyReportsToolsModule;
+use HardnessMcp\Tools\Inecel\Certificate\CertificateDownloadLinkService;
+use HardnessMcp\Tools\LegacyReports\LegacyReportDownloadLinkService;
 use HardnessMcp\Schema\ProposalCustomerCapability;
 use HardnessMcp\Schema\IdeSmtOrderGenerationCapability;
 use HardnessMcp\Tools\Quote\Create\LegacyQuoteCreateGateway;
@@ -62,6 +71,7 @@ class Bootstrap
     private ?ResolvedTenantContext $resolvedTenantContext = null;
     private ?ExecutionContext $resolvedExecutionContext = null;
     private ?\PDO $readPdo = null;
+    private ?CapabilitySet $resolvedCapabilities = null;
 
     public function __construct(string $rootPath)
     {
@@ -95,6 +105,12 @@ class Bootstrap
             }
             if ($request->getPath() === '/oauth/token') {
                 return $this->traceHttpResponse($request, $config, $startedAt, $this->handleToken($request, $config), 'oauth_token');
+            }
+            if ($request->getPath() === '/mcp' && $request->getQuery('certificate_download') === '1') {
+                return $this->traceHttpResponse($request, $config, $startedAt, $this->handleCertificateDownload($request, $config), 'inecel_certificate_download');
+            }
+            if ($request->getPath() === '/mcp' && $request->getQuery('legacy_report_download') === '1') {
+                return $this->traceHttpResponse($request, $config, $startedAt, $this->handleLegacyReportDownload($request, $config), 'legacy_report_download');
             }
             $this->assertEndpointPath($request, $config);
             if (!$this->isOriginAllowed($request, $config)) {
@@ -173,12 +189,14 @@ class Bootstrap
             $this->resolvedTenantContext = $resolvedTenantContext;
             $this->resolvedExecutionContext = $context;
             $this->readPdo = $readPdo;
+            $this->resolvedCapabilities = InstallationCapabilityCatalog::resolve($readPdo, $resolvedTenantContext->getMcpInstallationProfile());
             try {
                 $jsonRpcServer = $this->createJsonRpcServer($config, $pdo);
             } finally {
                 $this->resolvedTenantContext = null;
                 $this->resolvedExecutionContext = null;
                 $this->readPdo = null;
+                $this->resolvedCapabilities = null;
             }
             $result = $jsonRpcServer->handle($request->getBody(), $request->getHeader('mcp-protocol-version'), $context);
 
@@ -230,7 +248,9 @@ class Bootstrap
      */
     protected function resolveTenant(array $config, string $host): array
     {
-        return (new TenantResolver($config))->resolve($host);
+        $tenant = (new TenantResolver($config))->resolve($host);
+        $installations = (new Config($this->rootPath . '/config'))->load('installations');
+        return (new McpInstallationRegistry($installations))->apply($tenant);
     }
 
     /**
@@ -326,11 +346,19 @@ class Bootstrap
                 ? new UnavailableIdeSmtGenerateOrderGateway()
                 : new LegacyIdeSmtGenerateOrderGateway(new LegacyExecutionContextAdapter(new PdoLegacyActorResolver($pdo), dirname($this->rootPath)), new McpFrameworkBridge(dirname($this->rootPath)), $this->resolvedTenantContext), $ideSmtCompanyId),
         ];
+        $v=(string)($config['oauth']['access_token_pepper_current_version']??'');$downloadSecret=(string)(($config['oauth']['access_token_peppers']??[])[$v]??'');
+        $modules[] = $this->resolvedTenantContext === null ? LegacyReportsToolsModule::unavailable($pdo) : LegacyReportsToolsModule::fromRuntime($pdo, $this->resolvedTenantContext, dirname($this->rootPath), $downloadSecret);
+        if ($this->resolvedCapabilities !== null && $this->resolvedCapabilities->has('logistics.loads')) {
+            $modules[] = LogisticsToolsModule::fromPdo($readPdo, $this->resolvedCapabilities->has('logistics.load.order_context'), $this->resolvedCapabilities->has('logistics.load.resources'));
+        }
+        if ($this->resolvedCapabilities !== null && $this->resolvedCapabilities->has('customer.inecel.certificate_trace') && $this->resolvedTenantContext !== null) {
+            $modules[] = InecelCertificateToolsModule::fromRuntime($readPdo, dirname($this->rootPath), $this->resolvedTenantContext->getDatabase(), $this->resolvedTenantContext->getRootUrl(), $downloadSecret);
+        }
         $modules[] = $this->resolvedTenantContext === null
             ? SystemToolsModule::unavailable()
             : SystemToolsModule::fromRuntime($pdo, $this->resolvedTenantContext, dirname($this->rootPath));
         $registry = (new ToolCatalogFactory($modules))->createRegistry();
-        (new ToolCatalogConsistencyValidator())->assertConsistent($registry, new ScopeCatalog());
+        (new ToolCatalogConsistencyValidator())->assertConsistent($registry, new ScopeCatalog($this->resolvedCapabilities));
 
         return new JsonRpcServer($config, new ToolExecutor($registry, null, $this->resolvedTenantContext));
     }
@@ -362,7 +390,10 @@ class Bootstrap
         if (!$decision->isAllowed()) {
             return Response::empty(429, ['Retry-After' => (string) $decision->getRetryAfter()]);
         }
-        $metadata = new OAuthDiscoveryMetadata();
+        // Discovery advertises only the scopes which this tenant can actually
+        // authorize and execute; optional partner modules must not leak here.
+        $profile = ResolvedTenantContext::fromResolvedTenant($tenant)->getMcpInstallationProfile();
+        $metadata = new OAuthDiscoveryMetadata(ScopeCatalogFactory::forPdo($this->connectTenant($config, $tenant), $profile));
         $protectedResourcePath = $this->protectedResourcePath($request);
         if ($protectedResourcePath !== null) {
             if ($protectedResourcePath !== '/mcp') { (new McpEndpointResolver($this->connectTenant($config, $tenant)))->resolve($protectedResourcePath); }
@@ -410,7 +441,7 @@ class Bootstrap
         if (strtolower(trim(explode(';', $contentType, 2)[0])) !== 'application/json') return $finish($this->dcrError(),'request_rejected','invalid_content_type');
         try { $payload=json_decode($request->getBody(),true,32,JSON_THROW_ON_ERROR); if(!is_array($payload)||($payload===[]&&array_keys($payload)!==[])) throw new DcrValidationException('payload','invalid_payload_shape');
             $tenant=$this->resolveTenant($config,$request->getHost()); $limit=$this->createRateLimitPolicy($config)->dcrRegistration($tenant['host'],$request->getClientIp()); if(!$limit->isAllowed()) return $finish(Response::json(['error'=>'invalid_client_metadata'],429,['Retry-After'=>(string)$limit->getRetryAfter()]),'rate_limited','rate_limited');
-            $result=(new DynamicClientRegistrationService($this->connectTenant($config,$tenant),$tenant['host'],$request->getClientIp()))->register($payload); return $finish(Response::json($result,201),'registered');
+            $profile=ResolvedTenantContext::fromResolvedTenant($tenant)->getMcpInstallationProfile(); $result=(new DynamicClientRegistrationService($this->connectTenant($config,$tenant),$tenant['host'],$request->getClientIp(),$profile))->register($payload); return $finish(Response::json($result,201),'registered');
         } catch (DcrValidationException $exception) { return $finish($this->dcrError(),'validation_rejected',$exception->internalCode);
         } catch (\JsonException $exception) { return $finish($this->dcrError(),'request_rejected','invalid_json');
         } catch (Throwable $exception) { return $finish($this->dcrError(),'registration_failed','internal_failure'); }
@@ -421,9 +452,38 @@ class Bootstrap
     {
         if($request->getMethod()!=='POST')return Response::empty(405,['Allow'=>'POST']);
         if(strtolower(trim(explode(';',(string)$request->getHeader('content-type'),2)[0]))!=='application/x-www-form-urlencoded')return $this->tokenError('invalid_request');
-        try {$tenant=$this->resolveTenant($config,$request->getHost());$limit=$this->createRateLimitPolicy($config)->oauthToken($tenant['host'],$request->getClientIp());if(!$limit->isAllowed())return Response::json(['error'=>'temporarily_unavailable'],429,['Retry-After'=>(string)$limit->getRetryAfter(),'Pragma'=>'no-cache']);$input=$this->form($request->getBody());$base=(new OAuthDiscoveryMetadata())->canonicalBaseUrl($tenant);$legacyResource=$base.'/mcp';if(!array_key_exists('resource',$input))$input['resource']=$legacyResource;$pdo=$this->connectTenant($config,$tenant);if($input['resource']!==$legacyResource){$prefix=$legacyResource.'/c/';if(strpos($input['resource'],$prefix)!==0)return $this->tokenError('invalid_grant');try{(new McpEndpointResolver($pdo))->resolve(substr($input['resource'],strlen($base)));}catch(HttpException $e){return $this->tokenError('invalid_grant');}}$result=(new OAuthTokenEndpointService($pdo,$config,$legacyResource))->exchange($input);return Response::json($result,200,['Pragma'=>'no-cache']);}
+        try {$tenant=$this->resolveTenant($config,$request->getHost());$limit=$this->createRateLimitPolicy($config)->oauthToken($tenant['host'],$request->getClientIp());if(!$limit->isAllowed())return Response::json(['error'=>'temporarily_unavailable'],429,['Retry-After'=>(string)$limit->getRetryAfter(),'Pragma'=>'no-cache']);$input=$this->form($request->getBody());$base=(new OAuthDiscoveryMetadata())->canonicalBaseUrl($tenant);$legacyResource=$base.'/mcp';if(!array_key_exists('resource',$input))$input['resource']=$legacyResource;$pdo=$this->connectTenant($config,$tenant);if($input['resource']!==$legacyResource){$prefix=$legacyResource.'/c/';if(strpos($input['resource'],$prefix)!==0)return $this->tokenError('invalid_grant');try{(new McpEndpointResolver($pdo))->resolve(substr($input['resource'],strlen($base)));}catch(HttpException $e){return $this->tokenError('invalid_grant');}}$profile=ResolvedTenantContext::fromResolvedTenant($tenant)->getMcpInstallationProfile();$result=(new OAuthTokenEndpointService($pdo,$config,$legacyResource,$profile))->exchange($input);return Response::json($result,200,['Pragma'=>'no-cache']);}
         catch(OAuthTokenEndpointException $e){return $this->tokenError($e->oauthError,$e->getCode()===401?401:400);}
         catch(\Throwable $e){error_log('Hardness MCP OAuth token failure.');return $this->tokenError('temporarily_unavailable',503);}
+    }
+    /** @param array<string,mixed> $config */
+    private function handleCertificateDownload(Request $request,array $config): Response
+    {
+        if($request->getMethod()!=='GET'||$request->hasAmbiguousQuery())return Response::empty(404);
+        try {
+            $tenant=$this->resolveTenant($config,$request->getHost());$profile=ResolvedTenantContext::fromResolvedTenant($tenant)->getMcpInstallationProfile();$pdo=$this->connectTenant($config,$tenant);
+            if(!InstallationCapabilityCatalog::resolve($pdo,$profile)->has('customer.inecel.certificate_trace'))return Response::empty(404);
+            $v=(string)($config['oauth']['access_token_pepper_current_version']??'');$secret=(string)(($config['oauth']['access_token_peppers']??[])[$v]??'');$data=(new CertificateDownloadLinkService('', $secret))->verify((string)($request->getQuery('token')??''));if($data===null)return Response::empty(404);
+            $grant=$pdo->prepare("SELECT 1 FROM MCP005 g INNER JOIN MCP010 s ON s.MCP010_MCP005_Id=g.MCP005_Id INNER JOIN MCP001 n ON n.MCP001_Id=g.MCP005_MCP001_Id WHERE g.MCP005_Id=:grant AND g.MCP005_Status='active' AND n.MCP001_C004_Id=:company AND s.MCP010_Scope='inecel.certificate:read'");$grant->execute(['grant'=>$data['g'],'company'=>$data['c']]);if($grant->fetchColumn()===false)return Response::empty(404);
+            $doc=$pdo->prepare('SELECT d.SMT205_Nome_Arquivo FROM SMT205 d INNER JOIN T013 i ON i.T013_Id=d.SMT205_T013_Id WHERE d.SMT205_Id=:document AND i.T013_C004_Id=:company');$doc->execute(['document'=>$data['d'],'company'=>$data['s']]);$name=(string)($doc->fetchColumn()?:'');if($name===''||!hash_equals($name,$data['n'])||strtolower(pathinfo($name,PATHINFO_EXTENSION))!=='pdf')return Response::empty(404);
+            $path=dirname($this->rootPath).'/dados_usuarios/'.$tenant['dbDatabase'].'/atividades/'.$data['d'].'.'.pathinfo($name,PATHINFO_EXTENSION);if(!is_file($path)||filesize($path)<1)return Response::empty(404);return Response::file($path,$name);
+        } catch (\Throwable $e) { return Response::empty(404); }
+    }
+    /** @param array<string,mixed> $config */
+    private function handleLegacyReportDownload(Request $request,array $config): Response
+    {
+        if($request->getMethod()!=='GET'||$request->hasAmbiguousQuery())return Response::empty(404);
+        try {
+            $tenant=$this->resolveTenant($config,$request->getHost());$v=(string)($config['oauth']['access_token_pepper_current_version']??'');$secret=(string)(($config['oauth']['access_token_peppers']??[])[$v]??'');
+            $data=(new LegacyReportDownloadLinkService('', $secret))->verify((string)($request->getQuery('token')??''));if($data===null||!hash_equals(hash('sha256',$tenant['dbDatabase']),$data['t']))return Response::empty(404);
+            $pdo=$this->connectTenant($config,$tenant);
+            $grant=$pdo->prepare("SELECT 1 FROM MCP005 g INNER JOIN MCP010 s ON s.MCP010_MCP005_Id=g.MCP005_Id INNER JOIN MCP001 n ON n.MCP001_Id=g.MCP005_MCP001_Id WHERE g.MCP005_Id=:grant AND g.MCP005_MCP001_Id=:connection AND g.MCP005_Status='active' AND n.MCP001_C004_Id=:company AND n.MCP001_Status='active' AND s.MCP010_Scope='legacy_reports:read'");
+            $grant->execute(['grant'=>$data['g'],'connection'=>$data['n'],'company'=>$data['c']]);if($grant->fetchColumn()===false)return Response::empty(404);
+            $directory=dirname($this->rootPath).'/dados_usuarios/'.$tenant['dbDatabase'].'/mcp/legacy-reports';
+            $path=$directory.'/'.$data['f'];
+            if(!is_file($path)||is_link($path)||filesize($path)<1)return Response::empty(404);
+            return Response::file($path,'legacy-report.json','application/json; charset=utf-8');
+        } catch (\Throwable $e) { return Response::empty(404); }
     }
     private function tokenError(string $error,int $status=400): Response { return Response::json(['error'=>$error],$status,['Pragma'=>'no-cache']); }
     /** @return array<string,string> */ private function form(string $body): array {if(strlen($body)>16384)throw new OAuthTokenEndpointException('invalid_request');$out=[];foreach($body===''?[]:explode('&',$body) as $part){$pair=explode('=',$part,2);$key=urldecode($pair[0]);if($key===''||isset($out[$key]))throw new OAuthTokenEndpointException('invalid_request');$out[$key]=urldecode($pair[1]??'');}return $out;}
@@ -432,7 +492,7 @@ class Bootstrap
     {
         if($request->getMethod()!=='GET')return Response::empty(405,['Allow'=>'GET']);
         if($request->hasAmbiguousQuery())return Response::json(['error'=>'invalid_request'],400);
-        try{$tenant=$this->resolveTenant($config,$request->getHost());$limit=$this->createRateLimitPolicy($config)->preAuthentication($tenant['host'],$request->getClientIp());if(!$limit->isAllowed())return Response::json(['error'=>'invalid_request'],429,['Retry-After'=>(string)$limit->getRetryAfter()]);$metadata=new OAuthDiscoveryMetadata();$issuer=$metadata->canonicalBaseUrl($tenant);$pdo=$this->connectTenant($config,$tenant);$resource=(string)($request->getQuery('resource')??$issuer.'/mcp');$connectionId=null;if($resource!==$issuer.'/mcp'){$prefix=$issuer.'/mcp/c/';if(strpos($resource,$prefix)!==0)throw new \RuntimeException('invalid_request');$connectionId=(new McpEndpointResolver($pdo))->resolve(substr($resource,strlen($issuer)));}$result=(new OAuthAuthorizationRequestService($pdo,$config))->begin(['response_type'=>$request->getQuery('response_type'),'client_id'=>$request->getQuery('client_id'),'redirect_uri'=>$request->getQuery('redirect_uri'),'code_challenge'=>$request->getQuery('code_challenge'),'code_challenge_method'=>$request->getQuery('code_challenge_method'),'resource'=>$request->getQuery('resource'),'scope'=>$request->getQuery('scope')??'','state'=>$request->getQuery('state')],$issuer,$resource,$connectionId);
+        try{$tenant=$this->resolveTenant($config,$request->getHost());$limit=$this->createRateLimitPolicy($config)->preAuthentication($tenant['host'],$request->getClientIp());if(!$limit->isAllowed())return Response::json(['error'=>'invalid_request'],429,['Retry-After'=>(string)$limit->getRetryAfter()]);$metadata=new OAuthDiscoveryMetadata();$issuer=$metadata->canonicalBaseUrl($tenant);$pdo=$this->connectTenant($config,$tenant);$resource=(string)($request->getQuery('resource')??$issuer.'/mcp');$connectionId=null;if($resource!==$issuer.'/mcp'){$prefix=$issuer.'/mcp/c/';if(strpos($resource,$prefix)!==0)throw new \RuntimeException('invalid_request');$connectionId=(new McpEndpointResolver($pdo))->resolve(substr($resource,strlen($issuer)));}$profile=ResolvedTenantContext::fromResolvedTenant($tenant)->getMcpInstallationProfile();$result=(new OAuthAuthorizationRequestService($pdo,$config,$profile))->begin(['response_type'=>$request->getQuery('response_type'),'client_id'=>$request->getQuery('client_id'),'redirect_uri'=>$request->getQuery('redirect_uri'),'code_challenge'=>$request->getQuery('code_challenge'),'code_challenge_method'=>$request->getQuery('code_challenge_method'),'resource'=>$request->getQuery('resource'),'scope'=>$request->getQuery('scope')??'','state'=>$request->getQuery('state')],$issuer,$resource,$connectionId);
             $cookieName='__Host-hrd_oauth_'.$result['selector']; setcookie($cookieName,explode('.',$result['cookie'],2)[1],['expires'=>time()+300,'path'=>'/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);return Response::redirect('/hardness3/outros/login/index.php?mcp_oauth_tx='.rawurlencode($result['selector']));
         }catch(\Throwable $e){return Response::json(['error'=>'invalid_request'],400);}
     }

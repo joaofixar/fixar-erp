@@ -20,13 +20,10 @@ require 'sistema/apps.php';
 require 'sistema/personalizacoes.php';
 require 'bibliotecas/phpmailer/class.phpmailer.php';
 require 'sistema/comunicacaoEmail.php';
-require 'bibliotecas/classes/VEN003.php';
-require 'bibliotecas/classes/VEN012.php';
-require 'bibliotecas/classes/EST004.php';
 require 'sistema/confSistema.php';
+require 'scripts/queueNF/carregarContexto.php';
 global $g;
 
-$g['conf'] = new \hardness\confSistema();
 $xml = '';
 
 //ini_set('display_errors', 1);
@@ -47,10 +44,6 @@ if (isset($usarUTF8) && $usarUTF8) {
 }
 
 
-if (!function_exists('TrocarCaracterEspecial')) {
-	require 'old/lib/funcoes_genericas.inc';
-}
-
 // Queue de NFs para serem transmitidas
 $queue = array();
 $sql = "SELECT * FROM Q001 WHERE IFNULL(Q001_Recibo,'')='' OR Q001_DataHora < DATE_ADD(NOW(), INTERVAL -12 SECOND) limit 1";
@@ -68,18 +61,26 @@ $nUltimaNF = 0;
 
 // Processa NFs
 foreach ($queue as $Q001) {
-	// Globais do sistema desktop
-	$g['usuarioAtual'] = $Q001['Q001_C007_Id'];
-	$g['empresaAtual'] = $Q001['Q001_C004_Id'];
-	$g['pathDados'] = $Q001['Q001_Path'] . "dados_usuarios/{$Q001['Q001_Database']}/";
-	$g['pathDadosUsuario'] = $Q001['Q001_Path'] . $g['pathDados'] . 'usuarios/u_' . str_repeat('0', 6-strlen($g['usuarioAtual'])) . $g['usuarioAtual'] . '/';
-	$g['pathDadosAntigo'] = str_replace('hardness3', 'hardness', $g['pathDados']);
-	$g['pathDadosUsuarioAntigo'] = str_replace('hardness3', 'hardness', $g['pathDadosUsuario']);
-	$confUsuario['pathRaiz'] = $Q001['Q001_Path'];
-	$confUsuario['urlRaiz'] = $Q001['Q001_Url'];
-	$confUsuario['dbDatabase'] = $Q001['Q001_Database'];
-	$g['mysqlLastId'] = false;
-	$g['urlRaiz'] = $confUsuario['urlRaiz'];
+	$notaConfirmada = false;
+	$contextoConcluido = false;
+	register_shutdown_function(function () use (&$contextoConcluido, &$notaConfirmada, $Q001) {
+		if (!$contextoConcluido) {
+			$erro = error_get_last();
+			registrarErroContextoQueueNF($Q001, $notaConfirmada,
+				$erro ? $erro['message'] : 'A inicialização foi interrompida.');
+		}
+	});
+	try {
+		$contexto = carregarContextoQueueNF($Q001, $notaConfirmada);
+		$contextoConcluido = true;
+	} catch (\Throwable $erro) {
+		$contextoConcluido = true;
+		registrarErroContextoQueueNF($Q001, $notaConfirmada, $erro->getMessage());
+		exit(1);
+	}
+	$mConfig = $contexto['C020'];
+	$mC004 = $contexto['C004'];
+	$nT007_Id = (int) $Q001['Q001_T007_Id'];
 	
 	/**
 	* -1 - Refazer / Via Scan
@@ -92,40 +93,24 @@ foreach ($queue as $Q001) {
 	*/
 	$etapaAtual = 0;
 	
-	$diretorioNFe = $Q001['Q001_Path'] . $diretorioNFe_;
+	$diretorioNFe = $confUsuario['pathRaiz'] . $diretorioNFe_;
 	
 	/**
 	* Base / Empresa
 	*/
 	echo "{$Q001['Q001_Database']} - {$Q001['Q001_C004_Id']} - {$Q001['Q001_T007_Id']} ...\n";
-	$result = mysqli_query("USE {$Q001['Q001_Database']};");
-	if (!$result) {
-		echo "ERROR! - 'USE {$Q001['Q001_Database']};' \n";
-		continue;
-	}
-	// $nT007_Id
-	$nT007_Id = $Q001['Q001_T007_Id'];
-	// $mConfig
-	$resultado = mysqli_query("select * from C020 where C020_C004_Id = '{$Q001['Q001_C004_Id']}'");
-	$mConfig = mysql_fetch_array($resultado);
 	// $Diretorio_NFe
 	$Diretorio_NFe = str_replace('[[DB]]', $Q001['Q001_Database'], $diretorioNFe);
+	// Instalações locais podem guardar os XMLs na pasta do cliente desta instalação.
+	if (!is_dir($Diretorio_NFe) && is_dir($g['pathDados'] . 'nfe')) {
+		$Diretorio_NFe = $g['pathDados'] . 'nfe';
+	}
 	if(!is_dir($Diretorio_NFe)) {
 		mkdir($Diretorio_NFe, 0777);
 		chmod($Diretorio_NFe, 0777);
 	}
 	// $Senha
 	$Senha = '';
-	// C031
-	$sqlC031 = mysqli_query("SELECT * FROM C031 WHERE C031_C004_Id = '{$g['empresaAtual']}';");
-	while($rowC031 = mysql_fetch_assoc($sqlC031)){
-		$g['c031'][$rowC031['C031_Campo']] = $rowC031['C031_Valor'];
-		$g['C031'][$rowC031['C031_Campo']] = $rowC031['C031_Valor'];
-	}
-
-	$C004=mysqli_query("select * from C004 where C004_Id='{$g['empresaAtual']}'");
-	$mC004=mysql_fetch_array($C004);
-
 	// Buscando dados da nota fiscal
 	$T007=mysqli_query("SELECT T007_Numero_Nota_Fiscal,
 							  T007_Versao_NFe,

@@ -8,6 +8,7 @@ use HardnessMcp\Audit\McpAuditService;
 use HardnessMcp\Auth\ApiKeyGenerator;
 use HardnessMcp\Auth\ApiKeyVerifier;
 use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use DateTimeImmutable;
 use DateTimeZone;
 use PDO;
@@ -28,7 +29,7 @@ final class McpConnectionAdminService
     private ScopeCatalog $scopeCatalog;
 
     /** @param array<string,mixed> $config */
-    public function __construct(PDO $pdo, array $config, string $auditHost = 'admin', string $auditIp = '', ?int $actorUserId = null)
+    public function __construct(PDO $pdo, array $config, string $auditHost = 'admin', string $auditIp = '', ?int $actorUserId = null, ?string $installationProfile = null)
     {
         $this->pdo = $pdo;
         $this->generator = new ApiKeyGenerator();
@@ -39,7 +40,7 @@ final class McpConnectionAdminService
         $this->auditHost = $auditHost;
         $this->auditIp = $auditIp;
         $this->actorUserId = $actorUserId !== null && $actorUserId > 0 ? $actorUserId : null;
-        $this->scopeCatalog = new ScopeCatalog();
+        $this->scopeCatalog = ScopeCatalogFactory::forPdo($pdo, $installationProfile);
         if ($this->rotationGraceSeconds < 1) { throw new RuntimeException('Invalid credential rotation grace period.'); }
         $this->verifier->assertAvailable($this->currentPepperVersion);
     }

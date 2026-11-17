@@ -120,6 +120,9 @@ switch($g['r'][3]) {
 			$infoSet = '';
 			$infoPk = array();
 			$verificaDuplicado = array();
+			$campoConversorCampos = array();
+			$tiposNumericos = array('DECIMAL', 'NUMERIC', 'FLOAT', 'DOUBLE', 'REAL', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'INT', 'INTEGER', 'BIGINT');
+			$tiposData = array('DATE', 'DATETIME', 'TIMESTAMP');
 			$functionPersonalizaLimparAcentos = false;
 			$gLimpaAcentosImportarCSV = "dados_usuarios/{$confUsuario['dbDatabase']}/personalizacaoConf/gLimpaAcentosImportarCSV-alterarCallback.php";
 			if (file_exists($gLimpaAcentosImportarCSV)) {
@@ -160,6 +163,66 @@ switch($g['r'][3]) {
 			if (($r_tipo == 'update' || $r_tipo == 'both') && empty($infoPk)) {
 				$resposta['code'] = false;
 				$resposta['erros'] .= "Não foi definido uma coluna de chave primária (PK).";
+			}
+			if (!preg_match('/^[a-zA-Z0-9_]+$/', $r_tabela)) {
+				$resposta['code'] = false;
+				$resposta['erros'] .= "Tabela inválida para identificar os tipos: {$r_tabela}<br />";
+			}
+			if ($resposta['code']) {
+				foreach ($info as $key => $value) {
+					if (!isset($value[0]) || empty($value[0])) { continue; }
+					if (!preg_match('/^[a-zA-Z0-9_]+$/', $value[0])) {
+						$resposta['code'] = false;
+						$resposta['erros'] .= "Campo inválido para identificar o tipo: {$value[0]}<br />";
+						continue;
+					}
+
+					// Quando existe uma FK, o valor do CSV é utilizado para pesquisar o campo
+					// relacionado. Por isso, é o tipo desse campo que define a conversão.
+					if (isset($value[2]) && !empty($value[2])) {
+						$campoConversor = $value[2];
+						$tabelaConversor = explode('_', $campoConversor);
+						$tabelaConversor = $tabelaConversor[0];
+					} else {
+						$campoConversor = $value[0];
+						$tabelaConversor = $r_tabela;
+					}
+
+					if (!preg_match('/^[a-zA-Z0-9_]+$/', $tabelaConversor) || !preg_match('/^[a-zA-Z0-9_]+$/', $campoConversor)) {
+						$resposta['code'] = false;
+						$resposta['erros'] .= "Tabela ou campo inválido para identificar o tipo: {$tabelaConversor}.{$campoConversor}<br />";
+						continue;
+					}
+
+					if (!array_key_exists($tabelaConversor, $cacheConversorCampos)) {
+						$sqlCampos = <<<SQL
+							SHOW COLUMNS FROM `{$tabelaConversor}`
+						SQL;
+						$resCampos = mysqli_query($sqlCampos);
+						if (!$resCampos) {
+							$cacheConversorCampos[$tabelaConversor] = false;
+							$resposta['code'] = false;
+							$resposta['erros'] .= "Erro ao consultar tipos da tabela {$tabelaConversor}: " . mysql_error() . '<br />';
+							continue;
+						}
+
+						$cacheConversorCampos[$tabelaConversor] = array();
+						while ($campoTabela = mysql_fetch_assoc($resCampos)) {
+							preg_match('/^[a-zA-Z]+/', $campoTabela['Type'], $tipoCampo);
+							$cacheConversorCampos[$tabelaConversor][$campoTabela['Field']] = strtoupper($tipoCampo[0]);
+						}
+					}
+
+					if ($cacheConversorCampos[$tabelaConversor] === false) { continue; }
+
+					if (!isset($cacheConversorCampos[$tabelaConversor][$campoConversor])) {
+						$resposta['code'] = false;
+						$resposta['erros'] .= "Campo {$tabelaConversor}.{$campoConversor} não existe para identificar o tipo.<br />";
+						continue;
+					}
+
+					$campoConversorCampos[$key] = $cacheConversorCampos[$tabelaConversor][$campoConversor];
+				}
 			}
 			// não continuar em caso de erro
 			if ($resposta['code']) {
@@ -202,13 +265,20 @@ switch($g['r'][3]) {
 						foreach ($data as $key => $value) {
 							// Padronização de valores
 							if (preg_match('#^[0-9]+,[0-9]+$#', $value)) {
-								$value = str_replace(',', '.', $value);
+								// A aparência do valor não basta para diferenciar um decimal de um código textual.
+								if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+									$value = str_replace(',', '.', $value);
+								}
 							} else if (preg_match('#^([0-9]+\.)+[0-9]+,[0-9]+$#', $value)) {
-								$value = str_replace('.', '', $value);
-								$value = str_replace(',', '.', $value);
+								if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+									$value = str_replace('.', '', $value);
+									$value = str_replace(',', '.', $value);
+								}
 							} else if (preg_match('#^[0-9]{2}/[0-9]{2}/[0-9]{4}$#', $value)) {
-								$value = explode('/', $value);
-								$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+								if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposData)) {
+									$value = explode('/', $value);
+									$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+								}
 							} else {
 								if($functionPersonalizaLimparAcentos){
 									// Só entra aqui se existir arquivo personalizado
@@ -247,13 +317,20 @@ switch($g['r'][3]) {
 		    			foreach ($data as $key => $value) {
 		    				// Padronização de valores
 							if (preg_match('#^[0-9]+,[0-9]+$#', $value)) {
-								$value = str_replace(',', '.', $value);
+								// A aparência do valor não basta para diferenciar um decimal de um código textual.
+								if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+									$value = str_replace(',', '.', $value);
+								}
 							} else if (preg_match('#^([0-9]+\.)+[0-9]+,[0-9]+$#', $value)) {
-								$value = str_replace('.', '', $value);
-								$value = str_replace(',', '.', $value);
+								if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposNumericos)) {
+									$value = str_replace('.', '', $value);
+									$value = str_replace(',', '.', $value);
+								}
 							} else if (preg_match('#^[0-9]{2}/[0-9]{2}/[0-9]{4}$#', $value)) {
-								$value = explode('/', $value);
-								$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+								if (isset($campoConversorCampos[$key]) && in_array($campoConversorCampos[$key], $tiposData)) {
+									$value = explode('/', $value);
+									$value = "{$value[2]}-{$value[1]}-{$value[0]}";
+								}
 							} else {
 								if($functionPersonalizaLimparAcentos){
 									// Só entra aqui se existir arquivo personalizado
@@ -282,9 +359,6 @@ switch($g['r'][3]) {
 									$value = $rowFK[0];
 								}
 							}
-							// conversões de campos
-							//$cacheConversorCampos
-							//SHOW COLUMNS FROM T002 WHERE `Field` = 'T002_Valor_Juros'
 		        			// é a chave primária?
 		        			if ($r_tipo == 'update' || $r_tipo_both == 'update') {
 		        				if (isset($info[$key]) && isset($info[$key][1]) && $info[$key][1]) {

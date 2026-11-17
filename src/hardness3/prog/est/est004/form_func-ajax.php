@@ -11,6 +11,29 @@ require_once("bibliotecas/classes/EST004.php");
 * Ações
 */
 switch($g['r'][3]) {
+
+    case 'ratearFreteNFS':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $resposta['code'] = false;
+            $resposta['data'] = 'Envie o rateio pelo botão Ratear da aba Frete.';
+        } else {
+            require_once('bibliotecas/classes/EST004FreteNFS.php');
+            $freteNFS = new EST004FreteNFS();
+            $retorno = $freteNFS->ratear(
+                isset($_POST['origemId']) ? $_POST['origemId'] : 0,
+                isset($_POST['destinoId']) ? $_POST['destinoId'] : 0,
+                isset($_POST['forma']) ? $_POST['forma'] : '',
+                isset($_POST['valorEsperado']) ? $_POST['valorEsperado'] : ''
+            );
+            $resposta['code'] = is_array($retorno);
+            $resposta['data'] = is_array($retorno)
+                ? 'Frete NFS de R$ ' . number_format($retorno['valor'], 2, ',', '.') .
+                  ' rateado nos itens da NF ' . htmlspecialchars($retorno['numeroNota'], ENT_QUOTES, 'UTF-8') . '.'
+                : $retorno;
+        }
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($resposta);
+        exit;
 	
 	case 'atualizarCamposProdutosNota':
 		global $g;

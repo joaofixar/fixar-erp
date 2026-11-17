@@ -703,7 +703,7 @@ case 'analiticoPrazoMedioRecebimento':
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Cliente', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
             array('colunaValor' => 'D018_Uf', 'colunaTitulo' => 'UF', 'style' => 'width: 1%;'),
@@ -872,7 +872,7 @@ EOT;*/
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Cliente', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
             array('colunaValor' => 'D018_Uf', 'colunaTitulo' => 'UF', 'style' => 'width: 1%;'),
@@ -1041,7 +1041,7 @@ EOT;*/
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Cliente', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
             array('colunaValor' => 'D018_Uf', 'colunaTitulo' => 'UF', 'style' => 'width: 1%;'),
@@ -1209,7 +1209,7 @@ EOT;*/
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Flag_Comercial', 'colunaTitulo' => 'C', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Fornecedor', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
@@ -1386,7 +1386,7 @@ EOT;*/
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Cliente', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
             array('colunaValor' => 'D018_Uf', 'colunaTitulo' => 'UF', 'style' => 'width: 1%;'),
@@ -1548,7 +1548,7 @@ EOT;
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D024_Flag_Comercial', 'colunaTitulo' => 'C', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Fornecedor', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
@@ -1717,7 +1717,7 @@ EOT;
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width: 1%;font-weight:bold'),       
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descricao', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D003_Nome_Linha', 'colunaTitulo' => 'Grupo', 'style' => 'width: 1%;font-weight:bold'),
@@ -1881,7 +1881,7 @@ EOT;
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width: 1%;font-weight:bold'),       
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descricao', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D003_Nome_Linha', 'colunaTitulo' => 'Grupo', 'style' => 'width: 1%;font-weight:bold'),
@@ -2043,7 +2043,7 @@ EOT;
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width: 1%;font-weight:bold'),       
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descricao', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D003_Nome_Linha', 'colunaTitulo' => 'Grupo', 'style' => 'width: 1%;font-weight:bold'),
@@ -2205,7 +2205,7 @@ EOT;
         */
         $grid = array(
             array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
+            array('colunaValor' => 'D009_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%;', 'colunaAlinhar' => center),
             array('colunaValor' => 'D001_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width: 1%;font-weight:bold'),       
             array('colunaValor' => 'D001_Descricao_Produto', 'colunaTitulo' => 'Descricao', 'style' => 'width: 1%;font-weight:bold'),
             array('colunaValor' => 'D003_Nome_Linha', 'colunaTitulo' => 'Grupo', 'style' => 'width: 1%;font-weight:bold'),

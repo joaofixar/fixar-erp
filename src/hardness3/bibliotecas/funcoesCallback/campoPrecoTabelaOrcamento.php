@@ -65,7 +65,7 @@ function campoPrecoTabelaOrcamento($array, $param){
 				$retorno = $precoTabela;
 			}
 		}
-	} else if($D049_Flag_Tipo == 'PD' && $T004_Flag_Comprar == 'S'){
+	} else if(in_array($D049_Flag_Tipo, array('PD', 'IN'), true) && $T004_Flag_Comprar == 'S'){
 		return "<span style='background-color:#F7F774; color: black;'>&nbsp;P.C.P&nbsp;</span>";
 	} else {
 		if(empty($param) || !isset($g['c029Ids'][208])){

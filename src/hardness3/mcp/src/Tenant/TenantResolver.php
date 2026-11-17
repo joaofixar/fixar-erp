@@ -60,7 +60,6 @@ class TenantResolver
             // wkhtmltopdf an internal origin without changing public links.
             'mcpPdfRenderUrl' => (string) ($configuration['mcpPdfRenderUrl'] ?? ($configuration['urlRaiz'] ?? '')),
         ];
-
         // This optional literal is read without executing the legacy
         // configuration file.  An incomplete mirror configuration is ignored
         // so it cannot make the principal MCP connection unavailable.

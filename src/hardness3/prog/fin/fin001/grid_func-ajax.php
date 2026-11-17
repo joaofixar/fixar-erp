@@ -136,9 +136,6 @@ switch($g['r'][3]) {
 	break;	
 	
 	case 'verificaRemessa':
-		$resposta['code'] = '1';
-		$resposta['data'] = 'A base local não registra boleto.';
-		break;
 		$itensRemessa = $FIN001->listaItensParaRemessa();
 		if(!is_array($itensRemessa)){
 			$resposta['code'] = '1';

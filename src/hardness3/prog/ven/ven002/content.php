@@ -241,7 +241,7 @@ EOT;
 								if(request.code === true){
 									imprimirPedido(1);
 								} else if(request.code == 'verificarMoeda'){
-									dialogConfirm('Imprimir Pedido', "Selecione a moeda para impressão", [
+									var opcoesMoeda = [
 										{
 											text: "REAL",
 											click: function() {
@@ -253,9 +253,25 @@ EOT;
 										{
 											text: request.moeda,
 											click: function() {
-											  	imprimirPedido(request.data);
+											  	imprimirPedido(request.data, 'pedido');
 											  	$(this).dialog("destroy").remove(); 
 												return false;
+											}
+										},
+										{
+											text: "INVOICE",
+											click: function() {
+											  	imprimirPedido(request.data, 'invoice');
+											  	$(this).dialog("destroy").remove();
+											  	return false;
+											}
+										},
+										{
+											text: "PACKING",
+											click: function() {
+											  	imprimirPedido(request.data, 'packing');
+											  	$(this).dialog("destroy").remove();
+											  	return false;
 											}
 										},
 										{
@@ -264,7 +280,12 @@ EOT;
 											  	$(this).dialog("destroy").remove(); 
 											}
 										}
-									]);
+									];
+									var moedaExportacao = String(request.moeda || '').toUpperCase();
+									if (moedaExportacao !== 'DOLAR' && moedaExportacao !== 'DÓLAR') {
+										opcoesMoeda.splice(2, 2);
+									}
+									dialogConfirm('Imprimir Pedido', "Selecione a moeda para impressão", opcoesMoeda);
 								} else {
 									var \$buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } }
 									dialogConfirm('Erro', request.data, \$buttons);
@@ -354,7 +375,7 @@ EOT;
 													$(this).dialog("destroy").remove();
 												}
 											}
-										]);
+									]);
 									});												
 								}else if(request.code == 'erro') {
 									   var \$buttons = { "OK": function() { $(this).dialog("destroy").remove(); } }
@@ -393,15 +414,16 @@ EOT;
 					});
 				});
 
-				function imprimirPedido(moeda){
+				function imprimirPedido(moeda, layout){
+					layout = layout || 'pedido';
 					$('#{$g['divId']}').showLoading();
-				 	$.getJSON('/ven/ven002/form_func-ajax/ven002ImprimirPedido/?ajax=true&T005_Id=' + encodeURIComponent("{$r_acaoId}") + '&moeda=' + encodeURIComponent(moeda) + '&callback=?', function(request) {
+				 	$.getJSON('/ven/ven002/form_func-ajax/ven002ImprimirPedido/?ajax=true&T005_Id=' + encodeURIComponent("{$r_acaoId}") + '&moeda=' + encodeURIComponent(moeda) + '&layout=' + encodeURIComponent(layout) + '&callback=?', function(request) {
 						$('#{$g['divId']}').hideLoading();
 						if(request.code===true) {
 							var w = window.open(request.data);
 							w.addEventListener("load", function(event) {
 								setTimeout(function() {
-									$.getJSON('/ven/ven002/form_func-ajax/ven002DeletarPDFPedido/?ajax=true&T005_Id=' + encodeURIComponent("{$r_acaoId}") + '&callback=?', function(request) {});
+									$.getJSON('/ven/ven002/form_func-ajax/ven002DeletarPDFPedido/?ajax=true&T005_Id=' + encodeURIComponent("{$r_acaoId}") + '&layout=' + encodeURIComponent(layout) + '&callback=?', function(request) {});
 								}, 3000);
 							});
 						} else {

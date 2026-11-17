@@ -276,7 +276,7 @@ if ($IND_MOV == '0') {
 
 		while($T013 = mysql_fetch_array($sqlT013)) {				
 					
-	        $COD_MOD = ($T013['T013_Tipo'] == '7') ? '21' : (($T013['T013_Tipo'] == '8') ? '22' : '');
+	        $COD_MOD = ($T013['T013_Tipo'] == '7') ? '21' : ($T013['T013_Tipo'] == '8') ? '22' : '';
 			
 			$VL_SERV_NT = formataDecimal($T013['T014_Valor_Base_ICMS_Sem_Reducao'] - $T013['T013_Valor_Total_Base_ICMS']);
 

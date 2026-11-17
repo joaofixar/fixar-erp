@@ -23,7 +23,7 @@ final class QuoteItemOAuthStatement extends PDOStatement
     public function __construct(QuoteItemOAuthPdo $pdo,string $sql){$this->pdo=$pdo;$this->sql=$sql;}
     public function execute($parameters=null){$this->rows=$this->pdo->rows($this->sql);return true;}
     public function fetch($fetchStyle=null,$cursorOrientation=null,$cursorOffset=null){return $this->rows[0]??false;}
-    public function fetchAll(int $mode = \PDO::FETCH_DEFAULT, mixed ...$args): array{return $this->rows;}
+    public function fetchAll($how=null,$class_name=null,$ctor_args=null){return $this->rows;}
 }
 final class QuoteItemOAuthPdo extends PDO
 {

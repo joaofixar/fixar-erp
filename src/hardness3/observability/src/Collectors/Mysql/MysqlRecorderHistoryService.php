@@ -7,7 +7,7 @@ namespace Hardness\Observability\Collectors\Mysql;
 final class MysqlRecorderHistoryService
 {
     public const MAX_PAGE_SIZE = 200;
-    public const MAX_SERIES_RESULTS = 1000;
+    public const MAX_SERIES_RESULTS = 200;
     private $repository;
 
     public function __construct(?MysqlRecorderHistoryRepository $repository = null) { $this->repository = $repository ?? new MysqlRecorderHistoryRepository(); }
@@ -34,12 +34,11 @@ final class MysqlRecorderHistoryService
             if ($source['limits_reached'] !== array()) { $partial = true; $limits[$category] = $source['limits_reached']; }
             if ($source['invalid_lines'] > 0 || $source['truncated_last_lines'] > 0) { $partial = true; }
         }
-        if ($status['limits_reached'] !== array()) { $partial = true; $limits['aggregation'] = $status['limits_reached']; }
         $flags = $this->flags($sources);
         if ($flags['partial_collections'] > 0 || $flags['file_limit_reached'] || $flags['digest_coverage_limited'] || $flags['lock_coverage_limited'] || $flags['long_query_coverage_limited'] || $flags['transaction_coverage_limited'] || $flags['digest_entries_lost'] > 0) { $partial = true; }
-        $metadata = array('baseline_present'=>$flags['baselines'] > 0, 'partial'=>$partial, 'synthetic'=>!empty($flags['synthetic_data']), 'unavailable_sources'=>$unavailable, 'no_data_categories'=>$noData, 'limits_reached'=>$limits, 'read'=>array_map(function (array $source): array { return array('category'=>$source['category'], 'files'=>$source['files_seen'], 'bytes'=>$source['bytes_read'], 'lines'=>$source['lines_read'], 'invalid_lines'=>$source['invalid_lines'], 'truncated_last_lines'=>$source['truncated_last_lines']); }, array_values($sources)));
+        $metadata = array('baseline_present'=>$flags['baselines'] > 0, 'partial'=>$partial, 'synthetic'=>!empty($flags['synthetic_data']), 'unavailable_sources'=>$unavailable, 'no_data_categories'=>$noData, 'limits_reached'=>$limits, 'presentation_truncated'=>$status['limits_reached'], 'read'=>array_map(function (array $source): array { return array('category'=>$source['category'], 'files'=>$source['files_seen'], 'bytes'=>$source['bytes_read'], 'lines'=>$source['lines_read'], 'invalid_lines'=>$source['invalid_lines'], 'truncated_last_lines'=>$source['truncated_last_lines']); }, array_values($sources)));
         $period = array('from'=>date('c', $from), 'to'=>date('c', $to), 'max_seconds'=>MysqlRecorderHistoryRepository::MAX_PERIOD_SECONDS);
-        $diagnostics = (new MysqlRecorderDiagnosticEngine())->diagnose($timeline, $status['status'], $status['errors'], $digests, $metadata, $period);
+        $diagnostics = (new MysqlRecorderDiagnosticEngine())->diagnose($timeline, $status['diagnostic_status'], $status['diagnostic_errors'], $digests, $metadata, $period);
         return array(
             'contract_version'=>'mysql-history.v1',
             'generated_at'=>date('c'),
@@ -55,15 +54,20 @@ final class MysqlRecorderHistoryService
 
     private function timeline(array $events, array $statuses, array $capabilities): array
     {
-        $items = array();
+        $items = array(); $recoveryAt = array();
         foreach ($events as $record) {
             $common = array('at'=>(string) ($record['collected_at'] ?? ''), 'timestamp'=>(int) $record['_history_timestamp'], 'schema'=>$this->publicSchema($record, $capabilities), 'partial'=>!empty($record['collection']['partial']), 'synthetic'=>!empty($record['synthetic']));
             foreach ($record['locks'] ?? array() as $item) { if (is_array($item)) { $items[] = array_merge($common, array('type'=>'lock', 'duration_seconds'=>max((int) ($item['waiting_seconds'] ?? 0), (int) ($item['blocking_seconds'] ?? 0)), 'details'=>$this->eventDetails($item, $capabilities))); } }
             foreach ($record['long_queries'] ?? array() as $item) { if (is_array($item)) { $items[] = array_merge($common, array('type'=>'long_query', 'duration_seconds'=>(int) ($item['seconds'] ?? 0), 'details'=>$this->eventDetails($item, $capabilities))); } }
             foreach ($record['long_transactions'] ?? array() as $item) { if (is_array($item)) { $items[] = array_merge($common, array('type'=>'long_transaction', 'duration_seconds'=>(int) ($item['age_seconds'] ?? 0), 'details'=>$this->eventDetails($item, $capabilities))); } }
+            $recoveryCount=(int)($record['collection']['connection_recoveries']??0); $recoveryKey=(string)($record['sample_type']??'events').'|'.$common['at'].'|'.$recoveryCount;
+            if ($recoveryCount>0&&!isset($recoveryAt[$recoveryKey])) { $recoveryAt[$recoveryKey]=true; $items[] = array_merge($common, array('type'=>'connection_recovery','duration_seconds'=>0,'details'=>array('recoveries'=>$recoveryCount,'source_duration_ms'=>$record['collection']['source_duration_ms']??array()))); }
             if (!empty($record['collection']['partial'])) { $items[] = array_merge($common, array('type'=>'collector_health', 'duration_seconds'=>0, 'details'=>array('conditions'=>array('partial_collection'), 'failed_sections'=>$this->failureSections($record['collection']['failures'] ?? array())))); }
         }
         foreach ($statuses as $record) {
+            $common=array('at'=>(string)($record['collected_at']??''),'timestamp'=>(int)$record['_history_timestamp'],'schema'=>$this->publicSchema($record,$capabilities),'partial'=>!empty($record['collection']['partial']),'synthetic'=>!empty($record['synthetic']));
+            $recoveryCount=(int)($record['collection']['connection_recoveries']??0);$recoveryKey=(string)($record['sample_type']??'status').'|'.$common['at'].'|'.$recoveryCount;
+            if($recoveryCount>0&&!isset($recoveryAt[$recoveryKey])){$recoveryAt[$recoveryKey]=true;$items[]=array_merge($common,array('type'=>'connection_recovery','duration_seconds'=>0,'details'=>array('recoveries'=>$recoveryCount,'source_duration_ms'=>$record['collection']['source_duration_ms']??array())));}
             if (($record['sample_type'] ?? '') !== 'collector_health') { continue; }
             $items[] = array('at'=>(string) ($record['collected_at'] ?? ''), 'timestamp'=>(int) $record['_history_timestamp'], 'schema'=>$this->publicSchema($record, $capabilities), 'type'=>'collector_health', 'duration_seconds'=>0, 'partial'=>true, 'details'=>array('conditions'=>array_values(array_filter($record['conditions'] ?? array(), 'is_string')), 'categories'=>array_values(array_filter($record['categories'] ?? array(), 'is_string')), 'failed_sections'=>$this->failureSections($record['failures'] ?? array())));
         }
@@ -100,7 +104,8 @@ final class MysqlRecorderHistoryService
             $key = $this->timelineIdentity($item);
             if ($key === null) { $item['sample_count']=1; $result[]=$item; continue; }
             $previousIndex = $active[$key] ?? null;
-            if ($previousIndex === null || (int)$item['timestamp'] - (int)$result[$previousIndex]['timestamp'] > 30) {
+            $window=in_array(($item['type']??''),array('collector_health','connection_recovery'),true)?300:30;
+            if ($previousIndex === null || (int)$item['timestamp'] - (int)$result[$previousIndex]['timestamp'] > $window) {
                 $item['first_observed_at']=$item['at']; $item['last_observed_at']=$item['at']; $item['sample_count']=1;
                 $result[]=$item; $active[$key]=count($result)-1; continue;
             }
@@ -118,9 +123,11 @@ final class MysqlRecorderHistoryService
 
     private function timelineIdentity(array $item): ?string
     {
-        $type=(string)($item['type']??''); if(!in_array($type,array('lock','long_query','long_transaction'),true)){return null;}
+        $type=(string)($item['type']??''); if(!in_array($type,array('lock','long_query','long_transaction','collector_health','connection_recovery'),true)){return null;}
         $details=is_array($item['details']??null)?$item['details']:array();
-        if($type==='lock'){$identity=array($details['waiting_process_id']??0,$details['blocking_process_id']??0,$details['waiting_fingerprint']??'',$details['blocking_fingerprint']??'',$details['object']??'');}
+        if($type==='collector_health'){$conditions=array_values(array_filter($details['conditions']??array(),'is_string'));$categories=array_values(array_filter($details['categories']??array(),'is_string'));$sections=array_values(array_filter($details['failed_sections']??array(),'is_string'));sort($conditions);sort($categories);sort($sections);$identity=array($conditions,$categories,$sections);}
+        elseif($type==='connection_recovery'){$identity=array('recovered_connection');}
+        elseif($type==='lock'){$identity=array($details['waiting_process_id']??0,$details['blocking_process_id']??0,$details['waiting_fingerprint']??'',$details['blocking_fingerprint']??'',$details['object']??'');}
         elseif($type==='long_transaction'){$identity=array($details['transaction_id']??'',$details['process_id']??0,$details['fingerprint']??'');}
         else{$identity=array($details['process_id']??0,$details['fingerprint']??'');}
         return hash('sha256',$type.'|'.(string)($item['schema']??'').'|'.json_encode($identity));
@@ -137,13 +144,16 @@ final class MysqlRecorderHistoryService
             $status[] = array('at'=>(string) ($record['collected_at'] ?? ''), 'schema'=>$this->publicSchema($record, $capabilities), 'synthetic'=>!empty($record['synthetic']), 'baseline'=>$baseline, 'baseline_reason'=>$counters['baseline_reason'] ?? null, 'reset'=>($counters['baseline_reason'] ?? null) === 'counter_reset', 'mysql_restart'=>!empty($counters['mysql_restart_detected']), 'gauges'=>array('Threads_connected'=>$absolute['Threads_connected'] ?? null, 'Threads_running'=>$absolute['Threads_running'] ?? null), 'delta'=>$baseline || !is_array($counters['delta'] ?? null) ? null : $counters['delta'], 'partial'=>!empty($record['collection']['partial']));
             foreach ($counters['errors'] ?? array() as $error) {
                 if (!is_array($error)) { continue; } $errorBaseline = !empty($error['baseline']);
+                $errorDelta=is_array($error['delta']??null)?$error['delta']:array();
+                if(!$errorBaseline&&(float)($errorDelta['raised']??0)<=0&&(float)($errorDelta['handled']??0)<=0){continue;}
                 $errors[] = array('at'=>(string) ($record['collected_at'] ?? ''), 'schema'=>$this->publicSchema($record, $capabilities), 'synthetic'=>!empty($record['synthetic']), 'number'=>(int) ($error['number'] ?? 0), 'name'=>(string) ($error['name'] ?? ''), 'sql_state'=>(string) ($error['sql_state'] ?? ''), 'baseline'=>$errorBaseline, 'baseline_reason'=>$error['baseline_reason'] ?? null, 'delta'=>$errorBaseline || !is_array($error['delta'] ?? null) ? null : $error['delta']);
             }
         }
+        $diagnosticStatus=$status; $diagnosticErrors=$errors;
         $limits = array();
         if (count($status) > self::MAX_SERIES_RESULTS) { $status = array_slice($status, -self::MAX_SERIES_RESULTS); $limits[] = 'status_series'; }
         if (count($errors) > self::MAX_SERIES_RESULTS) { $errors = array_slice($errors, -self::MAX_SERIES_RESULTS); $limits[] = 'error_series'; }
-        return array('status'=>$status, 'errors'=>$errors, 'limits_reached'=>$limits);
+        return array('status'=>$status, 'errors'=>$errors, 'diagnostic_status'=>$diagnosticStatus, 'diagnostic_errors'=>$diagnosticErrors, 'limits_reached'=>$limits);
     }
 
     private function digestRanking(array $records, array $capabilities): array
@@ -200,18 +210,20 @@ final class MysqlRecorderHistoryService
 
     private function flags(array $sources): array
     {
-        $flags = array('baselines'=>0, 'resets'=>0, 'mysql_restarts'=>0, 'disappeared_digests'=>array(), 'partial_collections'=>0, 'file_limit_reached'=>false, 'digest_coverage_limited'=>false, 'lock_coverage_limited'=>false, 'long_query_coverage_limited'=>false, 'transaction_coverage_limited'=>false, 'digest_entries_lost'=>0, 'performance_budget_exceeded'=>false, 'synthetic_data'=>false);
-        foreach ($sources['status']['records'] as $record) {
+        $flags = array('baselines'=>0, 'resets'=>0, 'mysql_restarts'=>0, 'disappeared_digests'=>array(), 'partial_collections'=>0, 'connection_recoveries'=>0, 'file_limit_reached'=>false, 'digest_coverage_limited'=>false, 'lock_coverage_limited'=>false, 'long_query_coverage_limited'=>false, 'transaction_coverage_limited'=>false, 'digest_entries_lost'=>0, 'performance_budget_exceeded'=>false, 'synthetic_data'=>false);
+        $seenRecoveries=array();foreach ($sources['status']['records'] as $record) {
             if (!empty($record['synthetic'])) { $flags['synthetic_data'] = true; }
+            $recoveries=(int)($record['collection']['connection_recoveries']??0);$recoveryKey=(string)($record['sample_type']??'status').'|'.(string)($record['collected_at']??'').'|'.$recoveries;if($recoveries>0&&!isset($seenRecoveries[$recoveryKey])){$seenRecoveries[$recoveryKey]=true;$flags['connection_recoveries']+=$recoveries;}
             $counters = $record['counters'] ?? array(); if (!empty($counters['baseline'])) { $flags['baselines']++; } if (($counters['baseline_reason'] ?? null) === 'counter_reset') { $flags['resets']++; } if (!empty($counters['mysql_restart_detected'])) { $flags['mysql_restarts']++; }
             $digestLost=(int)($counters['absolute']['Performance_schema_digest_lost']??0);if($digestLost>$flags['digest_entries_lost']){$flags['digest_entries_lost']=$digestLost;}
             if (!empty($record['collection']['partial'])) { $flags['partial_collections']++; }
             if (in_array('daily_file_limit_reached', $record['conditions'] ?? array(), true)) { $flags['file_limit_reached'] = true; }
             if (in_array('performance_budget_exceeded', $record['conditions'] ?? array(), true)) { $flags['performance_budget_exceeded'] = true; }
         }
-        foreach ($sources['events']['records'] as $record) { if (!empty($record['synthetic'])) { $flags['synthetic_data'] = true; } if (!empty($record['collection']['partial'])) { $flags['partial_collections']++; } $coverage=$record['collection']['coverage_limited']??array();if(!empty($coverage['locks'])){$flags['lock_coverage_limited']=true;}if(!empty($coverage['long_queries'])){$flags['long_query_coverage_limited']=true;}if(!empty($coverage['long_transactions'])){$flags['transaction_coverage_limited']=true;} }
+        foreach ($sources['events']['records'] as $record) { if (!empty($record['synthetic'])) { $flags['synthetic_data'] = true; } if (!empty($record['collection']['partial'])) { $flags['partial_collections']++; } $recoveries=(int)($record['collection']['connection_recoveries']??0);$recoveryKey=(string)($record['sample_type']??'events').'|'.(string)($record['collected_at']??'').'|'.$recoveries;if($recoveries>0&&!isset($seenRecoveries[$recoveryKey])){$seenRecoveries[$recoveryKey]=true;$flags['connection_recoveries']+=$recoveries;} $coverage=$record['collection']['coverage_limited']??array();if(!empty($coverage['locks'])){$flags['lock_coverage_limited']=true;}if(!empty($coverage['long_queries'])){$flags['long_query_coverage_limited']=true;}if(!empty($coverage['long_transactions'])){$flags['transaction_coverage_limited']=true;} }
         foreach ($sources['digests']['records'] as $record) {
             if (!empty($record['synthetic'])) { $flags['synthetic_data'] = true; }
+            $recoveries=(int)($record['collection']['connection_recoveries']??0);$recoveryKey=(string)($record['sample_type']??'digests').'|'.(string)($record['collected_at']??'').'|'.$recoveries;if($recoveries>0&&!isset($seenRecoveries[$recoveryKey])){$seenRecoveries[$recoveryKey]=true;$flags['connection_recoveries']+=$recoveries;}
             if (!empty($record['counters']['coverage_limited'])) { $flags['digest_coverage_limited'] = true; }
             foreach ($record['counters']['items'] ?? array() as $item) { if (!empty($item['baseline'])) { $flags['baselines']++; if (($item['baseline_reason'] ?? null) === 'counter_reset') { $flags['resets']++; } } }
             foreach ($record['counters']['disappeared_digests'] ?? array() as $digest) { if (is_string($digest)) { $flags['disappeared_digests'][$digest] = true; } }

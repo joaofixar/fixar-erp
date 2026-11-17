@@ -1306,10 +1306,16 @@ EOT;
 		$T005_Id = isset($r_T005_Id) ? $r_T005_Id : false;
 		$alcadaUpdate = isset($r_alcadaUpdate) ? $r_alcadaUpdate : false;
 		$moeda = isset($r_moeda) ? $r_moeda : false;
+		$layout = isset($r_layout) ? strtolower($r_layout) : 'pedido';
+		$layout = in_array($layout, array('pedido', 'invoice', 'packing')) ? $layout : 'pedido';
 
 
 		if (isset($r_gerarHtml)) {
-			echo $VEN002->montarEmailPdf($T005_Id, true, $moeda);
+			if ($layout === 'pedido') {
+				echo $VEN002->montarEmailPdf($T005_Id, true, $moeda);
+			} else {
+				echo $VEN002->montarDocumentoExportacao($T005_Id, $moeda, $layout);
+			}
 		} else {
 			$resposta = array('code' => true, 'data' => array());
 			
@@ -1333,7 +1339,9 @@ EOT;
 				$resposta['code'] = false;
 				$resposta['data'] = $erro;
 			} else {
-				$retorno = $VEN002->montarEmailPdf($T005_Id, false, $moeda);
+				$retorno = $layout === 'pedido'
+					? $VEN002->montarEmailPdf($T005_Id, false, $moeda)
+					: $VEN002->montarDocumentoExportacaoPdf($T005_Id, $moeda, $layout);
 				
 				$resposta['code'] = true;
 				$resposta['data'] = isset($retorno['AnexosWeb'][0]) ? $retorno['AnexosWeb'][0] : '';
@@ -1344,11 +1352,24 @@ EOT;
 		die();
 	break;
 
+	case 'ven002ImprimirDocumentoExportacao':
+		$T005_Id = isset($r_T005_Id) ? $r_T005_Id : false;
+		$moeda = isset($r_moeda) ? $r_moeda : false;
+		$layout = isset($r_layout) ? strtolower($r_layout) : 'invoice';
+		$layout = in_array($layout, array('invoice', 'packing')) ? $layout : 'invoice';
+
+		echo $VEN002->montarDocumentoExportacao($T005_Id, $moeda, $layout);
+		die();
+	break;
+
 	case 'ven002DeletarPDFPedido':
 		global $g;
 		$T005_Id = isset($r_T005_Id) ? $r_T005_Id : false;
+		$layout = isset($r_layout) ? strtolower($r_layout) : 'pedido';
+		$layout = in_array($layout, array('pedido', 'invoice', 'packing')) ? $layout : 'pedido';
 		$dir = $g['pathDados'] . 'tmp/';
-		$filename             = "pedido-{$T005_Id}.pdf";
+		$sufixoLayout         = $layout === 'pedido' ? '' : '-' . $layout;
+		$filename             = "pedido-{$T005_Id}{$sufixoLayout}.pdf";
 		$fileFull             = $g['pathRaiz'] . '/' . $dir . $filename;
 		if(file_exists($fileFull)){
 			unlink($fileFull);

@@ -4,15 +4,31 @@ declare(strict_types=1);
 
 namespace HardnessMcp\Scopes;
 
+use HardnessMcp\Capabilities\CapabilitySet;
 use RuntimeException;
 
 /** Server-side catalogue: only scopes backed by an existing MCP Tool belong here. */
 final class ScopeCatalog
 {
+    private CapabilitySet $capabilities;
+
+    public function __construct(?CapabilitySet $capabilities = null)
+    {
+        // A catalogue without a resolved tenant must fail closed for future
+        // capability-gated scopes, while preserving every unconditional scope.
+        $this->capabilities = $capabilities ?? CapabilitySet::empty();
+    }
+
     /** @return array<int,array{id:string,name:string,description:string,tools:array<int,string>,active:bool}> */
     public function all(): array
     {
-        return [[
+        $scopes = [[
+            'id' => 'legacy_reports:read',
+            'group' => 'Relatórios', 'subgroup' => 'API legada', 'order' => 34,
+            'name' => 'Consultar relatórios legados',
+            'description' => 'Permite consultar todos os relatórios da API GET disponíveis nesta instalação, incluindo AppApis personalizadas cadastradas para o cliente.',
+            'tools' => ['hardness.legacy_reports.list', 'hardness.legacy_reports.get'], 'active' => true,
+        ], [
             'id' => 'company:read',
             'group' => 'Empresa',
             'subgroup' => 'Dados básicos',
@@ -166,6 +182,20 @@ final class ScopeCatalog
             'description' => 'Permite consultar totais, vencimentos, situação, fornecedores, portadores e origem de contas a pagar.',
             'tools' => ['hardness.finance.payables_summary', 'hardness.finance.cash_flow_summary'], 'active' => true,
         ], [
+            'id' => 'logistics.load:read',
+            'group' => 'Relatórios', 'subgroup' => 'Cargas', 'order' => 42,
+            'name' => 'Consultar cargas e expedição',
+            'description' => 'Permite consultar cargas e expedição da empresa vinculada: status, previsão, pedidos, clientes, destinos, regiões, notas fiscais, motorista, transportadora, veículo, fotos anexadas e indicadores de frete. Não altera dados logísticos.',
+            'tools' => ['hardness.logistics.load.summary', 'hardness.logistics.load.list', 'hardness.logistics.load.get_by_id'],
+            'capability' => 'logistics.loads', 'active' => true,
+        ], [
+            'id' => 'inecel.certificate:read',
+            'group' => 'Certificados', 'subgroup' => 'Rastreabilidade de matéria-prima', 'order' => 43,
+            'name' => 'Rastrear e ler certificado por NF de saída',
+            'description' => 'Localiza a OP, o consumo de matéria-prima, a NF de entrada e o documento de certificado vinculado ao lote, incluindo a leitura do texto do PDF. Disponível somente na instalação Inecel autorizada.',
+            'tools' => ['hardness.inecel.certificate.trace', 'hardness.inecel.certificate.read'],
+            'capability' => 'customer.inecel.certificate_trace', 'active' => true,
+        ], [
             'id' => 'quote:write',
             'group' => 'Orçamentos',
             'subgroup' => 'Criação',
@@ -199,6 +229,10 @@ final class ScopeCatalog
             'description' => 'Permite transformar um orçamento em pedido escolhendo um dos quatro destinos. O recurso também depende da configuração global da empresa.',
             'tools' => ['hardness.ide_smt.quote.generate_order_by_destination'], 'active' => true,
         ]];
+        return array_values(array_filter($scopes, function (array $scope): bool {
+            $capability = $scope['capability'] ?? null;
+            return $capability === null || (is_string($capability) && $this->capabilities->has($capability));
+        }));
     }
 
     /** @param mixed $scopes @return string[] */

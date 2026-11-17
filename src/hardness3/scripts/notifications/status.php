@@ -3,7 +3,7 @@ $conf = array(
 	'id' => 'ERP',
 	'dbHost' => '127.0.0.1',
 	'dbUser' => 'root',
-	'dbPass' => ''
+	'dbPass' => '#qos!0982'
 );
 
 echo "***";

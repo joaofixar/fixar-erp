@@ -54,7 +54,7 @@ function est019campoConsumido($array){
 
 function est019DescricaoProduto($array){
 	global $g;
-	if($array['todosCampos']['D049_Flag_Tipo'] == 'PD'){
+	if(in_array($array['todosCampos']['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 		$retorno = $array['campoAtual'];
 		$sqlT261 = mysql_query("SELECT D001_Codigo_Produto, 
 		                               D001_Descricao_Produto, 

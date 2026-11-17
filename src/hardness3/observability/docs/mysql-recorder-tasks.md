@@ -157,6 +157,10 @@ O armazenamento e o leitor passaram a resolver uma vez o caminho real dos pais d
 
 O primeiro relatório real também revelou que os diagnósticos de digest exibiam o fingerprint mesmo quando o ranking autorizado continha `sql` ou `sql_summary`. O resolvedor confundia o campo `sql` dos digests com o campo `query` dos eventos. O mapeamento foi separado, mantendo a ordem segura `sql` autorizado, `sql_summary` restrito e fingerprint como último recurso; o painel agora identifica explicitamente qual formato está exibindo. As fixtures cobrem contextos privilegiado e restrito.
 
+Após a validação visual, a classificação de digests foi recalibrada para não tratar uma consulta rápida e frequente como forte indício apenas por ultrapassar um segundo acumulado. Tempo médio a partir de 100 ms identifica lentidão por execução; tempo total a partir de 10 s identifica impacto acumulado; dez mil execuções, sem os sinais anteriores, geram atenção por frequência. Volume examinado e baixa seletividade passaram a formar um único diagnóstico quando coexistem. A lista assistida aceita no máximo 50 sinais, com cotas por severidade e até cinco itens de cada categoria para que variações repetidas não escondam erros e outras evidências; o ranking completo permanece disponível. O drawer e os cards também passaram a separar visualmente rótulo e SQL.
+
+Os detalhes de diagnósticos e digests autorizados ganharam cópia do SQL pelo Clipboard API, com fallback local do navegador. Fingerprints não recebem ação de cópia como consulta. Quando o texto normalizado contém `?` ou `...`, o painel avisa que valores e listas precisam ser preenchidos antes de qualquer execução segura. Os backticks são preservados por serem delimitadores válidos do MySQL e evitarem quebra de identificadores reservados.
+
 ## Task 3 — leitura, agregação, API e tela
 
 Estado: concluída localmente em 2026-10-13; ainda não instalada nem validada em produção.
@@ -589,3 +593,29 @@ Estado: concluída localmente em 2026-10-13; sem acesso a produção.
 Foi criada `tests/mysql-recorder-task9.php`. A fixture persiste 250 digests com SQL longo, força múltiplas linhas, verifica tamanho máximo, sequência, preservação exata dos 250 itens e leitura integral sem corrupção. Também compacta 2.000 digests com SQL de 2.000 caracteres, confirma estado abaixo do antigo limite de 4 MiB, executa save/load atômico e valida a recusa de um evento indivisível grande.
 
 Todas as suítes das Tasks 1–9 passaram, assim como lint PHP, validação JavaScript e `git diff --check`. Produção, RDS, parâmetros e crons não foram acessados ou alterados; nenhum processo persistente foi iniciado e nenhum commit foi criado automaticamente.
+
+## Correção operacional — recuperação de conexão e histórico limitado
+
+Estado: implementada localmente em 2026-10-14 após evidência operacional; aguardando publicação e novo piloto controlado.
+
+### Evidência que motivou a correção
+
+- No ciclo de 50 segundos, a primeira amostra útil funcionava e leituras seguintes podiam retornar imediatamente `MySQL server has gone away`.
+- O modo temporário `--once`, executado uma vez por minuto, produziu três coletas consecutivas completas e sem falhas. Ele deve permanecer em produção até esta correção ser publicada e validada.
+- O histórico de 24 horas continha milhares de falhas idênticas do coletor. Isso aumentava JSONL, processamento da API, relatório exportado e tempo percebido da tela sem acrescentar evidência independente.
+
+### Implementação
+
+- `RecoveringRecorderQuerySource` recria a conexão quando recebe os códigos MySQL `2006` ou `2013`.
+- `2006` repete uma única vez a consulta fixa e somente leitura em uma conexão nova. `2013`, que pode representar interrupção durante a consulta, não repete a operação; apenas prepara uma conexão nova para a fonte seguinte.
+- O coletor registra `connection_recoveries` e agora persiste `source_duration_ms` também nos registros por schema, permitindo localizar a primeira fonte lenta ou interrompida.
+- O resumo do runner inclui `collection_partial_samples` e `collection_failure_sections`; a CLI passa a sair como parcial quando uma fonte MySQL falha, mesmo que a escrita dos arquivos tenha funcionado.
+- O estado do servidor é carregado uma vez por processo e só é substituído quando status, digests, escopo ou baselines realmente mudam. Amostras rápidas sem mudança não reescrevem `state/server.json` a cada dez segundos.
+- Falhas consecutivas com a mesma identidade são consolidadas como um incidente de saúde do coletor, com janela de cinco minutos e `sample_count`.
+- Erros MySQL sem variação são removidos da série pública. Status e erros enviados ao navegador ficam limitados aos 200 pontos mais recentes, enquanto o diagnóstico continua usando os pontos válidos do período lido. O recorte de apresentação é informado em `metadata.presentation_truncated` e não transforma sozinho a coleta em parcial.
+
+### Operação segura
+
+- Não voltar o cron para `--duration=50 --interval=10` antes de publicar, executar a suíte, validar um ciclo manual de 50 segundos e confirmar ausência de crescimento de falhas parciais.
+- O rollback operacional permanece a linha com `--once`; nenhuma alteração em parâmetro do RDS é necessária para esta correção.
+- Dados históricos anteriores não são apagados. A consolidação reduz sua apresentação imediatamente, e a retenção normal de sete dias cuida dos arquivos.

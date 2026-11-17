@@ -100,7 +100,7 @@ switch($g['r'][3]){
             array('colunaValor' => 'T007_Protocolo_Inutilizacao', 'colunaTitulo' => 'Prot.Inutilizacao', 'colunaExibir' => false),
             array('colunaValor' => 'T007_Observacao_Cancelamento', 'colunaTitulo' => 'Motivo Cancelamento', 'colunaExibir' => false),
             array('colunaValor' => 'UFFaturamento.D018_UF', 'colunaTitulo' => 'UF Faturamento', 'colunaAlinhar' => 'center'),
-            array('colunaValor' => 'T007_Data_Entrega', 'colunaTitulo' => 'Data Entrega', 'callback' => 'gCorrigeData', 'colunaAlinhar' => 'center', 'colunaEditar' => true, 'colunaExibir' => false),
+            array('colunaValor' => 'T007_Data_Entrega', 'colunaTitulo' => 'Data Entrega', 'callback' => 'gCorrigeData', 'colunaAlinhar' => center, 'colunaEditar' => true, 'colunaExibir' => false),
             array('colunaValor' => 'T007_Cliente_Endereco', 'colunaTitulo' => 'Rua', 'colunaAlinhar' => 'left'),
             array('colunaValor' => 'T007_Cliente_Endereco_Numero', 'colunaTitulo' => 'Número', 'colunaAlinhar' => 'right'),
             array('colunaValor' => 'T007_Cliente_Bairro', 'colunaTitulo' => 'Bairro', 'colunaAlinhar' => 'left'),
@@ -3652,8 +3652,8 @@ EOT;
             array('colunaValor' => "excluirLinha", 'colunaTipo' => "livre", 'callback' => 'gExcluirLinha', 'callbackParameter' => array('T200_Id', $g['divId']), 'colunaExibir' => false),
             array('colunaValor' => 'T200_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'exibir' => true, 'style' => 'width:1%'),
             array('colunaValor' => 'T200_T199_Id', 'colunaTitulo' => 'CC-e', 'chavePrimaria' => true, 'colunaExibir' => false, 'style' => 'width:1%'),
-			array('colunaValor' => 'T200_Data_Hora_Inclusao', 'colunaTitulo' => 'Data', 'callback' => 'gCorrigeData', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),
-			array('colunaValor' => 'T200_Status', 'colunaTitulo' => 'Status', 'style' => 'width:1%', 'colunaAlinhar' => 'center'),
+			array('colunaValor' => 'T200_Data_Hora_Inclusao', 'colunaTitulo' => 'Data', 'callback' => 'gCorrigeData', 'style' => 'width:1%', 'colunaAlinhar' => center),
+			array('colunaValor' => 'T200_Status', 'colunaTitulo' => 'Status', 'style' => 'width:1%', 'colunaAlinhar' => center),
 			array('colunaValor' => 'T200_Motivo', 'colunaTitulo' => 'Motivo'),
 
 		);

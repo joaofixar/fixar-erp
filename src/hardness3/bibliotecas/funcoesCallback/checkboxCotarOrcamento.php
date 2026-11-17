@@ -11,7 +11,7 @@ function checkboxCotarOrcamento ($array){
 	$T219_T218_Id = $array['todosCampos']['T219_T218_Id'];
 	$T004_Id = $array['todosCampos']['T004_Id'];
 	$D049_Flag_Tipo = $array['todosCampos']['D049_Flag_Tipo'];
-	$disabled = ($D049_Flag_Tipo != 'CP' && $D049_Flag_Tipo != 'PD' && $D049_Flag_Tipo != '') ? ' disabled=disabled ': '';
+	$disabled = ($D049_Flag_Tipo != 'CP' && !in_array($D049_Flag_Tipo, array('PD', 'IN'), true) && $D049_Flag_Tipo != '') ? ' disabled=disabled ': '';
 	$disabled = ($T219_T218_Id>0) ? ' disabled=disabled ': '';
 	$retorno = "<input onclick=\"ven001CheckboxCotar(this, '{$T004_Id}', '{$g['divId']}');\" type='checkbox' id='T004_Flag_Comprar' title='Cotar' {$disabled}";
 	if ($T004_Flag_Comprar == 'S' or $T219_T218_Id>0){

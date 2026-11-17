@@ -1,6 +1,8 @@
 <?php
 namespace hardness;
 
+require_once __DIR__ . '/consultas-compartilhadas.php';
+
 // Reutilização opt-in, somente nesta requisição. Não cria tabelas, não mantém
 // cache entre usuários e não modifica os SQLs ou filtros da personalização.
 function dashboardFonteCompartilhadaPlanejar($indicador, $sqlCard, $parametros, &$erro)
@@ -36,6 +38,24 @@ function dashboardFonteCompartilhadaPlanejar($indicador, $sqlCard, $parametros, 
         if (!$columns) { $erro = 'Bloco compartilhado sem colunas.'; return false; }
         $queries[$id] = array('sql' => 'SELECT `' . implode('`, `', $columns) . '` FROM (' . $sql . ') AS bloco LIMIT 501', 'campos' => $columns);
     }
+    $componentes = array();
+    if (getenv('HARDNESS_DASHBOARD_SHARED_COMPONENTS') !== '0'
+        && (!isset($indicador['consultasCompartilhadas']) || $indicador['consultasCompartilhadas'] !== false)) {
+        $sqlBase = dashboardPersonalizadoSqlTexto(isset($indicador['sqlBase']) ? $indicador['sqlBase'] : '');
+        // Só reúne componentes derivados da fonte exata já autorizada. Os
+        // calendários com outro período e as consultas próprias ficam de fora.
+        if ($sqlBase !== '' && substr_count($sqlCard, '(' . $sqlBase . ')') === 1) {
+            $consultas = dashboardConsultasCompartilhadasConsultas($indicador, $sqlBase, $sqlCard, $parametros);
+            foreach (array_slice($consultas, 1) as $n => $consulta) {
+                if (isset($consulta['secao']) && isset($queries[$consulta['secao']])) continue;
+                if (substr_count($consulta['sql'], $needle) !== 1) continue;
+                $id = '__componente_' . $n;
+                if (isset($queries[$id])) continue;
+                $queries[$id] = $consulta;
+                $componentes[$id] = true;
+            }
+        }
+    }
     $parts = array();
     foreach ($queries as $id => $query) {
         preg_match_all('/:([a-z][a-zA-Z0-9_]*)/', $query['sql'], $matches);
@@ -44,13 +64,14 @@ function dashboardFonteCompartilhadaPlanejar($indicador, $sqlCard, $parametros, 
         foreach ($query['campos'] as $field) $pairs[] = "'" . $field . "', CAST(linha.`" . $field . '` AS CHAR)';
         $querySql = str_replace($needle, 'dashboard_bi_fonte', $query['sql']);
         // Marcador distingue bloco vazio de resposta incompleta.
-        $parts[] = "SELECT '" . $id . "' AS parte, 0 AS marcador, NULL AS dados\nUNION ALL\n"
-            . "SELECT '" . $id . "' AS parte, 1 AS marcador, JSON_OBJECT(" . implode(', ', $pairs) . ') AS dados FROM (' . $querySql . ') AS linha';
+        $ordem = empty($query['ordem']) ? '' : 'ORDER BY ' . $query['ordem'];
+        $parts[] = "SELECT '" . $id . "' AS parte, 0 AS marcador, 0 AS ordem, NULL AS dados\nUNION ALL\n"
+            . "SELECT '" . $id . "' AS parte, 1 AS marcador, ROW_NUMBER() OVER (" . $ordem . ") AS ordem, JSON_OBJECT(" . implode(', ', $pairs) . ') AS dados FROM (' . $querySql . ') AS linha';
     }
     // LIMIT impede o merge da CTE, mantendo uma única materialização da fonte.
     $sql = 'SELECT saida.parte, saida.marcador, saida.dados FROM (WITH dashboard_bi_fonte AS (SELECT origem.* FROM (' . $base
-        . ") AS origem LIMIT 18446744073709551615)\n" . implode("\nUNION ALL\n", $parts) . ') AS saida';
-    return array('sql' => $sql, 'consultas' => $queries);
+        . ") AS origem LIMIT 18446744073709551615)\n" . implode("\nUNION ALL\n", $parts) . ') AS saida ORDER BY saida.parte, saida.ordem';
+    return array('sql' => $sql, 'consultas' => $queries, 'componentes' => $componentes);
 }
 
 function dashboardFonteCompartilhadaSeparar($linhas, $plano, &$erro)
@@ -69,12 +90,17 @@ function dashboardFonteCompartilhadaSeparar($linhas, $plano, &$erro)
         if (!is_array($data)) { $erro = 'Dados inválidos na fonte compartilhada.'; return false; }
         foreach ($plano['consultas'][$id]['campos'] as $field) if (!array_key_exists($field, $data)) { $erro = 'Campo ausente na fonte compartilhada.'; return false; }
         $parts[$id][] = $data;
-        if (count($parts[$id]) > ($id === 'card' ? 1 : 500)) { $erro = 'O bloco compartilhado excedeu 500 linhas. Reduza os filtros.'; return false; }
+        if (empty($plano['componentes'][$id]) && count($parts[$id]) > ($id === 'card' ? 1 : 500)) { $erro = 'O bloco compartilhado excedeu 500 linhas. Reduza os filtros.'; return false; }
     }
     if (count($markers) !== count($parts) || count($parts['card']) !== 1) { $erro = 'Resposta incompleta da fonte compartilhada.'; return false; }
     $card = $parts['card'][0]; unset($parts['card']);
+    $componentes = array();
+    foreach (isset($plano['componentes']) ? $plano['componentes'] : array() as $id => $unused) {
+        $componentes[$id] = $parts[$id];
+        unset($parts[$id]);
+    }
     foreach ($card as $value) if ($value !== null && !is_numeric($value)) { $erro = 'Total inválido da fonte compartilhada.'; return false; }
-    return array('card' => $card, 'secoes' => $parts);
+    return array('card' => $card, 'secoes' => $parts, 'componentes' => $componentes);
 }
 
 function dashboardFonteCompartilhadaConsultar($conexao, $indicador, $sqlCard, $parametros, &$erro)
@@ -87,5 +113,12 @@ function dashboardFonteCompartilhadaConsultar($conexao, $indicador, $sqlCard, $p
     if ($plan === null || $plan === false) return $plan;
     $rows = dashboardIndicadorConsultar($conexao, $plan['sql'], $parametros, $erro);
     if ($rows === false) return false;
-    return dashboardFonteCompartilhadaSeparar($rows, $plan, $erro);
+    $resultado = dashboardFonteCompartilhadaSeparar($rows, $plan, $erro);
+    if ($resultado === false) return false;
+    foreach ($resultado['componentes'] as $id => $linhas) {
+        $chave = dashboardConsultasCompartilhadasChave($plan['consultas'][$id]['sql'], $parametros);
+        $GLOBALS['dashboardConsultasCompartilhadas'][$chave] = $linhas;
+    }
+    unset($resultado['componentes']);
+    return $resultado;
 }

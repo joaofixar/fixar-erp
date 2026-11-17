@@ -9,6 +9,8 @@ final class PublicToolNameMap
 {
     /** @var array<string,string> */
     private const INTERNAL_TO_PUBLIC = [
+        'hardness.legacy_reports.list' => 'hardness_legacy_reports_list',
+        'hardness.legacy_reports.get' => 'hardness_legacy_reports_get',
         'hardness.company.get_current' => 'hardness_company_get_current',
         'hardness.partner.search' => 'hardness_partner_search',
         'hardness.partner.get' => 'hardness_partner_get',
@@ -41,6 +43,9 @@ final class PublicToolNameMap
         'hardness.finance.cash_flow_summary' => 'hardness_finance_cash_flow_summary',
         'hardness.system.context_pilot' => 'hardness_system_context_pilot',
         'hardness.ide_smt.quote.generate_order_by_destination' => 'hardness_ide_smt_quote_generate_order_by_destination',
+        'hardness.logistics.load.summary' => 'hardness_logistics_load_summary',
+        'hardness.logistics.load.list' => 'hardness_logistics_load_list',
+        'hardness.logistics.load.get_by_id' => 'hardness_logistics_load_get_by_id',
     ];
 
     public static function publicName(string $internalName): string

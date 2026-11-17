@@ -18,19 +18,16 @@ return [
             'name' => 'Produto 100x40',
             'model' => '0b21c4ea16c39ba82439aae2c02b5917',
             'id_type' => 'D001_Id',
-            'context_field' => 'D001_Id',
         ],
         'locacao_100x40' => [
             'name' => 'Locação 100x40',
             'model' => '41e7bf859c5cf39ef9a8e14941b556e4',
             'id_type' => 'D004_Id',
-            'context_field' => 'T066_D004_Id',
         ],
         'locacao_caixa_100x40' => [
             'name' => 'Locação Caixa 100x40',
             'model' => 'f8c5fa7021ceb9f5b8da5b6ff6ddfbf9',
             'id_type' => 'D001_Id',
-            'context_field' => 'D001_Id',
         ],
     ],
 ];

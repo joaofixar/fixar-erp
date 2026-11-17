@@ -4,7 +4,7 @@ namespace hardness;
  * Weiberlan
  * 12/11/2011
  */
- 
+
 require_once('prog/ven/ven002/form_func-js.php');
 require_once("bibliotecas/classes/VEN012.php");
 require_once("bibliotecas/classes/VEN002.php");
@@ -15,7 +15,7 @@ $VEN002 = new VEN002();
  * Ações
  */
 switch ($g['r'][3]) {
-	
+
 	case 'ven012FormCabecalhoPedido':
 			/**
 		 * PARTE 1: Variavéis envidas para o formulário
@@ -155,37 +155,38 @@ EOT;
 		$g['smarty']->assign('botoesMid', $botoesMid);
 		$g['smarty']->display('buttons-floatBottom.tpl');
 	break;
-	
+
 	case 'ven012FormPedido':
 		// Utilizada em UPDATE, é o ID do registro que está sendo editado
-		$acaoId = (isset($_REQUEST['acaoId'])) ? $_REQUEST['acaoId'] : false;	
+		$acaoId = (isset($_REQUEST['acaoId'])) ? $_REQUEST['acaoId'] : false;
 		$T005_Id = (isset($r_ven012FormPedido)) ? $r_ven012FormPedido['T005_Id'] : $r_T005_Id;
-		
+
 		/**
 		 * PARTE 1: Variavéis envidas para o formulário
 		 */
 		// Variável indica qual tab do form será exibida
 		$tab = (isset($_REQUEST['tab'])) ? $_REQUEST['tab'] : false;
 		$sql = "SELECT * FROM T005 WHERE T005_Id='{$T005_Id}'";
-		
+
 		$result = mysql_query($sql);
 		$retorno = mysql_fetch_array($result);
-		
+		$T005_Flag_ACP_Anterior = $retorno['T005_Flag_ACP'];
+
 		$sql2 = "SELECT * FROM D024 WHERE D024_Id='{$retorno['T005_D024_Id']}'";
-		
+
 		$result2 = mysql_query($sql2);
 		$retorno2 = mysql_fetch_array($result2);
-		
+
 		$D024_Nome_Empresa = $retorno2['D024_Nome_Empresa'];
-		
+
 		$sql3 = "SELECT * FROM D018 WHERE D018_Id='{$retorno2['D024_D018_Id']}'";
 		$result3 = mysql_query($sql3);
 		$estado = mysql_fetch_array($result3);
-		
+
 		$sql4 = "SELECT * FROM D020 WHERE D020_Id='{$retorno2['D024_D020_Id']}'";
 		$result4 = mysql_query($sql4);
 		$cidade = mysql_fetch_array($result4);
-		
+
 		$sql5 = "SELECT * FROM D006 WHERE D006_Id='{$retorno['T005_D006_Id']}'";
 		$result5 = mysql_query($sql5);
 		$CFOP = mysql_fetch_array($result5);
@@ -199,7 +200,7 @@ EOT;
                     	  group by T006_T005_Id");
 		echo mysql_error();
 		$mT006=mysql_fetch_array($T006);
-   
+
         $mT006['T008_Valor_ICMS_Credito']=number_format($mT006['T006_Valor_ICMS_Credito'],2,',','.');
 
         // busca o ID do cliente pra carregar os contatos, caso seja edição
@@ -207,13 +208,13 @@ EOT;
 		if ($acaoId>0){
 			$sql = "SELECT T005_D024_Id,D020_D022_Id,D022_D036_Id, D024_D022_Id, D024_D020_Id FROM T005 LEFT JOIN D024 ON D024_Id=T005_D024_Id LEFT JOIN D020 ON D020_Id=D024_D020_Id LEFT JOIN D022 ON D022_Id=D020_D022_Id LEFT JOIN D036 ON D036_Id=D022_D036_Id WHERE T005_Id = '{$acaoId}'";
 			$result = mysql_query($sql);
-			$aD024 = mysql_fetch_assoc($result);		
+			$aD024 = mysql_fetch_assoc($result);
 			$idTransportadoraCidade=$aD024['D020_D022_Id'];
 			$idCliente=$aD024['T005_D024_Id'];
 			$idTransportadora=$aD024['D024_D022_Id'];
             $idTipoTransp=$aD024['D022_D036_Id'];
-		} 
-		
+		}
+
 		/**
 		 * PARTE 2: Definição do formulário
 		 */
@@ -279,11 +280,11 @@ EOT;
 						'select' => $arrayEndereco
 					),
 					/*
-					'T005_Flag_Revenda_Consumidor' => array('name' => 'T005_Flag_Revenda_Consumidor','label'=>'Tipo', 'type' => 'select', 
+					'T005_Flag_Revenda_Consumidor' => array('name' => 'T005_Flag_Revenda_Consumidor','label'=>'Tipo', 'type' => 'select',
 						'select' => array(
-							array('title' => 'REVENDA', 'value' => '1'), 
-							array('title' => 'CONS. ATACADO', 'value' => '2'), 
-							array('title' => 'CONS. VAREJO', 'value' => '3'), 
+							array('title' => 'REVENDA', 'value' => '1'),
+							array('title' => 'CONS. ATACADO', 'value' => '2'),
+							array('title' => 'CONS. VAREJO', 'value' => '3'),
 						),
 					),
 					*/
@@ -312,7 +313,7 @@ EOT;
 						),
 					),
 					'Numero_Nota' => array('name' => 'Numero_Nota','label'=>'Número NF', 'type' => 'text', 'length' => array(10,10), 'align'=>'right', 'style'=>'float:right', 'reject' => true),
-					'T005_Observacao' => array('name' => 'T005_Observacao','label'=>'Observação Cliente', 'type' => 'textarea','extra' => 'title="Este campo não será impresso na DANFE"', 'length' => array(3,65)),   
+					'T005_Observacao' => array('name' => 'T005_Observacao','label'=>'Observação Cliente', 'type' => 'textarea','extra' => 'title="Este campo não será impresso na DANFE"', 'length' => array(3,65)),
 					'T005_Observacao_Nota_Fiscal' => array('name' => 'T005_Observacao_Nota_Fiscal','label'=>'Observação Nota Fiscal','extra' => 'title="Apenas este campo será impresso na DANFE"', 'type' => 'textarea', 'length' => array(4,65)),
 					'T005_Id' => array('name' => 'T005_Id','label'=>'Data Saída', 'value'=>$T005_Id, 'type' => 'hidden', 'length' => array(10,10)),
 					'formId' => array('name' => 'formId', 'label' => '', 'type' => 'hidden', 'value' => $formId, 'reject' => true),
@@ -350,27 +351,27 @@ EOT;
 							array('title' => '1 - Contratação por conta do Destinatário', 'value' => '1'),
 							array('title' => '2 - Contratação por conta de Terceiros', 'value' => '2'),
 							array('title' => '3 - Próprio por conta do Remetente', 'value' => '3'),
-							array('title' => '4 - Próprio por conta do Destinatário', 'value' => '4'),							
+							array('title' => '4 - Próprio por conta do Destinatário', 'value' => '4'),
 							array('title' => '9 - Sem frete', 'value' => '9'),
 						),
 					),
 					'T005_Valor_Frete' => array('name' => 'T005_Valor_Frete','label'=>'Valor Frete', 'type' => 'moeda', 'length' => array(15,20)),
-					'T005_D036_Id' => array('name' => 'T005_D036_Id','label'=>'Tipo', 'type' => 'select', 'align'=>'right', 'style'=>'float:right', 
-						'select' => gGeraSelect('D036', 'D036_Id', 'D036_Tipo_Transporte', '', $tipoEntrega),					
+					'T005_D036_Id' => array('name' => 'T005_D036_Id','label'=>'Tipo', 'type' => 'select', 'align'=>'right', 'style'=>'float:right',
+						'select' => gGeraSelect('D036', 'D036_Id', 'D036_Tipo_Transporte', '', $tipoEntrega),
 					),
-					'T005_Valor_Despesas_Acessorias' => array('name' => 'T005_Valor_Despesas_Acessorias','label'=>'Desp. Acessórias', 'type' => 'moeda', 'value'=> '', 'casasDecimais' => '2', 'length' => array(12,10)),   
-					'T005_Transportadora_Placa_Veiculo' => array('name' => 'T005_Transportadora_Placa_Veiculo','label'=>'Placa', 'type' => 'text', 'align'=>'right', 'style'=>'padding-left:88px;',  'length' => array(10,20)),   
+					'T005_Valor_Despesas_Acessorias' => array('name' => 'T005_Valor_Despesas_Acessorias','label'=>'Desp. Acessórias', 'type' => 'moeda', 'value'=> '', 'casasDecimais' => '2', 'length' => array(12,10)),
+					'T005_Transportadora_Placa_Veiculo' => array('name' => 'T005_Transportadora_Placa_Veiculo','label'=>'Placa', 'type' => 'text', 'align'=>'right', 'style'=>'padding-left:88px;',  'length' => array(10,20)),
 					'T005_Estado_Veiculo' => array('name' => 'T005_Estado_Veiculo','label'=>'UF', 'type' => 'select', 'align'=>'right', 'style'=>'float:right',
 						'select' => gGeraSelect('D018','D018_Id','D018_UF','',true),
 					),
-					'T005_Quantidade_Volumes' => array('name' => 'T005_Quantidade_Volumes','label'=>'Volumes', 'type' => 'text', 'length' => array(15,20)),   
-					'T005_Especie' => array('name' => 'T005_Especie','label'=>'Espécie', 'type' => 'text', 'align'=>'right', 'style'=>'float:right', 'length' => array(15,20)),   
-					'T005_Marca' => array('name' => 'T005_Marca','label'=>'Marca', 'type' => 'text', 'length' => array(15,20)),   
+					'T005_Quantidade_Volumes' => array('name' => 'T005_Quantidade_Volumes','label'=>'Volumes', 'type' => 'text', 'length' => array(15,20)),
+					'T005_Especie' => array('name' => 'T005_Especie','label'=>'Espécie', 'type' => 'text', 'align'=>'right', 'style'=>'float:right', 'length' => array(15,20)),
+					'T005_Marca' => array('name' => 'T005_Marca','label'=>'Marca', 'type' => 'text', 'length' => array(15,20)),
 					'T005_Numero_Caixas' => array('name' => 'T005_Numero_Caixas','label'=>'Num. Caixas', 'type' => 'text','align'=>'right', 'style'=>'float:right', 'length' => array(15,20)),
 					'T005_Peso_Bruto' => array('name' => 'T005_Peso_Bruto','label'=>'Peso Bruto', 'type' => 'moeda', 'casasDecimais' => 3,'length' => array(15,20)),
 					'T005_Peso_Liquido' => array('name' => 'T005_Peso_Liquido','label'=>'Peso Líquido', 'type' => 'moeda', 'casasDecimais' => 3, 'length' => array(15,20)),
 					'T005_Id' => array('name' => 'T005_Id','label'=>'T005_Id', 'type' => 'hidden', 'value'=>$T005_Id, 'length' => array(3,65)),
-					'T005_Flag_Totalizar_Peso' => array('name' => 'T005_Flag_Totalizar_Peso', 'label'=>'Totalizar Peso','type' => 'select','select' => 
+					'T005_Flag_Totalizar_Peso' => array('name' => 'T005_Flag_Totalizar_Peso', 'label'=>'Totalizar Peso','type' => 'select','select' =>
 						array(
 							array('title' => 'Não', 'value' => 'N'),
 							array('title' => 'Sim', 'value' => 'S'),
@@ -394,7 +395,7 @@ EOT;
 					$('#{$g['divId']} #T005_Flag_ACP').trigger('change');
 			} </script></div>
 EOT;
-        
+
         $dataSaidaDefault = $g['C031']['dataSaidaDefault'];
         $T005_Data=mysql_query("SELECT T005_Data_Saida, T005_Quantidade_Volumes from T005 WHERE T005_Id='{$T005_Id}'");
         $retorno=mysql_fetch_array($T005_Data);
@@ -435,6 +436,8 @@ EOT;
 				//mysql_query("SET AUTOCOMMIT=0");
 				//mysql_query("START TRANSACTION");
 				$sql = $g['sqlAuto']->gerarSQLUpdate($form_tabela, $form_campo_pk, $acaoId, $form);
+				// A emissão deve recalcular os itens quando o tipo de documento foi alterado.
+				$T005_Flag_ACP_Alterado = ($sql && $T005_Flag_ACP_Anterior != $form->campoValorEnviado('T005_Flag_ACP')) ? 1 : 0;
 
 				if (isset($r_salvarSemGerar) && $r_salvarSemGerar == 'S') {
 					if ($sql) {
@@ -459,23 +462,24 @@ EOT;
 				} else {
 					$request = true;
 				}
-			
+
 				if($request === true){
 						$T005_Flag_ACP = $form->campoValorEnviado('T005_Flag_ACP');
 						echo <<<EOT
-						<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {	
+						<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 							idProgressBar = dialogAlert('Gerando Nota Fiscal',"<span id='progressBar'><b><br>0% Validando Formulário</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
 
+							function ven012ValidarEContinuarGeracaoNF() {
 							$.getJSON('/ven/ven012/form_func-ajax/gerarNFValidacaoFormulario/?ajax=true=' + '&' + $("#{$formId}").serialize() + '&callback=?', function(request) {
 								if (request.code) {
 									$('#progressBar').html('<br><b><font color="green">100% Formulário Validado &#10004;</font></b></br>' + '<b>0% Totalizando produtos do pedido</b></br>');
-									ven012TotalizarPedidoLoop(idProgressBar,T005_Id, 1); 
+									ven012TotalizarPedidoLoop(idProgressBar,T005_Id, 1);
 
 									function ven012TotalizarPedidoLoop(idProgressBar,T005_Id,  inicio){
 						                $.getJSON('/ven/ven012/form_func-ajax/gerarNFTotalizarPedido/?ajax=true&T005_Id=' + {$T005_Id} + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
 						                    if (request.concluido == 0) {
 						                    	$('#progressBar').html('<br><b><font color="green">100% Formulário Validado &#10004;</font></b></br><b>' + request.percentual + '%</b>' + '<b> Totalizando produtos do pedido</b></br>');
-												ven012TotalizarPedidoLoop(idProgressBar,T005_Id, 0); 
+												ven012TotalizarPedidoLoop(idProgressBar,T005_Id, 0);
 						                    }else{
 						                    	if(request.code){
 													$('#progressBar').html('<br><b><font color="green">100% Formulário validado &#10004;</font></b></br>' + '<b><font color="green">'+ request.percentual + '% Produtos do pedido totalizados &#10004;</font></b></br>' + '<b>0% Gerando Nota Fiscal</b></br>');
@@ -488,7 +492,7 @@ EOT;
 												                $.getJSON('/ven/ven012/form_func-ajax/gerarNFTotalizar/?ajax=true&T005_Id=' + {$T005_Id} + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
 												                    if (request.concluido == 0) {
 												                    	$('#progressBar').html('<br><b><font color="green">100% Formulário validado &#10004;</font></b></br>' + '<b><font color="green">100% Produtos do pedido totalizados &#10004;</font></b></br>' + '<b><font color="green">100% Nota Fiscal Gerada &#10004;</font></b></br><b>' + request.percentual + '% Totalizando produtos da nota</b></br>');
-																		ven012TotalizarLoop(idProgressBar,T005_Id, 0); 
+																		ven012TotalizarLoop(idProgressBar,T005_Id, 0);
 												                    }else{
 												                    	if(request.code){
 						                    								if(request.validacaoST){
@@ -503,23 +507,23 @@ EOT;
 						                    									dialogConfirm('Nota Fiscal Gerada com sucesso!','<br><b><font color="green">100% Formulário validado &#10004;</font></b></br>' + '<b><font color="green">100% Produtos do pedido totalizados &#10004;</font></b></br>' + '<b><font color="green">100% Nota Fiscal Gerada &#10004;</font></b></br>'+ '<b><font color="green">'+request.percentual +'% Produtos da Nota totalizados &#10004;</font></b></br>');
 						                    								}
 						                    								if({$T005_Flag_ACP} == 3){
-													                    		nova_janela('/ven/ven003/outro/imprimirACP/?ajax=true&T007_Id='+request.T007_Id+'',0,0,880,650,'yes','no','no','no','yes','no','Impressão ACP');	
+													                    		nova_janela('/ven/ven003/outro/imprimirACP/?ajax=true&T007_Id='+request.T007_Id+'',0,0,880,650,'yes','no','no','no','yes','no','Impressão ACP');
 													                    	}
 												                    	}else{
 												                    		var mensagem = "<b><font color='red'>Erro na totalização dos produtos da nota</font></b>";
 																			$('#dc-' + idProgressBar).dialog("destroy").remove();
 																			$('#{$g['divId']}').hideLoading();
 																			var \$buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } }
-																			dialogConfirm('Erro', mensagem, \$buttons);	
+																			dialogConfirm('Erro', mensagem, \$buttons);
 												                    	}
 													                }
 												                });
-												            }	
+												            }
 														}else if(request.retornarPedidoSeparacao){
 															var mensagem = "<b><font color='red'>Um ou mais produtos não foram separados corretamente</font></b><br><br>"+request.data+"<br><br>Selecione uma opção para continuar";
 															$('#dc-' + idProgressBar).dialog("destroy").remove();
 															if({$g['C031']['statusInicialPedido']}==3 || '{$g['C031']['desabilitarSeparacao']}'=='S'){
-																var \$buttons = {	
+																var \$buttons = {
 																	"Refazer separação": function() {
 																		$('#{$g['divId']}').showLoading();
 																		$.getJSON('/ven/ven012/form_func-ajax/separarPedido/?ajax=true&T005_Id=' + encodeURIComponent("{$T005_Id}") + '&callback=?', function(request) {
@@ -539,7 +543,7 @@ EOT;
 																	"Fechar": function() { $(this).dialog("destroy").remove(); }
 																};
 															}else{
-																var \$buttons = {	
+																var \$buttons = {
 																	"Retornar para separação": function() {
 																		$('#{$g['divId']}').showLoading();
 																		$.getJSON('/ven/ven012/form_func-ajax/retornarPedidoSeparacao/?ajax=true&T005_Id=' + encodeURIComponent("{$T005_Id}") + '&callback=?', function(request) {
@@ -556,7 +560,7 @@ EOT;
 																		});
 																		$(this).dialog("destroy").remove();
 																	},
-																
+
 																"Fechar": function() { $(this).dialog("destroy").remove(); }
 																};
 															}
@@ -575,19 +579,42 @@ EOT;
 													$('#dc-' + idProgressBar).dialog("destroy").remove();
 													$('#{$g['divId']}').hideLoading();
 													var \$buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } }
-													dialogConfirm('Erro', mensagem, \$buttons);	
-												}	
-						                    } 
+													dialogConfirm('Erro', mensagem, \$buttons);
+												}
+						                    }
 						                });
-						            }	                  
+						            }
 								}else{
 									var mensagem = '<textarea style=" background-color: #FFF; width:900px; height:400px; text-transform: none;">'+request.data+request.erroRoolback+'</textarea>';
 									$('#dc-' + idProgressBar).dialog("destroy").remove();
 									$('#{$g['divId']}').hideLoading();
 									var \$buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } }
 									dialogConfirm('Erro validações', mensagem, \$buttons);
-								} 
+								}
 							});
+							}
+
+							function ven012AtualizarAliquotasPorAlteracaoACP(inicio) {
+								$.getJSON('/ven/ven002/form_func-ajax/atualizarAliquota/?ajax=true&T005_Id=' + encodeURIComponent("{$T005_Id}") + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&callback=?', function(request) {
+									if (request.concluido == 0) {
+										$('#progressBar').html('<b>' + request.percentual + '% Atualizando alíquotas do pedido</b><br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b>' + request.erro + '</b>');
+										ven012AtualizarAliquotasPorAlteracaoACP(0);
+									} else if (request.code) {
+										$('#progressBar').html('<b><font color="green">100% Alíquotas atualizadas &#10004;</font></b><br/><br/><b>0% Validando formulário</b>');
+										ven012ValidarEContinuarGeracaoNF();
+									} else {
+										$('#dc-' + idProgressBar).dialog("destroy").remove();
+										dialogConfirm('Erro ao atualizar alíquotas', request.data || request.erros || 'Não foi possível atualizar as alíquotas do pedido.');
+									}
+								});
+							}
+
+							if ({$T005_Flag_ACP_Alterado}) {
+								$('#progressBar').html('<b>0% Atualizando alíquotas do pedido</b>');
+								ven012AtualizarAliquotasPorAlteracaoACP(1);
+							} else {
+								ven012ValidarEContinuarGeracaoNF();
+							}
 						} </script></div>
 EOT;
 				}else{
@@ -595,7 +622,7 @@ EOT;
 					echo <<<EOT
 						<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 							var buttons = {
-					    		"Fechar": function() { 
+					    		"Fechar": function() {
 								$(this).dialog("destroy").remove();
 								}
 							};
@@ -610,14 +637,14 @@ EOT;
 			// Carrega os valores caso seja um update
 			if (!empty($r_acaoId)) {
 				$processado = $form->carregarValoresCampos($form_tabela, $form_campo_pk, $r_acaoId);
-				
+
 				$sql = "SELECT D024_Endereco FROM D024 WHERE D024_Id = '{$retorno['T005_D024_Id']}';";
-				
+
 				$resultado = mysql_query($sql);
 				$row = mysql_fetch_assoc($resultado);
-				
+
 				$form->campoSetarValor('D024_Endereco', $row['D024_Endereco']);
-				
+
 				// Mostra erros de formulário uteis ao desenvolvedor
 				if ($processado !== true) {
 					reset($form->formArray['campos']);
@@ -627,7 +654,7 @@ EOT;
 				}
 			}
 		}
-			
+
 
 
 		/**
@@ -649,11 +676,11 @@ EOT;
 		 */
 		// Definição dos botões
 	break;
-	
+
 		case 'ven012FormPagamento':
-			$acaoId = (isset($r_T005_Id)) ? $r_T005_Id : false; 
+			$acaoId = (isset($r_T005_Id)) ? $r_T005_Id : false;
 			$T005_Id = (isset($r_T005_Id)) ? $r_T005_Id : false;
-			  
+
 			//echo $T005_Id;
 			//('qqqq');
 			/**
@@ -661,7 +688,7 @@ EOT;
 			*/
 			// Variável indica qual tab do form será exibida
 			$tab = (isset($_REQUEST['tab'])) ? $_REQUEST['tab'] : false;
-			// Utilizada em UPDATE, é o ID do registro que está sendo editado		
+			// Utilizada em UPDATE, é o ID do registro que está sendo editado
 
 			/**
 			* PARTE 2: Definição do formulário
@@ -687,7 +714,7 @@ EOT;
 
 			// novo formulário
 			$form = new Formulario('ven012FormPagamento');
-			
+
 			$select = array();
 			$select[] = array('value' => 'A_COMBINAR', 'title' => 'SEM PARCELAS');
 			$T005=mysql_query("select * from T005 where T005_Id='$T005_Id'");
@@ -706,18 +733,18 @@ EOT;
 					'geral' => array(
 						'Total_Parcelas' => array('name' => 'Total_Parcelas', 'label' => 'Parcelas', 'type' => 'select', 'select' => $select, 'reject' => true),
 						//'valorParcelaSimulacao' => array('name' => 'valorParcelaSimulacao', 'label' => '', 'type' => 'text','extra'=>'style="background:#E8E8E8"', 'reject' => true, 'length' => array(5,8), 'align' => 'right', 'readonly'=>'readonly'),
-						'selecionaPrimeiroVencimento' => array('name' => 'selecionaPrimeiroVencimento', 'label'=>'1º Venc.', 'reject'=>true, 'type' => 'select','select' => 
+						'selecionaPrimeiroVencimento' => array('name' => 'selecionaPrimeiroVencimento', 'label'=>'1º Venc.', 'reject'=>true, 'type' => 'select','select' =>
 						array(
 							array('title' => 'Dias', 'value' => 'Dias', 'selected' => true),
 							array('title' => 'Data', 'value' => 'Data'),
 						)),
 						'primeiroVencimentoNum' => array('name' => 'primeiroVencimentoNum', 'label' => '', 'type' => 'text', 'reject' => true, 'length' => array(3,4), 'align' => 'right'),
-						'primeiroVencimentoData' => array('name' => 'primeiroVencimentoData', 'label' => '', 'type' => 'data', 'reject' => true, 'align' => 'right'),												
-						'selecionaDias' => array('name' => 'selecionaDias', 'label'=>'Dias Venc.', 'type' => 'select', 'reject'=>true,'select' => 
+						'primeiroVencimentoData' => array('name' => 'primeiroVencimentoData', 'label' => '', 'type' => 'data', 'reject' => true, 'align' => 'right'),
+						'selecionaDias' => array('name' => 'selecionaDias', 'label'=>'Dias Venc.', 'type' => 'select', 'reject'=>true,'select' =>
 						array(
 							array('title' => 'Intervalo', 'value' => 'I', 'selected' => true),
 							array('title' => 'Dia Fixo', 'value' => 'F'),
-						)),			
+						)),
 						'IntervalorDias' => array('name' => 'IntervalorDias', 'label' => '', 'type' => 'text', 'reject' => true, 'length' => array(3,6), 'align' => 'right'),
 						'diaFixo' => array('name' => 'diaFixo', 'label' => '', 'type' => 'text', 'reject' => true, 'length' => array(3,2), 'align' => 'right'),
 						'Portador_D027_Id' => array('name' => 'D027_Id','label'=>'Portador', 'type' => 'select', 'reject'=>true, 'select' =>
@@ -734,29 +761,29 @@ EOT;
 			);
 
 		if($g['C031']['usarFretePrimeiraParcela'] == 'S'){
-			$formArray['campos']['geral']['usarFreteParcela'] = array('name' => 'usarFreteParcela', 'label'=>'Frete primeira parcela', 'reject'=>true, 'type' => 'select','select' => 
+			$formArray['campos']['geral']['usarFreteParcela'] = array('name' => 'usarFreteParcela', 'label'=>'Frete primeira parcela', 'reject'=>true, 'type' => 'select','select' =>
 																	array(
 																		array('title' => '...', 'value' => ''),
 																		array('title' => 'Sim', 'value' => 'on'),
 																		array('title' => 'Não', 'value' => 'off'),
 																	)
 																);
-			$formArray['campos']['geral']['usarSTParcela'] = array('name' => 'usarSTParcela', 'label'=>'ST primeira parcela', 'reject'=>true, 'type' => 'select','select' => 
+			$formArray['campos']['geral']['usarSTParcela'] = array('name' => 'usarSTParcela', 'label'=>'ST primeira parcela', 'reject'=>true, 'type' => 'select','select' =>
 																	array(
 																		array('title' => '...', 'value' => ''),
 																		array('title' => 'Sim', 'value' => 'on'),
 																		array('title' => 'Não', 'value' => 'off'),
 																	)
 																);
-		}	
+		}
 		$form->definirFormularioArray($formArray);
-			     
+
 		echo <<<EOT
 		    <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
 		    	$('#ven012FormAdicionarParcela_btn').unbind('click');
 				$('#ven012FormAdicionarParcela_btn').unbind('click').bind('click', function(data) {
 					$.getJSON('/ven/ven012/form_func-ajax/inserirParcela/?ajax=true=' + '&' + $("#{$formId}").serialize() + '&callback=?', function(request) {
-						if (request.code) {															
+						if (request.code) {
 							divRefresh("{$r_divReload}");
 						} else {
 							var buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } };
@@ -767,7 +794,7 @@ EOT;
 				});
 				$('#ven012SalvarObservacao_btn').unbind('click').bind('click', function(data) {
 					$.getJSON('/ven/ven012/form_func-ajax/salvarObservacao/?ajax=true=' + '&' + $("#{$formId}").serialize() + '&T005_Id=' + encodeURIComponent('{$T005_Id}') + '&callback=?', function(request) {
-						if (request.code) {															
+						if (request.code) {
 							divRefresh('{$g['divId']}');
 						} else {
 							var buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } };
@@ -788,7 +815,7 @@ EOT;
 					}
 				});
 				$('#{$g['divId']} #selecionaDias').trigger('change');
-				
+
 				$('#{$g['divId']} #selecionaPrimeiroVencimento').change(function() {
 					if ($(this).val() == 'Dias') {
 						$('#{$g['divId']} #primeiroVencimentoData').val('').hide();
@@ -800,24 +827,24 @@ EOT;
 						$('#{$g['divId']} #primeiroVencimentoData').focus();
 					}
 				});
-				$('#{$g['divId']} #selecionaPrimeiroVencimento').trigger('change');	
+				$('#{$g['divId']} #selecionaPrimeiroVencimento').trigger('change');
 
-				
+
 				// calcula e mostra o valor das parcelas (simulação)
 				/**
-				var changeHandler = function() {					
+				var changeHandler = function() {
 					$.getJSON('/ven/ven012/form_func-ajax/calcularParcelaSimulacao/?ajax=true=' + '&' + $("#{$formId}").serialize() + '&callback=?', function(request) {
-						if (request.code) {															
+						if (request.code) {
 							//divRefresh("{$r_divReload}");
 							$('#{$g['divId']} #valorParcelaSimulacao').val(request.data);
 						} else {
 							var buttons = { "Fechar": function() { $(this).dialog("destroy").remove(); } };
     						dialogConfirm("Erro!", request.data, buttons)
 						}
-					});										
-				}	
+					});
+				}
 				$('#{$g['divId']} #Total_Parcelas').change(changeHandler).keyup(changeHandler);
-				*/								
+				*/
 		    } </script></div>
 EOT;
 		/**
@@ -831,7 +858,7 @@ EOT;
 					echo gGeraAlertMsgErroForm($form);
 					// Form sem erros
 				} else if ($formCodigo == 2) {
-					// Gerar Boleto			
+					// Gerar Boleto
 					$retorno = $VEN002->atualizarParcelas($form);
 					if ($retorno === true) {
 						$alert = gGeraAlertMsg('Operação OK', 'Parcelas cadastradas com sucesso.', false);
@@ -882,12 +909,12 @@ EOT;
 		$D024 = mysql_fetch_array($sqlD024);
 		echo <<<EOT
 			<div style="border: 1px solid silver; margin: 10px 15px 0 450px; padding: 5px; height: 110px; border-radius:5px; color: var(--BGVermelho); overflow: auto;">
-				<span style="font-weight: bold; color: #000;">Informação de Pagamento</span> {$D024['D024_Instrucao_Pagamento']}	
-			</div>	
+				<span style="font-weight: bold; color: #000;">Informação de Pagamento</span> {$D024['D024_Instrucao_Pagamento']}
+			</div>
 EOT;
 
 	break;
-	
+
 	case 'ven012FormDetalhesCheque':
          global $g;
 		/**
@@ -897,7 +924,7 @@ EOT;
 		$tab = (isset($_REQUEST['tab'])) ? $_REQUEST['tab'] : false;
 		// Utilizada em UPDATE, é o ID do registro que está sendo editado
 		$acaoId = (isset($_REQUEST['acaoId'])) ? $_REQUEST['acaoId'] : false;
-		
+
 		/**
 		* PARTE 2: Definição do formulário
 		*/
@@ -908,7 +935,7 @@ EOT;
 		} else {
 			$formId = uniqid();
 		}
-				
+
 		// A qual tabela este form está relacionada, e a chave primária da tabela
 		$form_tabela = 'T090';
 		$form_campo_pk = 'T090_Id';
@@ -916,7 +943,7 @@ EOT;
 		$enviar_btnId = 'ven012FormDetalhesCheque_btn';
 		// Form que será executado ao clicar no botão
 		$enviar_acaoHref = '/ven/ven012/form/ven012FormDetalhesCheque/';
-				
+
 		// novo formulário
 		$form = new Formulario('ven012ContentDetalhesCheque');
 
@@ -925,18 +952,18 @@ EOT;
 			'campos' => array(
 				'geral' => array(
 					'T090_Numero_Cheque' => array('name' => 'T090_Numero_Cheque', 'label' => 'Número', 'type' => 'text', 'length' => array(20, 120)),
-					'T090_Data_Cheque' => array('name' => 'T090_Data_Cheque', 'label' => 'Data', 'type' => 'data', 'length' => array(20, 120)),					
+					'T090_Data_Cheque' => array('name' => 'T090_Data_Cheque', 'label' => 'Data', 'type' => 'data', 'length' => array(20, 120)),
 					'T090_Agencia_Cheque' => array('name' => 'T090_Agencia_Cheque', 'label' => 'Agência', 'type' => 'text', 'length' => array(20, 120)),
-					'T090_Conta_Corrente_Cheque' => array('name' => 'T090_Conta_Corrente_Cheque', 'label' => 'Conta Corrente', 'type' => 'text', 'length' => array(20, 120)),					
-					'T090_Banco_Cheque' => array('name' => 'T090_Banco_Cheque', 'label' => 'Banco', 'type' => 'text', 'length' => array(50, 120)),									
-					'T090_Nome_Cheque' => array('name' => 'T090_Nome_Cheque', 'label' => 'Nome', 'type' => 'text', 'length' => array(50, 120)),					
+					'T090_Conta_Corrente_Cheque' => array('name' => 'T090_Conta_Corrente_Cheque', 'label' => 'Conta Corrente', 'type' => 'text', 'length' => array(20, 120)),
+					'T090_Banco_Cheque' => array('name' => 'T090_Banco_Cheque', 'label' => 'Banco', 'type' => 'text', 'length' => array(50, 120)),
+					'T090_Nome_Cheque' => array('name' => 'T090_Nome_Cheque', 'label' => 'Nome', 'type' => 'text', 'length' => array(50, 120)),
 					'T090_Cidade_Cheque' => array('name' => 'T090_Cidade_Cheque', 'label' => 'Cidade', 'type' => 'text', 'length' => array(50, 120)),
-				)	
+				)
 			)
 		);
-		
+
 		$form->definirFormularioArray($formArray);
-		
+
 		/**
 		* PARTE 3: Processamento do formulário (se foi enviado)
 		* 		   E carregamento dos valores (se não foi enviado e possui acaoId)
@@ -976,25 +1003,25 @@ EOT;
 				}
 			}
 		}
-		
+
 		/**
 		* PARTE 4: Gerar o formulário
 		*/
 		$gerado = gGeraCamposForm($form, $tab, $acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk);
-		
-		
+
+
 		/**
 		* PARTE 5: Exibir o formulário
 		*/
-		$g['smarty']->assign('formularioID', $form->formularioID());		
+		$g['smarty']->assign('formularioID', $form->formularioID());
 		$g['smarty']->assign('table', $gerado['table']); $g['smarty']->assign('form_tabela', isset($form_tabela) ? $form_tabela : '');
 		//echo '<div style="padding:5px">Estorno de título - ID: '.$acaoId.'</div>';
-		echo $gerado['pagina'];				
+		echo $gerado['pagina'];
 		if (!$formMultiTab) { $g["smarty"]->assign("formId", $formId); }
 		$g['smarty']->display('form.tpl');
-				
-	break;	
-    
+
+	break;
+
      case 'ven012FormSelecionarEmpresa':
             /**
          * PARTE 1: Variavéis envidas para o formulário
@@ -1003,7 +1030,7 @@ EOT;
         $tab = (isset($_REQUEST['tab'])) ? $_REQUEST['tab'] : false;
         // Utilizada em UPDATE, é o ID do registro que está sendo editado
         $acaoId = (isset($_REQUEST['acaoId'])) ? $_REQUEST['acaoId'] : false;
-	
+
 		$mudarFilial = (isset($r_mudarFilial)) ? $r_mudarFilial : false;
 		$gerarNF = (isset($r_gerarNF)) ? $r_gerarNF : false;
 
@@ -1071,7 +1098,7 @@ EOT;
 				} else {
 					$retorno = $VEN012->est012DividirPedido($T005_Id_Antigo,$C004_Id_Novo);
 				}
-                
+
             if ($retorno===true) {
                 // Imprime uma mensagem e fecha a janela
                 if($mudarFilial == true){
@@ -1140,7 +1167,7 @@ EOT;
 		$g['smarty']->display('formEditor.tpl');
 
     break;
-    
-    
+
+
 }
 ?>

@@ -6,6 +6,8 @@ namespace HardnessMcp\Admin;
 
 use HardnessMcp\AdminUi\Context\SelectedCompanyContext;
 use HardnessMcp\Schema\IdeSmtOrderGenerationCapability;
+use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use PDO;
 use RuntimeException;
 
@@ -13,11 +15,15 @@ use RuntimeException;
 final class McpConnectionAdminQueryService
 {
     private PDO $pdo;
+    private ?string $installationProfile;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, ?string $installationProfile = null)
     {
         $this->pdo = $pdo;
+        $this->installationProfile = $installationProfile;
     }
+
+    public function scopeCatalog(): ScopeCatalog { return ScopeCatalogFactory::forPdo($this->pdo, $this->installationProfile); }
 
     /** @return array<int,array{id:int,legal_name:string,short_name:string,document:string,status:string,connection_count:int,active_connection_count:int,last_mcp_usage:?string}> */
     public function listAvailableCompanies(): array

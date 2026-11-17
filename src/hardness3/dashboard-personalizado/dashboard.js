@@ -107,9 +107,12 @@
   }
 
   function format(value, type) {
-    if (type === 'moeda') return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value || 0));
-    if (type === 'percentual') return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(Number(value || 0)) + '%';
-    if (type === 'numero') return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(Number(value || 0));
+    if (type === 'moeda' || type === 'percentual' || type === 'numero') {
+      var formatters = format.numberFormatters || (format.numberFormatters = {});
+      var key = type === 'moeda' ? 'moeda' : 'numero';
+      if (!formatters[key]) formatters[key] = new Intl.NumberFormat('pt-BR', key === 'moeda' ? { style: 'currency', currency: 'BRL' } : { maximumFractionDigits: 2 });
+      return formatters[key].format(Number(value || 0)) + (type === 'percentual' ? '%' : '');
+    }
     if (type === 'data' && /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return String(value).split('-').reverse().join('/');
     return String(value == null ? '' : value);
   }
@@ -155,9 +158,9 @@
     showToast.timer = setTimeout(function () { toast.classList.remove('show'); }, 2800);
   }
 
-  function request(url) {
+  function request(url, options) {
     var started = performance.now();
-    return fetch(url, { credentials: 'same-origin', cache: 'no-store' }).then(function (response) {
+    return fetch(url, { credentials: 'same-origin', cache: 'no-store', signal: options && options.signal }).then(function (response) {
       if (window.DashboardSqlDiagnostics) return window.DashboardSqlDiagnostics.read(response, url, started);
       return response.json().catch(function () { return {}; }).then(function (data) {
         if (!response.ok) {
@@ -2651,7 +2654,7 @@
     var progressive = selectedDefinition().carregamentoProgressivo && window.DashboardProgressivo;
     var promise = progressive
       ? window.DashboardProgressivo.request('data.php?' + params.toString(), { signal: indicatorLoadAbort.signal })
-      : request('data.php?' + params.toString());
+      : request('data.php?' + params.toString(), { signal: indicatorLoadAbort.signal });
     promise.then(function (data) {
       if (requestId === state.requestId) {
         if (data.cargaToken) params.set('cargaToken',data.cargaToken);

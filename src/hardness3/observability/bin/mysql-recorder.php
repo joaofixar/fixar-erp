@@ -8,6 +8,7 @@ use Hardness\Observability\Collectors\Mysql\MysqlRecorderServerRunner;
 use Hardness\Observability\Collectors\Mysql\MysqlRecorderSchemaProvider;
 use Hardness\Observability\Collectors\Mysql\MysqlRecorderStorage;
 use Hardness\Observability\Collectors\Mysql\MysqliRecorderQuerySource;
+use Hardness\Observability\Collectors\Mysql\RecoveringRecorderQuerySource;
 use Hardness\Observability\Config\ShowprocessConnectionProvider;
 
 require dirname(__DIR__) . '/bootstrap/bootstrap.php';
@@ -30,7 +31,7 @@ if ($tenant === null) { fwrite(STDERR, "Configuração local showprocess/confCon
 
 $source = null;
 try {
-    $source = MysqliRecorderQuerySource::connect($tenant);
+    $source = new RecoveringRecorderQuerySource(function () use ($tenant) { return MysqliRecorderQuerySource::connect($tenant); });
     $collector = new MysqlRecorderCollector($source);
     $longQuerySeconds = isset($options['long-query-seconds']) ? (int) $options['long-query-seconds'] : 15;
     $longTransactionSeconds = isset($options['long-transaction-seconds']) ? (int) $options['long-transaction-seconds'] : 15;

@@ -29,7 +29,7 @@ final class ToolCatalogConsistencyValidator
             }
             $toolNames[$name] = true;
             foreach ($definition->getRequiredScopes() as $scope) {
-                if (!preg_match('/\A[a-z][a-z0-9_]*(?::[a-z][a-z0-9_-]*){1,3}\z/', $scope)) {
+                if (!preg_match('/\A[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)?(?::[a-z][a-z0-9_-]*){1,3}\z/', $scope)) {
                     throw new RuntimeException('Invalid MCP scope name.');
                 }
                 if (!isset($requiredScopes[$scope])) {
@@ -43,7 +43,7 @@ final class ToolCatalogConsistencyValidator
         $activeScopes = [];
         foreach ($scopeCatalog->all() as $scope) {
             $id = $scope['id'];
-            if (!preg_match('/\A[a-z][a-z0-9_]*(?::[a-z][a-z0-9_-]*){1,3}\z/', $id)) {
+            if (!preg_match('/\A[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)?(?::[a-z][a-z0-9_-]*){1,3}\z/', $id)) {
                 throw new RuntimeException('Invalid MCP scope name.');
             }
             foreach ($scope['tools'] as $toolName) {

@@ -1953,6 +1953,7 @@ EOT;
     }
 
     public function volumesConferenciaCancelar($T314_Id) {
+		$T314_Id = (int)$T314_Id;
         $sql  = " SELECT T238_Id ";
         $sql .=   " FROM T238 ";
         $sql .=        " LEFT JOIN T238A ON T238_Id = T238A_T238_Id ";
@@ -1992,25 +1993,27 @@ EOT;
         }
 
 
-        $deleteT238A  = " DELETE FROM T238A ";
-        $deleteT238A .= " WHERE T238A_T238_Id IN ({$T238_Id}) ";
+		if (preg_match('/^[1-9][0-9]*(\s*,\s*[1-9][0-9]*)*$/', $T238_Id)) {
+			$deleteT238A  = " DELETE FROM T238A ";
+			$deleteT238A .= " WHERE T238A_T238_Id IN ({$T238_Id}) ";
 
-        mysql_query($deleteT238A);
-        $erroT238A = mysql_error();
-        if (!empty($erroT238A)) {
-            mysql_query("ROLLBACK");
-            return "<div class='msgError'>Erro: $erroT238A<br />Clausula: $deleteT238A</div>";
-        }
+			mysql_query($deleteT238A);
+			$erroT238A = mysql_error();
+			if (!empty($erroT238A)) {
+				mysql_query("ROLLBACK");
+				return "<div class='msgError'>Erro: $erroT238A<br />Clausula: $deleteT238A</div>";
+			}
 
-        $deleteT238  = " DELETE FROM T238 ";
-        $deleteT238 .= " WHERE T238_Id IN ({$T238_Id}) ";
+			$deleteT238  = " DELETE FROM T238 ";
+			$deleteT238 .= " WHERE T238_Id IN ({$T238_Id}) ";
 
-        mysql_query($deleteT238);
-        $erroT238 = mysql_error();
-        if (!empty($erroT238)) {
-            mysql_query("ROLLBACK");
-            return "<div class='msgError'>Erro: $erroT238<br />Clausula: $deleteT238</div>";
-        }
+			mysql_query($deleteT238);
+			$erroT238 = mysql_error();
+			if (!empty($erroT238)) {
+				mysql_query("ROLLBACK");
+				return "<div class='msgError'>Erro: $erroT238<br />Clausula: $deleteT238</div>";
+			}
+		}
 
         mysql_query("COMMIT");
         return true;

@@ -39,7 +39,7 @@ final class McpAdminFoundationStatement extends PDOStatement
         return true;
     }
     public function fetch($fetchStyle = null, $cursorOrientation = null, $cursorOffset = null) { return $this->resultRows[0] ?? false; }
-    public function fetchAll(int $mode = \PDO::FETCH_DEFAULT, mixed ...$args): array { return $this->resultRows; }
+    public function fetchAll($how = null, $class_name = null, $ctor_args = null) { return $this->resultRows; }
 }
 
 final class McpAdminFoundationPdo extends PDO

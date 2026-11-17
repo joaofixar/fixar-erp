@@ -466,17 +466,31 @@ EOT;
         global $g, $confUsuario;
         $link = '/hardness3/hardness/boleto/gerar_boleto.php?T117_Id=' . $T117_Id;
         $dir  = $g['pathDados'] . 'pdf/';
-        is_dir($dir) or mkdir($dir, 0777, true);
         $filename = 'boleto_' . $T117_Id . '.pdf';
         $file     = $dir . $filename;
-        $fileFull = $g['pathRaiz'] . '/' . $file;
+        // pathDados é relativo na interface e absoluto na queueNF.
+        $fileFull = substr($file, 0, 1) == '/' ? $file : rtrim($g['pathRaiz'], '/') . '/' . $file;
+        is_dir(dirname($fileFull)) or mkdir(dirname($fileFull), 0777, true);
+        if (method_exists($this, 'FIN005LogEmailBoleto')) {
+            $this->FIN005LogEmailBoleto("montarEmailPdf: inicio | pathRaiz={$g['pathRaiz']} | pathDados={$g['pathDados']} | arquivo={$fileFull} | anexo={$file}", $T117_Id);
+        }
 
         $link = str_replace(' ', '+', $link);
         //shell_exec("/usr/bin/htmltopdf.sh --zoom 1.5 \"{$g['urlRaiz']}{$link}&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}\" \"{$fileFull}\"");
         //shell_exec("xvfb-run --server-num " . mt_rand(0, 98) . " -s \"-screen 0 640x480x16\" wkhtmltopdf --quiet --margin-left 0 --margin-right 0 --margin-top 1 --margin-bottom 1 \"{$g['urlRaiz']}{$link}&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}&db={$confUsuario['dbDatabase']}\" \"{$fileFull}\"");
         $chmod = "xvfb-run --server-num " . mt_rand(0, 98) . " -s \"-screen 0 640x480x16\" wkhtmltopdf --lowquality --margin-bottom 0 \"{$g['urlRaiz']}{$link}&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}&db={$confUsuario['dbDatabase']}\" \"{$fileFull}\"";
         //die($chmod);
-        shell_exec($chmod);
+        // Captura stderr apenas na fila; o envio e o retorno seguem o fluxo legado.
+        if (PHP_SAPI == 'cli' && !empty($GLOBALS['Q001']['Q001_Id']) && method_exists($this, 'FIN005LogEmailBoleto')) {
+            $saida = shell_exec($chmod . ' 2>&1');
+            clearstatcache(true, $fileFull);
+            $this->FIN005LogEmailBoleto('montarEmailPdf: conversao | existe=' . (int) is_file($fileFull)
+                . ' | legivel=' . (int) is_readable($fileFull)
+                . ' | bytes=' . (is_file($fileFull) ? filesize($fileFull) : 0)
+                . ' | saida=' . substr(trim((string) $saida), -2000), $T117_Id);
+        } else {
+            shell_exec($chmod);
+        }
         log("{$g['urlRaiz']}{$link}&noEmp=true&p={$g['empresaAtual']}&u={$g['usuarioAtual']}&db={$confUsuario['dbDatabase']}");
         $array['Anexos']    = array(
             $file

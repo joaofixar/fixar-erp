@@ -5,6 +5,7 @@ namespace HardnessMcp\OAuth;
 use HardnessMcp\Eligibility\McpConnectionEligibilityResolver;
 use HardnessMcp\Audit\McpAuditService;
 use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use PDO;
 use RuntimeException;
 
@@ -14,7 +15,7 @@ final class OAuthTokenEndpointException extends RuntimeException { public string
 final class OAuthTokenEndpointService
 {
     private PDO $pdo; private array $config; private ScopeCatalog $catalog; private string $legacyResource;
-    public function __construct(PDO $pdo,array $config,string $legacyResource=''){$this->pdo=$pdo;$this->config=$config;$this->catalog=new ScopeCatalog();$this->legacyResource=$legacyResource;}
+    public function __construct(PDO $pdo,array $config,string $legacyResource='',?string $installationProfile=null){$this->pdo=$pdo;$this->config=$config;$this->catalog=ScopeCatalogFactory::forPdo($pdo,$installationProfile);$this->legacyResource=$legacyResource;}
     /** @param array<string,string> $input @return array<string,mixed> */
     public function exchange(array $input): array
     {

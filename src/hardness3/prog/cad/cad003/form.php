@@ -44,7 +44,7 @@ EOT;
         
         //form editor
         $form_editor = array(
-            'geral' => '{"D021_Ativo":{"top":398,"left":65.703125,"width":53,"hidden":0},"D021_Nome_Empresa":{"top":7,"left":60.984375,"width":264,"hidden":0},"D021_Flag_Pessoa_Fisica_Juridica":{"top":30,"left":68.890625,"width":95,"hidden":0},"D021_Cnpj":{"top":53,"left":63.640625,"width":122,"hidden":0},"buttonSearchCnpj":{"top":51,"left":224,"width":null,"hidden":0},"D021_Cpf":{"top":76,"left":70.40625,"width":120,"hidden":0},"D021_Inscricao_Estadual":{"top":99,"left":22.015625,"width":72,"hidden":0},"D021_Cep":{"top":122,"left":71.421875,"width":72,"hidden":0},"buttonSearchCep":{"top":120,"left":176,"width":null,"hidden":0},"D021_Endereco":{"top":145,"left":44.734375,"width":216,"hidden":0},"D021_Complemento":{"top":168,"left":12.078125,"width":216,"hidden":0},"D021_Bairro":{"top":191,"left":61.453125,"width":216,"hidden":0},"D021_D018_Id":{"top":214,"left":77.375,"width":48,"hidden":0},"D021_C007_Id":{"top":214,"left":379.703125,"width":190,"hidden":1},"D021_D020_Id":{"top":237,"left":56.53125,"width":190,"hidden":0},"D021_D030_Id":{"top":260,"left":69.328125,"width":190,"hidden":0},"D021_Nome_Fantasia":{"top":259.96875,"left":384.75,"width":175,"hidden":1},"D021_DDD_Telefone_1":{"top":283,"left":48.203125,"width":35,"hidden":0},"D021_Telefone_1":{"top":283,"left":144,"width":72,"hidden":0},"D021_DDD_Fax":{"top":306,"left":73.25,"width":35,"hidden":0},"D021_Fax":{"top":306,"left":144,"width":74,"hidden":0},"D021_D062_Id":{"top":329,"left":59.640625,"width":190,"hidden":0},"D021_Agencia":{"top":329,"left":386.90625,"width":100,"hidden":0},"D021_Conta_Bancaria":{"top":352,"left":61.5,"width":100,"hidden":0},"D021_Nome_Conta":{"top":352,"left":365.171875,"width":100,"hidden":0},"D021_Percentual_Comissao":{"top":375,"left":30.4375,"width":40,"hidden":0}}');
+            'geral' => '{"D021_Ativo":{"top":398,"left":65.703125,"width":53,"hidden":0},"D021_Nome_Empresa":{"top":7,"left":60.984375,"width":264,"hidden":0},"D021_Flag_Pessoa_Fisica_Juridica":{"top":30,"left":68.890625,"width":95,"hidden":0},"D021_Cnpj":{"top":53,"left":63.640625,"width":122,"hidden":0},"buttonSearchCnpj":{"top":51,"left":224,"width":null,"hidden":0},"D021_Cpf":{"top":76,"left":70.40625,"width":120,"hidden":0},"D021_Inscricao_Estadual":{"top":99,"left":22.015625,"width":72,"hidden":0},"D021_Cep":{"top":122,"left":71.421875,"width":72,"hidden":0},"buttonSearchCep":{"top":120,"left":176,"width":null,"hidden":0},"D021_Endereco":{"top":145,"left":44.734375,"width":216,"hidden":0},"D021_Complemento":{"top":168,"left":12.078125,"width":216,"hidden":0},"D021_Bairro":{"top":191,"left":61.453125,"width":216,"hidden":0},"D021_D018_Id":{"top":214,"left":77.375,"width":48,"hidden":0},"D021_C007_Id":{"top":214,"left":379.703125,"width":190,"hidden":1},"D021_D020_Id":{"top":237,"left":56.53125,"width":190,"hidden":0},"D021_D030_Id":{"top":260,"left":69.328125,"width":190,"hidden":0},"D021_Nome_Fantasia":{"top":259.96875,"left":384.75,"width":175,"hidden":1},"D021_DDD_Telefone_1":{"top":283,"left":48.203125,"width":35,"hidden":0},"D021_Telefone_1":{"top":283,"left":144,"width":72,"hidden":0},"D021_DDD_Fax":{"top":306,"left":73.25,"width":35,"hidden":0},"D021_Fax":{"top":306,"left":144,"width":74,"hidden":0},"D021_D062_Id":{"top":329,"left":59.640625,"width":190,"hidden":0},"D021_Agencia":{"top":329,"left":386.90625,"width":100,"hidden":0},"D021_Conta_Bancaria":{"top":352,"left":61.5,"width":100,"hidden":0},"D021_Nome_Conta":{"top":352,"left":365.171875,"width":100,"hidden":0},"D021_Percentual_Comissao":{"top":375,"left":30.4375,"width":40,"hidden":0},"D021_E_Mail":{"top":421,"left":62,"width":300,"hidden":0}}');
 		
 		// Definição do Formulário
 		
@@ -87,6 +87,9 @@ EOT;
 					'D021_D030_Id' => array('name' => 'D021_D030_Id', 'label' => 'País', 'type' => 'select', 'extra' => 'style="width:190px;"',
 						'select' => gGeraSelect('D030', 'D030_Id', 'D030_Nome_Pais,D030_Codigo_Area', '', false, 30)
 					),
+                    'D021_E_Mail' => array('name' => 'D021_E_Mail', 'label' => 'E-mail', 'type' => 'text', 'length' => array(40,254), 'uppercase' => false,
+                        'extra' => 'autocomplete="email" inputmode="email"',
+                        'callbackRestricao' => '$valor = $array["campoAtual"]; return is_string($valor) && (trim($valor) === "" || (strlen(trim($valor)) <= 254 && filter_var(trim($valor), FILTER_VALIDATE_EMAIL))) ? true : "Informe um único e-mail válido para o representante.";'),
 					'D021_DDD_Telefone_1' => array('name' => 'D021_DDD_Telefone_1', 'label' => 'Telefone', 'type' => 'text', 'length' => array(2,2)),
 					'D021_Telefone_1' => array('name' => 'D021_Telefone_1', 'label' => '', 'type' => 'text', 'length' => array(15,15), 'align'=>'right'),
 					'D021_DDD_Fax' => array('name' => 'D021_DDD_Fax', 'label' => 'Fax', 'type' => 'text', 'length' => array(2,2)),
@@ -112,6 +115,8 @@ EOT;
 		* 		   E carregamento dos valores (se não foi enviado e possui acaoId)
 		*/
 		if ($formCodigo = $form->processarFormulario($form_tabela)) {
+			$emailRepresentante = $form->campoValorEnviado('D021_E_Mail');
+			if (is_string($emailRepresentante)) $form->campoSetarValor('D021_E_Mail', trim($emailRepresentante), true);
 			// Form com erros
 			if ($formCodigo == 1) {
 				$g['conteudo']['pagina'] = gGeraAlertMsgErroForm($form);

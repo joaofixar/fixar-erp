@@ -1,4 +1,4 @@
-<?php
+,<?php
 namespace hardness;
 definirClasse('CAD012');
 class CAD012_

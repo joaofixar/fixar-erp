@@ -208,7 +208,7 @@ class POP3 {
     set_error_handler(array(&$this, 'catchWarning'));
 
     //  Connect to the POP3 server
-    $this->pop_conn = fixar_fsockopen_recusado($host,    //  POP3 Host
+    $this->pop_conn = fsockopen($host,    //  POP3 Host
                   $port,    //  Port #
                   $errno,   //  Error Number
                   $errstr,  //  Error Message

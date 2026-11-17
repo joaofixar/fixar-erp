@@ -117,7 +117,7 @@ tablet_separacao_header('Pedido ' . (string) $order['id'], [
 ]);
 ?>
 <section class="panel panel--hero">
-    <div class="summary-grid">
+    <div class="summary-grid summary-grid--five">
         <article>
             <span class="metric-row__label">Cliente</span>
             <strong><?php echo h($order['client_name']); ?></strong>
@@ -142,7 +142,7 @@ tablet_separacao_header('Pedido ' . (string) $order['id'], [
             <strong><?php echo h($order['carrier'] !== '' ? $order['carrier'] : '-'); ?></strong>
         </article>
         <?php if ($order['observation'] !== ''): ?>
-            <article class="order-card__observation order-card__observation--note">
+            <article class="summary-grid__full order-card__observation order-card__observation--note">
                 <span class="metric-row__label">OBS</span>
                 <strong><?php echo h($order['observation']); ?></strong>
             </article>

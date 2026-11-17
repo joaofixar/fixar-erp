@@ -33,7 +33,7 @@ class iset_consultas_produtos_
         $skuIset = (new ISET_SKU())->paraIset($skuHardness);
 
         try {
-            $resposta = $this->cliente()->buscarProdutoPorSku($skuIset);
+            $resposta = $this->buscarProdutoAtual($this->cliente(), $skuIset);
         } catch (\Throwable $erro) {
             $resposta = array('ok' => false, 'status' => 0, 'dados' => array(), 'mensagem' => 'Falha inesperada ao consultar a ISET.');
         }
@@ -66,6 +66,31 @@ class iset_consultas_produtos_
         return $this->resultado(self::ENCONTRADO, $status, $idRetornado, (new ISET_SKU())->paraHardness($skuRetornado), 'Produto consultado na ISET.');
     }
 
+    /** Localiza pelo SKU e relê pelo ID antes de comparar ou persistir o produto. */
+    public function buscarProdutoAtual($cliente, $sku)
+    {
+        $consulta = $cliente->buscarProdutoPorSku($sku);
+        $validacao = $this->validarRespostaProduto($consulta, $sku);
+        if (!$validacao['ok']) return $consulta;
+
+        // A consulta por SKU pode retornar valores anteriores à atualização,
+        // mesmo para o mesmo ID. Usar o detalhe por ID também na prévia e no envio.
+        $id = (int) $validacao['produto']['id'];
+        $resposta = $cliente->buscarProdutoPorId($id);
+        $resposta['chamadas'] = array_merge(
+            isset($consulta['chamadas']) ? $consulta['chamadas'] : array(),
+            isset($resposta['chamadas']) ? $resposta['chamadas'] : array()
+        );
+        $resposta['requisicaoExecutada'] = !empty($consulta['requisicaoExecutada']) || !empty($resposta['requisicaoExecutada']);
+        $validacao = $this->validarRespostaProduto($resposta, $sku, $id);
+        if (!$validacao['ok']) {
+            // Não reaproveitar valores antigos nem autorizar criação se o detalhe falhar.
+            $resposta['ok'] = false;
+            $resposta['mensagem'] = $validacao['mensagem'];
+        }
+        return $resposta;
+    }
+
     /** Normaliza os campos declarados no JSON para uso posterior na comparação. */
     public function normalizarCampos(array $produtoIset, array $campos)
     {
@@ -73,7 +98,7 @@ class iset_consultas_produtos_
         foreach ($campos as $campo) {
             if (!is_array($campo) || empty($campo['id']) || empty($campo['payload']) || empty($campo['tipo'])) continue;
             $bruto = array_key_exists($campo['payload'], $produtoIset) ? $produtoIset[$campo['payload']] : null;
-            $valores[$campo['id']] = $this->normalizarValor($bruto, $campo['tipo']);
+            $valores[$campo['id']] = $this->normalizarValor($bruto, $campo['tipo'], $campo['payload']);
         }
         return $valores;
     }
@@ -118,7 +143,7 @@ class iset_consultas_produtos_
     }
 
     /** A mesma representação será usada posteriormente pela comparação Hardness × ISET. */
-    public function normalizarValor($valor, $tipo)
+    public function normalizarValor($valor, $tipo, $payload = '')
     {
         switch ($tipo) {
             case 'texto':
@@ -127,7 +152,21 @@ class iset_consultas_produtos_
                 return $valor === '' ? null : $valor;
             case 'numero':
                 $numero = $this->numero($valor);
-                return $numero === null ? null : number_format($numero, 2, '.', '');
+                return $numero === null ? null : number_format($numero, $payload === 'weight' ? 3 : 2, '.', '');
+            case 'dimensoes':
+                // O envio usa [comprimento, largura, altura], mas a consulta ISET
+                // devolve chaves nomeadas, cuja ordem não é a mesma do envio.
+                if (is_array($valor) && isset($valor['length'], $valor['width'], $valor['height'])) {
+                    $valor = array($valor['length'], $valor['width'], $valor['height']);
+                }
+                if (!is_array($valor) || array_keys($valor) !== array(0, 1, 2)) return null;
+                $dimensoes = array();
+                foreach ($valor as $medida) {
+                    $numero = $this->numero($medida);
+                    if ($numero === null || !is_finite($numero) || $numero <= 0) return null;
+                    $dimensoes[] = number_format($numero, 6, '.', '');
+                }
+                return $dimensoes;
             case 'inteiro':
                 $numero = $this->numero($valor);
                 return $numero === null ? null : (int) $numero;
@@ -150,8 +189,8 @@ class iset_consultas_produtos_
         return null;
     }
 
-    /** A ISET importa as URIs enviadas e passa a devolver endereços próprios para as fotos. */
-    public function imagensEquivalentes($hardness, $iset)
+    /** Confirma somente quantas URIs a ISET importou após um envio conhecido. */
+    public function quantidadeImagensConfirmada($hardness, $iset)
     {
         $hardness = $this->normalizarValor($hardness, 'imagens');
         $iset = $this->normalizarValor($iset, 'imagens');

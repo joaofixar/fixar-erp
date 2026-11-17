@@ -437,6 +437,26 @@ EOT;
             'outros' => '{"tituloTelecomunicacao":{"top":372,"left":160,"width":null,"hidden":1},"T013_D014_Id":{"top":7,"left":13.421875,"width":140,"hidden":0},"T013_Tipo_Assinante":{"top":398,"left":145.46875,"width":192,"hidden":0},"T013_Flag_Validacoes":{"top":30,"left":164.8125,"width":56,"hidden":0},"T013_Flag_Calcular":{"top":53,"left":134.546875,"width":56,"hidden":0},"T013_Numero_Dias":{"top":53,"left":701,"width":74,"hidden":1},"T013_Flag_Obrigatorio_OC":{"top":76,"left":105.46875,"width":55,"hidden":0},"T013_Valor_Juros":{"top":99,"left":723,"width":124,"hidden":1},"tituloDespesasAcessorias":{"top":100,"left":181,"width":null,"hidden":1},"T013_Valor_Despesas_Acessorias":{"top":122,"left":78.3125,"width":124,"hidden":0},"T013_Flag_Calcular_ICMS_Despesas_Acessorias":{"top":145,"left":41.671875,"width":56,"hidden":0},"T013_Flag_Calcular_IPI_Despesas_Acessorias":{"top":168,"left":24.75,"width":56,"hidden":0},"tituloSeguro":{"top":191,"left":197,"width":null,"hidden":1},"T013_Valor_Seguro":{"top":214,"left":156,"width":124,"hidden":0},"T013_Flag_Calcular_ICMS_Seguro":{"top":237,"left":82.09375,"width":56,"hidden":0},"T013_Flag_Calcular_IPI_Seguro":{"top":260,"left":95.453125,"width":56,"hidden":0},"tituloEnergiaEletrica":{"top":280,"left":163,"width":null,"hidden":1},"T013_Classe_Consumo":{"top":306,"left":122.390625,"width":192,"hidden":0},"T013_Tipo_Ligacao":{"top":329,"left":140.6875,"width":191,"hidden":0},"T013_Grupo_Tensao":{"top":352,"left":137.984375,"width":191,"hidden":0}}',
         );
 
+        // Usa o seletor padrão com Enter e mantém o SQL em uma linha no JavaScript gerado.
+        $sqlPesquisaFreteNFS = implode(' ', array(
+            "LEFT JOIN D024 ON D024_Id = T013_D024_Id WHERE T013_C004_Id = '" . (int) $g['empresaAtual'] . "'",
+            "AND T013_Id <> '" . (int) $acaoId . "' AND T013_Tipo IN (1,2,3,4,5,9)",
+            "AND IFNULL(T013_Flag_Cancelada,'N') <> 'S' AND IFNULL(T013_Flag_Travar_Nota,'N') <> 'S'",
+            "AND IFNULL(T013_Flag_Financeiro_Finalizado,'N') <> 'S' AND IFNULL(T013_Flag_Estoque_Finalizado,'N') <> 'S'",
+            'AND T013_Id IN (SELECT T014_T013_Id FROM T014)'
+        ));
+        $pesquisaFreteNFS = array(
+            'T013', 'T013_Id,T013_Numero_Nota_Fiscal',
+            'T013_Numero_Nota_Fiscal,T013_Serie,D024_Nome_Empresa,D024_Cnpj,T013_Data_Emissao,T013_Valor_Total',
+            $sqlPesquisaFreteNFS, 'Pesquisa de notas de produtos', 'NF,Série,Fornecedor,CNPJ,Emissão,Total',
+            'est004SelecionarNotaFreteNFS', $g['divId'], 11 => '[900,450]'
+        );
+        $posicoesFrete = json_decode($form_editor['frete'], true);
+        $posicoesFrete['Frete_NFS_Nota_Id'] = array('top' => 30, 'left' => 365, 'width' => 220, 'hidden' => 1);
+        $posicoesFrete['est004PesquisarFreteNFS'] = array('top' => 28, 'left' => 710, 'width' => null, 'hidden' => 1);
+        $posicoesFrete['est004RatearFreteNFS'] = array('top' => 28, 'left' => 800, 'width' => null, 'hidden' => 1);
+        $form_editor['frete'] = json_encode($posicoesFrete);
+
 		$T013_Flag_Rateio_Frete_Preco = $g['C031']['formaRateioFreteNotaRecebida'] == '1' ? true : false;
 		$T013_Flag_Rateio_Frete_Quantidade = $g['C031']['formaRateioFreteNotaRecebida'] == '2' ? true : false;
 		$disabled = isset($g['c029Ids'][253]) ? false : true;
@@ -545,14 +565,25 @@ EOT;
 					*/
 					'T013_Numero_Conhecimento' => array('name' => 'T013_Numero_Conhecimento','label'=>'Numero Conhecimento', 'type' => 'text', 'length' => array(25,30)),
 					'button' => array('name' => 'button', 'type' => 'button','value' =>'Não tem','reload' => false,'extra' => 'onclick="preencheNaoTem()"','align' => 'right', 'reject'=>true),
- 					'T013_Flag_Frete' => array('name' => 'T013_Flag_Frete','label'=>'Frete por conta', 'type' => 'select', 
+					'T013_Flag_Frete' => array('name' => 'T013_Flag_Frete','label'=>'Frete por conta', 'type' => 'select',
+                            'extra' => 'onchange="est004AlternarFreteNFS(this);"',
 							'select' =>  array(
 									array('title' => '9-Sem frete', 'value' => '0'),
 									array('title' => '0-Por conta do emitente', 'value' => '1' ),
 									array('title' => '1-Por conta do destinatário', 'value' => '2', 'selected' => true),
 									array('title' => '2-Por conta de terceiros', 'value' => '3'),
+									array('title' => 'Frete NFS', 'value' => '4'),
 								),
 							),
+                    'Frete_NFS_Nota_Id' => array('name' => 'Frete_NFS_Nota_Id', 'label' => 'NF produtos', 'type' => 'pesquisaGrid', 'reject' => true,
+                        'pesquisaGrid' => $pesquisaFreteNFS, 'length' => array(30, 80), 'class' => 'temAcaoEnter',
+                        'extra' => 'placeholder="Digite a NF e pressione Enter" oninput="est004LimparSelecaoFreteNFS(this);"'),
+                    'est004PesquisarFreteNFS' => array('name' => 'est004PesquisarFreteNFS', 'type' => 'button', 'value' => 'Pesquisar', 'reject' => true,
+                        'extra' => 'onclick="window.est004PesquisarFreteNFS(this);"'),
+                    'est004RatearFreteNFS' => array('name' => 'est004RatearFreteNFS', 'type' => 'button', 'value' => 'Ratear', 'reject' => true,
+                        'disabled' => !isset($g['c029Ids'][189]), 'extra' => "onclick=\"window.est004RatearFreteNFS(this, '{$g['divId']}');\""),
+                    'Frete_NFS_Origem_Id' => array('name' => 'Frete_NFS_Origem_Id', 'type' => 'hidden', 'value' => (int) $acaoId, 'reject' => true),
+                    'Frete_NFS_Valor_Salvo' => array('name' => 'Frete_NFS_Valor_Salvo', 'type' => 'hidden', 'reject' => true),
 					'T013_D022_Id' => array('name' => 'T013_D022_Id','label'=>'Transportadora', 'type' => 'pesquisa', 'pesquisa' => array('D022', 'D022_Id', 'D022_Nome_Empresa,D022_Cnpj'), 'length' => array(47,60)),
 					'T013_Tipo_Transporte' => array('name' => 'T013_Tipo_Transporte','label'=>'Tipo Transporte', 'type' => 'text', 'length' => array(25,30)),
 					'T013_Valor_Frete' => array('name' => 'T013_Valor_Frete','label'=>'Valor Frete', 'type' => 'moeda', 'align' => 'right','style' => 'float:right;', 'length' => array(20,30)),
@@ -920,6 +951,29 @@ EOT;
 		echo $gerado['pagina'];
 		if (!$formMultiTab) { $g["smarty"]->assign("formId", $formId); }
 		$g['smarty']->display('formEditor.tpl');
+        if ($tab == 'frete') {
+            $origemFrete = (int) $acaoId;
+            $empresaFrete = (int) $g['empresaAtual'];
+            $dadosFrete = mysql_query("SELECT Origem.T013_Valor_Total, T013A_T013_Id_Frete_NFS, Destino.T013_Numero_Nota_Fiscal AS NumeroDestino
+                                        FROM T013 AS Origem LEFT JOIN T013A ON T013A_T013_Id = Origem.T013_Id
+                                        LEFT JOIN T013 AS Destino ON Destino.T013_Id = T013A_T013_Id_Frete_NFS AND Destino.T013_C004_Id = '{$empresaFrete}'
+                                        WHERE Origem.T013_Id = '{$origemFrete}' AND Origem.T013_C004_Id = '{$empresaFrete}' LIMIT 1");
+            $dadosFrete = $dadosFrete ? mysql_fetch_assoc($dadosFrete) : array();
+            $valorFreteSalvo = json_encode(isset($dadosFrete['T013_Valor_Total']) ? $dadosFrete['T013_Valor_Total'] : '0');
+            $destinoFrete = json_encode(isset($dadosFrete['T013A_T013_Id_Frete_NFS']) ? $dadosFrete['T013A_T013_Id_Frete_NFS'] : '');
+            $numeroFrete = json_encode(isset($dadosFrete['NumeroDestino']) ? $dadosFrete['NumeroDestino'] : '');
+            echo <<<EOT
+                <div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+                    (function() {
+                        var area = $('#{$g['divId']}');
+                        area.find('#Frete_NFS_Valor_Salvo').val({$valorFreteSalvo});
+                        area.find('#Frete_NFS_Nota_Id').val({$destinoFrete});
+                        area.find('#Frete_NFS_Nota_Id_Pesquisa').val({$numeroFrete});
+                        area.find('#T013_Flag_Frete').each(function() { est004AlternarFreteNFS(this); });
+                    })();
+                } </script></div>
+EOT;
+        }
 	break;
 	
 	case 'est004FormTotais':

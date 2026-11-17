@@ -10,6 +10,12 @@ require_once __DIR__ . '/iset_produtos_controle.php';
 class iset_produtos_
 {
     const POR_PAGINA = 50;
+    const IMAGENS_SINCRONIZADAS = 'SINCRONIZADAS';
+    const IMAGENS_ALTERADAS = 'ALTERADAS';
+    const IMAGENS_NAO_VERIFICADAS = 'NAO_VERIFICADAS';
+    const IMAGENS_REMOCAO_PENDENTE = 'REMOCAO_PENDENTE';
+    const IMAGENS_INVALIDAS = 'INVALIDAS';
+    const IMAGENS_DESABILITADAS = 'DESABILITADAS';
     private $permitirCompraPorEstoque = null;
     private $cacheConsultasDisponivel = null;
 
@@ -28,7 +34,7 @@ class iset_produtos_
         if (!$configuracao['ok']) {
             return array('estado' => ISET_CONSULTAS_PRODUTOS::ERRO, 'statusHttp' => 0, 'idIset' => '', 'sku' => '', 'mensagem' => 'Configuração de produtos inválida.');
         }
-        $porId = $this->produtosPorD009($empresaId, array($d009Id), $this->temCampoImagens($configuracao['campos']));
+        $porId = $this->produtosPorD009($empresaId, array($d009Id), $this->temCampoImagens($configuracao['campos']), $configuracao['campos']);
         if (!isset($porId[$d009Id])) {
             return array('estado' => ISET_CONSULTAS_PRODUTOS::ERRO, 'statusHttp' => 0, 'idIset' => '', 'sku' => '', 'mensagem' => 'Produto não pertence à empresa atual ou não foi encontrado.');
         }
@@ -101,7 +107,7 @@ class iset_produtos_
         $empresaId = (int) $empresaId;
         if ($empresaId <= 0) return $vazio;
         $pagina = max(1, (int) $pagina);
-        $resultado = mysql_query($this->sqlProdutos($empresaId, $filtros, array(), self::POR_PAGINA + 1, ($pagina - 1) * self::POR_PAGINA));
+        $resultado = mysql_query($this->sqlProdutos($empresaId, $filtros, array(), self::POR_PAGINA + 1, ($pagina - 1) * self::POR_PAGINA, false, $configuracao['campos']));
         if (!$resultado) {
             $vazio['erro'] = 'Não foi possível carregar os produtos da empresa atual.';
             return $vazio;
@@ -124,10 +130,10 @@ class iset_produtos_
             $produto['acao'] = $this->acaoPreviaProduto($produto['bloqueios'], $produto['estadoConsulta']);
             if ($produto['acao'] === 'CRIAR' && ($produto['id_iset'] > 0 || $this->controle()->controles($empresaId, $produto['D009_Id'], $produto['skuIset']))) {
                 $produto['acao'] = 'BLOQUEAR';
-                $produto['bloqueios'][] = 'Existe tentativa ou cadastro anterior. Nova criação bloqueada; a consulta à ISET permanece disponível.';
+                // O motivo é apresentado no diálogo ao sincronizar; a prévia mantém o bloqueio sem o aviso na coluna.
             }
             $produtos[] = $produto;
-            if ($produto['bloqueios']) $totais['bloqueados']++;
+            if ($produto['acao'] === 'BLOQUEAR') $totais['bloqueados']++;
             elseif ($produto['acao'] === 'ATUALIZAR') $totais['atualizados']++;
             elseif ($produto['acao'] === 'CRIAR') $totais['novos']++;
         }
@@ -182,7 +188,7 @@ SQL;
                 if (!$configuracao['ok']) {
                     $resultado = $this->pendencia('CADASTRO_INVALIDO', 'Configuração de produtos inválida.', 'VALIDAR');
                 } else {
-                    $porId = $this->produtosPorD009($empresaId, array($d009Id), $this->temCampoImagens($configuracao['campos']));
+                    $porId = $this->produtosPorD009($empresaId, array($d009Id), $this->temCampoImagens($configuracao['campos']), $configuracao['campos']);
                     if (!isset($porId[$d009Id])) {
                         $sqlD001 = <<<SQL
                             SELECT D001_Id, D001_Flag_Ecommerce FROM D009
@@ -233,7 +239,7 @@ SQL;
         if ($produto['bloqueios']) return $this->pendencia('CADASTRO_INVALIDO', implode(' ', $produto['bloqueios']), 'VALIDAR');
         $cliente = $this->cliente();
         $sku = $produto['skuIset'];
-        $consulta = $cliente->buscarProdutoPorSku($sku);
+        $consulta = $this->consultasProdutos()->buscarProdutoAtual($cliente, $sku);
         $this->registrarChamada($empresaId, $produto, 'CONSULTA_PRODUTO', $consulta);
         $consultasProdutos = $this->consultasProdutos();
         $validacao = $consultasProdutos->validarRespostaProduto($consulta, $sku);
@@ -244,10 +250,12 @@ SQL;
                 return $this->pendencia(isset($validacao['motivo']) ? $validacao['motivo'] : 'FALHA_CONSULTA', $validacao['mensagem'], 'CONSULTAR', $consulta['status']);
             }
             if ($INT007s || $produto['id_iset'] > 0 || $this->controle()->temHistorico($empresaId, $produto['D009_Id'])) {
-                return $this->pendencia('CRIACAO_INCERTA', 'O SKU não foi localizado, mas existe tentativa ou existência anterior. Nova criação bloqueada.', 'CONSULTAR', $consulta['status'], $produto['id_iset']);
+                return $this->pendencia('CRIACAO_INCERTA', 'Já houve uma tentativa de sincronização deste produto. Tente sincronizar novamente daqui a 1 hora. Uma nova criação agora pode duplicar o cadastro do produto na ISET; por isso, a sincronização foi bloqueada.', 'CONSULTAR', $consulta['status'], $produto['id_iset']);
             }
             $this->controle()->verificarDisponibilidade();
             if (!$this->controle()->possui($produto['fila'])) throw new \Exception('Posse da pendência perdida antes da criação.');
+            $produto = $this->aplicarDecisaoImagens($produto, array(), true);
+            $this->registrarDecisaoImagens($empresaId, $produto, array());
             $this->controle()->reservarCriacao($empresaId, $produto['D009_Id'], $sku, $produto['tentativa']);
             try {
                 $this->registrarInicioEnvio($empresaId, $produto, 'CRIAR', 0);
@@ -278,8 +286,11 @@ SQL;
             return $this->pendencia('ATUALIZACAO_PENDENTE', 'O produto foi encontrado na ISET, mas o cache da consulta não pôde ser atualizado.', 'CONSULTAR', $consulta['status'], $idIset);
         }
         $this->controle()->confirmarExistencia($empresaId, $produto['D009_Id'], $sku, $idIset);
+        $produto = $this->aplicarDecisaoImagens($produto, $validacao['produto']);
+        $this->registrarDecisaoImagens($empresaId, $produto, $validacao['produto']);
         if (!$this->produtoIsetTemDiferencas($produto, $validacao['produto'])) {
             if (!$this->salvarVinculo($empresaId, $produto, $idIset, INT_STATUS_SUCESSO)) return $this->pendencia('ATUALIZACAO_PENDENTE', 'Produto equivalente, mas vínculo não pôde ser salvo.', 'SEM_ALTERACAO', 200, $idIset);
+            if (!empty($produto['decisaoImagens']['pendente'])) return $this->resultadoPendenciaImagens($produto, 'ignorados', 'SEM_ALTERACAO', 200, $idIset, false);
             return array('resultado' => 'ignorados', 'acao' => 'SEM_ALTERACAO', 'motivo' => 'CONCLUIDO', 'statusHttp' => 200, 'idIset' => $idIset, 'mensagem' => 'Produto equivalente e vínculo confirmado.');
         }
         try {
@@ -305,7 +316,14 @@ SQL;
             return $this->pendencia('ATUALIZACAO_PENDENTE', 'O produto foi confirmado na ISET, mas o cache da consulta não pôde ser atualizado.', $acao, $consulta['status'], $idIset);
         }
         $this->controle()->confirmarExistencia($empresaId, $produto['D009_Id'], $produto['skuIset'], $idIset);
-        if ($this->produtoIsetTemDiferencas($produto, $validacao['produto'])) return $this->pendencia('ATUALIZACAO_PENDENTE', 'A leitura posterior ainda apresenta diferenças nos campos enviados.', $acao, $consulta['status'], $idIset);
+        if ($this->produtoIsetTemDiferencas($produto, $validacao['produto'], true)) return $this->pendencia('ATUALIZACAO_PENDENTE', 'A leitura posterior ainda apresenta diferenças nos campos enviados.', $acao, $consulta['status'], $idIset);
+        $produto['referenciaImagensPosterior'] = $this->referenciaImagensPosterior($produto, $validacao['produto']);
+        if (!empty($produto['decisaoImagens']['enviar']) && !$this->registrarEvento($empresaId, $produto, 'CONFIRMACAO_IMAGENS', INT_STATUS_SUCESSO, 'Lista de fotos confirmada pela leitura posterior da ISET.', array(
+            'fotosLocais' => $produto['decisaoImagens']['locais'],
+            'urlsRemotas' => isset($produto['referenciaImagensPosterior']['remotas']) ? $produto['referenciaImagensPosterior']['remotas'] : array(),
+            'quantidadeImportada' => isset($produto['referenciaImagensPosterior']['remotas']) ? count($produto['referenciaImagensPosterior']['remotas']) : 0,
+            'idIset' => $idIset,
+        ))) return $this->pendencia('FALHA_LOG', 'As fotos foram confirmadas na ISET, mas o resultado não pôde ser registrado. A referência anterior foi preservada.', $acao, $consulta['status'], $idIset);
         $this->controle()->verificarDisponibilidade();
         $sqlInicio = <<<SQL
             START TRANSACTION
@@ -325,6 +343,7 @@ SQL;
             mysql_query($sqlRollback);
             return $this->pendencia('ATUALIZACAO_PENDENTE', $erro->getMessage(), $acao, $consulta['status'], $idIset);
         }
+        if (!empty($produto['decisaoImagens']['pendente'])) return $this->resultadoPendenciaImagens($produto, $acao === 'CRIAR' ? 'criados' : 'atualizados', $acao, $consulta['status'], $idIset, true);
         return array('resultado' => $acao === 'CRIAR' ? 'criados' : 'atualizados', 'acao' => $acao, 'motivo' => 'CONCLUIDO', 'statusHttp' => $consulta['status'], 'idIset' => $idIset, 'mensagem' => 'Produto e vínculo confirmados após ' . ($acao === 'CRIAR' ? 'criação.' : 'atualização.'));
     }
 
@@ -367,6 +386,50 @@ SQL;
         return $this->controle()->marcarPendente($empresaId, $d009Id);
     }
 
+    /** Marca todos os D009 do produto que possuem ISET e envio de fotos ativo. */
+    public function marcarFotosProdutoPendentesAutomatico($D001_Id)
+    {
+        $D001_Id = (int) $D001_Id;
+        if ($D001_Id <= 0) return false;
+        $sqlD009 = <<<SQL
+            SELECT
+                D009.D009_Id,
+                D009.D009_C004_Id,
+                MAX(IF(C031.C031_Campo = 'IsetUrlBase', C031.C031_Valor, '')) AS IsetUrlBase,
+                MAX(IF(C031.C031_Campo = 'IsetIdentificador', C031.C031_Valor, '')) AS IsetIdentificador,
+                MAX(IF(C031.C031_Campo = 'IsetChaveAcesso', C031.C031_Valor, '')) AS IsetChaveAcesso,
+                MAX(IF(C031.C031_Campo = 'IsetProdutosConfiguracaoJson', C031.C031_Valor, '')) AS IsetProdutosConfiguracaoJson
+            FROM D009
+                INNER JOIN D049 ON D049.D049_Id = D009.D009_D049_Id
+                LEFT JOIN C031 ON C031.C031_C004_Id = D009.D009_C004_Id
+                    AND C031.C031_Campo IN ('IsetUrlBase', 'IsetIdentificador', 'IsetChaveAcesso', 'IsetProdutosConfiguracaoJson')
+            WHERE D049.D049_D001_Id = '{$D001_Id}'
+            GROUP BY D009.D009_Id, D009.D009_C004_Id
+SQL;
+        $consulta = mysql_query($sqlD009);
+        if (!$consulta) {
+            error_log('ISET: falha consultando D009 para alteração de fotos do D001 #' . $D001_Id . ': ' . mysql_error());
+            return false;
+        }
+        $ok = true;
+        while ($D009 = mysql_fetch_assoc($consulta)) {
+            if (trim((string) $D009['IsetUrlBase']) === '' || trim((string) $D009['IsetIdentificador']) === '' || trim((string) $D009['IsetChaveAcesso']) === '') continue;
+            $json = trim((string) $D009['IsetProdutosConfiguracaoJson']);
+            $configuracao = ISET_CONFIGURACOES::validarJsonProdutos($json === '' ? ISET_CONFIGURACOES::jsonProdutosPadrao() : $json);
+            if (!$configuracao['ok']) continue;
+            $enviarImagens = false;
+            foreach ($configuracao['campos'] as $campo) {
+                if ($campo['tipo'] === 'imagens' && !empty($campo['enviar'])) { $enviarImagens = true; break; }
+            }
+            if (!$enviarImagens) continue;
+            if (!$this->marcarProdutoPendenteAutomatico((int) $D009['D009_C004_Id'], (int) $D009['D009_Id'])) {
+                $ok = false;
+                error_log('ISET: falha marcando fotos do D001 #' . $D001_Id . ' no D009 #' . (int) $D009['D009_Id'] . ', empresa #' . (int) $D009['D009_C004_Id'] . '.');
+            }
+        }
+        return $ok;
+    }
+
     public function sincronizarPendentesAutomaticos($empresaId, $limite = 50)
     {
         $empresaId = (int) $empresaId; $limite = max(1, min(200, (int) $limite));
@@ -405,7 +468,8 @@ SQL;
         return array('AGUARDANDO' => 'Aguardando sincronização', 'FALHA_CONSULTA' => 'Falha de consulta',
             'CRIACAO_INCERTA' => 'Criação com resultado incerto', 'ATUALIZACAO_PENDENTE' => 'Atualização pendente',
             'DUPLICIDADE' => 'Duplicidade encontrada', 'CONFLITO_VINCULO' => 'Conflito de vínculo',
-            'CADASTRO_INVALIDO' => 'Cadastro inválido', 'FALHA_LOG' => 'Falha ao registrar log', 'FALHA_FILA' => 'Falha na fila');
+            'CADASTRO_INVALIDO' => 'Cadastro inválido', 'REMOCAO_FOTOS_PENDENTE' => 'Remoção de fotos pendente',
+            'FOTOS_INVALIDAS' => 'Fotos ausentes ou inválidas', 'FALHA_LOG' => 'Falha ao registrar log', 'FALHA_FILA' => 'Falha na fila');
     }
 
     public function listarPendencias($empresaId, array $filtros = array(), $pagina = 1)
@@ -446,6 +510,9 @@ SQL;
     {
         $empresaId = (int) $empresaId; $d009Id = (int) $d009Id;
         $this->controle()->verificarDisponibilidade();
+        // A consulta manual também reativa a espera da última foto, permitindo
+        // reconhecer uma remoção feita diretamente na ISET.
+        $this->controle()->marcarPendente($empresaId, $d009Id, false);
         $INT006 = $this->controle()->adquirir($empresaId, $d009Id, false);
         if (!$INT006) return 'Pendência não encontrada nesta empresa ou já em processamento.';
         $produto = array('D001_Id' => 0, 'D049_Id' => 0, 'D009_Id' => $d009Id, 'sku' => '', 'skuIset' => '', 'id_iset' => 0, 'origem' => 'MANUAL', 'tentativa' => $INT006['INT006_Token_Processamento']);
@@ -487,7 +554,7 @@ SQL;
         }
     }
 
-    private function produtoIsetTemDiferencas(array $produto, array $produtoIset)
+    private function produtoIsetTemDiferencas(array $produto, array $produtoIset, $confirmacao = false)
     {
         $normalizador = $this->consultasProdutos();
         foreach (isset($produto['campos']) ? $produto['campos'] : array() as $campo) {
@@ -500,17 +567,133 @@ SQL;
                 continue;
             }
             if ($campo['tipo'] === 'imagens') {
-                if (!$normalizador->imagensEquivalentes($hardness, $iset)) return true;
+                // Antes do envio, a decisão versionada é suficiente para forçar
+                // a substituição mesmo quando a quantidade permaneceu igual. Na
+                // confirmação, as URLs mudam na ISET e somente a quantidade
+                // importada pode ser confrontada com segurança.
+                if (!$confirmacao || !$normalizador->quantidadeImagensConfirmada($hardness, $iset)) return true;
                 continue;
             }
-            if ($normalizador->normalizarValor($hardness, $campo['tipo']) !== $normalizador->normalizarValor($iset, $campo['tipo'])) return true;
+            if ($normalizador->normalizarValor($hardness, $campo['tipo'], $campo['payload']) !== $normalizador->normalizarValor($iset, $campo['tipo'], $campo['payload'])) return true;
         }
         return false;
     }
 
+    private function aplicarDecisaoImagens(array $produto, array $produtoIset, $criacao = false)
+    {
+        $produto['decisaoImagens'] = $this->decidirImagens($produto, $produtoIset, $criacao);
+        if ($produto['decisaoImagens']['payload'] !== '' && !$produto['decisaoImagens']['enviar']) {
+            unset($produto['payloadIset'][$produto['decisaoImagens']['payload']]);
+        }
+        return $produto;
+    }
+
+    /**
+     * As URLs locais nunca são comparadas às URLs processadas pela ISET. A
+     * referência confirmada liga separadamente a versão local e a lista remota.
+     */
+    private function decidirImagens(array $produto, array $produtoIset, $criacao = false)
+    {
+        $campoImagens = null;
+        foreach (isset($produto['campos']) ? $produto['campos'] : array() as $campo) {
+            if ($campo['tipo'] === 'imagens') { $campoImagens = $campo; break; }
+        }
+        $vazio = array('estado' => self::IMAGENS_DESABILITADAS, 'enviar' => false, 'pendente' => false, 'payload' => '', 'locais' => array(), 'remotas' => array(), 'referenciaAnterior' => null);
+        if (!$campoImagens || empty($campoImagens['enviar'])) return $vazio;
+        $locais = isset($produto['valores'][$campoImagens['id']]) && is_array($produto['valores'][$campoImagens['id']]) ? $produto['valores'][$campoImagens['id']] : array();
+        $locaisReferencia = $this->imagensLocaisReferencia($locais);
+        $remotas = $this->consultasProdutos()->normalizarValor(isset($produtoIset[$campoImagens['payload']]) ? $produtoIset[$campoImagens['payload']] : array(), 'imagens');
+        $referencia = isset($produto['referenciaImagens']) && is_array($produto['referenciaImagens']) ? $produto['referenciaImagens'] : null;
+        $decisao = array('estado' => self::IMAGENS_SINCRONIZADAS, 'enviar' => false, 'pendente' => false, 'payload' => $campoImagens['payload'], 'locais' => $locaisReferencia, 'remotas' => $remotas, 'referenciaAnterior' => $referencia);
+        if (!empty($produto['T172_Imagens_Invalidas'])) {
+            $decisao['estado'] = self::IMAGENS_INVALIDAS;
+            $decisao['pendente'] = true;
+            return $decisao;
+        }
+        if ($criacao) {
+            $decisao['enviar'] = (bool) $locaisReferencia;
+            $decisao['estado'] = $decisao['enviar'] ? self::IMAGENS_NAO_VERIFICADAS : self::IMAGENS_SINCRONIZADAS;
+            return $decisao;
+        }
+        if (!$locaisReferencia) {
+            if ($remotas) {
+                $decisao['estado'] = self::IMAGENS_REMOCAO_PENDENTE;
+                $decisao['pendente'] = true;
+            }
+            return $decisao;
+        }
+        if (!$this->referenciaImagensValida($referencia)) {
+            $decisao['estado'] = self::IMAGENS_NAO_VERIFICADAS;
+            $decisao['enviar'] = true;
+            return $decisao;
+        }
+        if ($locaisReferencia !== $referencia['locais'] || $remotas !== $referencia['remotas']) {
+            $decisao['estado'] = self::IMAGENS_ALTERADAS;
+            $decisao['enviar'] = true;
+        }
+        return $decisao;
+    }
+
+    private function imagensLocaisReferencia(array $imagens)
+    {
+        $referencia = array();
+        foreach ($imagens as $imagem) {
+            if (!is_array($imagem) || empty($imagem['T172_Id']) || empty($imagem['original']) || empty($imagem['sha256'])) continue;
+            $referencia[] = array('T172_Id' => (int) $imagem['T172_Id'], 'url' => (string) $imagem['original'], 'sha256' => (string) $imagem['sha256']);
+        }
+        return $referencia;
+    }
+
+    private function referenciaImagensValida($referencia)
+    {
+        return is_array($referencia) && isset($referencia['versao']) && (int) $referencia['versao'] === 1
+            && isset($referencia['locais']) && is_array($referencia['locais'])
+            && isset($referencia['remotas']) && is_array($referencia['remotas']);
+    }
+
+    private function referenciaImagensPosterior(array $produto, array $produtoIset)
+    {
+        if (empty($produto['decisaoImagens']) || $produto['decisaoImagens']['estado'] === self::IMAGENS_DESABILITADAS) return null;
+        if (!empty($produto['decisaoImagens']['enviar'])) {
+            return array(
+                'versao' => 1,
+                'locais' => $produto['decisaoImagens']['locais'],
+                'remotas' => $this->consultasProdutos()->normalizarValor(isset($produtoIset[$produto['decisaoImagens']['payload']]) ? $produtoIset[$produto['decisaoImagens']['payload']] : array(), 'imagens'),
+            );
+        }
+        return $this->referenciaImagensValida($produto['decisaoImagens']['referenciaAnterior']) ? $produto['decisaoImagens']['referenciaAnterior'] : null;
+    }
+
+    private function resultadoPendenciaImagens(array $produto, $resultado, $acao, $statusHttp, $idIset, $demaisAtualizados)
+    {
+        $invalidas = isset($produto['decisaoImagens']['estado']) && $produto['decisaoImagens']['estado'] === self::IMAGENS_INVALIDAS;
+        return array(
+            'resultado' => $resultado,
+            'acao' => $acao,
+            'motivo' => $invalidas ? 'FOTOS_INVALIDAS' : 'REMOCAO_FOTOS_PENDENTE',
+            'statusHttp' => $statusHttp,
+            'idIset' => $idIset,
+            'mensagem' => $invalidas
+                ? 'Fotos não enviadas: existe registro com arquivo ausente, ilegível ou inválido. A lista parcial não foi enviada.'
+                : ($demaisAtualizados ? 'Demais campos atualizados; remoção das fotos pendente na ISET.' : 'Remoção das fotos pendente na ISET.'),
+        );
+    }
+
+    private function registrarDecisaoImagens($empresaId, array $produto, array $produtoIset)
+    {
+        if (empty($produto['decisaoImagens']) || $produto['decisaoImagens']['estado'] === self::IMAGENS_DESABILITADAS) return;
+        $this->registrarEvento($empresaId, $produto, 'DECISAO_IMAGENS', INT_STATUS_INFO, 'Decisão de sincronização das fotos: ' . $produto['decisaoImagens']['estado'] . '.', array(
+            'estado' => $produto['decisaoImagens']['estado'],
+            'enviar' => $produto['decisaoImagens']['enviar'],
+            'fotosLocais' => $produto['decisaoImagens']['locais'],
+            'urlsRemotas' => $produto['decisaoImagens']['remotas'],
+        ));
+    }
+
     private function prepararProduto(array $linha, array $campos)
     {
-        $linha['id_iset'] = (int) $linha['INT003_Id_Produto_ISET']; $linha['bloqueios'] = array(); $linha['valores'] = array(); $linha['payload'] = array();
+        $linha['id_iset'] = (int) $linha['INT003_Id_Produto_ISET']; $linha['bloqueios'] = array(); $linha['avisos'] = array(); $linha['valores'] = array(); $linha['payload'] = array();
+        $linha['referenciaImagens'] = $this->referenciaImagensHistorico(isset($linha['INT005_Cadastro_Posterior_Json']) ? $linha['INT005_Cadastro_Posterior_Json'] : '');
         $linha['_ISET_Quantidade_Configurada'] = 0;
         foreach ($campos as $campo) {
             if ($campo['payload'] !== 'quantity') continue;
@@ -523,6 +706,7 @@ SQL;
             $linha['valores'][$campo['id']] = $valor['ok'] ? $valor['valor'] : '';
             if (!$valor['ok']) {
                 if ($campo['obrigatorio']) $linha['bloqueios'][] = $campo['titulo'] . ': ' . $valor['erro'];
+                elseif ($campo['enviar'] && in_array($campo['origem'], array('D001_Peso_Unitario_Bruto', 'ISET_Dimensoes'), true)) $linha['avisos'][] = $campo['titulo'] . ': não enviado; ' . $valor['erro'];
                 continue;
             }
             if ($campo['tipo'] === 'imagens') {
@@ -546,6 +730,16 @@ SQL;
         return $linha;
     }
 
+    private function referenciaImagensHistorico($json)
+    {
+        $historico = json_decode((string) $json, true);
+        if (!is_array($historico) || !isset($historico['_iset_imagens']) || !$this->referenciaImagensValida($historico['_iset_imagens'])) return null;
+        $referencia = $historico['_iset_imagens'];
+        $referencia['locais'] = array_values($referencia['locais']);
+        $referencia['remotas'] = $this->consultasProdutos()->normalizarValor($referencia['remotas'], 'imagens');
+        return $referencia;
+    }
+
     /** A ação exibida na prévia só é definida pelo resultado da consulta ISET. */
     private function acaoPreviaProduto(array $bloqueios, $estadoConsulta)
     {
@@ -558,6 +752,16 @@ SQL;
     private function valorCampo(array $campo, array $linha)
     {
         $origem = $campo['origem'];
+        if ($origem === 'ISET_Dimensoes') {
+            $dimensoes = array();
+            // A API recebe comprimento, largura e altura juntos, nesta ordem.
+            foreach (array('D001A_Comprimento', 'D001A_Largura', 'D001A_Altura') as $coluna) {
+                $bruto = isset($linha[$coluna]) ? str_replace(',', '.', (string) $linha[$coluna]) : '';
+                if (!is_numeric($bruto) || !is_finite((float) $bruto) || (float) $bruto <= 0) return array('ok' => false, 'valor' => null, 'erro' => 'informe comprimento, largura e altura positivos em cm.');
+                $dimensoes[] = (float) $bruto;
+            }
+            return array('ok' => true, 'valor' => $dimensoes);
+        }
         if ($origem === 'ISET_Status_Produto') $bruto = 1;
         elseif ($origem === 'ISET_Allow_Buy') $bruto = $this->controleCompraPorEstoqueAtivo() ? (float) $linha['_ISET_Quantidade_Configurada'] > 0 : true;
         else $bruto = isset($linha[$origem]) ? $linha[$origem] : null;
@@ -566,6 +770,7 @@ SQL;
         if ($campo['tipo'] === 'booleano') return array('ok' => true, 'valor' => $this->booleano($bruto));
         if ($bruto === null || $bruto === '' || !is_numeric(str_replace(',', '.', (string) $bruto))) return array('ok' => false, 'valor' => null, 'erro' => 'valor numérico inválido.');
         $numero = (float) str_replace(',', '.', (string) $bruto);
+        if ($origem === 'D001_Peso_Unitario_Bruto' && (!is_finite($numero) || $numero <= 0)) return array('ok' => false, 'valor' => null, 'erro' => 'informe peso bruto positivo em kg.');
         if ($campo['tipo'] === 'inteiro') {
             if ($origem === 'D009_Quantidade_Estoque_Liquido') $numero = max(0, floor($numero));
             else $numero = (int) $numero;
@@ -584,27 +789,57 @@ SQL;
         global $g, $confUsuario;
         if (!$linhas) return;
         $ids = array();
-        foreach ($linhas as &$linha) { $id = isset($linha['D001_Id']) ? (int) $linha['D001_Id'] : 0; if ($id > 0) { $ids[$id] = true; $linha['T172_Imagens'] = array(); } }
+        foreach ($linhas as &$linha) { $id = isset($linha['D001_Id']) ? (int) $linha['D001_Id'] : 0; if ($id > 0) { $ids[$id] = true; $linha['T172_Imagens'] = array(); $linha['T172_Imagens_Invalidas'] = array(); } }
         unset($linha);
         if (!$ids) return;
-        $resultado = mysql_query('SELECT T172_Id,T172_D001_Id,T172_Nome_Arquivo FROM T172 WHERE T172_D001_Id IN (' . implode(',', array_keys($ids)) . ') ORDER BY T172_Nome_Arquivo DESC');
+        $idsSql = implode(',', array_keys($ids));
+        $sqlT172 = <<<SQL
+            SELECT
+                T172_Id,
+                T172_D001_Id,
+                T172_Nome_Arquivo,
+                T172_Link_Video
+            FROM T172
+            WHERE T172_D001_Id IN ({$idsSql})
+            ORDER BY T172_Nome_Arquivo DESC, T172_Id DESC
+SQL;
+        $resultado = mysql_query($sqlT172);
         if (!$resultado) return;
-        $porProduto = array();
+        $porProduto = array(); $invalidasPorProduto = array();
         while ($foto = mysql_fetch_assoc($resultado)) {
             $produtoId = (int) $foto['T172_D001_Id']; $fotoId = (int) $foto['T172_Id'];
+            // T172 também armazena vídeos. Eles continuam fora do payload de
+            // imagens e não podem transformar a lista de fotos em inválida.
+            if (trim((string) $foto['T172_Link_Video']) !== '') continue;
             $extensaoArquivo = (string) pathinfo((string) $foto['T172_Nome_Arquivo'], PATHINFO_EXTENSION);
             $extensao = strtolower($extensaoArquivo);
-            if ($produtoId <= 0 || $fotoId <= 0 || !preg_match('/^[a-z0-9]{1,10}$/i', $extensaoArquivo) || !in_array($extensao, array('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif'), true)) continue;
+            if ($produtoId <= 0 || $fotoId <= 0) continue;
+            if (!preg_match('/^[a-z0-9]{1,10}$/i', $extensaoArquivo) || !in_array($extensao, array('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif'), true)) {
+                $invalidasPorProduto[$produtoId][] = array('T172_Id' => $fotoId, 'motivo' => 'extensão inválida');
+                continue;
+            }
             $relativo = rtrim((string) $g['pathDados'], '/') . '/produtos/' . $produtoId . '/fotos/' . $fotoId . '.' . $extensaoArquivo;
             $arquivoOriginal = $this->arquivoDados($relativo, $confUsuario);
-            if ($arquivoOriginal === '' || !@getimagesize($arquivoOriginal)) continue;
+            if ($arquivoOriginal === '' || !is_readable($arquivoOriginal) || !@getimagesize($arquivoOriginal)) {
+                $invalidasPorProduto[$produtoId][] = array('T172_Id' => $fotoId, 'motivo' => 'arquivo ausente ou inválido');
+                continue;
+            }
+            $sha256 = @hash_file('sha256', $arquivoOriginal);
+            if (!$sha256) {
+                $invalidasPorProduto[$produtoId][] = array('T172_Id' => $fotoId, 'motivo' => 'arquivo ilegível');
+                continue;
+            }
             $miniaturaRelativa = rtrim((string) $g['pathDados'], '/') . '/produtos/' . $produtoId . '/fotos/' . $fotoId . '-100.' . $extensaoArquivo;
             $arquivoMiniatura = $this->arquivoDados($miniaturaRelativa, $confUsuario);
             $urlBase = rtrim(is_array($confUsuario) && isset($confUsuario['urlRaiz']) ? (string) $confUsuario['urlRaiz'] : '', '/') . '/hardness3/';
             $urlOriginal = $urlBase . ltrim($relativo, '/');
-            $porProduto[$produtoId][] = array('original' => $urlOriginal, 'miniatura' => $arquivoMiniatura !== '' ? $urlBase . ltrim($miniaturaRelativa, '/') : $urlOriginal);
+            $porProduto[$produtoId][] = array('T172_Id' => $fotoId, 'sha256' => $sha256, 'original' => $urlOriginal, 'miniatura' => $arquivoMiniatura !== '' ? $urlBase . ltrim($miniaturaRelativa, '/') : $urlOriginal);
         }
-        foreach ($linhas as &$linha) { $linha['T172_Imagens'] = isset($porProduto[(int) $linha['D001_Id']]) ? $porProduto[(int) $linha['D001_Id']] : array(); }
+        foreach ($linhas as &$linha) {
+            $produtoId = (int) $linha['D001_Id'];
+            $linha['T172_Imagens'] = isset($porProduto[$produtoId]) ? $porProduto[$produtoId] : array();
+            $linha['T172_Imagens_Invalidas'] = isset($invalidasPorProduto[$produtoId]) ? $invalidasPorProduto[$produtoId] : array();
+        }
         unset($linha);
     }
 
@@ -617,7 +852,7 @@ SQL;
         return $arquivo !== '' && is_file($arquivo) ? $arquivo : '';
     }
 
-    private function sqlProdutos($empresaId, array $filtros = array(), array $d009Ids = array(), $limite = 0, $offset = 0, $somenteIds = false)
+    private function sqlProdutos($empresaId, array $filtros = array(), array $d009Ids = array(), $limite = 0, $offset = 0, $somenteIds = false, array $configuracao = array())
     {
         $where = array("D009.D009_C004_Id='" . (int) $empresaId . "'", "D001.D001_Flag_Ecommerce='S'");
         foreach (array('codigo' => 'D001.D001_Codigo_Produto', 'descricao' => 'D001.D001_Descricao_Produto') as $chave => $coluna) {
@@ -633,7 +868,17 @@ SQL;
         $campos = $somenteIds ? 'D009.D009_Id' : 'D001.D001_Id, D049.D049_Id, D009.D009_Id,
             D001.D001_Codigo_Produto, D001.D001_Descricao_Produto, D001.D001_Flag_Ecommerce,
             D009.D009_Preco_1, D009.D009_Quantidade_Estoque_Liquido,
-            INT003.INT003_Id_Produto_ISET, INT003.INT003_SKU, INT005.INT005_Data_Hora_Sincronizacao';
+            INT003.INT003_Id_Produto_ISET, INT003.INT003_SKU,
+            INT005.INT005_Data_Hora_Sincronizacao, INT005.INT005_Cadastro_Posterior_Json';
+        $joinD001A = '';
+        // D001A contém campos personalizados: só consultar quando o JSON os utiliza.
+        if (!$somenteIds) foreach ($configuracao as $campo) {
+            if ($campo['origem'] === 'D001_Peso_Unitario_Bruto') $campos .= ', D001.D001_Peso_Unitario_Bruto';
+            if ($campo['origem'] === 'ISET_Dimensoes') {
+                $campos .= ', D001A.D001A_Comprimento, D001A.D001A_Largura, D001A.D001A_Altura';
+                $joinD001A = 'LEFT JOIN D001A ON D001A_D001_Id = D001.D001_Id';
+            }
+        }
         $where = implode(' AND ', $where);
         $limite = $limite > 0 ? 'LIMIT ' . (int) $offset . ', ' . (int) $limite : '';
         $sql = <<<SQL
@@ -641,6 +886,7 @@ SQL;
             FROM D009
                 INNER JOIN D049 ON D049.D049_Id = D009.D009_D049_Id
                 INNER JOIN D001 ON D001.D001_Id = D049.D049_D001_Id
+                {$joinD001A}
                 LEFT JOIN INT003 ON INT003.INT003_C004_Id = D009.D009_C004_Id AND INT003.INT003_D009_Id = D009.D009_Id
                 LEFT JOIN INT005 ON INT005.INT005_Id = (
                     SELECT MAX(INT005_Historico.INT005_Id) FROM INT005 AS INT005_Historico
@@ -715,20 +961,24 @@ SQL;
         foreach ($campos as $campo) {
             $id = $campo['id'];
             $hardness = array_key_exists($id, $produto['valores']) ? $produto['valores'][$id] : null;
-            $iset = null; $diferente = false;
+            $iset = null; $diferente = false; $decisaoImagens = null;
             if ($estado === ISET_CONSULTAS_PRODUTOS::ENCONTRADO) {
-                $hardnessNormalizado = $normalizador->normalizarValor($hardness, $campo['tipo']);
-                $iset = array_key_exists($id, $valoresIset) ? $normalizador->normalizarValor($valoresIset[$id], $campo['tipo']) : null;
+                $hardnessNormalizado = $normalizador->normalizarValor($hardness, $campo['tipo'], $campo['payload']);
+                $iset = array_key_exists($id, $valoresIset) ? $normalizador->normalizarValor($valoresIset[$id], $campo['tipo'], $campo['payload']) : null;
                 // cod_ref é o mesmo identificador nos dois sistemas, mas cada lado
                 // mantém o separador próprio. A comparação não pode gerar pendência
                 // apenas pela conversão pontual entre ponto e hífen.
-                $diferente = $campo['payload'] === 'cod_ref'
-                    ? !(new ISET_SKU())->iguais($hardness, $iset)
-                    : ($campo['tipo'] === 'imagens'
-                        ? !$normalizador->imagensEquivalentes($hardness, $iset)
-                        : $hardnessNormalizado !== $iset);
+                if ($campo['tipo'] === 'imagens') {
+                    $decisaoImagens = $this->decidirImagens($produto, array($campo['payload'] => $iset));
+                    $diferente = $decisaoImagens['estado'] !== self::IMAGENS_SINCRONIZADAS && $decisaoImagens['estado'] !== self::IMAGENS_DESABILITADAS;
+                } else {
+                    $diferente = $campo['payload'] === 'cod_ref'
+                        ? !(new ISET_SKU())->iguais($hardness, $iset)
+                        : $hardnessNormalizado !== $iset;
+                }
             }
             $camposComparacao[$id] = array('hardness' => $hardness, 'iset' => $iset, 'diferente' => $diferente, 'estadoConsulta' => $estado, 'consultadoEm' => $consultadoEm);
+            if ($decisaoImagens !== null) $camposComparacao[$id]['estadoImagens'] = $decisaoImagens['estado'];
         }
         return array('estadoConsulta' => $estado, 'consultadoEm' => $consultadoEm, 'campos' => $camposComparacao);
     }
@@ -745,7 +995,7 @@ SQL;
     private function resumoConsultaVazio() { return array('encontrados' => 0, 'naoEncontrados' => 0, 'erros' => 0, 'resultados' => array()); }
     private function somarResumoConsulta(array &$destino, array $origem) { foreach (array('encontrados', 'naoEncontrados', 'erros') as $campo) $destino[$campo] += isset($origem[$campo]) ? (int) $origem[$campo] : 0; if (!empty($origem['resultados'])) $destino['resultados'] = array_merge($destino['resultados'], $origem['resultados']); }
 
-    private function produtosPorD009($empresaId, array $ids, $carregarImagens = false) { $resultado = mysql_query($this->sqlProdutos($empresaId, array(), $ids)); $produtos = array(); if (!$resultado) throw new \Exception('Falha consultando produtos da empresa.'); if ($resultado) while ($linha = mysql_fetch_assoc($resultado)) $produtos[(int) $linha['D009_Id']] = $linha; if (!$carregarImagens) return $produtos; $linhas = array_values($produtos); $this->adicionarImagensProdutos($linhas); foreach ($linhas as $linha) $produtos[(int) $linha['D009_Id']] = $linha; return $produtos; }
+    private function produtosPorD009($empresaId, array $ids, $carregarImagens = false, array $campos = array()) { $resultado = mysql_query($this->sqlProdutos($empresaId, array(), $ids, 0, 0, false, $campos)); $produtos = array(); if (!$resultado) throw new \Exception('Falha consultando produtos da empresa.'); if ($resultado) while ($linha = mysql_fetch_assoc($resultado)) $produtos[(int) $linha['D009_Id']] = $linha; if (!$carregarImagens) return $produtos; $linhas = array_values($produtos); $this->adicionarImagensProdutos($linhas); foreach ($linhas as $linha) $produtos[(int) $linha['D009_Id']] = $linha; return $produtos; }
 
     protected function cliente() { return new ISET_CLIENTE(); }
     protected function consultasProdutos() { return new ISET_CONSULTAS_PRODUTOS(); }
@@ -789,7 +1039,13 @@ SQL;
     {
         $empresaId = (int) $empresaId; $idIset = (int) $idIset;
         if ($empresaId <= 0 || $idIset <= 0 || !in_array($operacao, array('CRIAR', 'ATUALIZAR'), true)) return false;
-        $cadastroPosterior = json_encode(integracoesLimparDadosLog(isset($produto['payloadIset']) ? $produto['payloadIset'] : $produto['payload']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $posterior = isset($produto['payloadIset']) ? $produto['payloadIset'] : $produto['payload'];
+        if (isset($produto['referenciaImagensPosterior']) && $this->referenciaImagensValida($produto['referenciaImagensPosterior'])) {
+            // Esta chave pertence somente ao controle interno e nunca integra o
+            // payload enviado à ISET.
+            $posterior['_iset_imagens'] = $produto['referenciaImagensPosterior'];
+        }
+        $cadastroPosterior = json_encode(integracoesLimparDadosLog($posterior), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $cadastroAnterior = $cadastroAnterior === null ? null : json_encode(integracoesLimparDadosLog($cadastroAnterior), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($cadastroPosterior === false || $cadastroAnterior === false) return false;
         $codigo = mysql_real_escape_string(substr(isset($produto['D001_Codigo_Produto']) ? $produto['D001_Codigo_Produto'] : '', 0, 100));

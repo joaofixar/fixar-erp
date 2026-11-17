@@ -35,6 +35,9 @@ final class MysqlRecorderCollector
         $status = $this->collectStatus();
 
         $failures = array_merge($fast['collection']['failures'], $digests['collection']['failures'], $status['collection']['failures']);
+        $recoveries = (int)($fast['collection']['connection_recoveries'] ?? 0)
+            + (int)($digests['collection']['connection_recoveries'] ?? 0)
+            + (int)($status['collection']['connection_recoveries'] ?? 0);
         return array(
             'schema_version' => 1,
             'collected_at' => $fast['collected_at'],
@@ -51,6 +54,7 @@ final class MysqlRecorderCollector
                 'success' => $failures === array(),
                 'partial' => $failures !== array(),
                 'failures' => $failures,
+                'connection_recoveries' => $recoveries,
                 'counts' => array(
                     'locks' => count($fast['locks']),
                     'long_queries' => count($fast['long_queries']),
@@ -67,7 +71,7 @@ final class MysqlRecorderCollector
         $this->validateDatabase($database);
         $longQuerySeconds = max(1, min(3600, $longQuerySeconds));
         $longTransactionSeconds = max(1, min(86400, $longTransactionSeconds));
-        $started = microtime(true); $failures = array();
+        $started = microtime(true); $failures = array(); $recoveries = $this->recoveryCount();
 
         $ownIdRows = $this->optional('connection', 'SELECT CONNECTION_ID() AS connection_id', array(), $failures);
         $ownId = isset($ownIdRows[0]['connection_id']) ? (int) $ownIdRows[0]['connection_id'] : 0;
@@ -92,6 +96,7 @@ final class MysqlRecorderCollector
                 'success' => $failures === array(),
                 'partial' => $failures !== array(),
                 'failures' => $failures,
+                'connection_recoveries' => $this->recoveryCount() - $recoveries,
                 'counts' => array('locks' => count($locks), 'long_queries' => count($longQueries), 'long_transactions' => count($transactions)),
                 'coverage_limited' => array(
                     'locks' => count($lockRows) >= self::LOCK_RESULT_LIMIT,
@@ -105,24 +110,24 @@ final class MysqlRecorderCollector
     public function collectDigests(string $database): array
     {
         $this->validateDatabase($database);
-        $started = microtime(true); $failures = array();
+        $started = microtime(true); $failures = array(); $recoveries = $this->recoveryCount();
         $rows=$this->optional('digests', self::DIGESTS_SQL, array($database), $failures);$coverageLimited=count($rows)>100;if($coverageLimited){$rows=array_slice($rows,0,100);}$digests = $this->digests($rows);
         return array(
             'schema_version' => 2, 'sample_type' => 'digests', 'collected_at' => date('c'), 'database' => $database,
             'digests' => $digests,
-            'collection' => array('duration_ms' => round((microtime(true) - $started) * 1000, 2), 'success' => $failures === array(), 'partial' => $failures !== array(), 'failures' => $failures, 'coverage_limited'=>$coverageLimited, 'counts' => array('digests' => count($digests))),
+            'collection' => array('duration_ms' => round((microtime(true) - $started) * 1000, 2), 'success' => $failures === array(), 'partial' => $failures !== array(), 'failures' => $failures, 'connection_recoveries'=>$this->recoveryCount()-$recoveries, 'coverage_limited'=>$coverageLimited, 'counts' => array('digests' => count($digests))),
         );
     }
 
     public function collectStatus(): array
     {
-        $started = microtime(true); $failures = array();
+        $started = microtime(true); $failures = array(); $recoveries = $this->recoveryCount();
         $sourceStarted=microtime(true); $status = $this->status($this->optional('status', self::STATUS_SQL, array(), $failures)); $statusDuration=round((microtime(true)-$sourceStarted)*1000,2);
         $sourceStarted=microtime(true); $errors = $this->errors($this->optional('errors', self::ERRORS_SQL, array(), $failures)); $errorsDuration=round((microtime(true)-$sourceStarted)*1000,2);
         return array(
             'schema_version' => 2, 'sample_type' => 'status', 'collected_at' => date('c'),
             'status' => $status, 'errors' => $errors,
-            'collection' => array('duration_ms' => round((microtime(true) - $started) * 1000, 2), 'source_duration_ms'=>array('status'=>$statusDuration,'errors'=>$errorsDuration), 'success' => $failures === array(), 'partial' => $failures !== array(), 'failures' => $failures, 'counts' => array('status' => count($status), 'errors' => count($errors))),
+            'collection' => array('duration_ms' => round((microtime(true) - $started) * 1000, 2), 'source_duration_ms'=>array('status'=>$statusDuration,'errors'=>$errorsDuration), 'success' => $failures === array(), 'partial' => $failures !== array(), 'failures' => $failures, 'connection_recoveries'=>$this->recoveryCount()-$recoveries, 'counts' => array('status' => count($status), 'errors' => count($errors))),
         );
     }
 
@@ -131,7 +136,7 @@ final class MysqlRecorderCollector
     {
         $databases = $this->validateDatabases($databases);
         $longQuerySeconds = max(1, min(3600, $longQuerySeconds)); $longTransactionSeconds = max(1, min(86400, $longTransactionSeconds));
-        $started = microtime(true); $failures = array();
+        $started = microtime(true); $failures = array(); $recoveries = $this->recoveryCount();
         $durations=array(); $sourceStarted=microtime(true); $ownIdRows = $this->optional('connection', 'SELECT CONNECTION_ID() AS connection_id', array(), $failures); $durations['connection']=round((microtime(true)-$sourceStarted)*1000,2);
         $ownId = isset($ownIdRows[0]['connection_id']) ? (int) $ownIdRows[0]['connection_id'] : 0;
         $sourceStarted=microtime(true); $processes = $this->optional('processlist', 'SHOW FULL PROCESSLIST', array(), $failures); $durations['processlist']=round((microtime(true)-$sourceStarted)*1000,2);
@@ -145,23 +150,23 @@ final class MysqlRecorderCollector
             $locksForSchema = $this->locks($lockRows, $database);
             $transactionRows = array_values(array_filter($transactions, function (array $row) use ($database): bool { return (string) ($row['database_name'] ?? '') === $database; }));
             $transactionsForSchema = $this->transactions($transactionRows, $longTransactionSeconds);
-            $records[$database] = array('schema_version'=>3, 'sample_type'=>'events', 'scope'=>'schema', 'collected_at'=>$collectedAt, 'database'=>$database, 'thresholds'=>array('long_query_seconds'=>$longQuerySeconds,'long_transaction_seconds'=>$longTransactionSeconds), 'locks'=>$locksForSchema, 'long_queries'=>$queriesForSchema, 'long_transactions'=>$transactionsForSchema, 'collection'=>array('duration_ms'=>0.0, 'success'=>$failures===array(), 'partial'=>$failures!==array(), 'failures'=>$failures, 'counts'=>array('locks'=>count($locksForSchema),'long_queries'=>count($queriesForSchema),'long_transactions'=>count($transactionsForSchema)), 'coverage_limited'=>array('locks'=>count($locks)>=self::LOCK_RESULT_LIMIT,'long_queries'=>$longQueryCoverageLimited,'long_transactions'=>count($transactions)>=self::TRANSACTION_RESULT_LIMIT)));
+            $records[$database] = array('schema_version'=>3, 'sample_type'=>'events', 'scope'=>'schema', 'collected_at'=>$collectedAt, 'database'=>$database, 'thresholds'=>array('long_query_seconds'=>$longQuerySeconds,'long_transaction_seconds'=>$longTransactionSeconds), 'locks'=>$locksForSchema, 'long_queries'=>$queriesForSchema, 'long_transactions'=>$transactionsForSchema, 'collection'=>array('duration_ms'=>0.0, 'source_duration_ms'=>$durations, 'success'=>$failures===array(), 'partial'=>$failures!==array(), 'failures'=>$failures, 'connection_recoveries'=>$this->recoveryCount()-$recoveries, 'counts'=>array('locks'=>count($locksForSchema),'long_queries'=>count($queriesForSchema),'long_transactions'=>count($transactionsForSchema)), 'coverage_limited'=>array('locks'=>count($locks)>=self::LOCK_RESULT_LIMIT,'long_queries'=>$longQueryCoverageLimited,'long_transactions'=>count($transactions)>=self::TRANSACTION_RESULT_LIMIT)));
         }
         $duration = round((microtime(true) - $started) * 1000, 2);
         foreach ($records as &$record) { $record['collection']['duration_ms'] = $duration; } unset($record);
-        return array('schema_version'=>3, 'sample_type'=>'events_server_batch', 'collected_at'=>$collectedAt, 'schemas'=>$databases, 'records'=>$records, 'collection'=>array('duration_ms'=>$duration,'source_duration_ms'=>$durations,'success'=>$failures===array(),'partial'=>$failures!==array(),'failures'=>$failures,'source_queries'=>4));
+        return array('schema_version'=>3, 'sample_type'=>'events_server_batch', 'collected_at'=>$collectedAt, 'schemas'=>$databases, 'records'=>$records, 'collection'=>array('duration_ms'=>$duration,'source_duration_ms'=>$durations,'success'=>$failures===array(),'partial'=>$failures!==array(),'failures'=>$failures,'connection_recoveries'=>$this->recoveryCount()-$recoveries,'source_queries'=>4));
     }
 
     /** Uma consulta limitada de digests para todo o servidor, depois particionada por schema. */
     public function collectDigestsServer(array $databases): array
     {
         $databases = $this->validateDatabases($databases); $allowed = array_fill_keys($databases, true);
-        $started = microtime(true); $failures = array(); $rows = $this->optional('digests', self::SERVER_DIGESTS_SQL, array(), $failures); $selectedDigestRows=count($rows);$totalDigestRows=0;foreach($rows as $row){$totalDigestRows=max($totalDigestRows,(int)($row['total_digest_rows']??0));}$resultLimitReached=$selectedDigestRows>self::SERVER_DIGEST_RESULT_LIMIT;if($resultLimitReached){$rows=array_slice($rows,0,self::SERVER_DIGEST_RESULT_LIMIT);}$coverageLimited=$resultLimitReached||$totalDigestRows>count($rows); $grouped = array();
+        $started = microtime(true); $failures = array(); $recoveries = $this->recoveryCount(); $rows = $this->optional('digests', self::SERVER_DIGESTS_SQL, array(), $failures); $selectedDigestRows=count($rows);$totalDigestRows=0;foreach($rows as $row){$totalDigestRows=max($totalDigestRows,(int)($row['total_digest_rows']??0));}$resultLimitReached=$selectedDigestRows>self::SERVER_DIGEST_RESULT_LIMIT;if($resultLimitReached){$rows=array_slice($rows,0,self::SERVER_DIGEST_RESULT_LIMIT);}$coverageLimited=$resultLimitReached||$totalDigestRows>count($rows); $grouped = array();
         foreach ($databases as $database) { $grouped[$database] = array(); }
         foreach ($rows as $row) { $database = (string) ($row['database_name'] ?? ''); if (isset($allowed[$database])) { $grouped[$database][] = $row; } }
         $records = array(); $collectedAt = date('c'); $duration = round((microtime(true) - $started) * 1000, 2);
-        foreach ($grouped as $database => $schemaRows) { $digests = $this->digests($schemaRows); $records[$database] = array('schema_version'=>3,'sample_type'=>'digests','scope'=>'schema','collected_at'=>$collectedAt,'database'=>$database,'digests'=>$digests,'collection'=>array('duration_ms'=>$duration,'success'=>$failures===array(),'partial'=>$failures!==array(),'failures'=>$failures,'counts'=>array('digests'=>count($digests)))); }
-        return array('schema_version'=>3,'sample_type'=>'digests_server_batch','collected_at'=>$collectedAt,'schemas'=>$databases,'records'=>$records,'collection'=>array('duration_ms'=>$duration,'source_duration_ms'=>array('digests'=>$duration),'success'=>$failures===array(),'partial'=>$failures!==array(),'failures'=>$failures,'source_queries'=>1,'coverage_limited'=>$coverageLimited,'result_limit_reached'=>$resultLimitReached,'total_digest_rows'=>$totalDigestRows,'selected_digest_rows'=>min($selectedDigestRows,self::SERVER_DIGEST_RESULT_LIMIT),'selection'=>array('per_schema'=>20,'total_time'=>200,'executions'=>200,'rows_examined'=>200,'lock_time'=>200,'issues'=>200,'result_limit'=>self::SERVER_DIGEST_RESULT_LIMIT)));
+        foreach ($grouped as $database => $schemaRows) { $digests = $this->digests($schemaRows); $records[$database] = array('schema_version'=>3,'sample_type'=>'digests','scope'=>'schema','collected_at'=>$collectedAt,'database'=>$database,'digests'=>$digests,'collection'=>array('duration_ms'=>$duration,'source_duration_ms'=>array('digests'=>$duration),'success'=>$failures===array(),'partial'=>$failures!==array(),'failures'=>$failures,'connection_recoveries'=>$this->recoveryCount()-$recoveries,'counts'=>array('digests'=>count($digests)))); }
+        return array('schema_version'=>3,'sample_type'=>'digests_server_batch','collected_at'=>$collectedAt,'schemas'=>$databases,'records'=>$records,'collection'=>array('duration_ms'=>$duration,'source_duration_ms'=>array('digests'=>$duration),'success'=>$failures===array(),'partial'=>$failures!==array(),'failures'=>$failures,'connection_recoveries'=>$this->recoveryCount()-$recoveries,'source_queries'=>1,'coverage_limited'=>$coverageLimited,'result_limit_reached'=>$resultLimitReached,'total_digest_rows'=>$totalDigestRows,'selected_digest_rows'=>min($selectedDigestRows,self::SERVER_DIGEST_RESULT_LIMIT),'selection'=>array('per_schema'=>20,'total_time'=>200,'executions'=>200,'rows_examined'=>200,'lock_time'=>200,'issues'=>200,'result_limit'=>self::SERVER_DIGEST_RESULT_LIMIT)));
     }
 
     private function validateDatabase(string $database): void
@@ -323,6 +328,7 @@ final class MysqlRecorderCollector
     }
 
     private function picosecondsToMilliseconds($value): float { return round((float) $value / 1000000000, 3); }
+    private function recoveryCount(): int { return method_exists($this->source, 'recoveryCount') ? (int) $this->source->recoveryCount() : 0; }
     private function limit(string $value, int $length): string { return mb_strlen($value) > $length ? mb_substr($value, 0, $length - 1) . '…' : $value; }
     private function safeError(string $message): string { return $this->limit((string) preg_replace('/(?:password|passwd|pwd)\s*[=:]\s*\S+/i', 'credential=[hidden]', $message), 300); }
 }

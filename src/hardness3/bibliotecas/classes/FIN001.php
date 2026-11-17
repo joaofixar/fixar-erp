@@ -1008,7 +1008,6 @@ EOT;
      */
     public function gerarRemessaBancaria($D007_Id)
     {
-        return 'A base local não registra boleto.';
         global $g;
 
         $where  = " T002_Flag_Enviar_Banco='S'";

@@ -97,6 +97,8 @@ $empresas = scandir('/var/www/sites');
 foreach($empresas as $index => $empresa){
     //echo "Entrou no loop /var/www/sites/$empresa \n";
     if (strpos($empresa, '-confUsuario.php') !== false) {
+        // A configuração de auditoria de um cliente não pode passar ao próximo.
+        unset($confUsuarioAuditoria);
         require('/var/www/sites/'.$empresa);
         // O disparador executa este arquivo em um processo PHP exclusivo por banco.
         // Neste modo não podemos processar os demais bancos, pois classes personalizadas
@@ -125,10 +127,15 @@ foreach($empresas as $index => $empresa){
                     echo "Processando DB {$confUsuario['dbDatabase']}...\n";
                 }
 
+                unset($g['conexaoBancoAuditoria'], $g['erroSomenteAuditoria'], $g['auditoriaCron']);
                 $g['conexaoBanco'] = $con;
                 mysql_query("USE {$confUsuario['dbDatabase']}");
                 $g['pathDados'] = "dados_usuarios/{$confUsuario['dbDatabase']}/";
                 $g['pathDadosAntigo'] = str_replace('hardness3', 'hardness', $confUsuario['pathRaiz']) . $g['pathDados'] . '/';
+                // O cron não passa pelo index-framework, que inicializa a auditoria na interface.
+                include('bibliotecas/conexaoBancoAuditoria.php');
+                Personalizacoes::$rootDir = $g['pathDados'];
+                $g['tabelasAuditoria'] = Personalizacoes::tabelasAuditoria();
                 // Loop tarefas
                 // Modo desenvolvedor é utilizado a tabela D183, no modo normal a C039 - na execução é feito o merge das duas, priorizando a C039
                 $sql = <<<EOT
@@ -263,6 +270,7 @@ foreach($empresas as $index => $empresa){
                     $executouComSucesso = false;
                     $logCrontab         = Personalizacoes::getDirLogsCrontab() . $tabela . '-' . $crontab[$tabela.'_Id'] . '.log';
 
+                    $g['auditoriaCron'] = $tabela . ':' . $crontab[$tabela.'_Id'] . ' codigo=' . $crontab[$tabela.'_Codigo'];
                     try {
                         $retorno = executarCodigo($crontab[$tabela.'_Codigo'], array(), $crontab[$tabela.'_Codigo_Sql']);
                         $retorno = is_array($retorno) ? print_r($retorno, true) : $retorno;
@@ -271,6 +279,7 @@ foreach($empresas as $index => $empresa){
                         $retorno = "Erro ao executar processo: " . $e->getMessage() . "\n" . $e->getTraceAsString();
                         echo "Erro ao executar {$confUsuario['dbDatabase']} - {$crontab[$tabela.'_Id']} - {$crontab[$tabela.'_Codigo']}: {$e->getMessage()}\n";
                     } finally {
+                        unset($g['auditoriaCron']);
                         $fim               = microtime(true);
                         $tempoExecucao     = ceil($fim - $inicio);
                         $horas             = floor($tempoExecucao / 3600);

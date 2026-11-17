@@ -459,7 +459,7 @@ EOT;
             array('colunaValor' => 'foto', 'colunaTitulo' => 'Foto', 'colunaTipo' => 'livre', 'callback' => 'mostrarImagemProdutoPequena', 'colunaExibir' => false, 'style' => 'width:0px'),
 			array('colunaValor' => 'desvincularProduto', 'colunaTitulo' => '', 'callback' => 'desvincularProduto', 'colunaTipo' => 'livre', 'colunaExibir' => $exibirDesvinular),			
 			array('colunaValor' => 'T055_Codigo_Produto', 'colunaTitulo' => 'Código', 'style' => 'width:1%;font-size:12px', 'callback' => 'vincularProduto'),
-			array('colunaValor' => 'produtoDI', 'colunaTitulo' => 'Item XML','colunaTipo' => 'livre', 'callback' => 'verificaProdutoImportadoXML', 'colunaExibir' => $exibirVinculoXML, 'colunaAlinhar' => 'center'),
+			array('colunaValor' => 'produtoDI', 'colunaTitulo' => 'Item XML','colunaTipo' => 'livre', 'callback' => 'verificaProdutoImportadoXML', 'colunaExibir' => $exibirVinculoXML, 'colunaAlinhar' => center),
             array('colunaValor' => 'T055_Descricao_Produto', 'colunaTitulo' => 'Descrição','callback' => 'coloreLinhaProdutos'),
 			array('colunaValor' => 'T055_Descricao_Produto_Ingles', 'colunaTitulo' => 'Descrição Inglês', 'colunaEditarOculto' => true, 'colunaExibir' => false),
             array('colunaValor' => 'D082_Marca', 'colunaTitulo' => 'Marca'),

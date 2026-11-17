@@ -235,7 +235,8 @@ EOT;
 					array('title' => 'Comprado', 'value' => 'CP'), 
 					array('title' => 'Produzido', 'value' => 'PD'), 
 					array('title' => 'Montado', 'value' => 'MT'), 
-					array('title' => 'Modificado', 'value' => 'MD'), 
+					array('title' => 'Modificado', 'value' => 'MD'),
+					array('title' => 'Industrialização', 'value' => 'IN'),
 
 
 				)
@@ -1143,7 +1144,7 @@ EOT;
 			AND T294_Id is null
 			AND D009_C004_Id='{$g['empresaAtual']}'
 			AND (T004_Flag_Comprar='S' OR T004A_Flag_Solicitar_Prazo_Compras ='S')
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND D006_Flag_Estoque = 'D'
 			{$origensProdutos}
 			GROUP BY T004_Id
@@ -1549,7 +1550,7 @@ EOT;
 			AND T296_Id is null
 			AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado is null)
 			AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND T006_Flag_Nao_Comprar != 'S'
 			AND D006_Flag_Estoque = 'D'
 			{$origensProdutos}
@@ -2044,7 +2045,7 @@ EOT;
 			AND T219_Id is not null
 			AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado is null)
 			AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND T006_Flag_Nao_Comprar != 'S'
 			AND D006_Flag_Estoque = 'D'
 			AND (D049_Origem_Mercadoria = 1 OR D049_Origem_Mercadoria = 2 OR D049_Origem_Mercadoria = 6 OR D049_Origem_Mercadoria = 7)
@@ -2354,7 +2355,7 @@ EOT;
 			AND ifnull(T296_Id,0) <= 0
 			AND (T005_T005_Id_Agrupado<=0 or T005_T005_Id_Agrupado is null)
 			AND (T006_Quantidade-if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)-if(T006_Quantidade_OC>0,T006_Quantidade_OC,0))>0
-			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo='PD')			
+			AND (D049_Flag_Tipo='CP' OR D049_Flag_Tipo IN ('PD', 'IN'))
 			AND T006_Flag_Nao_Comprar != 'S'
 			AND D006_Flag_Estoque = 'D'
 			AND (D049_Origem_Mercadoria = 1 OR D049_Origem_Mercadoria = 2 OR D049_Origem_Mercadoria = 6 OR D049_Origem_Mercadoria = 7)
@@ -3109,7 +3110,7 @@ EOT;
 			AND (if(T006_Quantidade_Estoque>0,T006_Quantidade_Estoque,0)+T006_Quantidade_OC) < T006_Quantidade 
 			AND (T005_Flag_Status = 0 OR T005_Flag_Status = '' OR T005_Flag_Status=14)
 			AND IF(IFNULL(T006_C004_Id_Estoque,0) > 0, T006_C004_Id_Estoque, T005_C004_Id) = T005_C004_Id
-			AND D049_Flag_Tipo = 'PD'
+			AND D049_Flag_Tipo IN ('PD', 'IN')
 			AND (D049_Origem_Mercadoria = 1 OR D049_Origem_Mercadoria = 2 OR D049_Origem_Mercadoria = 6 OR D049_Origem_Mercadoria = 7)
 			GROUP BY T006_Id
 EOT;

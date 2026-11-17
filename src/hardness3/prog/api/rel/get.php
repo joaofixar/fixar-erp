@@ -10,6 +10,40 @@ $API003 = new API003();
 global $r_generateAPI;
 $r_generateAPI=true;
 
+// Paginação exclusiva para consumidores MCP. Os links legados continuam sem
+// limite quando estes parâmetros não são enviados.
+class ApiRelatorioMcpPageSqlProxy {
+	private $sqlAuto;
+	private $offset;
+	private $size;
+
+	public function __construct($sqlAuto, $offset, $size) {
+		$this->sqlAuto = $sqlAuto;
+		$this->offset = $offset;
+		$this->size = $size;
+	}
+
+	public function gerarSQLGrid() {
+		$arguments = func_get_args();
+		if (isset($arguments[2]) && is_string($arguments[2])) {
+			$arguments[2] = rtrim($arguments[2]) . sprintf("\nLIMIT %d,%d", $this->offset, $this->size + 1);
+		}
+
+		return call_user_func_array(array($this->sqlAuto, 'gerarSQLGrid'), $arguments);
+	}
+
+	public function __call($method, $arguments) {
+		return call_user_func_array(array($this->sqlAuto, $method), $arguments);
+	}
+}
+
+$mcpPageSize = isset($_GET['MCP_PAGE_SIZE']) ? (int) $_GET['MCP_PAGE_SIZE'] : 0;
+$mcpPageOffset = isset($_GET['MCP_PAGE_OFFSET']) ? (int) $_GET['MCP_PAGE_OFFSET'] : 0;
+if ($mcpPageSize > 0 && $mcpPageSize <= 500 && $mcpPageOffset >= 0 && isset($g['sqlAuto'])) {
+	$g['sqlAuto'] = new ApiRelatorioMcpPageSqlProxy($g['sqlAuto'], $mcpPageOffset, $mcpPageSize);
+}
+unset($_GET['MCP_PAGE_SIZE'], $_GET['MCP_PAGE_OFFSET']);
+
 // Se tiver o banco espelhado configurado no confUsuario.php, faz a conexão com para buscar os dados da API
 if(isset($confUsuarioEspelhado)){
 	require_once('bibliotecas/conexaoBancoEspelhado.php');
@@ -2584,7 +2618,7 @@ function extraFiltro(){
 	$extraFiltro = array();
 	foreach ($parametros as $key => $value) {
 		$value = " $value ";
-		if (!strpos($value,'DATAINICIAL') && !strpos($value,'DATAFINAL') && !strpos($value,'API_AUTH')) {
+		if (!strpos($value,'DATAINICIAL') && !strpos($value,'DATAFINAL') && !strpos($value,'API_AUTH') && !strpos($value,'MCP_PAGE_SIZE') && !strpos($value,'MCP_PAGE_OFFSET')) {
 			$extra = explode("=",$value);
 			$extraComIN = strpos($extra[1],"IN(");
 			if($extraComIN !== false){

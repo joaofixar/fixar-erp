@@ -221,27 +221,10 @@ tablet_separacao_header('Separar item', [
         <?php endforeach; ?>
 
         <form method="post" class="stack-lg">
-            <label class="field field--compact">
-                <span>Quantidade</span>
-                <input
-                    type="text"
-                    inputmode="decimal"
-                    pattern="[0-9]*([,.][0-9]+)?"
-                    step="0.0001"
-                    min="0.0001"
-                    max="<?php echo h((string) $remaining); ?>"
-                    name="quantity"
-                    placeholder="0,0000"
-                    autocomplete="off"
-                    value="<?php echo h((string) ($_POST['quantity'] ?? '')); ?>"
-                    autofocus
-                >
-            </label>
-
             <label class="field">
                 <span>Código da locação</span>
                 <?php if ($locationDisplayMode === 'combo'): ?>
-                    <select name="location_barcode" class="field__select">
+                    <select name="location_barcode" class="field__select" autofocus>
                         <option value="">Selecione uma locação</option>
                         <?php foreach (($item['locations'] ?? []) as $location): ?>
                             <?php $locationValue = (string) ($location['barcode'] ?? ''); ?>
@@ -256,6 +239,7 @@ tablet_separacao_header('Separar item', [
                             type="text"
                             name="location_barcode"
                             class="scan-input"
+                            autofocus
                             placeholder="<?php echo h($locationAllowsTyping ? 'Digite, bipa a locação' : 'Bipe a locação'); ?>"
                             value="<?php echo h((string) ($_POST['location_barcode'] ?? '')); ?>"
                             <?php echo $locationAllowsTyping ? '' : 'readonly'; ?>
@@ -279,6 +263,22 @@ tablet_separacao_header('Separar item', [
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
+            </label>
+
+            <label class="field field--compact">
+                <span>Quantidade</span>
+                <input
+                    type="text"
+                    inputmode="decimal"
+                    pattern="[0-9]*([,.][0-9]+)?"
+                    step="0.0001"
+                    min="0.0001"
+                    max="<?php echo h((string) $remaining); ?>"
+                    name="quantity"
+                    placeholder="0,0000"
+                    autocomplete="off"
+                    value="<?php echo h((string) ($_POST['quantity'] ?? '')); ?>"
+                >
             </label>
 
             <?php if (!tablet_separacao_real_mode()): ?>

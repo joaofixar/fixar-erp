@@ -1538,7 +1538,7 @@ EOT;
 		$erroOrcamento='';
 		$contProdutosProduzidos = 0;
 		while($mT004 = mysql_fetch_assoc($T004)){
-			if($mT006['D049_Flag_Tipo'] == 'PD'){
+			if(in_array($mT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 				$contProdutosProduzidos++;
 				continue;
 			}
@@ -1688,7 +1688,7 @@ EOT;
 		$contProdutosProduzidos = 0;
 		while($mT006 = mysql_fetch_array($T006)){			
 			// Não atualiza custo de produtos produzidos
-			if($mT006['D049_Flag_Tipo'] == 'PD'){
+			if(in_array($mT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 				$contProdutosProduzidos++;
 				continue;
 			}

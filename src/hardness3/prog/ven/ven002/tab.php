@@ -83,6 +83,8 @@ namespace hardness;
 				//array_push($tabsList, array($tab8Id, '/ven/ven002/grid/ven002GridEntregaServicos/', 'Entrega', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T005_Id=" . urlencode($_REQUEST['acaoId']),false,true));
 				$tab10Id = uniqid();
 				array_push($tabsList, array($tab10Id, '/ven/ven002/form/ven002FormMoeda/', 'Moeda', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T005_Id=" . urlencode($_REQUEST['acaoId']),false,true));
+					$tabExportacaoId = uniqid();
+					array_push($tabsList, array($tabExportacaoId, '/ven/ven002/form/ven002FormExportacao/', 'Exportação', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . "&T005_Id=" . urlencode($_REQUEST['acaoId']),false,true));
 				$tab11Id = uniqid();
 				array_push($tabsList, array($tab11Id, '/etc/etc017/content/etc017ContentAtividadesT005/', 'Atividades', "&tab=geral&T005_Id=" . urlencode($_REQUEST['acaoId']),false,true));
 				
@@ -138,7 +140,7 @@ namespace hardness;
 				array(uniqid(), '/ven/ven002/form/ven002FormProdutosEditar/', 'Pis/Cofins', '&tab=pis-cofins&acaoId=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId)),
 	            array(uniqid(), '/ven/ven002/content/ven002ContentAgregados/', 'Agregados', '&tab=geral&acaoId=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId). '&T005_Id=' . urlencode($r_T005_Id)),
 			);
-			if($rowT006['D049_Flag_Tipo'] == 'PD'){
+			if(in_array($rowT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 				$tabsList[] = array(uniqid(), '/ven/ven002/content/ven002ContentEngenhariaProduto/', 'Engenharia', '&tab=geral&acaoId=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId));
 			}
 

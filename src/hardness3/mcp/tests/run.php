@@ -291,7 +291,7 @@ class TestAdminStatement extends PDOStatement
     private TestAdminPdo $pdo;
     private string $sql;
     /** @var array<string,mixed>|false */ private $row = false;
-    private int $column = 0;
+    /** @var mixed */ private $column = 0;
     private int $affectedRows = 0;
     public function __construct(TestAdminPdo $pdo, string $sql) { $this->pdo = $pdo; $this->sql = $sql; }
     public function execute($parameters = null) { [$this->row, $this->column, $this->affectedRows] = $this->pdo->executeStatement($this->sql, is_array($parameters) ? $parameters : []); return true; }
@@ -309,6 +309,7 @@ class TestAdminPdo extends PDO
     public ?string $connectionPublicId = 'AbCdEfGhIjKlMnOpQrStUvWx';
     public bool $activeApiKey = true;
     public bool $validResponsibleUser = false;
+    public bool $legacyDownloadGrant = true;
     /** @var string[] */ public array $connectionScopes = ['mcp.read'];
     public function __construct() {}
     public function beginTransaction() { $this->transaction = true; return true; }
@@ -328,6 +329,7 @@ class TestAdminPdo extends PDO
         if (strpos($sql, 'SELECT MCP001_Id,MCP001_C004_Id') === 0) { return (($params['company'] ?? 1) === 1) ? [['MCP001_Id' => 101, 'MCP001_C004_Id' => 1, 'MCP001_Status' => $this->connectionStatus, 'MCP001_Scopes' => json_encode($this->connectionScopes)], 0, 0] : [false, 0, 0]; }
         if (strpos($sql, 'SELECT 1 FROM MCP001 connection_row') === 0) { return [$this->validResponsibleUser ? ['1' => 1] : false, 0, 0]; }
         if (strpos($sql, 'SELECT 1 FROM MCP002') === 0) { return [$this->activeApiKey ? ['1' => 1] : false, 0, 0]; }
+        if (strpos($sql, 'SELECT 1 FROM MCP005 g INNER JOIN MCP010 s') === 0) { return [$this->legacyDownloadGrant ? ['1' => 1] : false, $this->legacyDownloadGrant ? 1 : false, 0]; }
         if (strpos($sql, 'SELECT COUNT(*)') === 0) { return [false, 1, 0]; }
         if (strpos($sql, 'SELECT k.MCP002_Id') === 0) { return [['MCP002_Id' => 201, 'MCP001_Id' => 101, 'MCP001_C004_Id' => 1], 0, 0]; }
         if (strpos($sql, 'INSERT INTO MCP001') === 0) { $this->lastId = 101; }
@@ -676,13 +678,52 @@ mcpAssert(($dcrResponseDiagnostic['client_id_type'] ?? null) === 'string' && ($d
 mcpAssert(strpos((string) json_encode($dcrResponseDiagnostic), 'never-log-client-id') === false && strpos((string) json_encode($dcrResponseDiagnostic), 'Never log this name') === false && strpos((string) json_encode($dcrResponseDiagnostic), 'never=log') === false, 'DCR response diagnostics must not record client identifiers, client names, or redirect URI paths and queries.');
 $scopeCatalog = new ScopeCatalog();
 $catalogScopes = $scopeCatalog->all();
-mcpAssert(array_column($catalogScopes, 'id') === ['company:read', 'product:prices:history', 'product:prices:export', 'product:prices:reverse', 'partner:search', 'partner:lookup', 'product:prices:apply', 'product:prices:prepare', 'product:read', 'product:partner-reference:lookup', 'quote:read', 'quote:report:read', 'quote:item-report:read', 'sales:read', 'sales:item-report:read', 'order:report:read', 'order:item-report:read', 'product:conversion-report:read', 'commercial:opportunities:read', 'finance:receivables:read', 'finance:payables:read', 'quote:write', 'quote:item:add', 'quote:item:update', 'quote:item:delete', 'ide_smt:quote:order:generate'], 'scope catalog must expose only scopes backed by registered Tools');
+mcpAssert(in_array('legacy_reports:read', array_column($catalogScopes, 'id'), true), 'scope catalog must expose the legacy report scope');
 $quoteCreateGateway = new TestQuoteCreateGateway();
 $quotePdfGateway = new TestQuotePdfGateway();
 $catalogProductRepository = new TestProductRepository();
 $catalogQuoteRepository = new TestQuoteRepository();
 $companyCatalog = (new ToolCatalogFactory([new CompanyToolsModule(new TestCompanyRepository(), new TestPartnerRepository()), new ProductToolsModule($catalogProductRepository, $catalogProductRepository), new QuoteToolsModule($catalogQuoteRepository, $quoteCreateGateway, $quotePdfGateway, null, $catalogQuoteRepository), new SalesToolsModule(new TestSalesSummaryRepository()), new FinanceToolsModule(new TestFinanceSummaryRepository()), new OrderToolsModule(new TestOrderBacklogRepository()), ItemReportToolsModule::fromPdo(new TestPdo()), CommercialToolsModule::fromPdo(new TestPdo()), new IdeSmtToolsModule(new TestIdeSmtGenerateOrderGateway(), null), new SystemToolsModule(new TestContextPilotGateway())]))->createRegistry();
 mcpAssert(array_map(static function (ToolInterface $tool): string { return $tool->getDefinition()->getName(); }, $companyCatalog->all()) === ['hardness.company.get_current', 'hardness.partner.search', 'hardness.partner.get', 'hardness.partner.get_by_document', 'hardness.product.search', 'hardness.product.get_by_partner_reference', 'hardness.product.prices.prepare', 'hardness.product.prices.apply', 'hardness.product.prices.history', 'hardness.product.prices.export', 'hardness.product.prices.reversal_prepare', 'hardness.product.prices.reversal_apply', 'hardness.quote.search', 'hardness.quote.get_by_id', 'hardness.quote.summary', 'hardness.quote.create', 'hardness.quote.generate_pdf_link', 'hardness.quote_item.add', 'hardness.quote_item.update', 'hardness.quote_item.delete', 'hardness.sales.summary', 'hardness.finance.receivables_summary', 'hardness.finance.payables_summary', 'hardness.finance.cash_flow_summary', 'hardness.order.summary', 'hardness.quote.item_summary', 'hardness.order.item_summary', 'hardness.sales.item_summary', 'hardness.product.conversion_summary', 'hardness.commercial.opportunities', 'hardness.ide_smt.quote.generate_order_by_destination', 'hardness.system.context_pilot'], 'explicit modules must register the approved public Tool catalog');
+$legacyTestTenant = \HardnessMcp\Tenant\ResolvedTenantContext::fromResolvedTenant(['host'=>'legacy.test','conf_file'=>'legacy.php','dbDatabase'=>'legacy','dbHost'=>'localhost','dbUser'=>'user','dbPass'=>'pass']);
+require_once dirname(__DIR__) . '/src/Tools/LegacyReports/LegacyReportsTools.php';
+$legacyExportDirectory = sys_get_temp_dir() . '/hardness-mcp-legacy-export-' . bin2hex(random_bytes(6));
+$legacyStreamGateway = new \HardnessMcp\Tools\LegacyReports\LegacyReportGateway(new TestPdo(), $legacyTestTenant, static function (array $report, array $arguments, ExecutionContext $context) {
+    $stream = fopen('php://temp', 'w+b');
+    fwrite($stream, (($arguments['delivery'] ?? '') === 'page') ? json_encode(array_fill(0, 101, ['legacy_field' => 'unchanged'])) : '{"legacy_field":"unchanged","nested":{"original":true}}');
+    rewind($stream); return $stream;
+});
+$legacyDownloads = new \HardnessMcp\Tools\LegacyReports\LegacyReportDownloadLinkService('https://legacy.test/hardness3', 'legacy-download-test-secret');
+$legacyExportTool = new \HardnessMcp\Tools\LegacyReports\LegacyReportsGetTool(new \HardnessMcp\Tools\LegacyReports\LegacyReportCatalog([], true), $legacyStreamGateway, $legacyDownloads, $legacyExportDirectory, 'legacy');
+$legacyOAuthContext = new ExecutionContext(17, 8, 3, 9, ['legacy_reports:read'], 'oauth', 4, 5, 6);
+$legacyExportResult = $legacyExportTool->execute(['report' => 'clientes'], $legacyOAuthContext)->getResult()['structuredContent'] ?? [];
+mcpAssert(($legacyExportResult['delivery'] ?? null) === 'export' && is_string($legacyExportResult['download_url'] ?? null) && strpos($legacyExportResult['download_url'], 'API_AUTH') === false && ($legacyExportResult['bytes'] ?? 0) > 0, 'legacy report export must return a signed download URL and metadata instead of JSON data.');
+parse_str((string) parse_url((string) $legacyExportResult['download_url'], PHP_URL_QUERY), $legacyExportQuery);
+$legacyDownloadToken = (string) ($legacyExportQuery['token'] ?? '');
+mcpAssert($legacyDownloads->verify($legacyDownloadToken) !== null && $legacyDownloads->verify($legacyDownloadToken)['n'] === 17, 'legacy report download links must bind the OAuth connection and verify their signature.');
+mcpAssert($legacyDownloads->verify($legacyDownloadToken . 'x') === null, 'legacy report download links must reject invalid signatures.');
+$legacyExpiredBody = rtrim(strtr(base64_encode(json_encode(['f' => str_repeat('a', 32) . '.json', 't' => hash('sha256', 'legacy'), 'c' => 3, 'n' => 17, 'g' => 5, 'e' => time() - 1])), '+/', '-_'), '=');
+$legacyExpiredToken = $legacyExpiredBody . '.' . rtrim(strtr(base64_encode(hash_hmac('sha256', 'legacy-report-download:v1:' . $legacyExpiredBody, 'legacy-download-test-secret', true)), '+/', '-_'), '=');
+mcpAssert($legacyDownloads->verify($legacyExpiredToken) === null, 'legacy report download links must reject expired tokens.');
+$legacyPageResult = $legacyExportTool->execute(['report' => 'clientes', 'delivery' => 'page', 'page_size' => 100, 'cursor' => '200'], $legacyOAuthContext)->getResult()['structuredContent'] ?? [];
+mcpAssert(($legacyPageResult['next_cursor'] ?? null) === '300' && ($legacyPageResult['offset'] ?? null) === 200 && count($legacyPageResult['data'] ?? []) === 100, 'legacy report page delivery must preserve the supplied cursor and SQL page contract.');
+$legacyCustomPageTool = new \HardnessMcp\Tools\LegacyReports\LegacyReportsGetTool(new \HardnessMcp\Tools\LegacyReports\LegacyReportCatalog([['id' => 'custom', 'name' => 'Custom', 'description' => '', 'route' => 'clientes', 'app_code' => 'x', 'parameters' => []]], false), $legacyStreamGateway, $legacyDownloads, $legacyExportDirectory, 'legacy');
+mcpAssert((($legacyCustomPageTool->execute(['report' => 'custom', 'delivery' => 'page'], $legacyOAuthContext)->getResult()['structuredContent']['error']['code'] ?? null) === 'legacy_report_pagination_not_supported'), 'custom AppApi reports without SQL pagination must fail safely in page delivery.');
+mcpAssert((($legacyExportTool->execute(['report' => 'clientes'], new ExecutionContext(17, 8, 3, 9, ['legacy_reports:read'])))->getResult()['structuredContent']['error']['code'] ?? null) === 'legacy_report_export_oauth_required', 'legacy report export must require an OAuth grant.');
+$config['oauth']['access_token_pepper_current_version'] = 'v1'; $config['oauth']['access_token_peppers']['v1'] = 'legacy-download-test-secret';
+$legacyHandlerPdo = new TestAdminPdo(); $legacyHandlerBootstrap = new TestBootstrap(dirname(__DIR__)); $legacyHandlerBootstrap->setEndpointPdo($legacyHandlerPdo);
+$legacyHandlerDirectory = dirname(__DIR__) . '/../dados_usuarios/tenant/mcp/legacy-reports'; if (!is_dir($legacyHandlerDirectory)) mkdir($legacyHandlerDirectory, 0700, true);
+$legacyHandlerFile = str_repeat('b', 32) . '.json'; file_put_contents($legacyHandlerDirectory . '/' . $legacyHandlerFile, '{"original":"payload"}');
+$legacyHandlerLink = new \HardnessMcp\Tools\LegacyReports\LegacyReportDownloadLinkService('https://cliente.fastcrud.com.br/hardness3', 'legacy-download-test-secret');
+$legacyHandlerUrl = (string) $legacyHandlerLink->issue($legacyHandlerFile, 'tenant', new ExecutionContext(17, 8, 1, 9, ['legacy_reports:read'], 'oauth', 4, 5, 6)); parse_str((string) parse_url($legacyHandlerUrl, PHP_URL_QUERY), $legacyHandlerQuery);
+$legacyHandlerResponse = $legacyHandlerBootstrap->handle(new Request('GET', '/mcp', 'cliente.fastcrud.com.br', '', [], ['legacy_report_download' => '1', 'token' => (string) $legacyHandlerQuery['token']]), $config);
+mcpAssert($legacyHandlerResponse->getStatus() === 200 && ($legacyHandlerResponse->getHeaders()['Content-Type'] ?? null) === 'application/json; charset=utf-8', 'valid legacy export download links must serve the stored JSON file.');
+$legacyHandlerPdo->legacyDownloadGrant = false;
+mcpAssert($legacyHandlerBootstrap->handle(new Request('GET', '/mcp', 'cliente.fastcrud.com.br', '', [], ['legacy_report_download' => '1', 'token' => (string) $legacyHandlerQuery['token']]), $config)->getStatus() === 404, 'legacy export downloads must return 404 when the grant or scope is no longer active.');
+$legacyHandlerPdo->legacyDownloadGrant = true; $legacyMissingUrl = (string) $legacyHandlerLink->issue(str_repeat('c', 32) . '.json', 'tenant', new ExecutionContext(17, 8, 1, 9, ['legacy_reports:read'], 'oauth', 4, 5, 6)); parse_str((string) parse_url($legacyMissingUrl, PHP_URL_QUERY), $legacyMissingQuery);
+mcpAssert($legacyHandlerBootstrap->handle(new Request('GET', '/mcp', 'cliente.fastcrud.com.br', '', [], ['legacy_report_download' => '1', 'token' => (string) $legacyMissingQuery['token']]), $config)->getStatus() === 404, 'legacy export downloads must return 404 for missing files.');
+@unlink($legacyHandlerDirectory . '/' . $legacyHandlerFile);
+$companyCatalog = new ToolRegistry(array_merge($companyCatalog->all(), (new \HardnessMcp\Tools\Catalog\LegacyReportsToolsModule(new \HardnessMcp\Tools\LegacyReports\LegacyReportCatalog(), new \HardnessMcp\Tools\LegacyReports\LegacyReportGateway(new TestPdo(), $legacyTestTenant)))->tools()));
 (new ToolCatalogConsistencyValidator())->assertConsistent($companyCatalog, $scopeCatalog);
 $publicCatalogServer = new JsonRpcServer($config, new ToolExecutor($companyCatalog));
 $publicCatalogList = $publicCatalogServer->handle('{"jsonrpc":"2.0","id":89,"method":"tools/list"}', '2025-11-25', new ExecutionContext(7, 8, 3, 9, ['company:read', 'partner:search', 'partner:lookup', 'product:read', 'product:partner-reference:lookup', 'product:prices:prepare', 'product:prices:apply', 'product:prices:history', 'product:prices:export', 'product:prices:reverse', 'quote:read', 'quote:item-report:read', 'quote:report:read', 'quote:write', 'sales:read', 'order:report:read', 'order:item-report:read', 'sales:item-report:read', 'product:conversion-report:read', 'commercial:opportunities:read'], 'api_key', null, null, null, null, true));
@@ -1133,7 +1174,7 @@ $response = $discoveryBootstrap->handle(new Request('GET', '/.well-known/oauth-p
 $protectedMetadata = $response->getPayload();
 mcpAssert($response->getStatus() === 200 && ($response->getHeaders()['Content-Type'] ?? null) === 'application/json; charset=utf-8', 'protected-resource metadata must be public JSON over GET');
 mcpAssert(($protectedMetadata['resource'] ?? null) === 'https://cliente.fastcrud.com.br/mcp' && ($protectedMetadata['authorization_servers'] ?? null) === ['https://cliente.fastcrud.com.br'], 'protected-resource metadata must use configured canonical URLs, never the request host');
-mcpAssert(($protectedMetadata['scopes_supported'] ?? null) === ['commercial:opportunities:read', 'company:read', 'finance:payables:read', 'finance:receivables:read', 'ide_smt:quote:order:generate', 'order:item-report:read', 'order:report:read', 'partner:lookup', 'partner:search', 'product:conversion-report:read', 'product:partner-reference:lookup', 'product:prices:apply', 'product:prices:export', 'product:prices:history', 'product:prices:prepare', 'product:prices:reverse', 'product:read', 'quote:item-report:read', 'quote:item:add', 'quote:item:delete', 'quote:item:update', 'quote:read', 'quote:report:read', 'quote:write', 'sales:item-report:read', 'sales:read'] && ($protectedMetadata['bearer_methods_supported'] ?? null) === ['header'], 'protected-resource metadata must advertise the active MCP scope catalogue and bearer header method');
+mcpAssert(($protectedMetadata['scopes_supported'] ?? null) === ['commercial:opportunities:read', 'company:read', 'finance:payables:read', 'finance:receivables:read', 'ide_smt:quote:order:generate', 'legacy_reports:read', 'order:item-report:read', 'order:report:read', 'partner:lookup', 'partner:search', 'product:conversion-report:read', 'product:partner-reference:lookup', 'product:prices:apply', 'product:prices:export', 'product:prices:history', 'product:prices:prepare', 'product:prices:reverse', 'product:read', 'quote:item-report:read', 'quote:item:add', 'quote:item:delete', 'quote:item:update', 'quote:read', 'quote:report:read', 'quote:write', 'sales:item-report:read', 'sales:read'] && ($protectedMetadata['bearer_methods_supported'] ?? null) === ['header'], 'protected-resource metadata must advertise the active MCP scope catalogue and bearer header method');
 $fallbackProtected = $discoveryBootstrap->handle(new Request('GET', '/.well-known/oauth-protected-resource', 'cliente.fastcrud.com.br', '', []), $config);
 mcpAssert($fallbackProtected->getStatus() === 200 && $fallbackProtected->getPayload() === $protectedMetadata, 'protected-resource fallback metadata must match the /mcp variant');
 $connectionOnePdo = new TestAdminPdo();
@@ -1244,13 +1285,20 @@ $directory = sys_get_temp_dir() . '/hardness-mcp-test-' . bin2hex(random_bytes(6
 mkdir($directory, 0700, true);
 $configurationFile = $directory . '/cliente.fastcrud.com.br-confUsuario.php';
 $sideEffectFile = $directory . '/configuration-was-executed';
-file_put_contents($configurationFile, '<?php file_put_contents(' . var_export($sideEffectFile, true) . ', "executed"); $confUsuario = ["dbDatabase" => "tenant", "dbHost" => "db", "dbUser" => "user", "dbPass" => "pass"]; $confUsuarioEspelhado = ["dbDatabase" => "tenant", "dbHost" => "replica", "dbUser" => "read_user", "dbPass" => "read_pass"];');
+file_put_contents($configurationFile, '<?php file_put_contents(' . var_export($sideEffectFile, true) . ', "executed"); $confUsuario = ["dbDatabase" => "tenant", "dbHost" => "db", "dbUser" => "user", "dbPass" => "pass", "mcpInstallationProfile" => "inecel-process-analysis-v1"]; $confUsuarioEspelhado = ["dbDatabase" => "tenant", "dbHost" => "replica", "dbUser" => "read_user", "dbPass" => "read_pass"];');
 
 try {
     $tenantConfig = $config;
     $tenantConfig['tenant']['conf_path'] = $directory;
     $tenant = (new TenantResolver($tenantConfig))->resolve('CLIENTE.FASTCRUD.COM.BR:443');
     mcpAssert(($tenant['dbDatabase'] ?? null) === 'tenant', 'tenant resolver must load the existing host configuration');
+    mcpAssert(!isset($tenant['mcpInstallationProfile']), 'tenant resolver must not read customer-specific MCP feature selection from confUsuario');
+    $installationRegistry = new \HardnessMcp\Tenant\McpInstallationRegistry(['test-installation' => ['hosts' => ['cliente.fastcrud.com.br'], 'expected_database' => 'tenant', 'profile' => 'test-profile-v1']]);
+    $registeredTenant = $installationRegistry->apply($tenant);
+    mcpAssert(($registeredTenant['mcpInstallationProfile'] ?? null) === 'test-profile-v1', 'MCP installation registry must require its explicit host and expected database mapping');
+    $wrongDatabase = $tenant; $wrongDatabase['dbDatabase'] = 'another_tenant';
+    mcpAssert(!isset($installationRegistry->apply($wrongDatabase)['mcpInstallationProfile']), 'MCP installation registry must fail closed when the expected database differs');
+    mcpAssert(ResolvedTenantContext::fromResolvedTenant($registeredTenant)->getMcpInstallationProfile() === 'test-profile-v1', 'resolved tenant context must retain the profile supplied by the MCP registry');
     mcpAssert(($tenant['readDbHost'] ?? null) === 'replica' && ($tenant['readDbUser'] ?? null) === 'read_user', 'tenant resolver must expose an optional read replica without executing tenant configuration');
     mcpAssert(!file_exists($sideEffectFile), 'tenant resolver must not execute tenant configuration PHP or start a session');
 
@@ -1262,6 +1310,9 @@ try {
             mcpAssert($exception->getMessage() === 'Unable to resolve tenant.', 'tenant errors must not expose filesystem details');
         }
     }
+
+    file_put_contents($configurationFile, '<?php $confUsuario = ["dbDatabase" => "tenant", "dbHost" => "db", "dbUser" => "user", "dbPass" => "pass", "mcpInstallationProfile" => "Inecel Process Analysis"];');
+    mcpAssert((new TenantResolver($tenantConfig))->resolve('cliente.fastcrud.com.br')['dbDatabase'] === 'tenant', 'legacy confUsuario MCP profile must not control MCP feature selection');
 } finally {
     unlink($configurationFile);
     if (file_exists($sideEffectFile)) { unlink($sideEffectFile); }
@@ -1293,6 +1344,7 @@ require __DIR__ . '/Eligibility/foundation.php';
 require __DIR__ . '/QuoteHeader/foundation.php';
 require __DIR__ . '/Partner/CodeFlowFoundation.php';
 require __DIR__ . '/DocumentSummary/foundation.php';
+require __DIR__ . '/Capabilities/foundation.php';
 require __DIR__ . '/IdeSmtCapability/foundation.php';
 require __DIR__ . '/IdeSmtGenerateOrder/foundation.php';
 require __DIR__ . '/IdeSmtTool/foundation.php';

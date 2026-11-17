@@ -81,6 +81,7 @@ function mysqli_stmt_close($stmt) {}
 function mysqli_fetch_all($linhas, $modo) { return $linhas; }
 function mysqli_stmt_get_result($stmt)
 {
+    if (strpos($stmt->sql, 'SELECT pedido.T005_Id AS pedido') === 0 && isset($stmt->conexao->parcelas)) return $stmt->conexao->parcelas;
     if (strpos($stmt->sql, 'SELECT COUNT(*) AS quantidade') === 0) return array(array('quantidade' => 0, 'valor' => 0));
     if (strpos($stmt->sql, 'SELECT DISTINCT D207_Data') === 0) return $stmt->conexao->feriados;
     foreach (array('pagar', 'receber') as $serie) {

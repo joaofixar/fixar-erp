@@ -636,7 +636,7 @@ EOT;
 		if($g['C031']['utilizaEcommerce'] == 'S'){
 			//$botoesDir .= '<button id="cad002Ecommerce">E-Commerce</button>';
 		}
-		if($res['D049_Flag_Tipo'] == 'PD'){
+		if(in_array($res['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 			$engenharia = uniqid();
 			$botoesDir .= "<button type='button' id='{$engenharia}'>Engenharia</button>";
 		}

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace HardnessMcp\OAuth;
 use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use PDO;
 use RuntimeException;
 
@@ -9,7 +10,7 @@ use RuntimeException;
 final class OAuthAuthorizationRequestService
 {
     private PDO $pdo; private OAuthClientRepository $clients; private ScopeCatalog $catalog; private array $config;
-    public function __construct(PDO $pdo,array $config){$this->pdo=$pdo;$this->clients=new OAuthClientRepository($pdo);$this->catalog=new ScopeCatalog();$this->config=$config;}
+    public function __construct(PDO $pdo,array $config,?string $installationProfile=null){$this->pdo=$pdo;$this->clients=new OAuthClientRepository($pdo);$this->catalog=ScopeCatalogFactory::forPdo($pdo,$installationProfile);$this->config=$config;}
     /** @return array{cookie:string,selector:string} */
     public function begin(array $input,string $issuer,string $resource,?int $connectionId = null): array
     {

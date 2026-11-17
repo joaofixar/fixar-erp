@@ -72,7 +72,7 @@ $conf['triggers']['T006']['insertAfter'] = <<<'EOT'
 	$T006=mysqli_query("SELECT * FROM T006 LEFT JOIN T005 ON T005_Id = T006_T005_Id LEFT JOIN D009 ON D009_Id=T006_D009_Id LEFT JOIN D049 ON D049_Id=D009_D049_Id WHERE T006_Id='{$chaveValor}'");
 	$mT006 = mysql_fetch_array($T006);
 
-	if($mT006['D049_Flag_Tipo'] == 'PD'){
+	if(in_array($mT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 		require_once('bibliotecas/classes/VEN002.php');
 		$VEN002 = new VEN002();
 		$VEN002->copiarEngenhariaProduto($chaveValor);

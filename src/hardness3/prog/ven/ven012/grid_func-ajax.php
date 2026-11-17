@@ -355,9 +355,6 @@ EOT;
     break;
     
     case 'txSefaz':
-    	$resposta['code'] = false;
-    	$resposta['data'] = 'A base local não emite nota.';
-    	break;
 		session_write_close();
 
 		$status = explode('|', trim(file_get_contents('/tmp/status-sefaz')));
@@ -964,9 +961,6 @@ EOT;
     break;
 
 	case 'ven012EnviarLote':
-		$resposta['code'] = false;
-		$resposta['data'] = 'A base local não emite nota.';
-		break;
 		global $g;		 
 
 		mysql_query("LOCK T007");
@@ -1001,9 +995,6 @@ EOT;
 	break;
 
 	case 'ven012consultaReciboNfe':
-		$resposta['code'] = false;
-		$resposta['data'] = 'A base local não emite nota.';
-		break;
 		session_write_close();
 		$T007_Id = isset($r_T007_Id) ? $r_T007_Id : false;
 		if (!$T007_Id) { die(); }
@@ -1026,11 +1017,11 @@ function ven012quebraBr($txt, $tamanho = 80){
 	$count = 0;
 	for ($i = 0; $i < strlen($txt); $i++) {
 		$count++;
-		if ($count > $tamanho && $txt[$i] == ' ') {
+		if ($count > $tamanho && $txt{$i} == ' ') {
 			$count = 0;
 			$novo .= '<br />';
 		} else {
-			$novo .= $txt[$i];
+			$novo .= $txt{$i};
 		}
 	}
 	return $novo;

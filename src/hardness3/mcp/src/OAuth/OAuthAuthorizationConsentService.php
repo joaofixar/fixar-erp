@@ -7,6 +7,7 @@ namespace HardnessMcp\OAuth;
 use HardnessMcp\Eligibility\McpConnectionEligibilityResolver;
 use HardnessMcp\Audit\McpAuditService;
 use HardnessMcp\Scopes\ScopeCatalog;
+use HardnessMcp\Scopes\ScopeCatalogFactory;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -19,11 +20,11 @@ final class OAuthAuthorizationConsentService
     private ScopeCatalog $catalog;
     private OAuthAuthorizationConnectionBinding $binding;
 
-    public function __construct(PDO $pdo, array $config)
+    public function __construct(PDO $pdo, array $config, ?string $installationProfile = null)
     {
         $this->pdo = $pdo;
         $this->config = $config;
-        $this->catalog = new ScopeCatalog();
+        $this->catalog = ScopeCatalogFactory::forPdo($pdo, $installationProfile);
         $this->binding = new OAuthAuthorizationConnectionBinding();
     }
 

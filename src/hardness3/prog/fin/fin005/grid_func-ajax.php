@@ -96,9 +96,6 @@ namespace hardness;
 		break;
 
 		case 'enviarMultiEmailBoleto':
-			$resposta['code'] = false;
-			$resposta['data'] = 'A base local não envia e-mail.';
-			break;
 			require_once("bibliotecas/classes/FIN005.php");
 			$FIN005 = new FIN005();
 			$erros = '';
@@ -136,9 +133,6 @@ namespace hardness;
 		break;
 
 		case 'enviarMultiEmailBoletoACP':
-			$resposta['code'] = false;
-			$resposta['data'] = 'A base local não envia e-mail.';
-			break;
 			require_once("bibliotecas/classes/FIN005.php");
 			$FIN005 = new FIN005();
 			$erros = '';
@@ -174,9 +168,6 @@ namespace hardness;
 		break;
 
 		case 'enviarMultiEmailBoletoLembrete':
-			$resposta['code'] = false;
-			$resposta['data'] = 'A base local não envia e-mail.';
-			break;
 			require_once("bibliotecas/classes/FIN005.php");
 			$FIN005 = new FIN005();
 			$erros = '';
@@ -212,9 +203,6 @@ namespace hardness;
 		break;
 
 		case 'enviarMultiEmailBoletoCobranca':
-			$resposta['code'] = false;
-			$resposta['data'] = 'A base local não envia e-mail.';
-			break;
 			require_once("bibliotecas/classes/FIN005.php");
 			$FIN005 = new FIN005();
 			$erros = '';

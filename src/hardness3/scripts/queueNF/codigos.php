@@ -45,6 +45,7 @@ $codigos = array(
 	120 => 'ERRO Interno: Salvando dados na T007.',
 	121 => 'Certificado Digital não encontrado.',
 	122 => 'Erro de Mysql.',
+	123 => 'Erro ao carregar contexto ou personalizações da NF.',
 	
 	// 200 - 300 (Dentro do erro da Sefaz)
 	200 => 'Atencao! Erro nao encontrado registro de erro na global.T132 - verificar e incluir este erro.',		// Somente LOG! Nao faz update na T007, nao para o processo. && extra = T136_Numero_Erro

@@ -93,6 +93,44 @@ administrativo e Tools registradas.
 Não criar módulos vazios, Tools fictícias, scopes sem Tool, abstrações vazias ou
 nomes calculados a partir de pastas/classes.
 
+## Capabilities de instalação
+
+Uma capability responde somente se a base possui uma extensão opcional. Ela não
+substitui scopes, empresa ou usuário responsável. As definitions são mantidas em
+`Capabilities/InstallationCapabilityCatalog.php`, em código versionado, e são
+resolvidas por um `CapabilityProbeInterface` de leitura. Cada definition usa
+requisitos atômicos (por exemplo, registro legado obrigatório e colunas de
+tabelas) e falha fechada quando o banco estiver inacessível ou parcialmente
+migrado.
+
+Para personalizações exclusivas, a definition deve também usar
+`RequiredInstallationProfile`. O perfil vem explicitamente da configuração
+controlada da instalação e nunca é deduzido de host, banco ou diretório. Ele
+sempre é combinado com uma assinatura de schema/configuração da feature; perfil
+isolado não basta. A capability concreta só deve entrar no catálogo depois que
+os requisitos reais da personalização forem conhecidos e testados.
+
+O Bootstrap deve registrar módulos opcionais somente quando a capability estiver
+ativa; `ScopeCatalogFactory` resolve a mesma capability nos fluxos administrativo,
+OAuth e discovery, para que o scope não seja anunciado, concedido ou executado
+indevidamente. Não aceitar SQL, nomes de tabela ou requirements fornecidos pelo cliente.
+Scopes continuam autorizando conexões MCP e `ExecutionContext` continua sendo a
+fonte de empresa/usuário. A capability `logistics.loads` é a primeira definition:
+ela exige o acesso legado `C029` 286 e a assinatura completa de leitura de
+`SMT071`/`SMT072`. A capability complementar `logistics.load.order_context`
+requer a assinatura padrão de pedido, cliente e NF de saída; quando presente, o
+detalhe da carga inclui cliente, destino e as NFs vinculadas a cada pedido,
+sempre filtrados pela mesma empresa.
+Quando a capability `logistics.load.resources` também estiver disponível, a
+consulta inclui motorista, transportadora, veículo, capacidade, fotos anexadas e
+indicadores de frete. O destino segue a mesma precedência da IDE: redespacho,
+endereço de entrega e, por último, cadastro do cliente; os dados da NF são
+fallback quando o cadastro não resolve cidade, UF ou endereço.
+Quando ativa, oferece exclusivamente o scope
+`logistics.load:read` e as Tools de resumo, lista e detalhe. As consultas sempre
+filtram `SMT071_C004_Id` pelo `ExecutionContext`; nenhum argumento escolhe outra
+empresa e nenhuma Tool altera registros.
+
 ## Consultas legadas iniciais
 
 `hardness.product.search` usa `D001` como cadastro mestre e só torna um produto

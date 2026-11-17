@@ -134,7 +134,7 @@ namespace hardness;
 				array(uniqid(), '/cad/cad061/form/cad061FormProdutosEditar/', 'Pis/Cofins', '&tab=pis-cofins&acaoId=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId)),
 	            array(uniqid(), '/cad/cad061/content/cad061ContentAgregados/', 'Agregados', '&tab=geral&acaoId=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId). '&T005_Id=' . urlencode($r_T005_Id)),
 			);
-			if($rowT006['D049_Flag_Tipo'] == 'PD'){
+			if(in_array($rowT006['D049_Flag_Tipo'], array('PD', 'IN'), true)){
 				//$tabsList[] = array(uniqid(), '/ven/cad061/content/cad061ContentEngenhariaProduto/', 'Engenharia', '&tab=geral&acaoId=' . urlencode($r_acaoId) . '&formId=' . urlencode($formId));
 			}
 

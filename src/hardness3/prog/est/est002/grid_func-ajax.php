@@ -1355,6 +1355,56 @@ EOT;
             }
         break;
 
+		case 'est002ExcluirVolumesSelecionados':
+			$T005_Id = isset($_REQUEST['acaoId']) ? (int)$_REQUEST['acaoId'] : 0;
+			$idsRecebidos = isset($_REQUEST['T314_Ids']) ? json_decode($_REQUEST['T314_Ids'], true) : array();
+			$T314_Ids = array();
+
+			if (!is_array($idsRecebidos) || !$T005_Id) {
+				$resposta['code'] = false;
+				$resposta['data'] = 'Parâmetros inválidos para excluir os volumes.';
+			} else {
+				foreach ($idsRecebidos as $T314_Id) {
+					if (preg_match('/^[1-9][0-9]*$/', (string)$T314_Id)) {
+						$T314_Ids[] = (int)$T314_Id;
+					}
+				}
+
+				$T314_Ids = array_values(array_unique($T314_Ids));
+				if (!$T314_Ids) {
+					$resposta['code'] = false;
+					$resposta['data'] = 'Nenhum volume válido foi selecionado.';
+				} else {
+					$listaIds = implode(',', $T314_Ids);
+					$sql = "SELECT T314_Id FROM T314 WHERE T314_T005_Id = '{$T005_Id}' AND T314_Id IN ({$listaIds})";
+					$query = mysql_query($sql);
+					$volumesDoPedido = array();
+
+					while ($dados = mysql_fetch_assoc($query)) {
+						$volumesDoPedido[] = (int)$dados['T314_Id'];
+					}
+
+					if (count($volumesDoPedido) !== count($T314_Ids)) {
+						$resposta['code'] = false;
+						$resposta['data'] = 'Um ou mais volumes não pertencem ao pedido aberto.';
+					} else {
+						foreach ($T314_Ids as $T314_Id) {
+							$retorno = $EST002->volumesConferenciaCancelar($T314_Id);
+							if ($retorno !== true) {
+								$resposta['code'] = false;
+								$resposta['data'] = "Não foi possível cancelar o volume {$T314_Id}. {$retorno}";
+								break;
+							}
+						}
+
+						if ($resposta['code']) {
+							$resposta['data'] = count($T314_Ids) . ' volume(s) cancelado(s) com sucesso.';
+						}
+					}
+				}
+			}
+		break;
+
 		case 'atualizaT313_D109_Id':
 			global $g;
 

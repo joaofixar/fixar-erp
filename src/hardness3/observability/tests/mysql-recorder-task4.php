@@ -9,6 +9,7 @@ use Hardness\Observability\Collectors\Mysql\MysqlRecorderSchemaProvider;
 use Hardness\Observability\Collectors\Mysql\MysqlRecorderServerRunner;
 use Hardness\Observability\Collectors\Mysql\MysqlRecorderStorage;
 use Hardness\Observability\Collectors\Mysql\RecorderQuerySource;
+use Hardness\Observability\Collectors\Mysql\RecoveringRecorderQuerySource;
 use Hardness\Observability\Config\SiteTenantProvider;
 
 $task4Root=sys_get_temp_dir().'/observability-recorder-task4-'.getmypid().'-'.bin2hex(random_bytes(4));@mkdir($task4Root,0700,true);
@@ -44,6 +45,26 @@ $manyBatch=$serverCollector->collectFastServer($manySchemas,15,15);$manyDigestBa
 observationAssert(count($manyBatch['records'])===35&&$serverSource->calls['connection']===2&&$serverSource->calls['processlist']===2&&$serverSource->calls['locks']===2&&$serverSource->calls['transactions']===2,'thirty-five schemas must still use one global fast collection per source');
 observationAssert(count($manyDigestBatch['records'])===35&&$serverSource->calls['digests']===2,'thirty-five schemas must still use one bounded global digest query');
 observationAssert(isset($manyBatch['collection']['source_duration_ms']['processlist'])&&isset($manyDigestBatch['collection']['source_duration_ms']['digests']),'global batches must expose per-source duration for the performance pilot');
+observationAssert(isset($manyBatch['records']['tenant_1']['collection']['source_duration_ms']['connection']),'per-schema history must preserve source durations needed to diagnose the first failed read');
+
+$recoveryFactories=0;
+$recoveringSource=new RecoveringRecorderQuerySource(function()use(&$recoveryFactories):RecorderQuerySource{$recoveryFactories++;$mustFail=$recoveryFactories===1;return new class($mustFail) implements RecorderQuerySource{private $mustFail;public function __construct(bool $mustFail){$this->mustFail=$mustFail;}public function rows(string $sql,array $parameters=array()):array{if($this->mustFail){throw new RuntimeException('MySQL server has gone away',2006);}return array(array('connection_id'=>123));}public function close():void{}};});
+$recoveredRows=$recoveringSource->rows('SELECT CONNECTION_ID() AS connection_id');
+observationAssert($recoveryFactories===2&&$recoveringSource->recoveryCount()===1&&$recoveredRows[0]['connection_id']===123,'error 2006 must reconnect and retry one read-only query exactly once');
+$recoveringSource->close();
+
+$collectorFactories=0;
+$collectorSource=new RecoveringRecorderQuerySource(function()use(&$collectorFactories):RecorderQuerySource{$collectorFactories++;$mustFail=$collectorFactories===1;return new class($mustFail) implements RecorderQuerySource{private $mustFail;public function __construct(bool $mustFail){$this->mustFail=$mustFail;}public function rows(string $sql,array $parameters=array()):array{if($this->mustFail){throw new RuntimeException('MySQL server has gone away',2006);}return array();}public function close():void{}};});
+$collectorResult=(new MysqlRecorderCollector($collectorSource))->collect('tenant_1');
+observationAssert(($collectorResult['collection']['connection_recoveries']??0)===1&&empty($collectorResult['collection']['partial']),'the compatibility dry-run must report a recovered connection without becoming partial');
+$collectorSource->close();
+
+$lostFactories=0;
+$lostSource=new RecoveringRecorderQuerySource(function()use(&$lostFactories):RecorderQuerySource{$lostFactories++;$mustFail=$lostFactories===1;return new class($mustFail) implements RecorderQuerySource{private $mustFail;public function __construct(bool $mustFail){$this->mustFail=$mustFail;}public function rows(string $sql,array $parameters=array()):array{if($this->mustFail){throw new RuntimeException('Lost connection during query',2013);}return array(array('ok'=>1));}public function close():void{}};});
+$lostRaised=false;try{$lostSource->rows('SELECT fixed_read_only_query');}catch(RuntimeException $exception){$lostRaised=$exception->getCode()===2013;}
+$nextRows=$lostSource->rows('SELECT next_fixed_read_only_query');
+observationAssert($lostRaised&&$lostFactories===2&&$lostSource->recoveryCount()===1&&$nextRows[0]['ok']===1,'error 2013 must reconnect for the next query without replaying the interrupted query');
+$lostSource->close();
 
 foreach($serverSource->calls as $key=>$ignored){$serverSource->calls[$key]=0;}
 putenv('OBSERVABILITY_TEST_MODE=1');putenv('OBSERVABILITY_TEST_MYSQL_RECORDER_PATH='.$task4Root.'/storage');$serverStorage=new MysqlRecorderStorage();$task4Now=2000000.0;
@@ -60,6 +81,15 @@ $task4Now+=300;$serverSource->round=1;$secondRun=$serverRunner->run($schemas,tru
 observationAssert($secondRun['active']===true&&$serverSource->calls['processlist']===2&&$serverSource->calls['digests']===2&&$lastDigest['counters']['items'][0]['baseline']===false&&(float)$lastDigest['counters']['items'][0]['delta']['executions']===2.0,'subsequent server cycle must preserve per-schema delta baselines without duplicating global queries');
 $digestLineCount=count($digestLines);$task4Now+=300;$thirdRun=$serverRunner->run($schemas,true);$unchangedDigestLines=file($task4Root.'/storage/digests/'.$day.'.jsonl',FILE_IGNORE_NEW_LINES);
 observationAssert($thirdRun['active']===true&&count($unchangedDigestLines)===$digestLineCount,'unchanged digest counters must update state without growing digest history');
+$statePath=$task4Root.'/storage/state/server.json';$stateBefore=file_get_contents($statePath);$callsBefore=$serverSource->calls['processlist'];
+$fastOnlyRun=$serverRunner->run($schemas,false,50,10);$stateAfter=file_get_contents($statePath);
+observationAssert($fastOnlyRun['active']===true&&$serverSource->calls['processlist']===$callsBefore+5&&$stateAfter===$stateBefore,'fast-only samples must not rewrite unchanged server state every ten seconds');
+
+putenv('OBSERVABILITY_TEST_MYSQL_RECORDER_PATH='.$task4Root.'/partial-storage');
+$partialSource=new class implements RecorderQuerySource{public function rows(string $sql,array $parameters=array()):array{throw new RuntimeException('source unavailable',2006);}public function close():void{}};
+$partialResult=(new MysqlRecorderServerRunner(new MysqlRecorderCollector($partialSource),new MysqlRecorderStorage()))->run(array('tenant_1'),true);
+observationAssert($partialResult['partial']===true&&$partialResult['collection_partial_samples']===3&&in_array('connection',$partialResult['collection_failure_sections'],true),'runner summary must expose partial MySQL sources instead of reporting a false complete collection');
+putenv('OBSERVABILITY_TEST_MYSQL_RECORDER_PATH='.$task4Root.'/storage');
 
 $serverCode=file_get_contents(dirname(__DIR__).'/src/Collectors/Mysql/MysqlRecorderCollector.php').file_get_contents(dirname(__DIR__).'/src/Collectors/Mysql/MysqlRecorderServerRunner.php');
 foreach(array('INSERT ','UPDATE ','DELETE ','ALTER ','DROP ','TRUNCATE ','KILL ','FLUSH ','SET GLOBAL') as $mutable){observationAssert(stripos($serverCode,$mutable)===false,'server recorder must remain MySQL read-only: '.$mutable);}

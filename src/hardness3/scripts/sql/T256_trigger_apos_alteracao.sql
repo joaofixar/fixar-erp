@@ -24,4 +24,27 @@ CREATE TRIGGER `T256_trigger_apos_alteracao` AFTER UPDATE ON `T256` FOR EACH ROW
 	WHERE T256_T255_Id = xT255_Id;
 
 	UPDATE T255 SET T255_Quantidade = xT256_Quantidade, T255_Quantidade_Produzida = xT256_Quantidade_Produzida, T255_Quantidade_Saldo = xT256_Quantidade_Saldo, T255_Total_Itens = xTotal_Itens, T255_Quantidade_Entrada_Estoque = xT256_Quantidade_Entrada_Estoque WHERE T255_Id = xT255_Id;
+
+	-- Recalcula o produto anterior se o Item OP foi transferido para outro produto.
+	IF IFNULL(OLD.T256_D009_Id, 0) > 0
+	   AND IFNULL(OLD.T256_D009_Id, 0) <> IFNULL(NEW.T256_D009_Id, 0) THEN
+		UPDATE D009
+		   SET D009_Quantidade_OP = D009_Quantidade_OP(D009_Id)
+		 WHERE D009_Id = OLD.T256_D009_Id;
+
+		INSERT INTO D009A (D009A_D009_Id, D009A_Flag_Atualizar_Estoque)
+		VALUES (OLD.T256_D009_Id, 'S')
+		ON DUPLICATE KEY UPDATE D009A_Flag_Atualizar_Estoque = 'S';
+	END IF;
+
+	-- Recalcula o produto atual em qualquer alteração de Item OP, inclusive quantidade.
+	IF IFNULL(NEW.T256_D009_Id, 0) > 0 THEN
+		UPDATE D009
+		   SET D009_Quantidade_OP = D009_Quantidade_OP(D009_Id)
+		 WHERE D009_Id = NEW.T256_D009_Id;
+
+		INSERT INTO D009A (D009A_D009_Id, D009A_Flag_Atualizar_Estoque)
+		VALUES (NEW.T256_D009_Id, 'S')
+		ON DUPLICATE KEY UPDATE D009A_Flag_Atualizar_Estoque = 'S';
+	END IF;
 END;

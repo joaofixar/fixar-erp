@@ -155,22 +155,47 @@ class RETORNO_REMESSA {
 		$conteudoArquivo .= PHP_EOL;
 		$conteudoArquivo .= $conteudo . $linhaTrailler;
 
+		if(!ctype_digit($codigoEmpresa)){
+			return 'Código da empresa inválido no cabeçalho do retorno Bradesco.';
+		}
+
 		$codigoEmpresa = ltrim($codigoEmpresa, '0');
-		$sqlD007 = mysql_query("SELECT D007_Id FROM D007 WHERE D007_Numero_Convenio = '{$codigoEmpresa}' OR D007_Codigo_Cedente = '{$codigoEmpresa}'");
+		if(empty($codigoEmpresa)){
+			return 'Código da empresa não localizado no cabeçalho do retorno Bradesco.';
+		}
+
+		$empresaAtual = (int) $g['empresaAtual'];
+		$sqlD007 = <<<SQL
+			SELECT D007_Id
+			FROM D007
+				LEFT JOIN D062 ON D062_Id = D007_D062_Id
+			WHERE (
+				D007_Numero_Convenio = '{$codigoEmpresa}'
+				OR D007_Codigo_Cedente = '{$codigoEmpresa}'
+			)
+				AND D062_Numero_Banco = '237'
+				AND D007_C004_Id = '{$empresaAtual}'
+		SQL;
+		$sqlD007 = mysql_query($sqlD007);
+
+		if($erro = mysql_error()){
+			return 'Erro ao localizar banco do retorno Bradesco: ' . $erro;
+		}
+
 		$rows = mysql_num_rows($sqlD007);
 		if($rows == 0){
 			return "Não foi possível localizar nenhum banco com o código de cedente ou número do convenio igual a {$codigoEmpresa}, por favor verifique.";
 		} else if($rows > 1){
 			return "Foi identificado mais de um banco com o código de cedente ou número do convenio igual a {$codigoEmpresa}, por favor verifique.";
 		}
-		$rowD007 = mysql_fetch_array($sqlD007);
+		$D007 = mysql_fetch_array($sqlD007);
 
 		$conteudoArquivo = mysql_real_escape_string($conteudoArquivo);
 		//Registro na tabela de histórico de remessas e retornos com upload
 		$T037 = "INSERT INTO T037 (
 								T037_C004_Id, T037_Nome_Arquivo, T037_Data_Processamento, T037_Numero_Titulos, T037_Linha_Header, T037_Linha_Trailler, T037_Codigo_Banco, T037_Conteudo_Arquivo, T037_D007_Id
 							) VALUES (
-								'{$g['empresaAtual']}', '{$fileName['name']}', '{$dataRetorno}', '{$titulos}', '{$linhaHeader}', '{$linhaTrailler}', '{$codigoBanco}', '{$conteudoArquivo}', '{$rowD007['D007_Id']}'
+								'{$g['empresaAtual']}', '{$fileName['name']}', '{$dataRetorno}', '{$titulos}', '{$linhaHeader}', '{$linhaTrailler}', '{$codigoBanco}', '{$conteudoArquivo}', '{$D007['D007_Id']}'
 							)";
 		mysql_query($T037);
 		$T037_Id = $g['mysqlLastId'];

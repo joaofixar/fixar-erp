@@ -1374,7 +1374,10 @@ $sqlT007 = mysql_query("select T007_D024_Id,
 								T013_Id, 
 								T013_Tipo,
 								T013_D024_Id,  
-								T013_Numero_Nota_Fiscal,  
+								T013_Numero_Nota_Fiscal,
+								IFNULL(T013_Serie, '') AS T013_Serie,
+								IFNULL(T013_Chave_Acesso_Nfe, '') AS T013_Chave_Acesso_Nfe,
+								IFNULL(T013_Flag_Finalidade_NFe, '') AS T013_Flag_Finalidade_NFe,
 								T013_Data_Emissao,
 								DATE({$dataNFRecebidaLancarSPED}) as {$dataNFRecebidaLancarSPED},
 								T013_Valor_Desconto,
@@ -1458,6 +1461,7 @@ $sqlT007 = mysql_query("select T007_D024_Id,
 		}
 
 		$COD_SIT = (!empty($T013['T013A_Codigo_Situacao_Documento'])) ? $T013['T013A_Codigo_Situacao_Documento'] : '00' ;
+		$finalidadeNF3e = array(1 => '1', 3 => '3');
 
 		//Registro C500	
 		$C500 = array(																#TAM
@@ -1467,7 +1471,7 @@ $sqlT007 = mysql_query("select T007_D024_Id,
 			$COD_PART = $T013['T013_D024_Id'],										#Código do participante (campo 02 doRegistro 0150):												
 			$COD_MOD, 																#COD_MOD Código do modelo do documento fiscal, conforme a Tabela 4.1.1
 			$COD_SIT, 														#COD_SIT Código da situação do documento fiscal, conforme a Tabela 4.1.2
-			$SER = '', 																#SER Série do documento fiscal
+			$SER = $T013['T013_Serie'], 												#SER Série do documento fiscal
 			$SUB = '', 																#SUB Subsérie do documento fiscal
 			$COD_CONS = $T013['T013_Classe_Consumo'], 								#COD_CONS - Código de classe de consumo de energia elétrica ou gás
 			$NUM_DOC = $T013['T013_Numero_Nota_Fiscal'],							#NUM_DOC Número do documento fiscal
@@ -1488,8 +1492,8 @@ $sqlT007 = mysql_query("select T007_D024_Id,
 			formataDecimal($VL_COFINS), 											#VL_COFINS Valor da COFINS
 			$TP_LIGACAO = $T013['T013_Tipo_Ligacao'], 								#TP LIGACAO Código de tipo de Ligação
 			$COD_GRUPO_TENSAO =  $T013['T013_Grupo_Tensao'], 						#COD_GRUPO_TENSAO Código de grupo de tensão
-			$CHV_DOCe = '', 														#CHV_DOCe Chave da Nota Fiscal de Energia Elétrica Eletrônica
-			$FIN_DOCe = '', 														#FIN_DOCe Finalidade da emissão do documento eletrônico: 1 – Normal 2 – Substituição 3 – Normal com ajuste
+			$CHV_DOCe = $T013['T013_Chave_Acesso_Nfe'], 														#CHV_DOCe Chave da Nota Fiscal de Energia Elétrica Eletrônica
+			$FIN_DOCe = isset($finalidadeNF3e[$T013['T013_Flag_Finalidade_NFe']]) ? $finalidadeNF3e[$T013['T013_Flag_Finalidade_NFe']] : '', #FIN_DOCe Finalidade da emissão do documento eletrônico
 			$CHV_DOCe_REF = '', 													#CHV_DOCe_REF Chave da nota referenciada.
 			$IND_DEST = '', 														#IND_DEST Indicador do Destinatário/Acessante: 1 – Contribuinte do ICMS; 2 – Contribuinte Isento de Inscrição no Cadastro de Contribuintes do ICMS; 9 – Não Contribuinte.
 			$COD_MUN_DEST = '', 													#COD_MUN_DEST Código do município do destinatário conforme a tabela do IBGE.

@@ -23,6 +23,7 @@ final class ResolvedTenantContext
     private string $databasePassword;
     private string $rootUrl;
     private string $pdfRenderUrl;
+    private ?string $mcpInstallationProfile;
 
     /** @param array<string,string> $tenant */
     public static function fromResolvedTenant(array $tenant): self
@@ -32,7 +33,9 @@ final class ResolvedTenantContext
                 throw new InvalidArgumentException('Invalid resolved tenant context.');
             }
         }
-        if ((isset($tenant['urlRaiz']) && !is_string($tenant['urlRaiz'])) || (isset($tenant['mcpPdfRenderUrl']) && !is_string($tenant['mcpPdfRenderUrl']))) {
+        if ((isset($tenant['urlRaiz']) && !is_string($tenant['urlRaiz']))
+            || (isset($tenant['mcpPdfRenderUrl']) && !is_string($tenant['mcpPdfRenderUrl']))
+            || (isset($tenant['mcpInstallationProfile']) && (!is_string($tenant['mcpInstallationProfile']) || preg_match('/\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*\z/', $tenant['mcpInstallationProfile']) !== 1))) {
             throw new InvalidArgumentException('Invalid resolved tenant context.');
         }
 
@@ -44,11 +47,12 @@ final class ResolvedTenantContext
             $tenant['dbUser'],
             $tenant['dbPass'],
             $tenant['urlRaiz'] ?? '',
-            $tenant['mcpPdfRenderUrl'] ?? ($tenant['urlRaiz'] ?? '')
+            $tenant['mcpPdfRenderUrl'] ?? ($tenant['urlRaiz'] ?? ''),
+            $tenant['mcpInstallationProfile'] ?? null
         );
     }
 
-    private function __construct(string $host, string $configurationFile, string $database, string $databaseHost, string $databaseUser, string $databasePassword, string $rootUrl, string $pdfRenderUrl)
+    private function __construct(string $host, string $configurationFile, string $database, string $databaseHost, string $databaseUser, string $databasePassword, string $rootUrl, string $pdfRenderUrl, ?string $mcpInstallationProfile)
     {
         $this->host = $host;
         $this->configurationFile = $configurationFile;
@@ -58,6 +62,7 @@ final class ResolvedTenantContext
         $this->databasePassword = $databasePassword;
         $this->rootUrl = $rootUrl;
         $this->pdfRenderUrl = $pdfRenderUrl;
+        $this->mcpInstallationProfile = $mcpInstallationProfile;
     }
 
     public function getHost(): string { return $this->host; }
@@ -69,4 +74,6 @@ final class ResolvedTenantContext
     public function getRootUrl(): string { return $this->rootUrl; }
     /** Internal origin used only by wkhtmltopdf; public links always use getRootUrl(). */
     public function getPdfRenderUrl(): string { return $this->pdfRenderUrl; }
+    /** Explicit server-owned profile for future customer-specific MCP capabilities. */
+    public function getMcpInstallationProfile(): ?string { return $this->mcpInstallationProfile; }
 }

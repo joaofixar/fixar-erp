@@ -26,7 +26,7 @@ final class DocumentSummaryStatement extends PDOStatement
     public function __construct(array $rows) { $this->rows = $rows; }
     public function bindValue($parameter, $value, $type = PDO::PARAM_STR) { $this->bound[(string) $parameter] = $value; return true; }
     public function execute($parameters = null) { return true; }
-    public function fetchAll(int $mode = \PDO::FETCH_DEFAULT, mixed ...$args): array { return $this->rows; }
+    public function fetchAll($mode = null, $className = null, $constructorArguments = null) { return $this->rows; }
     public function fetch($mode = null, $orientation = null, $offset = null) { return $this->rows[0] ?? false; }
 }
 

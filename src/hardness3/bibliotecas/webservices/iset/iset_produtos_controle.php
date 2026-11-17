@@ -83,14 +83,21 @@ SQL;
         $empresaId = (int) $empresaId; $d009Id = (int) $d009Id;
         if ($empresaId <= 0 || $d009Id <= 0) return false;
         $versao = $alteracao ? 'INT006_Versao + 1' : 'INT006_Versao';
-        // Alterações de preço/estoque nunca removem a posse do worker nem seu motivo de erro.
+        // Uma alteração posterior reativa inclusive a espera pela remoção da
+        // última foto. O worker que já possui a linha conserva a posse; a versão
+        // incrementada garante outro ciclo depois da conclusão da chamada atual.
         $sqlINT006 = <<<SQL
             INSERT INTO INT006 (
                 INT006_C004_Id, INT006_D009_Id, INT006_Status,
                 INT006_Flag_Processando, INT006_Data_Hora_Pendente,
                 INT006_Versao, INT006_Tentativas, INT006_Proxima_Tentativa, INT006_Motivo
             ) VALUES ('{$empresaId}', '{$d009Id}', 'P', 'N', NOW(), 1, 0, NOW(), 'AGUARDANDO')
-            ON DUPLICATE KEY UPDATE INT006_Versao = {$versao}
+            ON DUPLICATE KEY UPDATE
+                INT006_Versao = {$versao},
+                INT006_Status = IF(INT006_Flag_Processando = 'S', INT006_Status, 'P'),
+                INT006_Motivo = IF(INT006_Flag_Processando = 'S', INT006_Motivo, 'AGUARDANDO'),
+                INT006_Proxima_Tentativa = IF(INT006_Flag_Processando = 'S', INT006_Proxima_Tentativa, NOW()),
+                INT006_Mensagem_Erro = IF(INT006_Flag_Processando = 'S', INT006_Mensagem_Erro, NULL)
 SQL;
         return mysql_query($sqlINT006) !== false;
     }
@@ -145,7 +152,8 @@ SQL;
         while ($mensagem !== '' && !preg_match('//u', $mensagem)) $mensagem = substr($mensagem, 0, -1);
         $mensagem = mysql_real_escape_string($mensagem);
         $motivo = mysql_real_escape_string($resultado['motivo']);
-        if ($resultado['resultado'] !== 'falhos') {
+        $aguardandoFotos = in_array($resultado['motivo'], array('REMOCAO_FOTOS_PENDENTE', 'FOTOS_INVALIDAS'), true);
+        if ($resultado['resultado'] !== 'falhos' && !$aguardandoFotos) {
             $sqlINT006 = <<<SQL
                 DELETE FROM INT006
                 WHERE INT006_Id = '{$INT006['INT006_Id']}' AND INT006_C004_Id = '{$INT006['INT006_C004_Id']}'
@@ -156,13 +164,16 @@ SQL;
             if (mysql_affected_rows() === 1) return;
         }
         $minutos = (int) $INT006['INT006_Tentativas'] === 1 ? 10 : ((int) $INT006['INT006_Tentativas'] === 2 ? 30 : 60);
-        $status = $resultado['resultado'] === 'falhos' ? 'E' : 'P';
+        // O estado A fica fora da seleção automática P/E. Uma alteração
+        // local ou tentativa manual volta a linha para P em marcarPendente().
+        $status = $aguardandoFotos ? 'A' : ($resultado['resultado'] === 'falhos' ? 'E' : 'P');
+        $proximaTentativa = $aguardandoFotos ? 'NOW()' : "DATE_ADD(NOW(), INTERVAL {$minutos} MINUTE)";
         // Se chegou uma alteração durante a chamada, preserva a nova versão para outro ciclo.
         $sqlINT006 = <<<SQL
             UPDATE INT006
             SET INT006_Status = IF(INT006_Versao = '{$INT006['INT006_Versao']}', '{$status}', 'P'),
                 INT006_Motivo = IF(INT006_Versao = '{$INT006['INT006_Versao']}', '{$motivo}', 'AGUARDANDO'),
-                INT006_Proxima_Tentativa = IF(INT006_Versao = '{$INT006['INT006_Versao']}', DATE_ADD(NOW(), INTERVAL {$minutos} MINUTE), NOW()),
+                INT006_Proxima_Tentativa = IF(INT006_Versao = '{$INT006['INT006_Versao']}', {$proximaTentativa}, NOW()),
                 INT006_Data_Hora_Processado = NOW(), INT006_Mensagem_Erro = IF(INT006_Versao = '{$INT006['INT006_Versao']}', '{$mensagem}', NULL),
                 INT006_Flag_Processando = 'N', INT006_Token_Processamento = NULL, INT006_Data_Hora_Processando = NULL
             WHERE INT006_Id = '{$INT006['INT006_Id']}' AND INT006_C004_Id = '{$INT006['INT006_C004_Id']}'
