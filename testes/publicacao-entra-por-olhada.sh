@@ -460,6 +460,8 @@ EOF
 cat >"$pub/bibliotecas/funcoesGerais.php" <<'EOF'
 // deles
 $display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+function mysql_fetch_assoc($result) { $retorno = \mysqli_fetch_assoc($result); }
+function mysql_num_rows($result) { $retorno = \mysqli_num_rows($result); }
 EOF
 cat >"$pub/sistema/index-framework.php" <<'EOF'
 // deles
@@ -511,6 +513,12 @@ if ! grep -q '__modelos' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/har
 fi
 if grep -q 'array_values($g' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/funcoesGerais.php")"; then
   reclamar "a lista nula permaneceu na branch"
+fi
+if ! grep -q 'instanceof \\mysqli_result' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/funcoesGerais.php")"; then
+  reclamar "a consulta sem resultado não foi protegida na branch"
+fi
+if grep -q '\$retorno = \\mysqli_fetch_assoc(\$result);' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/funcoesGerais.php")"; then
+  reclamar "o fetch sem guarda permaneceu na branch"
 fi
 if ! grep -q "is_array(\$g\['divIdChain'\])" <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/index-framework.php")"; then
   reclamar "a cadeia de telas não foi ajustada na branch"

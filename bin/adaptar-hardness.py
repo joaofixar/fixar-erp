@@ -38,6 +38,50 @@ PAI_SEGURO = (
     b"wQr4K: if (!is_array($g['divIdParentChain'])) { $g['divIdParentChain'] = array(); }"
     b" $g['divIdParent-last'] = $g['divIdParentChain'] ? $g['divIdParentChain'][count($g['divIdParentChain']) - 1] : '';"
 )
+# No PHP 8 o mysqli recusa false. A consulta que falha devolve o vazio do PHP 7.
+CONSULTAS = (
+    (
+        b"function mysql_fetch_assoc(",
+        b"$retorno = \\mysqli_fetch_assoc($result);",
+        b"$retorno = $result instanceof \\mysqli_result ? \\mysqli_fetch_assoc($result) : null;",
+    ),
+    (
+        b"function mysql_fetch_row(",
+        b"$retorno = \\mysqli_fetch_row($result);",
+        b"$retorno = $result instanceof \\mysqli_result ? \\mysqli_fetch_row($result) : null;",
+    ),
+    (
+        b"function mysql_fetch_array(",
+        b"$retorno = \\mysqli_fetch_array($result);",
+        b"$retorno = $result instanceof \\mysqli_result ? \\mysqli_fetch_array($result) : null;",
+    ),
+    (
+        b"function mysql_num_rows(",
+        b"$retorno = \\mysqli_num_rows($result);",
+        b"$retorno = $result instanceof \\mysqli_result ? \\mysqli_num_rows($result) : 0;",
+    ),
+    (
+        b"function mysql_free_result(",
+        b"$retorno = \\mysqli_free_result($result);",
+        b"$retorno = $result instanceof \\mysqli_result ? \\mysqli_free_result($result) : null;",
+    ),
+    (
+        b"function mysql_data_seek(",
+        b"$retorno = \\mysqli_data_seek($result, $offset);",
+        b"$retorno = $result instanceof \\mysqli_result ? \\mysqli_data_seek($result, $offset) : false;",
+    ),
+)
+
+
+def adaptar_consultas(texto):
+    for marca, cru, seguro in CONSULTAS:
+        if marca not in texto:
+            continue
+        if cru in texto:
+            texto = texto.replace(cru, seguro)
+        elif seguro not in texto:
+            return None
+    return texto
 
 
 def guardar_log(texto, chamada):
@@ -71,6 +115,14 @@ def adaptar(raiz):
                     file=sys.stderr,
                 )
                 return 1
+            consultas = adaptar_consultas(novo)
+            if consultas is None:
+                print(
+                    "A adaptação de bibliotecas/funcoesGerais.php não encaixa.",
+                    file=sys.stderr,
+                )
+                return 1
+            novo = consultas
         if relativo == "sistema/index-framework.php":
             if CADEIA in novo:
                 novo = novo.replace(CADEIA, CADEIA_SEGURA)
