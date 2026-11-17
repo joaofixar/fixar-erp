@@ -11,5 +11,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY apache.prod.conf /etc/apache2/sites-available/000-default.conf
+COPY mpm-prefork.prod.conf /etc/apache2/mods-available/mpm_prefork.conf
 COPY compatibilidade.prod.php /usr/local/etc/php/compatibilidade.php
 COPY php.prod.ini /usr/local/etc/php/conf.d/fixar.ini
