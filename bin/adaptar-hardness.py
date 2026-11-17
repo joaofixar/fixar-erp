@@ -156,6 +156,168 @@ def adaptar_consultas(texto):
     return texto
 
 
+# Trocas pontuais: (arquivo, trecho do PHP 7, trecho que o PHP 8 aceita).
+PONTUAIS = (
+    # Divisão por zero na média do total quando a grade vem vazia.
+    (
+        "sistema/totais.php",
+        b"'media' => $parcial['soma'] / $parcial['count']",
+        b"'media' => $parcial['count'] ? $parcial['soma'] / $parcial['count'] : 0",
+    ),
+    # implode() recusa nulo quando o formulário não tem campo padrão de pesquisa.
+    (
+        "sistema/automacaoFormulario.php",
+        b"implode(' ', $campoPadraoPesquisa);",
+        b"implode(' ', is_array($campoPadraoPesquisa) ? $campoPadraoPesquisa : array());",
+    ),
+    # Ternário encadeado sem parênteses virou erro de compilação.
+    (
+        "bibliotecas/SPED/EFD/bloco_D.php",
+        b"? '21' : ($T013['T013_Tipo'] == '8') ? '22' : '';",
+        b"? '21' : (($T013['T013_Tipo'] == '8') ? '22' : '');",
+    ),
+    (
+        "bibliotecas/SPED/Fiscal/bloco_D.php",
+        b"? '21' : ($T013['T013_Tipo'] == '8') ? '22' : '';",
+        b"? '21' : (($T013['T013_Tipo'] == '8') ? '22' : '');",
+    ),
+    (
+        "prog/sistema/funcoes/gridFiltro.php",
+        b"$count = ($count > 15) ? 15 : ($count < 0) ? 0 : $count;",
+        b"$count = ($count > 15) ? 15 : (($count < 0) ? 0 : $count);",
+    ),
+    # Constante sem aspas virou Error.
+    (
+        "configuracoes/T084.php",
+        b"$mT084['T084_Flag_Entrada_Saida'] == S)",
+        b"$mT084['T084_Flag_Entrada_Saida'] == 'S')",
+    ),
+    # A vírgula antes do <?php sai na resposta e derruba o namespace.
+    (
+        "bibliotecas/classes/CAD012.php",
+        b",<?php",
+        b"<?php",
+    ),
+)
+# function __autoload() deixou de existir; o corpo de uma linha vai para o spl_autoload_register.
+AUTOLOAD = re.compile(br"function __autoload\((\$\w+)\)\s*\{([^{}]*)\}")
+# 'colunaAlinhar' => center: constante indefinida no PHP 8.
+ALINHAR = re.compile(br"('colunaAlinhar'\s*=>\s*)(center|right|left)\b(?!['\"])")
+# $x =& new Classe: erro de compilação no PHP 8.
+REFERENCIA_NEW = re.compile(br"=\s*&\s*new\b")
+NOME = re.compile(br"[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*")
+
+
+def pular_string(texto, i):
+    # Devolve o índice logo depois da string que começa em texto[i].
+    aspa = texto[i:i + 1]
+    i += 1
+    while i < len(texto):
+        c = texto[i:i + 1]
+        if c == b"\\":
+            i += 2
+            continue
+        if c == aspa:
+            return i + 1
+        if aspa != b"'" and c == b"{" and texto[i + 1:i + 2] == b"$":
+            i = pular_par(texto, i, b"{", b"}")
+            continue
+        i += 1
+    return i
+
+
+def pular_heredoc(texto, i):
+    m = re.compile(br"<<<[ \t]*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1\r?\n").match(texto, i)
+    if not m:
+        return None
+    fim = re.compile(br"\n[ \t]*" + m.group(2) + br"\b").search(texto, m.end() - 1)
+    return fim.end() if fim else len(texto)
+
+
+def pular_par(texto, i, abre, fecha, trocar=None):
+    # texto[i] é `abre`; devolve o índice depois do `fecha` correspondente.
+    profundidade = 0
+    while i < len(texto):
+        c = texto[i:i + 1]
+        if c in (b"'", b'"', b"`"):
+            i = pular_string(texto, i)
+            continue
+        if c == abre:
+            profundidade += 1
+        elif c == fecha:
+            profundidade -= 1
+            if profundidade == 0:
+                if trocar is not None:
+                    trocar.append(i)
+                return i + 1
+        i += 1
+    return i
+
+
+def adaptar_chaves(texto):
+    # $x{0} -> $x[0]. O PHP 8 recusa chave como índice de string e array.
+    # Só mexe no código: string, comentário e HTML ficam como estão.
+    trocas = []
+    i, n, codigo = 0, len(texto), False
+    while i < n:
+        if not codigo:
+            j = texto.find(b"<?", i)
+            if j < 0:
+                break
+            i, codigo = j + 2, True
+            continue
+        c = texto[i:i + 1]
+        if texto.startswith(b"?>", i):
+            i, codigo = i + 2, False
+        elif c in (b"'", b'"', b"`"):
+            i = pular_string(texto, i)
+        elif texto.startswith(b"<<<", i):
+            i = pular_heredoc(texto, i) or i + 3
+        elif texto.startswith(b"/*", i):
+            j = texto.find(b"*/", i + 2)
+            i = n if j < 0 else j + 2
+        elif c == b"#" or texto.startswith(b"//", i):
+            m = re.compile(br"\n|\?>").search(texto, i)
+            i = n if not m else m.start()
+        elif c == b"$":
+            m = NOME.match(texto, i + 1)
+            if not m:
+                i += 1
+                continue
+            j = m.end()
+            # Segue a cadeia $x[...]->y{...}; só a chave colada vira colchete.
+            while j < n:
+                if texto[j:j + 1] == b"[":
+                    j = pular_par(texto, j, b"[", b"]")
+                elif texto.startswith(b"->", j) and NOME.match(texto, j + 2):
+                    j = NOME.match(texto, j + 2).end()
+                elif texto[j:j + 1] == b"{":
+                    trocas.append(j)
+                    j = pular_par(texto, j, b"{", b"}", trocas)
+                else:
+                    break
+            i = m.end()
+        else:
+            i += 1
+    if not trocas:
+        return texto
+    novo = bytearray(texto)
+    for posicao in trocas:
+        novo[posicao:posicao + 1] = b"[" if novo[posicao:posicao + 1] == b"{" else b"]"
+    return bytes(novo)
+
+
+def adaptar_pontuais(relativo, texto):
+    for arquivo, cru, seguro in PONTUAIS:
+        if arquivo != relativo:
+            continue
+        if cru in texto:
+            texto = texto.replace(cru, seguro)
+        elif seguro not in texto:
+            return None
+    return texto
+
+
 def guardar_log(texto, chamada):
     # A conexão chama log() antes de o funcoesGerais.php declarar a função.
     # No PHP 8 o nome cai na função matemática. A guarda deixa o pedido seguir.
@@ -175,6 +337,15 @@ def adaptar(raiz):
         original = caminho.read_bytes()
         novo = CHAMADA.sub(SEM_ARGUMENTO, original)
         relativo = caminho.relative_to(raiz).as_posix()
+        novo = adaptar_chaves(novo)
+        novo = ALINHAR.sub(br"\1'\2'", novo)
+        novo = REFERENCIA_NEW.sub(b"= new", novo)
+        novo = AUTOLOAD.sub(br"spl_autoload_register(function (\1) {\2});", novo)
+        pontual = adaptar_pontuais(relativo, novo)
+        if pontual is None:
+            print(f"A adaptação de {relativo} não encaixa.", file=sys.stderr)
+            return 1
+        novo = pontual
         if relativo in CONEXOES:
             for chamada in LOGS:
                 novo = guardar_log(novo, chamada)

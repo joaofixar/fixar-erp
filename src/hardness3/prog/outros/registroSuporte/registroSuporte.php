@@ -1096,7 +1096,7 @@ EOT;
             array('colunaValor' => $saldoHoras, 'colunaTitulo' => 'Saldo Horas', 'colunaAlinhar' => 'center', 'colunaExibir' => true, 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => 'T135_Valor_Hora_Tecnica', 'colunaTitulo' => 'Valor hora', 'colunaCasasDecimais' => 2, 'colunaAlinhar' => 'center', 'colunaExibir' => false, 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => $totalPagar, 'colunaTitulo' => 'Total a Pagar', 'colunaCasasDecimais' => 2, 'colunaAlinhar' => 'center', 'colunaExibir' => false, 'style' => 'font-size:{$fontSize}'),
-            array('colunaValor' => 'abrirDocumento', 'colunaTitulo' => 'Documento', 'colunaTipo' => 'livre', 'callback' => 'campoAbrirDocumento', 'colunaAlinhar' => center, 'callbackParameter' => array($confUsuario['urlRaiz']), 'style' => 'font-size:{$fontSize}'),
+            array('colunaValor' => 'abrirDocumento', 'colunaTitulo' => 'Documento', 'colunaTipo' => 'livre', 'callback' => 'campoAbrirDocumento', 'colunaAlinhar' => 'center', 'callbackParameter' => array($confUsuario['urlRaiz']), 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => 'T272_Nome_Arquivo', 'colunaTitulo' => '', 'colunaAlinhar' => 'center', 'colunaExibir' => false, 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => '{$r_D024_Id}-D024_Id', 'colunaTitulo' => '', 'colunaAlinhar' => 'center', 'colunaExibir' => false),
         );
@@ -1420,7 +1420,7 @@ EOT;
             array('colunaValor' => $saldoHoras, 'colunaTitulo' => 'Saldo Horas', 'colunaAlinhar' => 'center', 'colunaExibir' => true, 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => 'T135_Valor_Hora_Tecnica', 'colunaTitulo' => 'Valor hora', 'colunaCasasDecimais' => 2, 'colunaAlinhar' => 'center', 'colunaExibir' => false, 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => $totalPagar, 'colunaTitulo' => 'Total a Receber', 'colunaCasasDecimais' => 2, 'colunaAlinhar' => 'center', 'colunaExibir' => false, 'style' => 'font-size:{$fontSize}'),
-            array('colunaValor' => 'abrirDocumento', 'colunaTitulo' => 'Documento', 'colunaTipo' => 'livre', 'callback' => 'campoAbrirDocumento', 'colunaAlinhar' => center, 'style' => 'font-size:{$fontSize}'),
+            array('colunaValor' => 'abrirDocumento', 'colunaTitulo' => 'Documento', 'colunaTipo' => 'livre', 'callback' => 'campoAbrirDocumento', 'colunaAlinhar' => 'center', 'style' => 'font-size:{$fontSize}'),
             array('colunaValor' => 'T272_Nome_Arquivo', 'colunaTitulo' => '', 'colunaAlinhar' => 'center', 'colunaExibir' => false, 'style' => 'font-size:{$fontSize}'),
         );
 

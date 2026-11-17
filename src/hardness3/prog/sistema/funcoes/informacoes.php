@@ -167,7 +167,7 @@ switch ($g['r'][3]) {
 		$Opcao = $g['ui']->getGridFiltroCampoBusca('Opcao');
 		foreach ($arquivos as $arquivo) {
 			if ($arquivo == '.' || $arquivo == '..' || strpos($arquivo, 'alterarMetodos.php') === false || (!empty($Opcao) && stripos($arquivo, $Opcao) === false)) { continue; }
-			if (is_numeric($arquivo{0})) { 
+			if (is_numeric($arquivo[0])) { 
 				$classe = $arrayC004[substr($arquivo, 0,1)] . ' - ' . substr($arquivo, 1);
 			} else {
 				$classe = $arquivo;
@@ -188,7 +188,7 @@ switch ($g['r'][3]) {
 		$Opcao = $g['ui']->getGridFiltroCampoBusca('Opcao');
 		foreach ($arquivos as $arquivo) {
 			if ($arquivo == '.' || $arquivo == '..' || strpos($arquivo, 'alterarPrograma.php') === false || (!empty($Opcao) && stripos($arquivo, $Opcao) === false)) { continue; }
-			if (is_numeric($arquivo{0})) { $arquivo = substr($arquivo, 1); }
+			if (is_numeric($arquivo[0])) { $arquivo = substr($arquivo, 1); }
 			$arquivo = str_replace('-alterarPrograma.php', '', $arquivo);
 			$arquivo = str_replace('-', '/', $arquivo);
 			$arquivo = "/{$arquivo}/";
@@ -201,7 +201,7 @@ switch ($g['r'][3]) {
 		$resposta['data'] .= (count($arquivos) > 0) ? "\nCALLBACKS\n" : "";
 		foreach ($arquivos as $arquivo) {
 			if ($arquivo == '.' || $arquivo == '..' || strpos($arquivo, 'alterarCallback.php') === false || (!empty($Opcao) && stripos($arquivo, $Opcao) === false)) { continue; }
-			if (is_numeric($arquivo{0})) { $arquivo = substr($arquivo, 1); }
+			if (is_numeric($arquivo[0])) { $arquivo = substr($arquivo, 1); }
 			$arquivo = str_replace('-alterarCallback.php', '', $arquivo);
 			$arquivo = str_replace('-', '/', $arquivo);
 			$arquivo = "{$arquivo}()";
@@ -214,7 +214,7 @@ switch ($g['r'][3]) {
 		$resposta['data'] .= (count($arquivos) > 0) ? "\nSQL\n" : "";
 		foreach ($arquivos as $arquivo) {
 			if ($arquivo == '.' || $arquivo == '..' || strpos($arquivo, 'alterarSQL.php') === false || (!empty($Opcao) && stripos($arquivo, $Opcao) === false)) { continue; }
-			if (is_numeric($arquivo{0})) { $arquivo = substr($arquivo, 1); }
+			if (is_numeric($arquivo[0])) { $arquivo = substr($arquivo, 1); }
 			$arquivo = str_replace('-alterarSQL.php', '', $arquivo);
 			$arquivo = str_replace('-', '/', $arquivo);
 			$arquivo = "{$arquivo}";
@@ -227,7 +227,7 @@ switch ($g['r'][3]) {
 		$resposta['data'] .= (count($arquivos) > 0) ? "\nFORMULARIOS\n" : "";
 		foreach ($arquivos as $arquivo) {
 			if ($arquivo == '.' || $arquivo == '..' || $arquivo == '.svn' ) { continue; }
-			if (is_numeric($arquivo{0})) { $arquivo = substr($arquivo, 1); }
+			if (is_numeric($arquivo[0])) { $arquivo = substr($arquivo, 1); }
 			if(strpos($arquivo, 'formEditorData-') !== false){
 				$arquivo = str_replace('formEditorData-', '', $arquivo);
 				$arquivo = $arquivo . ' (Interface)';

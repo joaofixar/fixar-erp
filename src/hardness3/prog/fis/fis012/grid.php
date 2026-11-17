@@ -14,7 +14,7 @@ switch($g['r'][3]){
 		*/
 		$grid = array(
 			array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'excluirMDFe', 'colunaTitulo' => 'E', 'colunaAlinhar' => 'center', 'style' => 'font-weight:bold;width:1%'),
-			array('colunaValor' => 'T276_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'T276_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'T276_Flag_Cancelada', 'colunaTitulo' => 'Cancelar', 'callback' => 'validaCampoCancelar'),
 			array('colunaValor' => 'T276_Numero_MDFe', 'colunaTitulo' => 'MDF-e', 'style' => 'font-weight:bold;','colunaAlinhar' => 'center'),
 			array('colunaValor' => 'T276_Data_Emissao', 'colunaTitulo' => 'Emissão', 'callback' => 'gCorrigeData', 'colunaAlinhar' => 'center', 'style' => 'font-weight:bold;width:1%'),

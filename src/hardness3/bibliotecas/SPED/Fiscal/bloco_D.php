@@ -253,7 +253,7 @@ if ($IND_MOV == '0') {
 	while($T013 = mysql_fetch_array($sqlT013)) {						
         $IND_OPER = 0;
         
-        $COD_MOD = ($T013['T013_Tipo'] == '7') ? '21' : ($T013['T013_Tipo'] == '8') ? '22' : '';
+        $COD_MOD = ($T013['T013_Tipo'] == '7') ? '21' : (($T013['T013_Tipo'] == '8') ? '22' : '');
         
         $VL_BC_ICMS = formataDecimal($T013['T013_Valor_Total_Base_ICMS']);
         $VL_ICMS = formataDecimal($T013['T013_Valor_Total_ICMS']);

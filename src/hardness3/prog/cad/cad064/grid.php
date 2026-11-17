@@ -17,7 +17,7 @@ switch($g['r'][3]){
 		*/
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D170_Id', $g['divId'])),
-			array('colunaValor' => 'D170_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D170_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D170_Identificacao_Veiculo', 'colunaTitulo' => 'Identificação'),
             array('colunaValor' => 'D170_Placa', 'colunaTitulo' => 'Placa'),
             array('colunaValor' => 'D170_Renavam', 'colunaTitulo' => 'Renavam'),
@@ -164,7 +164,7 @@ EOT;
 		*/
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D170_Id', $g['divId'])),
-			array('colunaValor' => 'D170_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D170_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D170_Identificacao_Veiculo', 'colunaTitulo' => 'Identificação'),
             array('colunaValor' => 'D170_Placa', 'colunaTitulo' => 'Placa'),
             array('colunaValor' => 'D170_Renavam', 'colunaTitulo' => 'Renavam'),

@@ -1983,7 +1983,7 @@ EOT;
 				$sql = "SELECT T008_Flag_Situacao_Tributaria FROM T008 WHERE T008_Id = '{$acaoId}'";
 				$resultado = mysql_query($sql);
 				$row = mysql_fetch_assoc($resultado);
-				$form->campoSetarValor('Codigo_Origem_Mercadoria', $row['T008_Flag_Situacao_Tributaria']{0});
+				$form->campoSetarValor('Codigo_Origem_Mercadoria', $row['T008_Flag_Situacao_Tributaria'][0]);
 				
 				// Mostra erros de formulário uteis ao desenvolvedor
 				if ($processado !== true) {

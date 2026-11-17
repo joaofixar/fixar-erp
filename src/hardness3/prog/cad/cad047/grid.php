@@ -15,9 +15,9 @@ switch ($g['r'][3]) {
 		*/
 		$grid = array(
 			array('colunaValor' => "excluirLinha", 'colunaTipo' => "livre", 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D036_Id', $g['divId'])),
-			array('colunaValor' => 'D036_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D036_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D036_Tipo_Transporte', 'colunaTitulo' => 'Descrição'),
-			array('colunaValor' => 'D036_Flag_Correios', 'colunaTitulo' => 'Correios', 'colunaAlinhar' => center, 'sytle' => 'width:1%', 'colunaEditarOculto' => true),
+			array('colunaValor' => 'D036_Flag_Correios', 'colunaTitulo' => 'Correios', 'colunaAlinhar' => 'center', 'sytle' => 'width:1%', 'colunaEditarOculto' => true),
 			array('colunaValor' => 'D036_Descricao_Ecommerce', 'colunaTitulo' => 'Ecommerce', 'colunaExibir' => false),
 		);
 

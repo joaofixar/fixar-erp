@@ -12,11 +12,11 @@ function quebraBr25($array){
 	$count = 0;
 	for ($i = 0; $i < strlen($array['campoAtual']); $i++) {
 		$count++;
-		if ($count > 25 && $array['campoAtual']{$i} == ' ') {
+		if ($count > 25 && $array['campoAtual'][$i] == ' ') {
 			$count = 0;
 			$novo .= '<br />';
 		} else {
-			$novo .= $array['campoAtual']{$i};
+			$novo .= $array['campoAtual'][$i];
 		}
 	}
 	return $novo;

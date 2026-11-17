@@ -1017,11 +1017,11 @@ function ven012quebraBr($txt, $tamanho = 80){
 	$count = 0;
 	for ($i = 0; $i < strlen($txt); $i++) {
 		$count++;
-		if ($count > $tamanho && $txt{$i} == ' ') {
+		if ($count > $tamanho && $txt[$i] == ' ') {
 			$count = 0;
 			$novo .= '<br />';
 		} else {
-			$novo .= $txt{$i};
+			$novo .= $txt[$i];
 		}
 	}
 	return $novo;

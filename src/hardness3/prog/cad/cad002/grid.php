@@ -5251,7 +5251,7 @@ EOT;
 		*/
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D069_Id', $g['divId']), 'colunaExibir' => false),
-            array('colunaValor' => 'D069_Flag_Excluir', 'colunaTitulo' => 'Exc', 'callback' => 'checkboxExcluirD069', 'colunaEditarTodos' => true, 'colunaAlinhar' => center ,'colunaEditarTipo' => 'flag', 'colunaEditarExtra' => '1|2'),
+            array('colunaValor' => 'D069_Flag_Excluir', 'colunaTitulo' => 'Exc', 'callback' => 'checkboxExcluirD069', 'colunaEditarTodos' => true, 'colunaAlinhar' => 'center' ,'colunaEditarTipo' => 'flag', 'colunaEditarExtra' => '1|2'),
             array('colunaValor' => 'D069_Campos_Atualizados', 'colunaTitulo' => '?', 'colunaAlinhar' => 'center', 'callback' => 'camposAtualizadosTabFornecedor', 'style' => 'width: 1%'),
             array('colunaValor' => 'D069_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaExibir' => false, 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D069_D009_Id', 'colunaTitulo' => 'D009_Id', 'colunaExibir' => false),

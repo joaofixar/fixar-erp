@@ -10,7 +10,7 @@ switch($g['r'][3]){
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'style' => 'width:1%', 'callback' => 'gExcluirLinha', 'callbackParameter' => array(
                  'D003_Id', $g['divId']),
             ),
-            array('colunaValor' => 'D003_Id', 'colunaTitulo' => 'Código', 'colunaAlinhar' => center, 'chavePrimaria' => true, 'style' => 'width:1%'),
+            array('colunaValor' => 'D003_Id', 'colunaTitulo' => 'Código', 'colunaAlinhar' => 'center', 'chavePrimaria' => true, 'style' => 'width:1%'),
             array('colunaValor' => 'D003_Nome_Linha', 'colunaTitulo' => 'Grupo'),
             array('colunaValor' => 'D003_Codigo_Padrao', 'colunaTitulo' => 'Código', 'colunaExibir' => false),
             array('colunaValor' => 'Imagem', 'colunaTipo' => 'livre', 'colunaTitulo' => 'Imagem', 'style' => 'width:50px;text-align: center;', 'callback' => 'mostrarImagemProdutosLinhas', 'colunaExibir' => false),

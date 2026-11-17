@@ -2327,7 +2327,7 @@ EOT;
 			array('colunaValor' => 'D024_Flag_Pessoa_Fisica_Juridica', 'colunaTitulo' => 'P', 'style' => 'width: 1%;', 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D024_Bairro', 'colunaTitulo' => 'Bairro', 'style' => 'width: 1%;'),
 			array('colunaValor' => 'D020_Nome_Cidade', 'colunaTitulo' => 'Cidade', 'style' => 'width: 1%;'),
-			array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'style' => 'width: 1%;', 'colunaAlinhar' => center),
+			array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'style' => 'width: 1%;', 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D024_Data_Cadastro', 'colunaTitulo' => 'Cadastro', 'colunaAlinhar' => 'center', 'style' => 'width: 1%;', 'callback' => 'gCorrigeData'),
 			array('colunaValor' => 'D024_Observacao_Inativo', 'colunaTitulo' => 'Falta', 'colunaAlinhar' => 'left'),
 			array('colunaValor' => 'Vendedor.C007_Primeiro_Nome', 'colunaTitulo' => 'Vendedor', 'colunaExibir' => false),

@@ -168,7 +168,7 @@ if($C007['C007_Flag_Vendedor'] == 'V'){
 
 //$filtroStatusOrcamento = "(T003_Flag_Status_Orcamento = 'P' OR T003_Flag_Status_Orcamento = 'L' OR T003_Flag_Status_Orcamento = 'A' OR T003_Flag_Status_Orcamento = 'N' OR T003_Flag_Status_Orcamento = 'F') AND";
 $pesquisaDiretor = ($C007['C007_Flag_Vendedor'] != 'D') ? '' : "OR C007_Primeiro_Nome LIKE '%{$pesquisa['busca']}%'";
-if ($C007['C007_Flag_Vendedor']=='D' OR $C007['C007_Flag_Vendedor']=='S' && $pesquisa['busca']{0} == '=') {
+if ($C007['C007_Flag_Vendedor']=='D' OR $C007['C007_Flag_Vendedor']=='S' && $pesquisa['busca'][0] == '=') {
 	//$pesquisa['busca'] = preg_replace('/^=/', '', $pesquisa['busca']);
 	//$pesquisaDiretor = "C007_Primeiro_Nome LIKE '%{$pesquisa['busca']}%'";
 	//$pesquisaWhere = "({$pesquisaDiretor})";

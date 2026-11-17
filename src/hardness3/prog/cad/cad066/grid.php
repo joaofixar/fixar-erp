@@ -16,7 +16,7 @@ switch($g['r'][3]){
 		*/
 		$grid = array(
          	array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D172_Id', $g['divId'])),
-			array('colunaValor' => 'D172_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D172_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D172_Nome', 'colunaTitulo' => 'Seguradora'),
             array('colunaValor' => 'D172_CNPJ', 'colunaTitulo' => 'CNPJ'),
             array('colunaValor' => 'D172_DDD_Telefone', 'colunaTitulo' => 'DDDTelefone', 'colunaExibir' => false),
@@ -129,7 +129,7 @@ EOT;
 		*/
 		$grid = array(
          array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D172_Id', $g['divId'])),
-			array('colunaValor' => 'D172_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D172_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D172_Nome', 'colunaTitulo' => 'Seguradora'),
             array('colunaValor' => 'D172_CNPJ', 'colunaTitulo' => 'CNPJ'),
             array('colunaValor' => 'D172_DDD_Telefone', 'colunaTitulo' => 'DDDTelefone', 'colunaExibir' => false),

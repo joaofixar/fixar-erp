@@ -13,11 +13,11 @@ switch($g['r'][3]){
 		*/
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D171_Id', $g['divId'])),
-			array('colunaValor' => 'D171_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D171_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D171_Numero_Lacre', 'colunaTitulo' => 'Identificação'),
             array('colunaValor' => 'D171_Descricao', 'colunaTitulo' => 'Descrição'),
-            array('colunaValor' => 'D171_Tipo', 'colunaTitulo' => 'Tipo', 'colunaAlinhar' => center, 'callback' => 'validaCampoTipo'),
-            array('colunaValor' => 'D171_Flag_Ativo', 'colunaTitulo' => 'Status', 'colunaAlinhar' => center, 'callback' => 'validaCampoStatus')
+            array('colunaValor' => 'D171_Tipo', 'colunaTitulo' => 'Tipo', 'colunaAlinhar' => 'center', 'callback' => 'validaCampoTipo'),
+            array('colunaValor' => 'D171_Flag_Ativo', 'colunaTitulo' => 'Status', 'colunaAlinhar' => 'center', 'callback' => 'validaCampoStatus')
         );
 
         /**
@@ -126,11 +126,11 @@ EOT;
 		 */
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D171_Id', $g['divId'])),
-			array('colunaValor' => 'D171_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D171_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D171_Numero_Lacre', 'colunaTitulo' => 'Identificação'),
             array('colunaValor' => 'D171_Descricao', 'colunaTitulo' => 'Descrição'),
             array('colunaValor' => 'D171_Tipo', 'colunaTitulo' => 'Tipo','callback' => 'validaCampoTipo'),
-            array('colunaValor' => 'D171_Flag_Ativo', 'colunaTitulo' => 'Status', 'colunaAlinhar' => center, 'callback' => 'validaCampoStatus')
+            array('colunaValor' => 'D171_Flag_Ativo', 'colunaTitulo' => 'Status', 'colunaAlinhar' => 'center', 'callback' => 'validaCampoStatus')
         );
 
 		/**

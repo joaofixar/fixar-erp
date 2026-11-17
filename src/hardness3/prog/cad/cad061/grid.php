@@ -1178,7 +1178,7 @@ EOT;
 		*/
 		$grid = array(
 			array('colunaValor' => 'Ordem', 'colunaTitulo' => '', 'colunaExibir' => true, 'callback' => 'gContador', 'colunaTipo' => 'LIVRE', 'colunaAlinhar' => 'center', 'style' => 'width:1%'),
-			array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => center),
+			array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'chavePrimaria' => true, 'colunaExibir' => true, 'style' => 'width:1%;', 'colunaAlinhar' => 'center'),
 			array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Cliente', 'style' => 'width: 1%;font-weight:bold'),
 			array('colunaValor' => 'D024_Data_Cadastro', 'colunaTitulo' => 'Cadastro', 'colunaAlinhar' => 'center', 'style' => 'width: 1%;font-weight:normal', 'callback' => 'gCorrigeData'),
 			array('colunaValor' => 'vendedor.C007_Primeiro_Nome', 'colunaTitulo' => 'Vendedor', 'style' => 'width: 1%;'),

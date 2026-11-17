@@ -11,7 +11,7 @@ switch($g['r'][3]){
 		*/
 		$grid = array(
             array('colunaValor' => 'excluirLinha', 'colunaTipo' => 'livre', 'callback' => 'gExcluirLinha', 'callbackParameter' => array('D046_Id', $g['divId'])),
-			array('colunaValor' => 'D046_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => center),
+			array('colunaValor' => 'D046_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D046_Nome', 'colunaTitulo' => 'Grupo'),
         );
 

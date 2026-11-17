@@ -10,7 +10,7 @@ $conf['restricaoTravar']['T084'] = <<<'EOT'
 	$T084=mysql_query("SELECT T084_Flag_Entrada_Saida,T084_Flag_Cancelado,T084_Numero_Protocolo_Cte,T084_Flag_Travar FROM T084 WHERE T084_Id='{$valorPk}'");
 	$mT084=mysql_fetch_array($T084);	
 
-	if($mT084['T084_Flag_Entrada_Saida'] == S) {	
+	if($mT084['T084_Flag_Entrada_Saida'] == 'S') {	
 		if($operacao == 'alterar') {						
 			if(!empty($mT084['T084_Numero_Protocolo_Cte']))  {
 				$retorno = 'Não é possível alterar CT-e autorizado.';

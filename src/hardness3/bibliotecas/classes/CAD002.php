@@ -5485,7 +5485,7 @@ EOT;
                     $codigo .= $seqMatches[3];
                     $strComplementar = $seqMatches[2];
                 }
-            } else if ($value{0} == '[' && !preg_match('#^\[SEQ#', $value)) {
+            } else if ($value[0] == '[' && !preg_match('#^\[SEQ#', $value)) {
                 // Encontra as partes do campo [NOME|NÚMERO]
                 preg_match('#^\[([^\|]+)(\|([0-9]))?\]#', $value, $campoMatches);
                 $campo = $campoMatches[1];
@@ -6463,7 +6463,7 @@ EOT;
             $padraoGrade = "";
             preg_match_all('#(\[[^\]]+\]+|[^\[]{1})#', $mascara, $matches);
             foreach ($matches[0] as $key => $value) {
-                if ($value{0} == '[') {
+                if ($value[0] == '[') {
                     $value = explode(",", trim($value, '[]'));                
                     if(empty($value[1])){
                         $padraoGrade .= substr($D001_Codigo_Produto, $value[0]);

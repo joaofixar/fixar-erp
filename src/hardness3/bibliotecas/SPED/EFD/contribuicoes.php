@@ -200,7 +200,7 @@ function adicionarEspape($x)
     //$x = urldecode($x);
     $novoX = '';
     for ($i = 0; $i < strlen($x); $i++) {
-        $code = ord($x{$i});
+        $code = ord($x[$i]);
         if ($code == 192) { $novoX .= 'A'; continue; }
         if ($code == 193) { $novoX .= 'A'; continue; }
         if ($code == 194) { $novoX .= 'A'; continue; }
@@ -250,7 +250,7 @@ function adicionarEspape($x)
         if ($code == 250) { $novoX .= 'U'; continue; }
         if ($code == 251) { $novoX .= 'U'; continue; }
         if ($code == 252) { $novoX .= 'U'; continue; }
-        $novoX .= $x{$i};
+        $novoX .= $x[$i];
     }
     
     $x = $novoX;

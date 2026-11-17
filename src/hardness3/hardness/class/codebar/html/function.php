@@ -6,10 +6,10 @@ if(!defined('IN_CB'))die('You are not allowed to access to this page.');
  *
  * @param string $class_name
  */
-function __autoload($class_name) {
+spl_autoload_register(function ($class_name) {
 	global $class_dir;
 	require_once $class_dir.'/'.$class_name.'.php';
-}
+});
 
 /**
  * Displays Select Code bar Box
