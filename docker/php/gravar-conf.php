@@ -22,10 +22,14 @@ $confUsuario = array(
 );
 PHP;
 
-file_put_contents(
+$gravouConf = file_put_contents(
     '/var/www/html/hardness3/bibliotecas/confUsuario.php',
     sprintf($confUsuario, var_export($banco, true), var_export($host, true), var_export($usuario, true), var_export($senha, true))
 );
+if ($gravouConf === false) {
+    fwrite(STDERR, "Não gravou confUsuario.php\n");
+    exit(1);
+}
 
 $sys = <<<'PHP'
 <?php
@@ -39,7 +43,11 @@ $sys = array(
 );
 PHP;
 
-file_put_contents(
+$gravouSys = file_put_contents(
     '/var/www/html/hardness3/ide/sysConfig.php',
     sprintf($sys, var_export($banco, true), var_export($host, true), var_export($usuario, true), var_export($senha, true))
 );
+if ($gravouSys === false) {
+    fwrite(STDERR, "Não gravou sysConfig.php\n");
+    exit(1);
+}
