@@ -64,7 +64,7 @@ foreach($empresas as $index => $empresa){
             $g['pathRaiz'] = $confUsuario['pathRaiz'];
             $g['urlRaiz'] = $confUsuario['urlRaiz'];
             $con=mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-            $Error=mysqli_connect_error($con);
+            $Error=mysqli_connect_error();
             
             $msg .= "\n".$confUsuario['dbDatabase']." - Atualizando notificacoes em " . date("Y-m-d H:i") . "\n";
             if (empty($Error)) {

@@ -288,7 +288,7 @@ EOT;
 	// Conexão MySQL local
 	// mysql_close();
 	$con=@mysqli_connect('127.0.0.1', 'root', '$$hard@@0982',$C025_Banco_Dados);
-	$Error=mysqli_connect_error($con);
+	$Error=mysqli_connect_error();
 	if (!empty($Error)) {
 		echo $Error;
 		die();
@@ -607,7 +607,7 @@ EOT;
 
     // abre uma conexão no servidor
     \$con=@mysqli_connect(\$host,\$user,\$pass,\$db);
-    \$Error=mysqli_connect_error(\$con);
+    \$Error=mysqli_connect_error();
     if (!empty(\$Error)) {
         echo "<table border=0 width=100% height=60%>";
           echo "<tr>";

@@ -16,10 +16,12 @@ Publicação do Hardness
    Linhas com SHA e assunto: a publicação andou.
 
 2. Trazer a ponta. Onde os dois lados mudaram o mesmo arquivo, fica a publicação.
+   Em seguida a branch recebe de novo os ajustes do PHP 8.
 
    bash bin/publicacao trazer --sobrescrever
 
    O comando imprime publicacao/<sha>. O src da base ainda é o antigo.
+   Se o trecho de bibliotecas/funcoesGerais.php não encaixa, o comando para.
 
 3. Passar a servir esse código.
 
@@ -255,8 +257,8 @@ gravar_ponto() {
     echo "O SHA informado não está na publicação." >&2
     exit 1
   fi
-  mkdir -p "$raiz/publicacao"
-  printf '%s\n' "$completo" >"$raiz/publicacao/ponto"
+  mkdir -p "$raiz/bin"
+  printf '%s\n' "$completo" >"$raiz/bin/ponto"
   aviso "Ponto gravado: $completo"
 }
 
@@ -271,7 +273,7 @@ buscar() {
 
 listar() {
   local gravado
-  gravado="$(head -n 1 "$raiz/publicacao/ponto" | tr -d '[:space:]')"
+  gravado="$(head -n 1 "$raiz/bin/ponto" | tr -d '[:space:]')"
   buscar
   aviso "Listando os commits depois do ponto."
   git --no-pager -C "$publicacao" log --reverse --format='%H %s' "${gravado}..origin/master"
@@ -282,7 +284,7 @@ olhar() {
     gravar_ponto
     return 0
   fi
-  if [ -f "$raiz/publicacao/ponto" ]; then
+  if [ -f "$raiz/bin/ponto" ]; then
     listar
     return 0
   fi
@@ -370,6 +372,38 @@ importar_arvore() {
   rm -f "$faltando"
 }
 
+aplicar_adaptacoes() {
+  local indice="$1"
+  local trabalho mudados diretorio adaptador python caminho blob modo
+  trabalho="$cmp_tmp/arvore"
+  mudados="$cmp_tmp/mudados"
+  mkdir -p "$trabalho"
+  GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" checkout-index -a --prefix="arvore/"
+  diretorio="$trabalho"
+  adaptador="$(cd "$(dirname "$0")" && pwd)/adaptar-hardness.py"
+  if command -v cygpath >/dev/null 2>&1; then
+    diretorio="$(cygpath -w "$trabalho")"
+    adaptador="$(cygpath -w "$adaptador")"
+  fi
+  if command -v python >/dev/null 2>&1; then
+    python="python"
+  else
+    python="python3"
+  fi
+  aviso "Reaplicando os ajustes do PHP 8."
+  if ! "$python" "$adaptador" "$diretorio" >"$mudados"; then
+    echo "O trazer parou sem avançar o ponto." >&2
+    exit 1
+  fi
+  while IFS= read -r caminho; do
+    caminho="${caminho%$'\r'}"
+    [ -n "$caminho" ] || continue
+    blob="$(git -C "$cmp_tmp" hash-object -w -- "$trabalho/$caminho")"
+    modo="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" ls-files -s -- "$caminho" | awk '{ print $1; exit }')"
+    GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" update-index --cacheinfo "${modo:-100644},$blob,$caminho"
+  done <"$mudados"
+}
+
 ficar_com_a_publicacao() {
   local indice="$1"
   local caminho modo blob n
@@ -394,11 +428,11 @@ ficar_com_a_publicacao() {
 trazer() {
   local base_sha tip indice merged parent novo caminho houve blob novo_tree
   local base_tree their_tree our_tree
-  if [ ! -f "$raiz/publicacao/ponto" ]; then
+  if [ ! -f "$raiz/bin/ponto" ]; then
     echo "Não há ponto gravado." >&2
     exit 1
   fi
-  base_sha="$(head -n 1 "$raiz/publicacao/ponto" | tr -d '[:space:]')"
+  base_sha="$(head -n 1 "$raiz/bin/ponto" | tr -d '[:space:]')"
   aviso "Ponto de parada: $base_sha"
   buscar
   tip="$(git -C "$publicacao" rev-parse refs/remotes/origin/master)"
@@ -442,6 +476,8 @@ trazer() {
     exit 1
   fi
 
+  aplicar_adaptacoes "$indice"
+
   aviso "Gravando a branch. O checkout atual não muda."
   merged="$(GIT_INDEX_FILE="$indice" git -C "$cmp_tmp" write-tree)"
   importar_arvore "$our_tree" "$merged"
@@ -453,12 +489,12 @@ trazer() {
   GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" rm -r --cached -q --ignore-unmatch -- src/hardness3
   GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" read-tree --prefix=src/hardness3/ "$merged"
   blob="$(git -C "$raiz" hash-object -w -- "$ponto_tmp")"
-  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" update-index --add --cacheinfo "100644,$blob,publicacao/ponto"
+  GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" update-index --add --cacheinfo "100644,$blob,bin/ponto"
   novo_tree="$(GIT_INDEX_FILE="$indice_erp_tmp" git -C "$raiz" write-tree)"
   parent="$(git -C "$raiz" rev-parse HEAD)"
   novo="$(git -C "$raiz" commit-tree "$novo_tree" -p "$parent" -m "feat(publicacao): traz a publicação até $tip")"
   git -C "$raiz" branch "publicacao/$tip" "$novo"
-  printf '%s\n' "$tip" >"$raiz/publicacao/ponto"
+  printf '%s\n' "$tip" >"$raiz/bin/ponto"
   printf 'publicacao/%s\n' "$tip"
 }
 

@@ -12,7 +12,7 @@ EOT;
 require_once('confConnect.php');
 
 $con=mysqli_connect($confConnect['dbHost'], $confConnect['dbUser'], $confConnect['dbPass']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 
 
 $empresa['e213'] = 'GP';

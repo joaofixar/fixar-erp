@@ -10,7 +10,7 @@ require 'scripts/queueNF/codigos.php';
 
 // Conexão com o banco
 $con = mysqli_connect( $confUsuario['dbHost'], $confUsuario['dbUser']  , $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-echo mysqli_connect_error($con)."/n";
+echo mysqli_connect_error()."/n";
 
 mysqli_set_charset('utf8');
 mysqli_query('SET NAMES utf8;');

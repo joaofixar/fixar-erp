@@ -11,7 +11,7 @@ $Empresa_Atual = 1;
 
 // mysql
 $con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 if (!empty($Error)) {
 	echo $Error;
 	die();

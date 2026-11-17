@@ -68,7 +68,7 @@ foreach($empresas as $index => $empresa){
             $g['pathRaiz'] = $confUsuario['pathRaiz'];
             $g['urlRaiz'] = $confUsuario['urlRaiz'];
             $con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-            $Error=mysqli_connect_error($con);
+            $Error=mysqli_connect_error();
             mysql_set_charset('utf8', $con);
             if(empty($Error)) {
                 $msg .= "Iniciou atualizacao notificações:".$confUsuario['dbDatabase'];

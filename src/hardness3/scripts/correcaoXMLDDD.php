@@ -21,7 +21,7 @@ $o = getopt("b:a");
 if (isset($o['b']) && !empty($o['b'])) {
 	// conecta no banco de dados
 	$con = mysqli_connect('127.0.0.1', 'root', '#qos!0982',$o['b']);
-	$Error=mysqli_connect_error($con);
+	$Error=mysqli_connect_error();
 	if (!empty($Error)) { die($Error . "\n"); }
 	// $dbs = mysql_select_db($o['b'],  $con) or die (mysql_error() . "\n");
 	mysqli_set_charset($con,'utf8');

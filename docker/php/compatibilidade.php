@@ -30,40 +30,60 @@ if (!function_exists('each')) {
     }
 }
 
+// O Hardness chama apc_*. Com APCu a ponte grava; sem a extensão o pedido segue, sem cache.
 if (!function_exists('apc_fetch')) {
-    function apc_fetch($chave, &$sucesso = null)
-    {
-        $sucesso = false;
-        return false;
-    }
-}
+    if (function_exists('apcu_fetch')) {
+        function apc_fetch($chave, &$sucesso = null)
+        {
+            return apcu_fetch($chave, $sucesso);
+        }
 
-if (!function_exists('apc_store')) {
-    function apc_store($chave, $valor = null, $ttl = 0)
-    {
-        return true;
-    }
-}
+        function apc_store($chave, $valor = null, $ttl = 0)
+        {
+            return apcu_store($chave, $valor, $ttl);
+        }
 
-if (!function_exists('apc_add')) {
-    function apc_add($chave, $valor = null, $ttl = 0)
-    {
-        return true;
-    }
-}
+        function apc_add($chave, $valor = null, $ttl = 0)
+        {
+            return apcu_add($chave, $valor, $ttl);
+        }
 
-if (!function_exists('apc_delete')) {
-    function apc_delete($chave)
-    {
-        return true;
-    }
-}
+        function apc_delete($chave)
+        {
+            return apcu_delete($chave);
+        }
 
-if (!function_exists('apc_inc')) {
-    function apc_inc($chave, $passo = 1, &$sucesso = null)
-    {
-        $sucesso = true;
-        return $passo;
+        function apc_inc($chave, $passo = 1, &$sucesso = null)
+        {
+            return apcu_inc($chave, $passo, $sucesso);
+        }
+    } else {
+        function apc_fetch($chave, &$sucesso = null)
+        {
+            $sucesso = false;
+            return false;
+        }
+
+        function apc_store($chave, $valor = null, $ttl = 0)
+        {
+            return true;
+        }
+
+        function apc_add($chave, $valor = null, $ttl = 0)
+        {
+            return true;
+        }
+
+        function apc_delete($chave)
+        {
+            return true;
+        }
+
+        function apc_inc($chave, $passo = 1, &$sucesso = null)
+        {
+            $sucesso = true;
+            return $passo;
+        }
     }
 }
 

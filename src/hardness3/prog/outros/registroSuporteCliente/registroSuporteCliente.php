@@ -10653,11 +10653,11 @@ function encaminharChamadoParceiro($T252_Id, $T234_Id, $conexao)
 
     //Conexao com o banco que esta recebendo
     $conReceber = @mysqli_connect($hostReceber, $usuarioReceber, $senhaReceber,$sys['dbDatabase']);
-    $errorReceber = mysqli_connect_error($conReceber);
+    $errorReceber = mysqli_connect_error();
 
     //Conexao com o banco que esta enviando
     $conEnviar = @mysqli_connect($hostEnviar, $usuarioEnviar, $senhaEnviar,'e001');
-    $errorEnviar = mysqli_connect_error($conEnviar);
+    $errorEnviar = mysqli_connect_error();
 
     if (!empty($errorReceber) || !empty($errorEnviar)) {
         $retorno[0] = false;
@@ -10776,11 +10776,11 @@ function encaminharAnexosParceiro($T234_Id, $conexao)
 
     //Conexao com o banco que esta recebendo
     $conReceber = @mysqli_connect($hostReceber, $usuarioReceber, $senhaReceber,$sys['dbDatabase']);
-    $errorReceber = mysqli_connect_error($conReceber);
+    $errorReceber = mysqli_connect_error();
 
     //Conexao com o banco que esta enviando
     $conEnviar = @mysqli_connect($hostEnviar, $usuarioEnviar, $senhaEnviar,'e001');
-    $errorEnviar = mysqli_connect_error($conEnviar);
+    $errorEnviar = mysqli_connect_error();
 
     if (!empty($errorReceber) || !empty($errorEnviar)) {
         $retorno[0] = false;

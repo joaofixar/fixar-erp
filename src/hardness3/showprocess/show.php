@@ -26,7 +26,7 @@ EOT;
 require_once('confConnect.php');
 
 $con=mysqli_connect($confConnect['dbHost'], $confConnect['dbUser'], $confConnect['dbPass']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 
 if ($_GET['excluir']>0){
 	mysqli_query($con,"kill {$_GET['excluir']}");

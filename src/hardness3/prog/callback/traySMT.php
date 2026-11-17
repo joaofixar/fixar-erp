@@ -78,7 +78,7 @@ function getConexaoBD($store) {
 	include($conf);
 
 	$conexaoBD = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
-	$error = mysqli_connect_error($conexaoBD);
+	$error = mysqli_connect_error();
 
 	if (!empty($error)) {
 		die(processarMensagemRetorno("Falha ao conectar com o banco de dados. {$error}", true));

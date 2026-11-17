@@ -31,7 +31,7 @@ ini_set('mysql.connect_timeout','0');
 ini_set('max_execution_time', '0'); 
 // Conexão com o banco
 $con = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-$Error = mysqli_connect_error($con);
+$Error = mysqli_connect_error();
 if (!empty($Error)) { die($Error); }
 $g['conexaoBanco'] = $con;
 if (isset($usarUTF8) && $usarUTF8) {

@@ -23,7 +23,7 @@ if ($tipo == 'normal') {
 
 // Conexão com o mysql
 $con = @mysqli_connect($conf['dbHost'], $conf['dbUser'], $conf['dbPass']);
-$error = mysqli_connect_error($con);
+$error = mysqli_connect_error();
 if (!empty($error)) {
 	if ($tipo == 'normal') {
 		echo "[{$conf['id']}] Erro no MySQL|||Nao foi possivel conectar MySQL:\n{$error}***";

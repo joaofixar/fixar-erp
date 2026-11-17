@@ -8,7 +8,7 @@
 
     $con=@mysqli_connect($host,$user,$pass,$Banco_Dados);
 
-    $Error=mysqli_connect_error($con);
+    $Error=mysqli_connect_error();
     if (!empty($Error)) {
        include "erro_conexao.php";
     }

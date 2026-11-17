@@ -27,9 +27,9 @@ $con -> options(MYSQLI_OPT_CONNECT_TIMEOUT, 240);
 $con -> real_connect($confUsuarioEspelhado['dbHost'], $confUsuarioEspelhado['dbUser'], $confUsuarioEspelhado['dbPass'],$confUsuarioEspelhado['dbDatabase']);
 
 //$con=mysqli_connect($confUsuarioEspelhado['dbHost'], $confUsuarioEspelhado['dbUser'], $confUsuarioEspelhado['dbPass'],$confUsuarioEspelhado['dbDatabase']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 
-log('conexaoBanco');
+if (function_exists(__NAMESPACE__ . '\\log')) { log('conexaoBanco'); }
 
 if (!empty($Error)) {
 	// Efetua mais uma tentativa, para verificar se não foi alterado a senha do usuário no banco
@@ -38,7 +38,7 @@ if (!empty($Error)) {
 	$confUsuarioEspelhado['dbUser'] = $confUsuarioEspelhado['dbUser_'];
 	$confUsuarioEspelhado['dbPass'] = $confUsuarioEspelhado['dbPass_'];
 	$con=@mysqli_connect($confUsuarioEspelhado['dbHost'], $confUsuarioEspelhado['dbUser'], $confUsuarioEspelhado['dbPass'],$confUsuarioEspelhado['dbDatabase']);
-	$Error1=mysqli_connect_error($con);
+	$Error1=mysqli_connect_error();
 	if (!empty($Error1)) {
 		echo "Ocorreu um erro ao conectar com banco de dados {$confUsuarioEspelhado['dbDatabase']} (2): <br><br> Erro 1: ".$Error."<br><br> Erro 2: ".$Error1;
 		die();
@@ -66,7 +66,7 @@ include_once('bibliotecas/conexaoBancoAuditoria.php');
 // if(isset($confUsuarioEspelhadoAuditoria)){
 // 	//Conexão do banco da auditoria
 // 	$conAuditoria=mysqli_connect($confUsuarioEspelhadoAuditoria['dbHost'], $confUsuarioEspelhadoAuditoria['dbUser'], $confUsuarioEspelhadoAuditoria['dbPass'],$confUsuarioEspelhadoAuditoria['dbDatabase']);
-// 	$ErrorAuditoria=mysqli_connect_error($conAuditoria);
+// 	$ErrorAuditoria=mysqli_connect_error();
 
 // 	if(empty($ErrorAuditoria)){
 // 		$g['conexaoBancoAuditoria'] = $conAuditoria;

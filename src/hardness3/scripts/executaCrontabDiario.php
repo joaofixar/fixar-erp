@@ -84,7 +84,7 @@ foreach($empresas as $index => $empresa)
         $con -> options(MYSQLI_OPT_CONNECT_TIMEOUT, 3600);
         $con -> real_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'], $confUsuario['dbDatabase']);
         $g['conexaoBanco'] = $con;
-        $Error=mysqli_connect_error($con);
+        $Error=mysqli_connect_error();
         if (!empty($Error)) {
             echo "Erro conexão banco \n\n";
             continue;

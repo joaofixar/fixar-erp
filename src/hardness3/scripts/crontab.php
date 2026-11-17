@@ -119,7 +119,7 @@ foreach($empresas as $index => $empresa){
                 // Conexão
                 $con = mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass']);
 
-                $erro= mysqli_connect_error($con);
+                $erro= mysqli_connect_error();
                 if (!empty($erro)) {
                     echo "Erro ao conectar no DB {$confUsuario['dbDatabase']} " . $erro . " \n";
                     continue;

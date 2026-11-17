@@ -4,7 +4,7 @@ require_once("bibliotecas/confUsuarioClickHouse.php");
 
 $con = mysqli_init();
 $con->real_connect($confUsuarioClickHouse['dbHost'], $confUsuarioClickHouse['dbUser'], $confUsuarioClickHouse['dbPass'],$confUsuarioClickHouse['dbDatabase'],$confUsuarioClickHouse['dbPort']);
-$error = mysqli_connect_error($con);
+$error = mysqli_connect_error();
 if (!empty($error)) {
     die("Error: {$error}");
 }

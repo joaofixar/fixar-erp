@@ -8,7 +8,7 @@ $confUsuario = array(
 	'dbPass' => 'hardness',
 );
 $con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 if (!empty($Error)) { echo $Error; die(); }
 // $dbs=mysql_select_db($confUsuario['dbDatabase'], $con) or die (mysqli_error($con));
 mysqli_set_charset($con,'utf8');

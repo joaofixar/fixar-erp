@@ -8,7 +8,7 @@ $confUsuario = array(
 	'dbPass' => 'hardness',
 );
 $con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 if (!empty($Error)) { echo $Error; die(); }
 $g['conexaoBanco'] = $con;
 // $dbs=mysql_select_db($confUsuario['dbDatabase'], $con) or die (mysql_error());

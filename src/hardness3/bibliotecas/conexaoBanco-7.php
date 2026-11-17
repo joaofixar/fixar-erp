@@ -11,7 +11,7 @@ if(isset($g['conexaoBanco'])){
 	mysqli_close($g['conexaoBanco']);
 }
 $con=mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 
 if (!empty($Error)) {
 	// Efetua mais uma tentativa, para verificar se não foi alterado a senha do usuário no banco
@@ -20,7 +20,7 @@ if (!empty($Error)) {
 	$confUsuario['dbUser'] = $confUsuario['dbUser_'];
 	$confUsuario['dbPass'] = $confUsuario['dbPass_'];
 	$con=@mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-	$Error=mysqli_connect_error($con);
+	$Error=mysqli_connect_error();
 	if (!empty($Error)) {
 		echo "Ocorreu um erro ao conectar com banco de dados(2):".$Error;
 		die();

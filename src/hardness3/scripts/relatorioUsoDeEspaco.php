@@ -8,7 +8,7 @@ $confUsuarioERP = array(
 	//'dbPass' => 'hardness',
 );
 $conERP=@mysqli_connect($confUsuarioERP['dbHost'], $confUsuarioERP['dbUser'], $confUsuarioERP['dbPass']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 if (!empty($Error)) { echo $Error; die(); }
 // mysql_select_db($confUsuarioERP['dbDatabase'], $conERP) or die (mysql_error());
 mysqli_set_charset($conERP,'utf8');

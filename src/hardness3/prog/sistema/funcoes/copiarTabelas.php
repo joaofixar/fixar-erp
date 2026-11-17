@@ -3,7 +3,7 @@ namespace hardness;
 // para ter acesso as outras bases, é necessário acesso root no servidor
 mysqli_close($g['conexaoBanco']);
 $con=@mysqli_connect($confUsuario['dbHost'], 'root', base64_decode('PSFIMnI0bjZzOCE9'),$confUsuario['dbDatabase']);
-$Error=mysqli_connect_error($con);
+$Error=mysqli_connect_error();
 if (!empty($Error)) {
 	echo $Error;
 	die();

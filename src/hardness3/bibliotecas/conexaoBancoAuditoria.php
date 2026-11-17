@@ -5,7 +5,7 @@ if(isset($confUsuarioAuditoria)){
 
 	//Conexão do banco da auditoria
 	$conAuditoria=mysqli_connect($confUsuarioAuditoria['dbHost'], $confUsuarioAuditoria['dbUser'], $confUsuarioAuditoria['dbPass']);
-	$ErrorAuditoria=mysqli_connect_error($conAuditoria);
+	$ErrorAuditoria=mysqli_connect_error();
 
 	//Verificando se Banco existe no servidor auditoria, caso não exista o banco é criado
 	if(empty($ErrorAuditoria)){

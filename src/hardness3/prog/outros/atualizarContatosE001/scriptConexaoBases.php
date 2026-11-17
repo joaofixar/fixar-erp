@@ -61,7 +61,7 @@ switch ($g['r'][3]) {
 
 		// Variável db2 é a conexão com a base e001
 		$db2=mysqli_connect('23.23.29.24', 'root', '!hard@3871',$sys['dbDatabase']);
-		if(!$db2){echo mysqli_connect_error($db2);}
+		if(!$db2){echo mysqli_connect_error();}
 		$g['conexaoBanco'] = $db2;
 		// $db_selected2 = mysql_select_db("{$sys['dbDatabase']}", $db2);
 

@@ -37,7 +37,7 @@ if(!empty($_REQUEST['store'])) {
 		} 
 
 		$con = @mysqli_connect($confUsuario['dbHost'], $confUsuario['dbUser'], $confUsuario['dbPass'],$confUsuario['dbDatabase']);
-		$error = mysqli_connect_error($con);
+		$error = mysqli_connect_error();
 		if(!empty($error)){
 			die(imprimeMensagem("Erro ao carregar dados. Por favor entre em contato com o suporte técnico da Hardness Sistemas e informe o seguinte erro:{$error}. (Código 1)"));
 		}

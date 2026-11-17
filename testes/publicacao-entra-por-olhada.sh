@@ -60,7 +60,7 @@ erro="$(mktemp)"
 if ! bash "$comando" olhar --raiz "$erp" --publicacao "$clone" --ponto "$sha_base" >"$saida" 2>"$erro"; then
   reclamar "gravar o ponto terminou em erro: $(cat "$erro")"
 fi
-if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$sha_base" ]; then
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_base" ]; then
   reclamar "o ponto gravado não é o SHA informado"
 fi
 if [ "$(cat "$erp/src/hardness3/leia.txt")" != "$antes_leia" ]; then
@@ -93,8 +93,8 @@ printf 'um\n' >"$pub/leia.txt"
 sha_um="$(commitar "$pub" "um")"
 printf 'dois\n' >"$pub/leia.txt"
 sha_dois="$(commitar "$pub" "dois")"
-mkdir -p "$erp/publicacao"
-printf '%s\n' "$sha_base" >"$erp/publicacao/ponto"
+mkdir -p "$erp/bin"
+printf '%s\n' "$sha_base" >"$erp/bin/ponto"
 
 antes_head="$(git -C "$erp" rev-parse HEAD)"
 antes_master="$(git -C "$clone" rev-parse master)"
@@ -128,7 +128,7 @@ fi
 
 # --- publicação parada: lista vazia e sucesso ---
 
-printf '%s\n' "$sha_dois" >"$erp/publicacao/ponto"
+printf '%s\n' "$sha_dois" >"$erp/bin/ponto"
 if ! bash "$comando" olhar --raiz "$erp" --publicacao "$clone" >"$saida" 2>"$erro"; then
   reclamar "a olhada sem commit novo terminou em erro: $(cat "$erro")"
 fi
@@ -184,7 +184,7 @@ fi
 if [ "$(cat "$saida")" != "candidato $sha_dois 0 versao dois" ]; then
   reclamar "a primeira olhada não apontou o commit que fecha: $(cat "$saida")"
 fi
-if [ -e "$erp/publicacao/ponto" ]; then
+if [ -e "$erp/bin/ponto" ]; then
   reclamar "a primeira olhada gravou o ponto sem o SHA informado"
 fi
 if [ "$(cat "$erp/src/hardness3/leia.txt")" != "v2" ]; then
@@ -203,7 +203,7 @@ fi
 if ! bash "$comando" olhar --raiz "$erp" --publicacao "$clone" --ponto "$sha_dois" >"$saida" 2>"$erro"; then
   reclamar "gravar o candidato terminou em erro: $(cat "$erro")"
 fi
-if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$sha_dois" ]; then
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_dois" ]; then
   reclamar "o candidato informado não foi gravado"
 fi
 if [ "$(cat "$erp/src/hardness3/leia.txt")" != "v2" ]; then
@@ -254,7 +254,7 @@ fi
 if grep -q "$sha_tres" "$saida"; then
   reclamar "um commit mais distante entrou na lista: $(cat "$saida")"
 fi
-if [ -e "$erp/publicacao/ponto" ]; then
+if [ -e "$erp/bin/ponto" ]; then
   reclamar "a olhada sem fechamento gravou um ponto"
 fi
 if [ "$(cat "$erp/src/hardness3/leia.txt")" != "$antes_leia" ]; then
@@ -290,7 +290,7 @@ mkdir -p "$pub/ceigon"
 printf 'outro cliente\n' >"$pub/ceigon/nota.txt"
 sha_ponta="$(commitar "$pub" "ponta")"
 
-mkdir -p "$erp/src/hardness3/scripts/sql" "$erp/src/hardness3/outros/personalizacoes/fixar" "$erp/publicacao"
+mkdir -p "$erp/src/hardness3/scripts/sql" "$erp/src/hardness3/outros/personalizacoes/fixar" "$erp/bin"
 printf 'fixar\n' >"$erp/src/hardness3/leia.txt"
 printf 'base\n' >"$erp/src/hardness3/outro.txt"
 printf 'intacto\n' >"$erp/src/hardness3/intacto.txt"
@@ -298,7 +298,7 @@ printf 'sai\n' >"$erp/src/hardness3/sai.txt"
 printf 'antiga\n' >"$erp/src/hardness3/scripts/sql/rotina.sql"
 printf 'nossa\n' >"$erp/src/hardness3/outros/personalizacoes/fixar/regra.php"
 printf 'local\n' >"$erp/src/hardness3/so-fixar.txt"
-printf '%s\n' "$sha_base" >"$erp/publicacao/ponto"
+printf '%s\n' "$sha_base" >"$erp/bin/ponto"
 printf 'intocado\n' >"$erp/marcador-banco"
 git -C "$erp" add -A
 git -C "$erp" commit -q -m "hardness com ajuste"
@@ -357,7 +357,7 @@ fi
 if [ "$(git -C "$erp" log -1 --format='%s' "$ramo")" != "feat(publicacao): traz a publicação até $sha_ponta" ]; then
   reclamar "o commit da branch não segue o padrão: $(git -C "$erp" log -1 --format='%s' "$ramo")"
 fi
-if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$sha_ponta" ]; then
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_ponta" ]; then
   reclamar "o trazer limpo não avançou o ponto"
 fi
 if ! bash "$comando" olhar --raiz "$erp" --publicacao "$clone" >"$saida" 2>"$erro"; then
@@ -373,7 +373,7 @@ erp="$trabalho/erp-conflito"
 pub="$trabalho/pub-conflito"
 clone="$trabalho/clone-conflito"
 preparar_erp "$erp"
-mkdir -p "$pub" "$erp/publicacao"
+mkdir -p "$pub" "$erp/bin"
 printf 'base\n' >"$pub/leia.txt"
 git init -q -b master "$pub"
 identificar "$pub"
@@ -383,11 +383,11 @@ identificar "$clone"
 printf 'deles\n' >"$pub/leia.txt"
 sha_ponta="$(commitar "$pub" "ponta")"
 printf 'fixar\n' >"$erp/src/hardness3/leia.txt"
-printf '%s\n' "$sha_base" >"$erp/publicacao/ponto"
+printf '%s\n' "$sha_base" >"$erp/bin/ponto"
 git -C "$erp" add -A
 git -C "$erp" commit -q -m "ajuste no mesmo arquivo"
 antes_head="$(git -C "$erp" rev-parse HEAD)"
-antes_ponto="$(tr -d '[:space:]' <"$erp/publicacao/ponto")"
+antes_ponto="$(tr -d '[:space:]' <"$erp/bin/ponto")"
 
 if bash "$comando" trazer --raiz "$erp" --publicacao "$clone" >"$saida" 2>"$erro"; then
   reclamar "o conflito terminou bem"
@@ -395,7 +395,7 @@ fi
 if ! grep -qx "conflito leia.txt" "$saida"; then
   reclamar "o conflito não listou o arquivo: $(cat "$saida")"
 fi
-if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$antes_ponto" ]; then
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$antes_ponto" ]; then
   reclamar "o conflito avançou o ponto"
 fi
 if [ "$(git -C "$erp" rev-parse HEAD)" != "$antes_head" ]; then
@@ -423,8 +423,123 @@ fi
 if [ "$(cat "$erp/src/hardness3/leia.txt")" != "fixar" ]; then
   reclamar "sobrescrever alterou o Hardness do checkout"
 fi
-if [ "$(tr -d '[:space:]' <"$erp/publicacao/ponto")" != "$sha_ponta" ]; then
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_ponta" ]; then
   reclamar "sobrescrever não avançou o ponto"
+fi
+
+# --- a publicação ganha o arquivo e o ajuste do PHP 8 volta por cima ---
+
+erp="$trabalho/erp-adapta"
+pub="$trabalho/pub-adapta"
+clone="$trabalho/clone-adapta"
+preparar_erp "$erp"
+mkdir -p "$pub/bibliotecas" "$erp/src/hardness3/bibliotecas" "$erp/bin"
+cat >"$pub/bibliotecas/conexaoBanco.php" <<'EOF'
+<?php
+$Error=mysqli_connect_error($con);
+log('conexaoBanco');
+EOF
+cat >"$pub/bibliotecas/funcoesGerais.php" <<'EOF'
+$display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+EOF
+git init -q -b master "$pub"
+identificar "$pub"
+sha_base="$(commitar "$pub" "base da copia")"
+git clone -q "$pub" "$clone"
+identificar "$clone"
+cat >"$pub/bibliotecas/conexaoBanco.php" <<'EOF'
+<?php
+// deles
+$Error=mysqli_connect_error($con);
+log('conexaoBanco');
+EOF
+cat >"$pub/bibliotecas/funcoesGerais.php" <<'EOF'
+// deles
+$display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+EOF
+sha_ponta="$(commitar "$pub" "ponta")"
+cat >"$erp/src/hardness3/bibliotecas/conexaoBanco.php" <<'EOF'
+<?php
+// fixar
+$Error=mysqli_connect_error($con);
+log('conexaoBanco');
+EOF
+cat >"$erp/src/hardness3/bibliotecas/funcoesGerais.php" <<'EOF'
+// fixar
+$display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+EOF
+printf '%s\n' "$sha_base" >"$erp/bin/ponto"
+git -C "$erp" add -A
+git -C "$erp" commit -q -m "ajuste local"
+antes_head="$(git -C "$erp" rev-parse HEAD)"
+
+if ! bash "$comando" trazer --sobrescrever --raiz "$erp" --publicacao "$clone" >"$saida" 2>"$erro"; then
+  reclamar "a adaptação terminou em erro: $(cat "$erro") $(cat "$saida")"
+fi
+if [ "$(git -C "$erp" rev-parse HEAD)" != "$antes_head" ]; then
+  reclamar "a adaptação trocou o checkout"
+fi
+if ! grep -q "mysqli_connect_error();" <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/conexaoBanco.php")"; then
+  reclamar "a chamada do mysqli não foi ajustada na branch"
+fi
+if grep -q 'mysqli_connect_error($con)' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/conexaoBanco.php")"; then
+  reclamar "a chamada antiga do mysqli permaneceu na branch"
+fi
+if ! grep -q '// deles' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/conexaoBanco.php")"; then
+  reclamar "o texto da publicação saiu ao ajustar o mysqli"
+fi
+if ! grep -q 'function_exists' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/conexaoBanco.php")"; then
+  reclamar "a chamada de log não foi protegida na branch"
+fi
+if ! grep -q '__modelos' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/funcoesGerais.php")"; then
+  reclamar "a lista de modelos não foi ajustada na branch"
+fi
+if grep -q 'array_values($g' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/funcoesGerais.php")"; then
+  reclamar "a lista nula permaneceu na branch"
+fi
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_ponta" ]; then
+  reclamar "a adaptação não avançou o ponto"
+fi
+
+# --- funcoesGerais irreconhecível para sem avançar o ponto ---
+
+erp="$trabalho/erp-adapta-pare"
+pub="$trabalho/pub-adapta-pare"
+clone="$trabalho/clone-adapta-pare"
+preparar_erp "$erp"
+mkdir -p "$pub/bibliotecas" "$erp/src/hardness3/bibliotecas" "$erp/bin"
+cat >"$pub/bibliotecas/funcoesGerais.php" <<'EOF'
+$display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+EOF
+git init -q -b master "$pub"
+identificar "$pub"
+sha_base="$(commitar "$pub" "base da copia")"
+git clone -q "$pub" "$clone"
+identificar "$clone"
+printf '<?php echo 1;\n' >"$pub/bibliotecas/funcoesGerais.php"
+sha_ponta="$(commitar "$pub" "ponta sem o trecho")"
+cp "$pub/bibliotecas/funcoesGerais.php" "$erp/src/hardness3/bibliotecas/funcoesGerais.php"
+# O nosso lado fica na base, para o merge entrar limpo e a adaptação ser quem para.
+git -C "$clone" show "$sha_base:bibliotecas/funcoesGerais.php" >"$erp/src/hardness3/bibliotecas/funcoesGerais.php"
+printf '%s\n' "$sha_base" >"$erp/bin/ponto"
+git -C "$erp" add -A
+git -C "$erp" commit -q -m "hardness na base"
+antes_head="$(git -C "$erp" rev-parse HEAD)"
+
+if bash "$comando" trazer --raiz "$erp" --publicacao "$clone" >"$saida" 2>"$erro"; then
+  reclamar "o funcoesGerais irreconhecível não parou o trazer"
+fi
+if ! grep -q "não encaixa" "$erro"; then
+  reclamar "a parada não explicou o funcoesGerais: $(cat "$erro")"
+fi
+if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_base" ]; then
+  reclamar "o funcoesGerais irreconhecível avançou o ponto"
+fi
+if [ -n "$(git -C "$erp" branch --list 'publicacao/*')" ]; then
+  reclamar "o funcoesGerais irreconhecível criou uma branch"
+fi
+if [ "$(git -C "$erp" rev-parse HEAD)" != "$antes_head" ]; then
+  reclamar "o funcoesGerais irreconhecível trocou o checkout"
 fi
 
 rm -f "$saida" "$erro"
