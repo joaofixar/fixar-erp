@@ -1,12 +1,10 @@
 # Produção no Coolify. Um só web: a sessão em arquivo e o APCu não se repartem.
 # A base local continua no docker-compose.yml. Aqui a saída segue aberta (nota,
-# boleto, e-mail), o MariaDB não tem porta publicada e a fotografia de ensaio
-# não entra no volume.
+# boleto, e-mail) e o MariaDB não tem porta publicada.
 #
-# O código entra na imagem. Um volume ./src no Coolify nasce vazio e o Apache
-# responde 403. O confUsuario.php é gravado na subida com o host db.
-# O volume do banco nasce vazio. A cópia de produção é restaurada nele.
-# Código novo vale depois do rebuild: o opcache não relê o arquivo a cada pedido.
+# O código entra na imagem. O confUsuario.php é gravado na subida com o host db.
+# Sem a tabela C004, a subida carrega a fotografia: estrutura, empresa e usuário
+# local. Um volume que já tem C004 permanece. Código novo vale depois do rebuild.
 #
 #   docker compose -f docker-compose.prod.yml up -d --build
 #
@@ -39,7 +37,10 @@ services:
       - "80"
 
   db:
-    image: mariadb:11
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    image: fixar-erp-banco
     restart: unless-stopped
     mem_limit: 2560m
     command: ["--innodb-buffer-pool-size=1G"]
@@ -52,11 +53,11 @@ services:
     volumes:
       - db-dados:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized && test -f /tmp/rotinas-aplicadas"]
       interval: 5s
       timeout: 5s
-      retries: 30
-      start_period: 40s
+      retries: 40
+      start_period: 900s
 
 volumes:
   db-dados:
