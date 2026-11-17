@@ -1,0 +1,60 @@
+# Produção no Coolify. Um só web: a sessão em arquivo e o APCu não se repartem.
+# A base local continua no docker-compose.yml. Aqui a saída segue aberta (nota,
+# boleto, e-mail), o MariaDB não tem porta publicada e a fotografia de ensaio
+# não entra no volume.
+#
+# O volume do banco nasce vazio. A cópia de produção é restaurada nele.
+# O confUsuario.php do servidor aponta o host do banco para db.
+# Código novo vale depois do reinício: o opcache não relê o arquivo a cada pedido.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# O Coolify preenche SERVICE_FQDN_WEB com o domínio e encaminha o proxy à porta 80.
+
+name: fixar-erp-producao
+
+services:
+  web:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile.prod
+    image: fixar-erp-producao
+    restart: unless-stopped
+    mem_limit: 3072m
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVICE_FQDN_WEB: ${SERVICE_FQDN_WEB:-}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ./src:/var/www/html
+      - dados-usuarios:/var/www/html/hardness3/dados_usuarios
+      - sessoes:/var/lib/php/sessions
+    expose:
+      - "80"
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    mem_limit: 2560m
+    command: ["--innodb-buffer-pool-size=1G"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?defina MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-fixar}
+      MARIADB_USER: ${MARIADB_USER:-fixar}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?defina MARIADB_PASSWORD}
+      TZ: America/Sao_Paulo
+    volumes:
+      - db-dados:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+volumes:
+  db-dados:
+  dados-usuarios:
+  sessoes:
