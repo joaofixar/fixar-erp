@@ -433,7 +433,7 @@ erp="$trabalho/erp-adapta"
 pub="$trabalho/pub-adapta"
 clone="$trabalho/clone-adapta"
 preparar_erp "$erp"
-mkdir -p "$pub/bibliotecas" "$erp/src/hardness3/bibliotecas" "$erp/bin"
+mkdir -p "$pub/bibliotecas" "$pub/sistema" "$erp/src/hardness3/bibliotecas" "$erp/bin"
 cat >"$pub/bibliotecas/conexaoBanco.php" <<'EOF'
 <?php
 $Error=mysqli_connect_error($con);
@@ -441,6 +441,10 @@ log('conexaoBanco');
 EOF
 cat >"$pub/bibliotecas/funcoesGerais.php" <<'EOF'
 $display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+EOF
+cat >"$pub/sistema/index-framework.php" <<'EOF'
+jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
+wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
 EOF
 git init -q -b master "$pub"
 identificar "$pub"
@@ -457,6 +461,11 @@ cat >"$pub/bibliotecas/funcoesGerais.php" <<'EOF'
 // deles
 $display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
 EOF
+cat >"$pub/sistema/index-framework.php" <<'EOF'
+// deles
+jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
+wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
+EOF
 sha_ponta="$(commitar "$pub" "ponta")"
 cat >"$erp/src/hardness3/bibliotecas/conexaoBanco.php" <<'EOF'
 <?php
@@ -467,6 +476,12 @@ EOF
 cat >"$erp/src/hardness3/bibliotecas/funcoesGerais.php" <<'EOF'
 // fixar
 $display = array_shift(array_values($g['smarty']->template_objects))->resource_name;
+EOF
+mkdir -p "$erp/src/hardness3/sistema"
+cat >"$erp/src/hardness3/sistema/index-framework.php" <<'EOF'
+// fixar
+jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
+wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
 EOF
 printf '%s\n' "$sha_base" >"$erp/bin/ponto"
 git -C "$erp" add -A
@@ -496,6 +511,12 @@ if ! grep -q '__modelos' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/har
 fi
 if grep -q 'array_values($g' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/bibliotecas/funcoesGerais.php")"; then
   reclamar "a lista nula permaneceu na branch"
+fi
+if ! grep -q "is_array(\$g\['divIdChain'\])" <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/index-framework.php")"; then
+  reclamar "a cadeia de telas não foi ajustada na branch"
+fi
+if ! grep -q '// deles' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/index-framework.php")"; then
+  reclamar "o texto da publicação saiu ao ajustar a cadeia de telas"
 fi
 if [ "$(tr -d '[:space:]' <"$erp/bin/ponto")" != "$sha_ponta" ]; then
   reclamar "a adaptação não avançou o ponto"

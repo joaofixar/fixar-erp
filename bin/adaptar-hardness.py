@@ -24,6 +24,20 @@ LISTA_VAZIA = (
     b"$display = (($__modelos = $g['smarty']->template_objects) && is_array($__modelos))"
     b" ? array_shift($__modelos)->resource_name : '';"
 )
+CADEIA = (
+    b"jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];"
+)
+CADEIA_SEGURA = (
+    b"jGJfq: if (!is_array($g['divIdChain'])) { $g['divIdChain'] = array($g['divId']); }"
+    b" $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];"
+)
+PAI = (
+    b"wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];"
+)
+PAI_SEGURO = (
+    b"wQr4K: if (!is_array($g['divIdParentChain'])) { $g['divIdParentChain'] = array(); }"
+    b" $g['divIdParent-last'] = $g['divIdParentChain'] ? $g['divIdParentChain'][count($g['divIdParentChain']) - 1] : '';"
+)
 
 
 def guardar_log(texto, chamada):
@@ -54,6 +68,23 @@ def adaptar(raiz):
             elif LISTA_VAZIA not in novo:
                 print(
                     "A adaptação de bibliotecas/funcoesGerais.php não encaixa.",
+                    file=sys.stderr,
+                )
+                return 1
+        if relativo == "sistema/index-framework.php":
+            if CADEIA in novo:
+                novo = novo.replace(CADEIA, CADEIA_SEGURA)
+            elif CADEIA_SEGURA not in novo:
+                print(
+                    "A adaptação de sistema/index-framework.php não encaixa.",
+                    file=sys.stderr,
+                )
+                return 1
+            if PAI in novo:
+                novo = novo.replace(PAI, PAI_SEGURO)
+            elif PAI_SEGURO not in novo:
+                print(
+                    "A adaptação de sistema/index-framework.php não encaixa.",
                     file=sys.stderr,
                 )
                 return 1
