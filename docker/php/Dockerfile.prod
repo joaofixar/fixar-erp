@@ -1,11 +1,21 @@
 FROM php:8.3-apache
 
-# Mesmas extensões da base local. Esta imagem não leva o bloqueio de saída.
+# Mesmas extensões da base local, mais as que o Composer exige (nota, planilha, PDF).
+# Esta imagem não leva o bloqueio de saída.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends $PHPIZE_DEPS \
+    && apt-get install -y --no-install-recommends \
+        $PHPIZE_DEPS \
+        unzip \
+        libzip-dev \
+        libpng-dev \
+        libjpeg62-turbo-dev \
+        libfreetype6-dev \
+        libicu-dev \
+        libxml2-dev \
     && pecl install apcu \
     && docker-php-ext-enable apcu \
-    && docker-php-ext-install mysqli \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install mysqli gd zip soap intl \
     && a2enmod rewrite \
     && apt-get purge -y --auto-remove $PHPIZE_DEPS \
     && rm -rf /var/lib/apt/lists/*
@@ -19,7 +29,12 @@ COPY docker/php/gravar-conf.php /usr/local/bin/gravar-conf.php
 COPY docker/php/entrada.sh /usr/local/bin/entrada
 COPY src /var/www/html
 
-RUN chmod +x /usr/local/bin/entrada \
+# O vendor não entra no git. A imagem instala o que está no composer.lock.
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --no-interaction --no-progress \
+        --working-dir=/var/www/html/hardness3/bibliotecas/composer \
+    && rm /usr/bin/composer \
+    && chmod +x /usr/local/bin/entrada \
     && mkdir -p /var/lib/php/sessions \
         /var/www/html/hardness3/dados_usuarios \
         /var/www/html/hardness3/smarty/templates_c \
