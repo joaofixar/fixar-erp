@@ -46,6 +46,8 @@ if [ "$pronto" -eq 1 ]; then
     else
         echo "C004 presente; a fotografia fica como está"
     fi
+    echo "Aplicando colunas e índices ausentes"
+    bash /usr/local/bin/aplicar-estrutura-ausente.sh
     echo "Aplicando rotinas ausentes"
     bash /usr/local/bin/aplicar-rotinas-ausentes.sh
     touch "$marcar"

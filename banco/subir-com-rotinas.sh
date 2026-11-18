@@ -43,6 +43,8 @@ while kill -0 "$pid" 2>/dev/null; do
 done
 
 if [ "$pronto" -eq 1 ]; then
+    echo "Aplicando colunas e índices ausentes"
+    bash /usr/local/bin/aplicar-estrutura-ausente.sh || true
     if [ "$ja_tinha_dados" -eq 1 ]; then
         echo "Volume já tinha dados; aplicando rotinas ausentes"
         bash /docker-entrypoint-initdb.d/zz-rotinas.sh || true

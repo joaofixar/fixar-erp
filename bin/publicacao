@@ -28,7 +28,7 @@ Publicação do Hardness
    git merge --ff-only publicacao/<sha>
 
 Segredo, personalização e arquivo de outro cliente ficam de fora.
-Rotina nova só entra no banco na próxima subida do contêiner.
+Rotina nova, coluna ausente e índice ausente só entram no banco na próxima subida do contêiner.
 EOF
 }
 

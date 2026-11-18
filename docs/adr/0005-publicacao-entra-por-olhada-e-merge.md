@@ -18,6 +18,6 @@ O trazer, também acionado, faz um merge de três vias: a publicação no SHA gr
 ## Consequences
 
 - Personalização, segredo e arquivo de outro cliente continuam de fora. O que só a Fixar alterou permanece, salvo conflito.
-- Coluna, índice e configuração não entram. O ADR 0004 permanece. SQL de rotina pode vir na branch e só passa a valer na base depois da integração, na subida do contêiner.
+- Coluna, índice e configuração não entram no trazer. O ADR 0004 permanece para a rotina. Coluna e índice ausentes entram na subida do contêiner, no ADR 0007. Configuração continua de fora. SQL de rotina pode vir na branch e só passa a valer na base depois da integração, na subida do contêiner.
 - Nada dispara sozinho. A olhada é o comando que se pode rodar todo dia. O primeiro relatório é o vão desde a cópia do legado, não um fluxo curto.
 - O clone fica em `master`. A comparação lê `origin/master` depois do `fetch`.
