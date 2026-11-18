@@ -15,6 +15,10 @@ RewriteRule ^\.well-known/oauth-protected-resource/mcp/c/[A-Za-z0-9_-]{24}$ /har
 RewriteRule ^oauth/register/?$ /hardness3/mcp/public/index.php [END]
 RewriteRule ^oauth/authorize/?$ /hardness3/mcp/public/index.php [END]
 RewriteRule ^oauth/token/?$ /hardness3/mcp/public/index.php [END]
+# URL pública do login. O redirect do endereço antigo fica em hardness3/.htaccess,
+# que tem RewriteEngine próprio e não herda estas regras.
+RewriteRule ^login$ /login/ [R=302,L]
+RewriteRule ^login/(.*)$ /hardness3/outros/login/$1 [END]
 RewriteCond %{SCRIPT_FILENAME} !-f
 RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteRule ^(.*)$ /hardness3/index.php?r=$1 [QSA,B]

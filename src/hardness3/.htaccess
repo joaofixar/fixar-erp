@@ -15,6 +15,11 @@ RewriteRule ^\.well-known/oauth-protected-resource/mcp/c/[A-Za-z0-9_-]{24}$ /har
 RewriteRule ^oauth/register/?$ /hardness3/mcp/public/index.php [END]
 RewriteRule ^oauth/authorize/?$ /hardness3/mcp/public/index.php [END]
 RewriteRule ^oauth/token/?$ /hardness3/mcp/public/index.php [END]
+# Endereço antigo do login vai para a URL pública /login/ (rota em ../.htaccess).
+# Só GET: um 302 perde o corpo de um POST. THE_REQUEST evita loop com a reescrita interna.
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{THE_REQUEST} \s/+hardness3/outros/login/?(?:index\.php)?[\s?] [NC]
+RewriteRule ^outros/login/?(?:index\.php)?$ /login/ [R=302,L]
 RewriteCond %{SCRIPT_FILENAME} !-f
 RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteRule ^(.*)$ /hardness3/index.php?r=$1 [QSA,B]
