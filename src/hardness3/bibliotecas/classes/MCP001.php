@@ -193,6 +193,11 @@ class MCP001_
             throw new \RuntimeException('quote_creation_failed');
         }
 
+        // Reaplica as ações finais normais da inclusão de orçamento. A classe
+        // VEN001 é resolvida pelo carregador do ERP, incluindo a
+        // personalização da empresa quando houver uma configurada.
+        $VEN001->acoesFinaisAtualizarOrcamento($quoteId);
+
         $this->mcp001VincularCanalAssistenteIa($quoteId);
         $included = 0;
         // A inclusão pela tela continua totalizando o cabeçalho por item.

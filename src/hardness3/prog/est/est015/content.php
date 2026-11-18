@@ -139,6 +139,18 @@ EOT;
 		$novoIdTelaForm = uniqid();
 		echo <<<EOT
 		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {		
+			var est015ItensSelecionadosAtualizacao = [];
+			function est015RotuloItensAtualizacao() {
+				return est015ItensSelecionadosAtualizacao.length ? 'Itens: ' + est015ItensSelecionadosAtualizacao.length : 'Selecionar itens';
+			}
+			function est015AtualizarTextoBotaoItens() {
+				var texto = est015RotuloItensAtualizacao();
+				$('.est015BotaoSelecionarItensAtualizacao').each(function() {
+					var rotulo = $(this).find('.ui-button-text');
+					if (rotulo.length) rotulo.text(texto);
+					else $(this).text(texto);
+				});
+			}
 			$('#est015DividirOrcamentoBtn').unbind('click').bind('click', function(data) {
 				abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Dividir Orçamento', '/est/est015/content/est015ContentDividirOrcamento/', '&tab=geral&T218_Id=' + encodeURIComponent("{$r_acaoId}"), [1000,600]);
 			});
@@ -388,19 +400,20 @@ EOT;
 						est015SelecionarCamposAtualizacao('aliquotas', function(opcoes) {
 								var T218_Id = $('#{$g['divId']} #T218_Id').val();
 								idProgressBar = dialogAlert('Processando alíquotas',"<span id='progressBar'><b><br>0% Processando Alíquotas</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-					            est015AtualizarAliquotasLoop(idProgressBar,T218_Id,1,opcoes);
+					            est015AtualizarAliquotasLoop(idProgressBar,T218_Id,1,opcoes,est015ItensSelecionadosAtualizacao);
 						});
 					},
 					"Atualizar CFOP": function() { 
-						abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Atualizar CFOP', '/est/est015/content/est015ContentAtualizarCFOP/', '&tab=geral&T218_Id=' + encodeURIComponent("{$r_acaoId}"), [500,300]);
 						$(this).dialog("destroy").remove();
+							var itens = est015ItensSelecionadosAtualizacao.length ? '&T219_Ids=' + encodeURIComponent(JSON.stringify(est015ItensSelecionadosAtualizacao)) : '';
+							abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Atualizar CFOP', '/est/est015/content/est015ContentAtualizarCFOP/', '&tab=geral&T218_Id=' + encodeURIComponent("{$r_acaoId}") + itens, [500,300]);
 					},
 					"Atualizar Aliquotas/CFOP Tabela": function() {
 						$(this).dialog("destroy").remove();
 						est015SelecionarCamposAtualizacao('tabela', function(opcoes) {
 								var T218_Id = $('#{$g['divId']} #T218_Id').val();
 								idProgressBar = dialogAlert('Processando alíquotas',"<span id='progressBar'><b>0% Processando alíquotas</span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-					            est015AtualizarAliquotasTabelaLoop(idProgressBar,T218_Id,1,opcoes);
+					            est015AtualizarAliquotasTabelaLoop(idProgressBar,T218_Id,1,opcoes,est015ItensSelecionadosAtualizacao);
 						});
 					},
 					"Cancelar": function() { 
@@ -409,7 +422,6 @@ EOT;
 				};
 				dialogConfirm('Atualizar', 'Qual atualização você deseja? ', \$buttons);
 			});
-
 			$('#est015AtualizarOpcoesX').unbind('click').bind('click', function(data) {
 				abrirJanela(data, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Atualizar CFOP', '/est/est015/content/est015ContentAtualizarCFOP/', '&tab=geral&T218_Id=' + encodeURIComponent("{$r_acaoId}"), [500,200]);
 			});
@@ -503,7 +515,18 @@ EOT;
 				}
 			});
 
-			function est015SelecionarCamposAtualizacao(tipo, concluir){
+			function est015AbrirJanelaSelecaoItens(tipo, concluir, opcoesMarcadas) {
+				var retorno = 'est015RetornoSelecaoItens' + unique();
+				window[retorno] = function(ids) {
+					delete window[retorno];
+					if ($.isArray(ids)) est015ItensSelecionadosAtualizacao = ids;
+					est015AtualizarTextoBotaoItens();
+					est015SelecionarCamposAtualizacao(tipo, concluir, opcoesMarcadas);
+				};
+				abrirJanela(false, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Selecionar itens para atualizar', '/est/est015/content/est015ContentSelecionarItensAtualizacao/', '&T218_Id=' + encodeURIComponent("{$r_acaoId}") + '&retorno=' + encodeURIComponent(retorno) + '&T219_Ids=' + encodeURIComponent(JSON.stringify(est015ItensSelecionadosAtualizacao)), [900, 600]);
+			}
+
+			function est015SelecionarCamposAtualizacao(tipo, concluir, opcoesMarcadas){
 				var grupos = [
 					{ titulo: 'Impostos', campos: [['ipi', 'IPI'], ['icms', 'ICMS'], ['st', 'ST'], ['pisCofins', 'PIS/COFINS']] },
 					{ titulo: 'Dados do produto', campos: [['cfop', 'CFOP'], ['origem', 'Origem do produto'], ['ncm', 'NCM'], ['unidade', 'Unidade de medida'], ['peso', 'Peso do produto'], ['precoTabela', 'Preço da tabela do fornecedor']] }
@@ -516,10 +539,20 @@ EOT;
 						$(this).dialog('destroy').remove();
 						concluir(opcoes);
 					},
+					"Selecionar itens": function() {
+						var opcoes = {};
+						$('#dc-' + dialogo).find('input.est015CampoAtualizacao').each(function() { opcoes[$(this).attr('data-campo')] = $(this).is(':checked'); });
+						$(this).dialog('destroy').remove();
+						est015AbrirJanelaSelecaoItens(tipo, concluir, opcoes);
+					},
 					"Cancelar": function() { $(this).dialog('destroy').remove(); }
 				};
 				dialogo = dialogConfirm('Selecionar atualização', 'Marque os dados que deseja atualizar:', botoes);
 				$('#dc-' + dialogo).dialog('option', 'width', 380);
+				$('#dc-' + dialogo).parent().find('.ui-dialog-buttonpane button').filter(function() {
+					return $(this).text() == 'Selecionar itens';
+				}).addClass('est015BotaoSelecionarItensAtualizacao');
+				est015AtualizarTextoBotaoItens();
 				var area = $('#dc-' + dialogo).find('p');
 				area.append('<br />');
 				var colunas = $('<div>').css({'white-space':'nowrap'}).appendTo(area);
@@ -528,17 +561,18 @@ EOT;
 					$('<div>').text(grupos[grupo].titulo).css({'color':'#2e75b6', 'font-weight':'bold', 'margin-bottom':'3px', 'border-bottom':'1px solid #b7cde3'}).appendTo(coluna);
 					for (var i = 0; i < grupos[grupo].campos.length; i++) {
 						var campo = grupos[grupo].campos[i];
-						$('<input type="checkbox" checked="checked" class="est015CampoAtualizacao">').attr('data-campo', campo[0]).appendTo(coluna);
+						$('<input type="checkbox" class="est015CampoAtualizacao">').attr('data-campo', campo[0]).prop('checked', !opcoesMarcadas || opcoesMarcadas[campo[0]] !== false).appendTo(coluna);
 						$('<label>').html(campo[1]).appendTo(coluna).append('<br />');
 					}
 				}
 			}
 
-			function est015AtualizarAliquotasLoop(idProgressBar, T218_Id, inicio, opcoes){
-                $.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + encodeURIComponent("{$r_acaoId}") + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
+			function est015AtualizarAliquotasLoop(idProgressBar, T218_Id, inicio, opcoes, ids){
+                var itens = ids && ids.length ? '&T219_Ids=' + encodeURIComponent(JSON.stringify(ids)) : '';
+				$.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + encodeURIComponent("{$r_acaoId}") + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + itens + '&callback=?', function(request) {
                     if (request.concluido == 0) {
                     	$('#progressBar').html('<b>' + request.percentual + '% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
-						est015AtualizarAliquotasLoop(idProgressBar,T218_Id,0,opcoes);
+						est015AtualizarAliquotasLoop(idProgressBar,T218_Id,0,opcoes,ids);
                     }else{
                     	if (request.code) {
                     		$('#dc-' + idProgressBar).dialog("destroy").remove();
@@ -557,11 +591,12 @@ EOT;
                 });	                    
 	        }
 
-	        	function est015AtualizarAliquotasTabelaLoop(idProgressBar, T218_Id, inicio, opcoes){
-                $.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + encodeURIComponent("{$r_acaoId}") + '&usarTabelaFornecedor=true' +  '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
+			function est015AtualizarAliquotasTabelaLoop(idProgressBar, T218_Id, inicio, opcoes, ids){
+                var itens = ids && ids.length ? '&T219_Ids=' + encodeURIComponent(JSON.stringify(ids)) : '';
+	                $.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + encodeURIComponent("{$r_acaoId}") + '&usarTabelaFornecedor=true' +  '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + itens + '&callback=?', function(request) {
                     if (request.concluido == 0) {
                     	$('#progressBar').html('<b>' + request.percentual + '% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
-						est015AtualizarAliquotasTabelaLoop(idProgressBar,T218_Id,0,opcoes);
+						est015AtualizarAliquotasTabelaLoop(idProgressBar,T218_Id,0,opcoes,ids);
                     }else{
                     	if (request.code) {
                     		$('#dc-' + idProgressBar).dialog("destroy").remove();
@@ -1214,9 +1249,79 @@ EOT;
 		// O que será carregado em cada conteúdo?
 		$actions = array(
 			// identificador, url, paramentros get (opcional)
-			array($content1, '/est/est015/form/est015FormAtualizarCFOP/', '&tab=geral&T218_Id=' . urlencode($r_T218_Id)),
+			array($content1, '/est/est015/form/est015FormAtualizarCFOP/', '&tab=geral&T218_Id=' . urlencode($r_T218_Id) . '&T219_Ids=' . urlencode(isset($r_T219_Ids) ? $r_T219_Ids : '')),
 		);
 		echo gProcessaAcoes($actions);
+	break;
+
+	case 'est015ContentSelecionarItensAtualizacao':
+		$T218_Id = isset($r_T218_Id) ? intval($r_T218_Id) : 0;
+		$retorno = isset($r_retorno) ? preg_replace('/[^a-zA-Z0-9_]/', '', $r_retorno) : '';
+		$itensSelecionados = isset($r_T219_Ids) ? json_decode($r_T219_Ids, true) : array();
+		$itensSelecionados = is_array($itensSelecionados) ? array_values(array_unique(array_filter(array_map('intval', $itensSelecionados)))) : array();
+		$itensAtualizacaoFiscal = array();
+		$consultaItensAtualizacaoFiscal = mysql_query("SELECT T219_Id, T219_Item, T219_Codigo_Produto, T219_Descricao_Produto FROM T219 WHERE T219_T218_Id = '{$T218_Id}' ORDER BY T219_Item, T219_Id");
+		while ($itemAtualizacaoFiscal = mysql_fetch_assoc($consultaItensAtualizacaoFiscal)) {
+			$itensAtualizacaoFiscal[] = $itemAtualizacaoFiscal;
+		}
+		$itensAtualizacaoFiscalJson = json_encode($itensAtualizacaoFiscal, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+		$itensSelecionadosJson = json_encode($itensSelecionados);
+		$divLista = uniqid('est015ItensAtualizacao');
+		echo '<div id="'.$divLista.'" style="height:100%;"></div>';
+		$botoesEsq = '<button type="button" id="'.$divLista.'_confirmar">Confirmar seleção</button><button type="button" id="'.$divLista.'_limpar">Limpar seleção</button>';
+		$botoesDir = '<button type="button" id="'.$divLista.'_cancelar" class="btnFechar">Cancelar</button>';
+		$g['smarty']->assign('botoesEsq', $botoesEsq);
+		$g['smarty']->assign('botoesDir', $botoesDir);
+		$g['smarty']->display('buttons-floatBottom.tpl');
+		echo <<<EOT
+		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+			var est015ItensDaJanelaAtualizacao = {$itensAtualizacaoFiscalJson};
+			var est015ItensPreSelecionados = {$itensSelecionadosJson};
+			var est015RetornoJanelaAtualizacao = '{$retorno}';
+			var est015JanelaAtualizacaoConcluida = false;
+			function est015RetornarItensAtualizacao(ids) {
+				if (est015JanelaAtualizacaoConcluida) return;
+				est015JanelaAtualizacaoConcluida = true;
+				if (est015RetornoJanelaAtualizacao && typeof window[est015RetornoJanelaAtualizacao] == 'function') window[est015RetornoJanelaAtualizacao](ids);
+			}
+			var est015AreaItensAtualizacao = $('#{$divLista}');
+			var est015FiltroItensAtualizacao = $('<input type="text" placeholder="Filtrar por item, código ou descrição">').css({'width':'98%', 'margin-bottom':'8px'}).appendTo(est015AreaItensAtualizacao);
+			var est015CabecalhoItensAtualizacao = $('<div>').css({'display':'flex', 'font-weight':'bold', 'padding':'4px 0'}).appendTo(est015AreaItensAtualizacao);
+			$('<span>Sel.</span>').css({'width':'45px', 'text-align':'center'}).appendTo(est015CabecalhoItensAtualizacao);
+			$('<span>Item</span>').css({'width':'60px', 'text-align':'center'}).appendTo(est015CabecalhoItensAtualizacao);
+			$('<span>Código</span>').css({'width':'130px'}).appendTo(est015CabecalhoItensAtualizacao);
+			$('<span>Produto</span>').css({'flex':'1'}).appendTo(est015CabecalhoItensAtualizacao);
+			var est015CorpoItensAtualizacao = $('<div>').css({'height':'calc(100% - 72px)', 'overflow-y':'auto', 'border-top':'1px solid #ddd'}).appendTo(est015AreaItensAtualizacao);
+			var est015SelecionadosMapa = {};
+			$.each(est015ItensPreSelecionados, function(_, id) { est015SelecionadosMapa[id] = true; });
+			$.each(est015ItensDaJanelaAtualizacao, function(_, item) {
+				var linha = $('<div>').attr('data-busca', (item.T219_Item + ' ' + item.T219_Codigo_Produto + ' ' + item.T219_Descricao_Produto).toLowerCase()).css({'display':'flex', 'min-height':'28px', 'align-items':'center', 'border-bottom':'1px solid #eee'}).appendTo(est015CorpoItensAtualizacao);
+				var campo = $('<input type="checkbox" class="est015ItemAtualizacaoFiscal">').val(item.T219_Id).prop('checked', !!est015SelecionadosMapa[item.T219_Id]);
+				$('<span>').css({'width':'45px', 'text-align':'center'}).append(campo).appendTo(linha);
+				$('<span>').css({'width':'60px', 'text-align':'center'}).text(item.T219_Item).appendTo(linha);
+				$('<span>').css({'width':'130px'}).text(item.T219_Codigo_Produto).appendTo(linha);
+				$('<span>').css({'flex':'1'}).text(item.T219_Descricao_Produto).appendTo(linha);
+			});
+			est015FiltroItensAtualizacao.bind('keyup', function() {
+				var termo = $(this).val().toLowerCase();
+				est015CorpoItensAtualizacao.children('div').each(function() { $(this).toggle($(this).attr('data-busca').indexOf(termo) >= 0); });
+			});
+			$('#{$divLista}_confirmar').unbind('click').bind('click', function() {
+				var ids = [];
+				est015CorpoItensAtualizacao.find('input.est015ItemAtualizacaoFiscal:checked').each(function() { ids.push($(this).val()); });
+				est015RetornarItensAtualizacao(ids);
+				fecharJanela('{$g['divId']}');
+			});
+			$('#{$divLista}_limpar').unbind('click').bind('click', function() {
+				est015CorpoItensAtualizacao.find('input.est015ItemAtualizacaoFiscal').prop('checked', false);
+			});
+			$('#{$divLista}_cancelar').unbind('click').bind('click', function() {
+				est015RetornarItensAtualizacao(false);
+				fecharJanela('{$g['divId']}');
+			});
+			$('#{$g['divId']}').closest('.ui-dialog-content').bind('dialogclose', function() { est015RetornarItensAtualizacao(false); });
+		} </script></div>
+EOT;
 	break;
 
 	case 'est015ContentPrincipalAnalise':

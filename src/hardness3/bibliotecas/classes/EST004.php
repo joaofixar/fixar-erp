@@ -10622,6 +10622,94 @@ EOT;
     public function AlocarSaldoLocacao ($D009, $T014, $T066) {
         return true;
     }
+
+    /**
+     * Gera a impressão da CC-e recebida a partir do XML anexado em T323.
+     * Não utiliza T199/T200, que pertencem exclusivamente à CC-e emitida.
+     */
+    public function gerarPdfCartaCorrecaoEntrada($T323_Id) {
+        global $g;
+
+        $T323_Id = (int)$T323_Id;
+        $sql = "SELECT T323.*, T013.T013_Numero_Nota_Fiscal, T013.T013_Serie, T013.T013_Chave_Acesso_Nfe, D024.D024_Nome_Empresa, D024.D024_Cnpj, D024.D024_Cpf FROM T323 INNER JOIN T013 ON T013_Id = T323_T013_Id LEFT JOIN D024 ON D024_Id = T013_D024_Id WHERE T323_Id = {$T323_Id} AND T323_Tipo_Arquivo = 'XML'";
+        $registro = mysql_fetch_assoc(mysql_query($sql));
+        if (!$registro) {
+            return array('sucesso' => false, 'erro' => 'Carta de correção em XML não localizada.');
+        }
+
+        $caminhoRelativo = ltrim(str_replace('\\', '/', $registro['T323_Caminho_Arquivo']), '/');
+        $prefixo = 'nfe/anexos/recebido/cce/';
+        if (strpos($caminhoRelativo, $prefixo) !== 0 || strpos($caminhoRelativo, '..') !== false) {
+            return array('sucesso' => false, 'erro' => 'Caminho do arquivo inválido.');
+        }
+        $caminho = $g['pathDados'].$caminhoRelativo;
+        if (!is_file($caminho)) {
+            return array('sucesso' => false, 'erro' => 'Arquivo XML da carta de correção não localizado.');
+        }
+
+		$conteudoXml = file_get_contents($caminho);
+		// Alguns provedores acrescentam o retorno de integração "(null);" após
+		// o XML. Mantemos o arquivo original, removendo esse sufixo apenas para impressão.
+		$conteudoXml = preg_replace('/\(null\);\s*$/', '', $conteudoXml);
+		$errosAnteriores = libxml_use_internal_errors(true);
+		$dom = new \DOMDocument();
+		$xmlValido = $dom->loadXML($conteudoXml, LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($errosAnteriores);
+        if (!$xmlValido) {
+            return array('sucesso' => false, 'erro' => 'O XML da carta de correção é inválido.');
+        }
+
+        $dados = array();
+        foreach (array('chNFe', 'nSeqEvento', 'dhEvento', 'nProt', 'xCorrecao', 'xCondUso', 'cStat', 'xMotivo') as $campo) {
+            $no = $dom->getElementsByTagName($campo)->item(0);
+            $dados[$campo] = $no ? trim($no->nodeValue) : '';
+        }
+        if (empty($dados['xCorrecao'])) {
+            return array('sucesso' => false, 'erro' => 'O XML não possui o texto da correção.');
+        }
+
+        require_once('bibliotecas/tcpdf/config/lang/eng.php');
+        require_once('bibliotecas/tcpdf/tcpdf.php');
+        $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor('Hardness Sistemas');
+        $pdf->SetTitle('Carta de Correção Eletrônica');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetMargins(12, 12, 12);
+        $pdf->SetAutoPageBreak(true, 12);
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->AddPage();
+
+        $esc = function($valor) {
+            return htmlspecialchars($valor, ENT_QUOTES, 'UTF-8');
+        };
+        $chave = !empty($dados['chNFe']) ? $dados['chNFe'] : $registro['T013_Chave_Acesso_Nfe'];
+        $dataEvento = !empty($dados['dhEvento']) ? str_replace('T', ' ', substr($dados['dhEvento'], 0, 19)) : '';
+        $documentoEmitente = !empty($registro['D024_Cnpj']) ? $registro['D024_Cnpj'] : $registro['D024_Cpf'];
+        $condicaoUso = !empty($dados['xCondUso']) ? $dados['xCondUso'] : 'A Carta de Correção Eletrônica deve ser utilizada conforme a legislação aplicável.';
+        $situacao = trim($dados['cStat'].' '.$dados['xMotivo']);
+
+        $empresa = mysql_fetch_assoc(mysql_query("SELECT C004_Nome_Empresa, C004_DDD_Telefone, C004_Telefone, C004_E_Mail FROM C004 WHERE C004_Id = ".(int)$g['empresaAtual']));
+        // Mantém a mesma composição visual usada na CC-e de saída, alterando
+        // somente a fonte dos dados: aqui eles vêm da nota de entrada e do XML.
+        $html = '<style>.header .text{font-size:35px}.header .text2{font-size:45px;font-weight:bold}.titulo{background-color:#E1ECF1}.titulo_superior{font-size:40px}.itens td{border:1px solid black}.textIncluso{font-size:28px;color:red;background-color:#E1ECF1}</style>';
+        $html .= '<table class="header" width="100%" align="left"><tr><td class="titulo_superior"><b>Razão Social:</b> '.$esc($empresa['C004_Nome_Empresa']).'</td></tr><tr><td class="titulo_superior"><b>Fone:</b> ('.$esc($empresa['C004_DDD_Telefone']).') '.$esc($empresa['C004_Telefone']).'</td></tr><tr><td class="titulo_superior"><b>E-mail:</b> '.$esc($empresa['C004_E_Mail']).'</td></tr></table>';
+        $html .= '<hr><div style="height:12px;width:100%;"></div><span align="center" style="font-size:200%;"><b>CC-e: Carta de Correção Eletrônica</b></span><div style="height:12px;width:100%;"></div>';
+        $html .= '<table cellspacing="0" cellpadding="2"><tr><td width="30%" align="left" style="font-size:30px;"><b>'.(empty($registro['D024_Cnpj']) ? 'CPF' : 'CNPJ').':</b> '.$esc($documentoEmitente).'</td><td width="70%" align="right" style="font-size:30px;"><b>Chave de Acesso:</b> '.$esc($chave).'</td></tr><tr><td width="50%" align="left" style="font-size:30px;"><b>Data:</b> '.$esc($dataEvento).'</td><td width="50%" align="right" style="font-size:30px;"><b>NF-e:</b> '.$esc($registro['T013_Numero_Nota_Fiscal']).'</td></tr><tr><td width="50%" align="left" style="font-size:30px;"><b>Sequencial do evento:</b> '.$esc($dados['nSeqEvento']).'</td><td width="50%" align="right" style="font-size:30px;"><b>Protocolo:</b> '.$esc($dados['nProt']).'</td></tr></table>';
+        $html .= '<hr><div style="height:25px;width:100%;"></div><span align="center" style="font-size:170%;"><b>Informações da Carta de Correção Eletrônica</b></span><div style="height:20px;width:100%;"></div>';
+        $html .= '<table cellspacing="0" cellpadding="2"><tr><td width="100%" align="left" style="font-size:30px;"><b>Emitente:</b> '.$esc($registro['D024_Nome_Empresa']).'<br><b>Texto da Carta de Correção:<br></b>'.nl2br($esc($dados['xCorrecao'])).'<br><br><b>Situação:</b> '.$esc($situacao).'</td></tr></table>';
+        $html .= '<hr><div style="height:25px;width:100%;"></div><span align="center" style="font-size:170%;"><b>Condições de Uso da Carta de Correção Eletrônica</b></span><div style="height:20px;width:100%;"></div>';
+        $html .= '<table cellspacing="0" cellpadding="2"><tr><td width="100%" align="left" style="font-size:30px;">'.nl2br($esc($condicaoUso)).'</td></tr></table><br><br><br><br><br><br><span style="text-align:center;font-size:80%;">Emitido por Hardness Sistemas - www.hardness.com.br</span><br>';
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        return array(
+            'sucesso' => true,
+            'arquivo' => $pdf->Output('', 'S'),
+            'nome' => 'CCe_'.preg_replace('/[^0-9A-Za-z_-]/', '', $chave).'.pdf'
+        );
+    }
 }
 
 $EST004 = new EST004();

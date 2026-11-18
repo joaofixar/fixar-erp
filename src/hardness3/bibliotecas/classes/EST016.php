@@ -4794,7 +4794,7 @@ EOT;
      *
      * @param int $T224_Id
      */
-    public function est016atualizarCFOP($T224_Id, $opcoes = null)
+    public function est016atualizarCFOP($T224_Id, $opcoes = null, $T225_Ids = array())
     {
         require_once("bibliotecas/classes/EST015.php");
         $EST015 = new EST015();
@@ -4804,7 +4804,9 @@ EOT;
             return true;
         }
 
-        $sqlT224 = mysql_query("SELECT * FROM T224 LEFT JOIN T225 ON T224_Id = T225_T224_Id WHERE T224_Id = '{$T224_Id}'");
+        $T225_Ids = is_array($T225_Ids) ? array_filter(array_map('intval', $T225_Ids)) : array();
+        $clausulaItensSelecionados = empty($T225_Ids) ? '' : " AND T225_Id IN (" . implode(',', $T225_Ids) . ")";
+        $sqlT224 = mysql_query("SELECT * FROM T224 LEFT JOIN T225 ON T224_Id = T225_T224_Id WHERE T224_Id = '{$T224_Id}'{$clausulaItensSelecionados}");
         
         while ($T224 = mysql_fetch_array($sqlT224)) {                        
             $D006_Id = $EST015->retornaCFOP($T224['T224_D024_Id'], $T224['T225_D009_Id'], $C004_Id, $T224['T225_Flag_Origem_Produto'],false,false,$T224['T225_Flag_Destino_Produto']);            

@@ -7364,11 +7364,13 @@ EOT;
      *
      * @param int $T218_Id
      */
-    public function est015atualizarCFOP($T218_Id, $opcoes = null)
+    public function est015atualizarCFOP($T218_Id, $opcoes = null, $T219_Ids = array())
     {
         global $g;
         if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) return true;
-        $sqlT218 = mysql_query("SELECT * FROM T218 LEFT JOIN T219 ON T218_Id = T219_T218_Id WHERE T218_Id = '{$T218_Id}'");
+        $T219_Ids = is_array($T219_Ids) ? array_values(array_unique(array_filter(array_map('intval', $T219_Ids)))) : array();
+        $clausulaItensSelecionados = !empty($T219_Ids) ? ' AND T219_Id IN (' . implode(',', $T219_Ids) . ')' : '';
+        $sqlT218 = mysql_query("SELECT * FROM T218 LEFT JOIN T219 ON T218_Id = T219_T218_Id WHERE T218_Id = '{$T218_Id}'{$clausulaItensSelecionados}");
         while ($T218 = mysql_fetch_array($sqlT218)) {
             log("regra item: retornaCFOP({$T218['T218_D024_Id']}, {$T218['T219_D009_Id']}, {$g['empresaAtual']})");
             $D006_Id = $this->retornaCFOP($T218['T218_D024_Id'], $T218['T219_D009_Id'], $g['empresaAtual'], $T218['T219_Flag_Origem_Produto'], false,false, $T218['T219_Flag_Destino_Produto']);
@@ -7388,7 +7390,7 @@ EOT;
 
         }
 
-        if ($D006_Id > 0) {
+        if (empty($T219_Ids) && $D006_Id > 0) {
             mysql_query("UPDATE T218 SET T218_D006_Id='{$D006_Id}' WHERE T218_Id='{$T218_Id}'");
             $erro = mysql_error();
             if(!empty($erro)){

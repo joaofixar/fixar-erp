@@ -34,6 +34,33 @@ if (!empty($cErro)){
     echo "$cClausula<hr>$cErro";
 }
 
+// Arquivos de Carta de Correção anexados às notas fiscais de entrada.
+// Os dados específicos da CC-e permanecem no XML; T323_Dados_XML fica
+// disponível para eventual cache de informações usadas na grade/impressão.
+$cClausula = <<<EOT
+CREATE TABLE IF NOT EXISTS T323 (
+T323_Id int(10) unsigned NOT NULL AUTO_INCREMENT,
+T323_T013_Id int(10) unsigned NOT NULL,
+T323_Tipo_Arquivo enum('XML','PDF') NOT NULL,
+T323_Nome_Original varchar(255) NOT NULL,
+T323_Nome_Arquivo varchar(255) NOT NULL,
+T323_Caminho_Arquivo varchar(500) NOT NULL,
+T323_Tamanho_Arquivo int(10) unsigned NOT NULL DEFAULT 0,
+T323_Dados_XML mediumtext,
+T323_C007_Id int(10) unsigned NOT NULL,
+T323_Data_Hora_Inclusao datetime NOT NULL,
+PRIMARY KEY (T323_Id),
+KEY IDX_T323_T013_Id (T323_T013_Id),
+KEY IDX_T323_C007_Id (T323_C007_Id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Anexos de Carta de Correção de NF-e recebida';
+EOT;
+
+$cSql = mysql_query($cClausula);
+$cErro = mysql_error();
+if (!empty($cErro)){
+    echo "$cClausula<hr>$cErro";
+}
+
 // Instalações anteriores já possuem SMT006 e precisam receber a flag sem
 // qualquer migração ou alteração dos registros PCP existentes.
 Criar_Campo('SMT006_Flag_Apontamento', "enum('S','N') NOT NULL DEFAULT 'N' COMMENT 'Liberado para uso no Apontamento PCP.'");

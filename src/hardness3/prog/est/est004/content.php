@@ -758,6 +758,20 @@ EOT;
 		echo gProcessaAcoes($actions);
 	break;
 
+	case 'est004ContentCartaCorrecao':
+		$content1 = uniqid();
+		$content2 = uniqid();
+		$g['smarty']->assign('content1', $content1);
+		$g['smarty']->assign('content2', $content2);
+		$g['smarty']->assign('content1Height', '90px');
+		$g['smarty']->assign('tipo', '2linhas');
+		$actions = array(
+			array($content1, '/est/est004/form/est004FormCartaCorrecao/', '&tab=geral&T013_Id=' . urlencode($r_acaoId) . '&divReload=' . urlencode($content2)),
+			array($content2, '/est/est004/grid/est004GridCartaCorrecao/', '&acaoId=' . urlencode($r_acaoId))
+		);
+		echo gProcessaAcoes($actions);
+	break;
+
 	case 'est004ContentAssociarItemNovo':
 		/*
 		* Divisão da Area em Conteúdos

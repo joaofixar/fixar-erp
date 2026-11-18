@@ -4165,6 +4165,8 @@ EOT;
 
 	case 'est015FormAtualizarCFOP':
 		global $g;
+		$T219_Ids = isset($r_T219_Ids) ? $r_T219_Ids : '';
+		$T219_IdsJson = json_encode($T219_Ids, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 		/**
 		* PARTE 1: Variavéis envidas para o formulário
 		*/
@@ -4220,6 +4222,7 @@ EOT;
 			$formArray['campos']['geral'][$nome] = array('name' => $nome, 'label' => $dados[1], 'type' => 'checkbox', 'checked' => $marcado ? 'checked' : false, 'reject' => true);
 		}
 		$formArray['campos']['geral']['opcoes'] = array('name' => 'opcoes', 'type' => 'hidden', 'reject' => true);
+		$formArray['campos']['geral']['T219_Ids'] = array('name' => 'T219_Ids', 'type' => 'hidden', 'reject' => true);
 		$formArray['campos']['geral']['est015FormAtualizarCFOPRegras'] = array('name' => 'est015FormAtualizarCFOPRegras', 'type'=>'button', 'reload' => false, 'value' => 'Aplicar regras de CFOP', 'align' => 'right', 'style' => 'float:right;', 'reject' => true);
 		$form->definirFormularioArray($formArray);
 		
@@ -4227,22 +4230,45 @@ EOT;
 		if ($opcoesAtualizacao === 'null' || $opcoesAtualizacao === false) $opcoesAtualizacao = '{}';
 		echo <<<EOT
 		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {		
+			var est015ItensSelecionados = {$T219_IdsJson};
+			if (typeof est015ItensSelecionados == 'string' && est015ItensSelecionados) {
+				try { est015ItensSelecionados = JSON.parse(est015ItensSelecionados); } catch (e) { est015ItensSelecionados = []; }
+			}
+			if (!est015ItensSelecionados || typeof est015ItensSelecionados.length == 'undefined') est015ItensSelecionados = [];
+			function est015ParametrosItensSelecionados() { return est015ItensSelecionados.length ? '&T219_Ids=' + encodeURIComponent(JSON.stringify(est015ItensSelecionados)) : ''; }
+			function est015AtualizarTextoBotaoItensCFOP() {
+				var texto = est015ItensSelecionados.length ? 'Itens: ' + est015ItensSelecionados.length : 'Selecionar itens';
+				var botao = $('#est015FormAtualizarCFOPSelecionarItens');
+				var rotulo = botao.find('.ui-button-text');
+				if (rotulo.length) rotulo.text(texto); else botao.text(texto);
+			}
+			function est015AbrirSelecaoItensCFOP() {
+				var retorno = 'est015RetornoSelecaoItensCFOP' + unique();
+				window[retorno] = function(ids) {
+					delete window[retorno];
+					if (ids !== false && ids !== null && typeof ids != 'undefined') est015ItensSelecionados = ids;
+					est015AtualizarTextoBotaoItensCFOP();
+				};
+				abrirJanela(false, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Selecionar itens para atualizar', '/est/est015/content/est015ContentSelecionarItensAtualizacao/', '&T218_Id=' + encodeURIComponent("{$r_T218_Id}") + '&retorno=' + encodeURIComponent(retorno) + '&T219_Ids=' + encodeURIComponent(JSON.stringify(est015ItensSelecionados)), [900, 600]);
+			}
+			est015AtualizarTextoBotaoItensCFOP();
+			$('#est015FormAtualizarCFOPSelecionarItens').unbind('click').bind('click', function() { est015AbrirSelecaoItensCFOP(); });
 			var opcoesAtualizacao = {$opcoesAtualizacao};
 			function est015OpcoesAtualizacaoCFOP() {
 				return { ipi: $('#opcaoIPI').is(':checked'), icms: $('#opcaoICMS').is(':checked'), st: $('#opcaoST').is(':checked'), pisCofins: $('#opcaoPISCofins').is(':checked'), ncm: $('#opcaoNCM').is(':checked'), unidade: $('#opcaoUnidade').is(':checked'), peso: $('#opcaoPeso').is(':checked') };
 			}
-			$('#est015FormAtualizarCFOP_btn').unbind('click.est015Opcoes').bind('click.est015Opcoes', function() { $('#opcoes').val(JSON.stringify(est015OpcoesAtualizacaoCFOP())); });
+			$('#est015FormAtualizarCFOP_btn').unbind('click.est015Opcoes').bind('click.est015Opcoes', function() { $('#opcoes').val(JSON.stringify(est015OpcoesAtualizacaoCFOP())); $('#T219_Ids').val(JSON.stringify(est015ItensSelecionados)); });
 			$('#est015FormAtualizarCFOPRegras').unbind('click').bind('click', function(data) {
 				opcoesAtualizacao = est015OpcoesAtualizacaoCFOP();
 				idProgressBar = dialogAlert('Processando CFOP e alíquotas',"<span id='progressBar'><b><br>0% Processando CFOP</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-				$.getJSON('/est/est015/form_func-ajax/atualizarCFOP/?ajax=true&T218_Id=' + encodeURIComponent("{$r_T218_Id}") + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
+				$.getJSON('/est/est015/form_func-ajax/atualizarCFOP/?ajax=true&T218_Id=' + encodeURIComponent("{$r_T218_Id}") + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + est015ParametrosItensSelecionados() + '&callback=?', function(request) {
 					if (request.code) {
 						T218_Id = {$r_T218_Id};
 						$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br>' + '<b>0% Processando alíquotas</b></br>');
 						est015AtualizarAliquotasCFOPGeralLoop(idProgressBar,T218_Id,1); 
 
 						function est015AtualizarAliquotasCFOPGeralLoop(idProgressBar, T218_Id, inicio){
-						$.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + T218_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
+						$.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + T218_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + est015ParametrosItensSelecionados() + '&callback=?', function(request) {
 			                    if (request.concluido == 0) {
 			                    	$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br><b>' + request.percentual + '<b>% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
 			                    	est015AtualizarAliquotasCFOPGeralLoop(idProgressBar,T218_Id,0);
@@ -4285,14 +4311,19 @@ EOT;
 				// Form sem erros
 			} else if ($formCodigo == 2) {
 				$D006_Id = $form->campoValorEnviado('D006_Id');
+				$T219_IdsManual = $form->campoValorEnviado('T219_Ids');
+				$T219_IdsManual = json_decode($T219_IdsManual, true);
+				$T219_IdsManual = is_array($T219_IdsManual) ? array_values(array_unique(array_filter(array_map('intval', $T219_IdsManual)))) : array();
+				$T219_IdsManualJson = json_encode($T219_IdsManual);
 				//$retorno = $EST015->est015atualizarCFOPManual($r_T218_Id, $D006_Id);
 				echo <<<EOT
 					<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+						est015ItensSelecionados = {$T219_IdsManualJson};
 						T218_Id = {$r_T218_Id};	
 						idProgressBar = dialogAlert('Processando CFOP e alíquotas',"<span id='progressBar'><b><br>0% Processando CFOP</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
 
 						var opcoesAtualizacao = JSON.parse($('#opcoes').val() || '{}');
-						$.getJSON('/est/est015/form_func-ajax/atualizarCFOPManual/?ajax=true&T218_Id=' + T218_Id + '&D006_Id=' + {$D006_Id} + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
+						$.getJSON('/est/est015/form_func-ajax/atualizarCFOPManual/?ajax=true&T218_Id=' + T218_Id + '&D006_Id=' + {$D006_Id} + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + est015ParametrosItensSelecionados() + '&callback=?', function(request) {
 							if(request.code){
 								$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br>' + '<b>0% Processando alíquotas</b></br>');
 								est015AtualizarAliquotaCFOPLoop(idProgressBar,T218_Id, 1); 
@@ -4304,7 +4335,7 @@ EOT;
 						});
 
 	            		function est015AtualizarAliquotaCFOPLoop(idProgressBar, T218_Id, inicio){
-						$.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + T218_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
+						$.getJSON('/est/est015/form_func-ajax/atualizarAliquota/?ajax=true&T218_Id=' + T218_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + est015ParametrosItensSelecionados() + '&callback=?', function(request) {
 			                    if (request.concluido == 0) {
 			                    	$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br><b>' + request.percentual + '<b>% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
 			                    	est015AtualizarAliquotaCFOPLoop(idProgressBar,T218_Id,0);
@@ -4357,6 +4388,7 @@ EOT;
 		if (!$formMultiTab) { $g["smarty"]->assign("formId", $formId); }
 		$g['smarty']->display('formEditor.tpl');
 	
+		$botoesDir .= '<button type="button" id="est015FormAtualizarCFOPSelecionarItens">Selecionar itens</button>';
 		$botoesDir .= '<button onclick="fecharJanela(\''.$g['divId'].'\'); return false;" class="btnFechar">Fechar</button>';
 		$g['smarty']->assign('botoesId', $g['divId']);
 		$g['smarty']->assign('botoesEsq', $botoesEsq);

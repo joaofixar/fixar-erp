@@ -2139,4 +2139,85 @@ EOT;
 		$g['smarty']->assign('botoesDir', $botoesDir);
 		$g['smarty']->display('buttons-floatBottom.tpl');
 	break;
+
+	case 'est004FormCartaCorrecao':
+		$tab = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : 'geral';
+		$acaoId = false;
+		$formId = uniqid();
+		$formMultiTab = false;
+		$form_tabela = 'T323';
+		$form_campo_pk = 'T323_Id';
+		$enviar_btnId = 'est004FormCartaCorrecaoBtn';
+		$enviar_acaoHref = '/est/est004/form/est004FormCartaCorrecao/';
+		$T013_Id = isset($r_T013_Id) ? (int)$r_T013_Id : 0;
+
+		$form_editor = array('geral' => '{"uploadArquivoCce":{"top":7.9963226318359375,"left":21.79840660095215,"width":330.039216,"hidden":0},"est004FormCartaCorrecaoBtn":{"top":50.99571228027344,"left":447.99327278137207,"width":null,"hidden":0}}');
+		$form = new Formulario('est004FormCartaCorrecao');
+		$formArray = array('campos' => array('geral' => array()));
+		$formArray['campos']['geral']['uploadArquivoCce'] = array('name' => 'uploadArquivoCce', 'label' => 'Arquivo da CC-e (XML ou PDF)', 'type' => 'file', 'length' => array(40, 40), 'reject' => true, 'uppercase' => false);
+		$formArray['campos']['geral']['T323_T013_Id'] = array('name' => 'T323_T013_Id', 'type' => 'hidden', 'value' => $T013_Id, 'reject' => true);
+		$formArray['campos']['geral']['divReload'] = array('name' => 'divReload', 'type' => 'hidden', 'value' => isset($r_divReload) ? $r_divReload : '', 'reject' => true);
+		$formArray['campos']['geral']['est004FormCartaCorrecaoBtn'] = array('name' => 'est004FormCartaCorrecaoBtn', 'type' => 'submit', 'reload' => false, 'value' => 'Anexar', 'align' => 'right', 'style' => 'float:right;', 'reject' => true);
+		$form->definirFormularioArray($formArray);
+
+		if ($formCodigo = $form->processarFormulario($form_tabela)) {
+			if ($formCodigo == 1) {
+				echo gGeraAlertMsgErroForm($form);
+			} else if ($formCodigo == 2) {
+				$arquivo = $form->campoValorEnviado('uploadArquivoCce');
+				$T013_Id = (int)$form->campoValorEnviado('T323_T013_Id');
+				$erro = '';
+				if (empty($T013_Id) || !mysql_num_rows(mysql_query("SELECT T013_Id FROM T013 WHERE T013_Id = {$T013_Id}"))) {
+					$erro = 'Nota fiscal de entrada não encontrada.';
+				} else if (!is_array($arquivo) || $arquivo['error'] != UPLOAD_ERR_OK) {
+					$erro = 'Selecione o arquivo da carta de correção.';
+				} else {
+					$extensao = strtolower(pathinfo($arquivo['name'], PATHINFO_EXTENSION));
+					if (!in_array($extensao, array('xml', 'pdf'))) {
+						$erro = 'O arquivo deve estar no formato XML ou PDF.';
+					}
+				}
+
+				if (!empty($erro)) {
+					echo '<div class="divHidden"><script type="text/javascript">dialogConfirm("ERRO", '.json_encode($erro).');</script></div>';
+				} else {
+					$nomeOriginal = basename($arquivo['name']);
+					$nomeArquivo = str_replace('.', '', uniqid('T323_', true)).'.'.$extensao;
+					$caminhoRelativo = 'nfe/anexos/recebido/cce/T013_'.$T013_Id.'/'.$nomeArquivo;
+					$caminhoCompleto = $g['pathDados'].$caminhoRelativo;
+					$diretorio = dirname($caminhoCompleto);
+					if (!is_dir($diretorio) && !mkdir($diretorio, 0777, true)) {
+						$erro = 'Não foi possível preparar o diretório do anexo.';
+					} else if (!move_uploaded_file($arquivo['tmp_name'], $caminhoCompleto)) {
+						$erro = 'Não foi possível gravar o arquivo da carta de correção.';
+					} else {
+						$nomeOriginalSql = mysql_real_escape_string($nomeOriginal);
+						$nomeArquivoSql = mysql_real_escape_string($nomeArquivo);
+						$caminhoSql = mysql_real_escape_string($caminhoRelativo);
+						$tipoArquivo = strtoupper($extensao);
+						$tamanho = (int)filesize($caminhoCompleto);
+						$sql = "INSERT INTO T323 (T323_T013_Id, T323_Tipo_Arquivo, T323_Nome_Original, T323_Nome_Arquivo, T323_Caminho_Arquivo, T323_Tamanho_Arquivo, T323_C007_Id, T323_Data_Hora_Inclusao) VALUES ({$T013_Id}, '{$tipoArquivo}', '{$nomeOriginalSql}', '{$nomeArquivoSql}', '{$caminhoSql}', {$tamanho}, {$g['usuarioAtual']}, NOW())";
+						if (!mysql_query($sql)) {
+							@unlink($caminhoCompleto);
+							$erro = 'Não foi possível registrar o anexo da carta de correção.';
+						}
+					}
+					if (!empty($erro)) {
+						echo '<div class="divHidden"><script type="text/javascript">dialogConfirm("ERRO", '.json_encode($erro).');</script></div>';
+					} else {
+						$divReload = $form->campoValorEnviado('divReload');
+						echo '<div class="divHidden"><script type="text/javascript">divRefresh('.json_encode($divReload).', true); divRefresh('.json_encode($g['divId']).', true);</script></div>';
+					}
+				}
+			}
+		}
+
+		$gerado = gGeraCamposForm($form, $tab, $acaoId, $enviar_btnId, $enviar_acaoHref, $formId, $form_campo_pk);
+		$g['smarty']->assign('formularioID', $form->formularioID());
+		$g['smarty']->assign('table', $gerado['table']);
+		$g['smarty']->assign('form_tabela', $form_tabela);
+		echo $gerado['pagina'];
+		$g['smarty']->assign('formId', $formId);
+		$g['smarty']->display('formEditor.tpl');
+	break;
 }

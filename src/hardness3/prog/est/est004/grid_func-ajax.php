@@ -604,5 +604,63 @@ switch($g['r'][3]) {
 			$resposta['data'] = $result;
 		}
 	break;
+
+	case 'abrirCartaCorrecao':
+		$T323_Id = isset($_REQUEST['T323_Id']) ? (int)$_REQUEST['T323_Id'] : 0;
+		$consulta = mysql_query("SELECT * FROM T323 WHERE T323_Id = {$T323_Id}");
+		$registro = $consulta ? mysql_fetch_assoc($consulta) : false;
+		$relativo = $registro ? ltrim(str_replace('\\', '/', $registro['T323_Caminho_Arquivo']), '/') : '';
+		$prefixo = 'nfe/anexos/recebido/cce/';
+		if (!$registro || strpos($relativo, $prefixo) !== 0 || strpos($relativo, '..') !== false) {
+			header('HTTP/1.0 404 Not Found');
+			die('Arquivo não localizado.');
+		}
+		$caminho = $g['pathDados'].$relativo;
+		if (!is_file($caminho)) {
+			header('HTTP/1.0 404 Not Found');
+			die('Arquivo não localizado.');
+		}
+		if ($registro['T323_Tipo_Arquivo'] == 'PDF') {
+			$nome = preg_replace('/[^A-Za-z0-9._ -]/', '_', $registro['T323_Nome_Original']);
+			header('Content-Type: application/pdf');
+			header('Content-Length: '.filesize($caminho));
+			header('Content-Disposition: inline; filename="'.$nome.'"');
+			readfile($caminho);
+			die();
+		}
+		$retorno = $EST004->gerarPdfCartaCorrecaoEntrada($T323_Id);
+		if (!$retorno['sucesso']) {
+			header('HTTP/1.0 422 Unprocessable Entity');
+			die($retorno['erro']);
+		}
+		header('Content-Type: application/pdf');
+		header('Content-Length: '.strlen($retorno['arquivo']));
+		header('Content-Disposition: inline; filename="'.$retorno['nome'].'"');
+		echo $retorno['arquivo'];
+		die();
+	break;
+
+	case 'excluirCartaCorrecao':
+		$T323_Id = isset($_REQUEST['T323_Id']) ? (int)$_REQUEST['T323_Id'] : 0;
+		$consulta = mysql_query("SELECT * FROM T323 WHERE T323_Id = {$T323_Id}");
+		$registro = $consulta ? mysql_fetch_assoc($consulta) : false;
+		$relativo = $registro ? ltrim(str_replace('\\', '/', $registro['T323_Caminho_Arquivo']), '/') : '';
+		$prefixo = 'nfe/anexos/recebido/cce/';
+		if (!$registro || strpos($relativo, $prefixo) !== 0 || strpos($relativo, '..') !== false) {
+			$resposta['code'] = false;
+			$resposta['data'] = 'Anexo não localizado.';
+			break;
+		}
+		$caminho = $g['pathDados'].$relativo;
+		if (!mysql_query("DELETE FROM T323 WHERE T323_Id = {$T323_Id}")) {
+			$resposta['code'] = false;
+			$resposta['data'] = 'Não foi possível excluir o registro do anexo.';
+			break;
+		}
+		if (is_file($caminho) && !@unlink($caminho)) {
+			$resposta['code'] = false;
+			$resposta['data'] = 'O registro foi excluído, mas não foi possível remover o arquivo do servidor.';
+		}
+	break;
 }
 echo $_REQUEST['callback'] . "(" . json_encode($resposta) . ");";

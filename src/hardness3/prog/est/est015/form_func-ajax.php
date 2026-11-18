@@ -367,6 +367,9 @@ EOT;
 		require_once("bibliotecas/classes/EST015.php");
 		$T218_Id = isset($r_T218_Id) ? $r_T218_Id : false;
 		$C004_Id = isset($r_C004_Id) ? $r_C004_Id : false;
+		$T219_Ids = isset($r_T219_Ids) ? json_decode($r_T219_Ids, true) : array();
+		$T219_Ids = is_array($T219_Ids) ? array_values(array_unique(array_filter(array_map('intval', $T219_Ids)))) : array();
+		$clausulaItensSelecionados = !empty($T219_Ids) ? ' AND T219_Id IN (' . implode(',', $T219_Ids) . ')' : '';
 
 		$EST015 = new EST015();
 		$resposta['code'] = true;
@@ -415,8 +418,8 @@ EOT;
 	                   LEFT JOIN D009 ON D009_Id=T219_D009_Id
 	                   LEFT JOIN D049 ON D049_Id=D009_D049_Id
 	                   LEFT JOIN D001 ON D001_Id=D049_D001_Id
-	                       WHERE T218_Id='{$T218_Id}'
-	                        AND T225_Id is NULL";
+		                       WHERE T218_Id='{$T218_Id}'
+		                        AND T225_Id is NULL{$clausulaItensSelecionados}";
 	        log("Clausula= ".$cClausula);
 	                        
 	        $cmysql_T219 = mysql_query("$cClausula");
@@ -519,21 +522,26 @@ EOT;
 	case 'atualizarCFOPManual':
 		$T218_Id = isset($r_T218_Id) ? $r_T218_Id : false;
 		$D006_Id = isset($r_D006_Id) ? $r_D006_Id : false;
+		$T219_Ids = isset($r_T219_Ids) ? json_decode($r_T219_Ids, true) : array();
+		$T219_Ids = is_array($T219_Ids) ? array_values(array_unique(array_filter(array_map('intval', $T219_Ids)))) : array();
+		$clausulaItensSelecionados = !empty($T219_Ids) ? ' AND T219_Id IN (' . implode(',', $T219_Ids) . ')' : '';
 		$opcoes = json_decode($r_opcoes, true);
 		if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) break;
 
 		$resposta['code'] = true;
 		log("T218_Id no atualizar CFOP Manual= ".$T218_Id);
 		log("D006_Id no atualizar CFOP Manual= ".$D006_Id);
-		mysql_query("UPDATE T218 SET T218_D006_Id = '{$D006_Id}' WHERE T218_Id = '{$T218_Id}'");
-		$erroSQLT218    = mysql_error();
-        if (!empty($erroSQLT218)) {
-        	$resposta['code'] = false;
-            $resposta['data'] = $erroSQLT218;
-        }
+		if (empty($T219_Ids)) {
+			mysql_query("UPDATE T218 SET T218_D006_Id = '{$D006_Id}' WHERE T218_Id = '{$T218_Id}'");
+			$erroSQLT218 = mysql_error();
+			if (!empty($erroSQLT218)) {
+				$resposta['code'] = false;
+                $resposta['data'] = $erroSQLT218;
+            }
+		}
 
-        mysql_query("UPDATE T219 SET T219_D006_Id = '{$D006_Id}' WHERE T219_T218_Id = '{$T218_Id}'");
-        log("UPDATE T219 SET T219_D006_Id = '{$D006_Id}' WHERE T219_T218_Id = '{$T218_Id}'");
+		mysql_query("UPDATE T219 SET T219_D006_Id = '{$D006_Id}' WHERE T219_T218_Id = '{$T218_Id}'{$clausulaItensSelecionados}");
+		log("UPDATE T219 SET T219_D006_Id = '{$D006_Id}' WHERE T219_T218_Id = '{$T218_Id}'{$clausulaItensSelecionados}");
         $erroSQLT219    = mysql_error();
         if (!empty($erroSQLT219)) {
         	$resposta['code'] = false;
@@ -1227,7 +1235,9 @@ EOT;
 
 		$EST015 = new EST015();
 		$opcoes = json_decode($r_opcoes, true);
-		$retorno = $EST015->est015atualizarCFOP($T218_Id, $opcoes);
+		$T219_Ids = isset($r_T219_Ids) ? json_decode($r_T219_Ids, true) : array();
+		$T219_Ids = is_array($T219_Ids) ? array_values(array_unique(array_filter(array_map('intval', $T219_Ids)))) : array();
+		$retorno = $EST015->est015atualizarCFOP($T218_Id, $opcoes, $T219_Ids);
 		
 		if ($retorno === true) {
 			$resposta['code'] = true;

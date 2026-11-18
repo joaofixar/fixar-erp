@@ -4333,15 +4333,24 @@ EOT;
 			$formArray['campos']['geral'][$nome] = array('name' => $nome, 'label' => $dados[1], 'type' => 'checkbox', 'checked' => $marcado ? 'checked' : false, 'reject' => true);
 		}
 		$formArray['campos']['geral']['opcoes'] = array('name' => 'opcoes', 'type' => 'hidden', 'reject' => true);
+		$formArray['campos']['geral']['T225_Ids'] = array('name' => 'T225_Ids', 'type' => 'hidden', 'reject' => true);
 		$formArray['campos']['geral']['est016FormAtualizarCFOPRegras'] = array('name' => 'est016FormAtualizarCFOPRegras', 'type'=>'button', 'reload' => false, 'value' => 'Aplicar regras CFOP', 'align' => 'right', 'style' => 'float:right;', 'reject' => true);
 		$form->definirFormularioArray($formArray);
 		$opcoesAtualizacao = json_encode(json_decode($r_opcoes, true));
 		if ($opcoesAtualizacao === 'null' || $opcoesAtualizacao === false) {
 			$opcoesAtualizacao = '{}';
 		}
+		$T225_IdsJson = isset($r_T225_Ids) ? $r_T225_Ids : '[]';
+		if (!is_array(json_decode($T225_IdsJson, true))) $T225_IdsJson = '[]';
 
 		echo <<<EOT
 		<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+			var est016ItensSelecionados = {$T225_IdsJson};
+			function est016ParametrosItensSelecionadosCFOP() { return est016ItensSelecionados.length ? '&T225_Ids=' + encodeURIComponent(JSON.stringify(est016ItensSelecionados)) : ''; }
+			function est016AtualizarTextoBotaoItensCFOP() { var texto = est016ItensSelecionados.length ? 'Itens: ' + est016ItensSelecionados.length : 'Selecionar itens', botao = $('#est016FormAtualizarCFOPSelecionarItens'), rotulo = botao.find('.ui-button-text'); if (rotulo.length) rotulo.text(texto); else botao.text(texto); }
+			function est016AbrirSelecaoItensCFOP() { var retorno = 'est016RetornoSelecaoItensCFOP' + unique(); window[retorno] = function(ids) { delete window[retorno]; if ($.isArray(ids)) est016ItensSelecionados = ids; est016AtualizarTextoBotaoItensCFOP(); }; abrirJanela(false, '{$g['divIdRoot']}', '{$g['divId']}', unique(), '', 'Selecionar itens para atualizar', '/est/est016/content/est016ContentSelecionarItensAtualizacao/', '&T224_Id=' + encodeURIComponent("{$r_T224_Id}") + '&retorno=' + encodeURIComponent(retorno) + '&T225_Ids=' + encodeURIComponent(JSON.stringify(est016ItensSelecionados)), [900, 600]); }
+			$('#est016FormAtualizarCFOPSelecionarItens').unbind('click').bind('click', function() { est016AbrirSelecaoItensCFOP(); });
+			est016AtualizarTextoBotaoItensCFOP();
 			var opcoesAtualizacao = {$opcoesAtualizacao};
 			function est016OpcoesAtualizacaoCFOP() {
 				return {
@@ -4356,10 +4365,11 @@ EOT;
 			}
 			$('#est016FormAtualizarCFOP_btn').unbind('click.opcoesAtualizacao').bind('click.opcoesAtualizacao', function() {
 				$('#opcoes').val(JSON.stringify(est016OpcoesAtualizacaoCFOP()));
+				$('#T225_Ids').val(JSON.stringify(est016ItensSelecionados));
 			});
 			$('#est016FormAtualizarCFOPRegras').unbind('click').bind('click', function(data) {
 				idProgressBar = dialogAlert('Processando CFOP e alíquotas',"<span id='progressBar'><b><br>0% Processando CFOP</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
-				$.getJSON('/est/est016/form_func-ajax/atualizarCFOP/?ajax=true&T224_Id=' + encodeURIComponent("{$r_T224_Id}") + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
+				$.getJSON('/est/est016/form_func-ajax/atualizarCFOP/?ajax=true&T224_Id=' + encodeURIComponent("{$r_T224_Id}") + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + est016ParametrosItensSelecionadosCFOP() + '&callback=?', function(request) {
 					if (request.code) {
 						T224_Id = {$r_T224_Id};
 						opcoesAtualizacao = est016OpcoesAtualizacaoCFOP();
@@ -4367,7 +4377,7 @@ EOT;
 						est016AtualizarAliquotasCFOPGeralLoop(idProgressBar,T224_Id,1,opcoesAtualizacao);
 
 						function est016AtualizarAliquotasCFOPGeralLoop(idProgressBar, T224_Id, inicio, opcoes){
-				                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
+				                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + est016ParametrosItensSelecionadosCFOP() + '&callback=?', function(request) {
 			                    if (request.concluido == 0) {
 			                    	$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br><b>' + request.percentual + '<b>% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
 				                    est016AtualizarAliquotasCFOPGeralLoop(idProgressBar,T224_Id,0,opcoes);
@@ -4410,12 +4420,18 @@ EOT;
 				// Form sem erros
 			} else if ($formCodigo == 2) {
 				$D006_Id = $form->campoValorEnviado('D006_Id');
+				$T225_IdsManual = $form->campoValorEnviado('T225_Ids');
+				$T225_IdsManual = json_decode($T225_IdsManual, true);
+				$T225_IdsManual = is_array($T225_IdsManual) ? array_values(array_unique(array_filter(array_map('intval', $T225_IdsManual)))) : array();
+				$T225_IdsManualJson = json_encode($T225_IdsManual);
 				echo <<<EOT
 					<div class="divHidden"><script type="text/javascript"> if (typeof jQuery != 'undefined') {
+						// O submit manual recria o formulário; restaura os itens escolhidos neste segundo ciclo.
+						est016ItensSelecionados = {$T225_IdsManualJson};
 						T224_Id = {$r_T224_Id};	
 						idProgressBar = dialogAlert('Processando CFOP e alíquotas',"<span id='progressBar'><b><br>0% Processando CFOP</b></span><img src='/hardness3/static/img/loading.gif' style='width: 24px; height: 24px; margin: 6px; float: left;' />");
 
-						$.getJSON('/est/est016/form_func-ajax/atualizarCFOPManual/?ajax=true&T224_Id=' + T224_Id + '&D006_Id=' + {$D006_Id} + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + '&callback=?', function(request) {
+						$.getJSON('/est/est016/form_func-ajax/atualizarCFOPManual/?ajax=true&T224_Id=' + T224_Id + '&D006_Id=' + {$D006_Id} + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoesAtualizacao)) + est016ParametrosItensSelecionadosCFOP() + '&callback=?', function(request) {
 							if(request.code){
 								opcoesAtualizacao = est016OpcoesAtualizacaoCFOP();
 								$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br>' + '<b>0% Processando alíquotas</b></br>');
@@ -4427,7 +4443,7 @@ EOT;
 						});
 
 						function est016AtualizarAliquotaCFOPLoop(idProgressBar, T224_Id, inicio, opcoes){
-			                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + '&callback=?', function(request) {
+				                $.getJSON('/est/est016/form_func-ajax/atualizarAliquota/?ajax=true&T224_Id=' + T224_Id + '&extra=' + encodeURIComponent("{$extra_}") + '&inicio=' + inicio + '&opcoes=' + encodeURIComponent(JSON.stringify(opcoes || {})) + est016ParametrosItensSelecionadosCFOP() + '&callback=?', function(request) {
 			                    if (request.concluido == 0) {
 			                    	$('#progressBar').html('<br><b><font color="green">100% CFOP processada &#10004;</font></b></br><b>' + request.percentual + '<b>% Processando alíquotas</b>' + '<br/><br/>Produtos atualizados: <b>' + request.ok + '</b><br/>Produtos com erro: <b> ' + request.erro + '</b><br /><br/><b> <font color="red">' + request.erros + '</font></b>');
 				                    est016AtualizarAliquotaCFOPLoop(idProgressBar,T224_Id,0,opcoes);
@@ -4479,7 +4495,8 @@ EOT;
 		if (!$formMultiTab) { $g["smarty"]->assign("formId", $formId); }
 		$g['smarty']->display('formEditor.tpl');
 	
-		$botoesDir = '<button onclick="fecharJanela(\''.$g['divId'].'\'); return false;" class="btnFechar">Fechar</button>';
+		$botoesDir = '<button type="button" id="est016FormAtualizarCFOPSelecionarItens">Selecionar itens</button>';
+		$botoesDir .= '<button onclick="fecharJanela(\''.$g['divId'].'\'); return false;" class="btnFechar">Fechar</button>';
 		$g['smarty']->assign('botoesId', $g['divId']);
 		$g['smarty']->assign('botoesDir', $botoesDir);
 		$g['smarty']->display('buttons-floatBottom.tpl');

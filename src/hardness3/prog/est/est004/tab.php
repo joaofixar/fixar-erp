@@ -97,6 +97,7 @@ switch ($g['r'][3]) {
 			$tabsList[] = array(uniqid(), '/est/est004/grid/est004gridOrdemCompra/', 'Ordens de Compra', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . '&formId=' . urlencode($formId), true,true);
 		}
 		$tabsList[] = array(uniqid(), '/est/est004/grid/est004GridObservacoes/', 'Observações', "&tab=geral&acaoId=" . urlencode($_REQUEST['acaoId']) . '&formId=' . urlencode($formId), true,true);
+		$tabsList[] = array(uniqid(), '/est/est004/content/est004ContentCartaCorrecao/', 'CCe', "&acaoId=" . urlencode($_REQUEST['acaoId']) . '&formId=' . urlencode($formId), true,true);
 
 		if($g['c029Ids'][275]){
 			$D001 = mysql_query("SELECT T014_Id
@@ -352,4 +353,3 @@ switch ($g['r'][3]) {
 		$g['smarty']->display('tab.tpl');
 	break;
 }
-

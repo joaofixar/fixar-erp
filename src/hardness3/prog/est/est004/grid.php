@@ -35,9 +35,9 @@ switch($g['r'][3]){
             array('colunaValor' => 'T013_Data_Financeiro', 'colunaTitulo' => 'Financeiro', 'callback' => 'gCorrigeData', 'callbackParameter' => '1'),
             array('colunaValor' => 'D024_Id', 'colunaTitulo' => 'Código', 'colunaAlinhar' => 'center'),
             array('colunaValor' => 'D024_Nome_Empresa', 'colunaTitulo' => 'Fornecedor', 'callback' => 'coloreLinha', 'colunaDimensao' => 'S'),
-            array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'colunaAlinhar' => 'center'),
-            array('colunaValor' => 'T013_Tipo', 'colunaTitulo' => 'Tipo', 'callback' => 'validaCampoTipo'),
-            array('colunaValor' => 'D006_Codigo_CFOP', 'colunaTitulo' => 'CFOP', 'colunaAlinhar' => 'center', 'colunaDimensao' => 'S'),
+			array('colunaValor' => 'D018_UF', 'colunaTitulo' => 'UF', 'colunaAlinhar' => 'center'),
+			array('colunaValor' => 'T013_Tipo', 'colunaTitulo' => 'Tipo', 'callback' => 'validaCampoTipo'),
+			array('colunaValor' => 'D006_Codigo_CFOP', 'colunaTitulo' => 'CFOP', 'colunaAlinhar' => 'center', 'colunaDimensao' => 'S'),
             array('colunaValor' => 'T013_Valor_Total', 'colunaTitulo' => 'Total', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'colunaMetrica' => 'S'),
             array('colunaValor' => 'T013_Valor_Total_Produtos', 'colunaTitulo' => 'Produtos', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'colunaMetrica' => 'S'),
             array('colunaValor' => 'T013_Valor_ICMS_Substituicao', 'colunaTitulo' => 'ICMS ST', 'colunaCasasDecimais' => '2', 'colunaAlinhar' => 'right', 'colunaMetrica' => 'S'),
@@ -3657,6 +3657,49 @@ EOT;
 		} else {
 			$g['smarty']->display('grid.tpl');
 		}
-	break;		
+	break;
+
+	case 'est004GridCartaCorrecao':
+		$T013_Id = isset($r_acaoId) ? (int)$r_acaoId : 0;
+		$grid = array(
+			array('colunaValor' => 'T323_Id', 'colunaTitulo' => 'Id', 'chavePrimaria' => true, 'colunaExibir' => false),
+			array('colunaValor' => 'T323_Caminho_Arquivo', 'colunaTitulo' => 'Caminho', 'colunaExibir' => false),
+			array('colunaValor' => 'T323_Nome_Original', 'colunaTitulo' => 'Arquivo', 'callback' => 'est004CceArquivo'),
+			array('colunaValor' => 'T323_Tipo_Arquivo', 'colunaTitulo' => 'Tipo'),
+			array('colunaValor' => 'est004CceInformacoes', 'colunaTitulo' => 'Informações', 'colunaTipo' => 'livre', 'callback' => 'est004CceInformacoes'),
+			array('colunaValor' => 'T323_Data_Hora_Inclusao', 'colunaTitulo' => 'Incluído em', 'callback' => 'gCorrigeData'),
+			array('colunaValor' => 'C007_Primeiro_Nome', 'colunaTitulo' => 'Usuário'),
+			array('colunaValor' => 'est004CceAbrir', 'colunaTitulo' => 'Abrir', 'colunaTipo' => 'livre', 'callback' => 'est004CceAbrir'),
+			array('colunaValor' => 'est004CceExcluir', 'colunaTitulo' => 'Excluir', 'colunaTipo' => 'livre', 'callback' => 'est004CceExcluir')
+		);
+		$from = 'T323';
+		$extra = "LEFT JOIN C007 ON C007_Id = T323_C007_Id WHERE T323_T013_Id = {$T013_Id} ORDER BY T323_Data_Hora_Inclusao DESC, T323_Id DESC";
+		$extra = $g['ui']->gridFiltroExtra(true, $grid, $extra);
+
+		echo <<<EOT
+		<div class="divHidden"><script type="text/javascript">if (typeof jQuery != 'undefined') {
+			$('#{$g['divId']} .est004CceExcluirArquivo').unbind('click').bind('click', function(event) {
+				event.preventDefault();
+				if (!confirm('Excluir este anexo da carta de correção?')) { return false; }
+				var id = $(this).attr('data-id');
+				$.getJSON('/est/est004/grid_func-ajax/excluirCartaCorrecao/?ajax=true&T323_Id=' + encodeURIComponent(id) + '&callback=?', function(resposta) {
+					if (resposta.code) { divRefresh('{$g['divId']}', true); }
+					else { dialogConfirm('ERRO', resposta.data); }
+				});
+				return false;
+			});
+		}</script></div>
+EOT;
+
+		list($geradoSql, $geradoDados) = $g['sqlAuto']->gerarSQLGrid($grid, $from, $extra);
+		$gridTabela = $g['ui']->grid($grid, $geradoDados);
+		$g['smarty']->assign('thead', $gridTabela['thead']);
+		$g['smarty']->assign('tbody', $gridTabela['tbody']);
+		$g['smarty']->assign('tfoot', $gridTabela['tfoot']);
+		$g['smarty']->assign('gridId', md5($g['r_']));
+		$g['smarty']->assign('gridPersonalizacao', json_encode(array($g['r_'], $g['divIdRoot'], $g['divId']), JSON_FORCE_OBJECT));
+		gBotaoAuditoria($from);
+		if (isset($r_generateHTML)) { ob_end_clean(); ob_start(); $g['smarty']->display('gridHTML.tpl'); } else { $g['smarty']->display('grid.tpl'); }
+	break;
 }
 ?>

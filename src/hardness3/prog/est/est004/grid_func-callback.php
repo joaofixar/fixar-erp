@@ -405,5 +405,44 @@ function validaCampoTipo($array) {
 		$array['todosCampos']['T013_Tipo'] = 1; 
 	}
 
-	return $mDocumento[$array['todosCampos']['T013_Tipo']]; 
+	$tipo = $mDocumento[$array['todosCampos']['T013_Tipo']];
+	$T013_Id = (int)$array['todosCampos']['T013_Id'];
+	$temCce = mysql_query("SELECT T323_Id FROM T323 WHERE T323_T013_Id = {$T013_Id} LIMIT 1");
+	if ($temCce && mysql_num_rows($temCce) > 0) {
+		$tipo .= '<br><span style="background:yellow;color:#000;"><small>CC-e</small></span>';
+	}
+	return $tipo;
+}
+
+function est004CceCaminhoArquivo($registro) {
+	global $g;
+	$caminho = ltrim(str_replace('\\', '/', isset($registro['T323_Caminho_Arquivo']) ? $registro['T323_Caminho_Arquivo'] : ''), '/');
+	$prefixo = 'nfe/anexos/recebido/cce/';
+	if (strpos($caminho, $prefixo) !== 0) {
+		return false;
+	}
+	return $g['pathDados'].$caminho;
+}
+
+function est004CceArquivo($array) {
+	$registro = $array['todosCampos'];
+	$nome = htmlspecialchars($registro['T323_Nome_Original'], ENT_QUOTES, 'UTF-8');
+	return is_file(est004CceCaminhoArquivo($registro)) ? $nome : '<span style="color:#b00">'.$nome.' (arquivo não localizado)</span>';
+}
+
+function est004CceInformacoes($array) {
+	$registro = $array['todosCampos'];
+	return $registro['T323_Tipo_Arquivo'] == 'XML' ? 'XML anexado' : 'PDF anexado';
+}
+
+function est004CceAbrir($array) {
+	$registro = $array['todosCampos'];
+	$id = (int)$registro['T323_Id'];
+	$rotulo = $registro['T323_Tipo_Arquivo'] == 'XML' ? 'Imprimir' : 'Abrir';
+	return '<a href="/est/est004/grid_func-ajax/abrirCartaCorrecao/?ajax=true&T323_Id='.$id.'" target="_blank">'.$rotulo.'</a>';
+}
+
+function est004CceExcluir($array) {
+	$id = (int)$array['todosCampos']['T323_Id'];
+	return '<a href="#" class="est004CceExcluirArquivo" data-id="'.$id.'">Excluir</a>';
 }

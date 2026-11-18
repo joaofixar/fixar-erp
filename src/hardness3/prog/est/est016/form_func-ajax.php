@@ -33,7 +33,6 @@ switch($g['r'][3]) {
 		log("entra no desmarcar checkbox");
 		$sql = base64_decode($r_extra);
 		$T224_Id = isset($r_T224_Id) ? $r_T224_Id : false;
-
 		$IdsRemoverFlag = array();
 		$D049s = array();
 		$res = mysql_query($sql);
@@ -510,6 +509,9 @@ EOT;
 		global $g;
 		$resposta['code'] = true;	
 		$T224_Id = isset($r_T224_Id) ? $r_T224_Id : false;
+		$T225_Ids = isset($r_T225_Ids) ? json_decode($r_T225_Ids, true) : array();
+		$T225_Ids = is_array($T225_Ids) ? array_filter(array_map('intval', $T225_Ids)) : array();
+		$clausulaItensSelecionados = empty($T225_Ids) ? '' : " AND T225_Id IN (" . implode(',', $T225_Ids) . ")";
 		log("T224_Id no atualizarAliquota".$T224_Id);
 		$resposta['T224_Id'] = $T224_Id;
 
@@ -546,7 +548,7 @@ EOT;
 	                               LEFT JOIN D049 ON D049_Id=D009_D049_Id
 	                               LEFT JOIN D001 ON D001_Id=D049_D001_Id
 	                               LEFT JOIN T219 ON T219_Id=T225_T219_Id 
-	                                   WHERE T224_Id='{$T224_Id}'");
+	                                   WHERE T224_Id='{$T224_Id}'{$clausulaItensSelecionados}");
 	       	$erroMysql = mysql_error();
 	        if (!empty($erroMysql)) 
 	        {
@@ -1312,11 +1314,13 @@ EOT;
 		
 		$T005_Id = isset($r_T005_Id) ? $r_T005_Id : false;
 		$T224_Id = isset($r_T224_Id) ? $r_T224_Id : false;
+		$T225_Ids = isset($r_T225_Ids) ? json_decode($r_T225_Ids, true) : array();
+		$T225_Ids = is_array($T225_Ids) ? array_filter(array_map('intval', $T225_Ids)) : array();
 
 		
 		
 		$opcoes = json_decode($r_opcoes, true);
-		$retorno = $EST016->est016atualizarCFOP($T224_Id, $opcoes);
+		$retorno = $EST016->est016atualizarCFOP($T224_Id, $opcoes, $T225_Ids);
 		
 		if ($retorno === true) {
 			$resposta['code'] = true;
@@ -1332,19 +1336,22 @@ EOT;
 		
 		$T224_Id = isset($r_T224_Id) ? $r_T224_Id : false;
 		$D006_Id = isset($r_D006_Id) ? $r_D006_Id : false;
+		$T225_Ids = isset($r_T225_Ids) ? json_decode($r_T225_Ids, true) : array();
+		$T225_Ids = is_array($T225_Ids) ? array_filter(array_map('intval', $T225_Ids)) : array();
+		$clausulaItensSelecionados = empty($T225_Ids) ? '' : " AND T225_Id IN (" . implode(',', $T225_Ids) . ")";
 		$resposta['code'] = true;
 		$opcoes = json_decode($r_opcoes, true);
 		if (is_array($opcoes) && isset($opcoes['cfop']) && $opcoes['cfop'] === false) {
 			break;
 		}
 
-		mysql_query("UPDATE T224 SET T224_D006_Id = '{$D006_Id}' WHERE T224_Id = '{$T224_Id}'");
+		if (empty($T225_Ids)) mysql_query("UPDATE T224 SET T224_D006_Id = '{$D006_Id}' WHERE T224_Id = '{$T224_Id}'");
         $erroSQLT224    = mysql_error();
         if (!empty($erroSQLT224)) {
         	$resposta['code'] = false;
             $resposta['data'] = $erroSQLT224;
         }
-        mysql_query("UPDATE T225 SET T225_D006_Id = '{$D006_Id}' WHERE T225_T224_Id = '{$T224_Id}'");
+        mysql_query("UPDATE T225 SET T225_D006_Id = '{$D006_Id}' WHERE T225_T224_Id = '{$T224_Id}'{$clausulaItensSelecionados}");
         $erroSQLT225    = mysql_error();
         if (!empty($erroSQLT225)) {
         	$resposta['code'] = false;

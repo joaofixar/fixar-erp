@@ -5733,6 +5733,45 @@ EOT;
                         }
                     }
                 }
+
+                // Garante que a quantidade gerada na NF foi integralmente
+                // registrada no histórico de todas as locações separadas.
+                if ($Flag_Operacao_Historico == 'S') {
+                    $sqlValidarHistorico = "SELECT T008.T008_Quantidade AS Quantidade_NF,
+                                                    IFNULL(T238S.Quantidade_Separada, 0) AS Quantidade_Separada,
+                                                    IFNULL(SUM(T001.T001_Quantidade), 0) AS Quantidade_Historico
+                                               FROM T008
+                                          LEFT JOIN (
+                                                SELECT T238_T006_Id,
+                                                       SUM(T238_Quantidade_Separacao) AS Quantidade_Separada
+                                                  FROM T238
+                                              GROUP BY T238_T006_Id
+                                          ) T238S ON T238S.T238_T006_Id = T008.T008_T006_Id
+                                          LEFT JOIN T001 ON T001.T001_T008_Id = T008.T008_Id
+                                                        AND T001.T001_D009_Id = '{$mT006['T006_D009_Id']}'
+                                                        AND T001.T001_Flag_Operacao = 'S'
+                                              WHERE T008.T008_Id = '{$T008_Id}'
+                                           GROUP BY T008.T008_Id";
+                    $resValidarHistorico = mysql_query($sqlValidarHistorico);
+                    if ($resValidarHistorico === false) {
+                        $cErro = mysql_error();
+                        mysql_query("ROLLBACK");
+                        return "Erro ao validar o histórico de estoque do item {$mT006['T006_Codigo_Produto']}: {$cErro}";
+                    }
+
+                    $mValidarHistorico = mysql_fetch_assoc($resValidarHistorico);
+                    $quantidadePedido = round($mT006['T006_Quantidade'], 6);
+                    $quantidadeNF = round($mValidarHistorico['Quantidade_NF'], 6);
+                    $quantidadeSeparada = round($mValidarHistorico['Quantidade_Separada'], 6);
+                    $quantidadeHistorico = round($mValidarHistorico['Quantidade_Historico'], 6);
+
+                    if ($quantidadePedido != $quantidadeNF
+                        || $quantidadePedido != $quantidadeSeparada
+                        || $quantidadePedido != $quantidadeHistorico) {
+                        mysql_query("ROLLBACK");
+                        return "Não foi possível gerar a NF do item {$mT006['T006_Codigo_Produto']}: quantidade do pedido ({$quantidadePedido}), NF ({$quantidadeNF}), separação ({$quantidadeSeparada}) e histórico ({$quantidadeHistorico}) devem ser iguais.";
+                    }
+                }
             } else {
                 
                 /////////////////////////////////////////////////////////////
