@@ -11,6 +11,16 @@ RewriteRule ^balanco/(.*)$ /hardness3/aplicacoes/balanco/public/$1 [END]
 RewriteRule ^login$ /login/ [R=302,L]
 RewriteRule ^login/$ /hardness3/outros/login/index.php [END]
 RewriteRule ^login/(.+)$ /hardness3/outros/login/$1 [END]
+# URL pública canônica do ERP. /fixar/X equivale a /hardness3/X: arquivo ou
+# pasta real é servido direto, o resto vai ao roteador com r=X. AJAX e assets
+# seguem em /hardness3/ porque o framework fixa esse caminho.
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{THE_REQUEST} \s/+hardness3/erp/?[\s?] [NC]
+RewriteRule ^(?:hardness3/)?erp/?$ /fixar/erp/ [R=302,L]
+RewriteCond %{DOCUMENT_ROOT}/hardness3/$1 -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/hardness3/$1 -d
+RewriteRule ^fixar/(.*)$ /hardness3/$1 [END]
+RewriteRule ^fixar/(.*)$ /hardness3/index.php?r=$1 [QSA,B,END]
 # MCP connection URLs are strict 24-character base64url identifiers. Keep the
 # legacy endpoint and shared OAuth routes below unchanged for existing clients.
 RewriteRule ^mcp/?$ /hardness3/mcp/public/index.php [END]
