@@ -543,7 +543,7 @@ echo <<<EOT
 						</div>
 					</div>
 				</header>
-				<form id="form-login" class="login-form" action="./index.php" method="post">
+				<form id="form-login" class="login-form" action="./" method="post">
 					{$oauthLoginHidden}
 					<div class="alert alert-error hide">
 						<strong>Erro!</strong> <span></span>

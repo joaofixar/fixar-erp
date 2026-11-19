@@ -6,6 +6,11 @@ RewriteRule ^hardness3/balanco/?(.*)$ /balanco/$1 [R=302,L,NE]
 RewriteRule ^balanco/?$ /hardness3/aplicacoes/balanco/public/index.php [END]
 RewriteRule ^balanco/abrir-qr/?$ /hardness3/aplicacoes/balanco/public/abrir-qr.php [END]
 RewriteRule ^balanco/(.*)$ /hardness3/aplicacoes/balanco/public/$1 [END]
+# URL pública canônica do login. /login sem barra recebe a barra para que os
+# caminhos relativos da página (./login.css, ./js, ./index.php) resolvam em /login/.
+RewriteRule ^login$ /login/ [R=302,L]
+RewriteRule ^login/$ /hardness3/outros/login/index.php [END]
+RewriteRule ^login/(.+)$ /hardness3/outros/login/$1 [END]
 # MCP connection URLs are strict 24-character base64url identifiers. Keep the
 # legacy endpoint and shared OAuth routes below unchanged for existing clients.
 RewriteRule ^mcp/?$ /hardness3/mcp/public/index.php [END]

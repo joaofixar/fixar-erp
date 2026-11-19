@@ -1,0 +1,11 @@
+# Acesso direto ao caminho físico volta para a URL canônica /login/.
+# Só GET: POST antigo para index.php segue funcionando sem perder o corpo.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} =GET
+    RewriteCond %{THE_REQUEST} \s/+hardness3/outros/login(?:/[^\s?]*)? [NC]
+    RewriteRule ^(?:index\.php)?$ /login/ [R=302,L,NE]
+    RewriteCond %{REQUEST_METHOD} =GET
+    RewriteCond %{THE_REQUEST} \s/+hardness3/outros/login(?:/[^\s?]*)? [NC]
+    RewriteRule ^(.+)$ /login/$1 [R=302,L,NE]
+</IfModule>
