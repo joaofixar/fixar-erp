@@ -16,6 +16,11 @@ $recipientLabel = static function ($value): string {
 };
 $typeNames = ['0' => 'Guia simples', '1' => 'Múltiplos documentos de origem', '2' => 'Múltiplas receitas'];
 ?>
+<style>
+.gnre-note-source tr.gnre-note-unavailable td{background:#fff8eb;color:#786030}
+.gnre-note-source tr.gnre-note-unavailable td:first-child{box-shadow:inset 3px 0 #d89416}
+.gnre-note-source .gnre-note-unavailable-badge{display:inline-block;margin-top:4px;padding:2px 5px;border-radius:4px;background:#fff0cf;color:#8a5900;font-size:10px;font-weight:700;white-space:nowrap}
+</style>
 <section class="gnre-panel gnre-note-source">
     <header>
         <h2>Gerar guia a partir de notas</h2>
@@ -96,12 +101,12 @@ $typeNames = ['0' => 'Guia simples', '1' => 'Múltiplos documentos de origem', '
         <form method="post">
             <input type="hidden" name="csrf" value="<?=gnre_h($csrf)?>"><input type="hidden" name="action" value="task60_prepare_batch">
             <p class="form-actions"><button type="button" id="toggle-all-notes">Marcar todas as listadas</button><button>Preparar guias selecionadas</button></p>
-            <div class="table-wrap"><table><thead><tr><th>Selecionar</th><th>Número</th><th>Série</th><th>Emissão</th><th>Destinatário</th><th>UF</th><th>Chave de acesso</th><th>DIFAL (R$)</th><th>FCP partilha (R$)</th><th>ST (R$)</th><th>FCP-ST (R$)</th></tr></thead><tbody>
-                <?php if (!$noteRows): ?><tr><td colspan="11">Nenhuma NF elegível no período informado.</td></tr><?php endif; ?>
-                <?php foreach ($noteRows as $note): $recipientName=(string) ($note['T007_Cliente_Razao'] ?? ''); $recipientUf=strtoupper(trim((string) ($note['T007_Cliente_Estado'] ?? ''))); ?><tr>
-                    <td><input type="checkbox" class="note-selection" name="note_ids[]" value="<?=((int) $note['T007_Id'])?>"></td>
+            <div class="table-wrap"><table><thead><tr><th>Selecionar</th><th>Número</th><th>Série</th><th>Emissão</th><th>Destinatário</th><th>UF</th><th>UF Entr.</th><th>Chave de acesso</th><th>DIFAL (R$)</th><th>FCP partilha (R$)</th><th>ST (R$)</th><th>FCP-ST (R$)</th></tr></thead><tbody>
+                <?php if (!$noteRows): ?><tr><td colspan="12">Nenhuma NF elegível no período informado.</td></tr><?php endif; ?>
+                <?php foreach ($noteRows as $note): $recipientName=(string) ($note['T007_Cliente_Razao'] ?? ''); $recipientUf=strtoupper(trim((string) ($note['T007_Cliente_Estado'] ?? ''))); $deliveryUf=strtoupper(trim((string) ($note['GNRE_UF_Entrega'] ?? ''))); $favoredUf=strtoupper(trim((string) ($note['GNRE_UF_Favorecida'] ?? ''))); $gnreSupported=GnreFavoredStateCatalog::supports($favoredUf); ?><tr<?=$gnreSupported?'':' class="gnre-note-unavailable"'?> title="<?=gnre_h($gnreSupported?'':'UF favorecida '.$favoredUf.' não é atendida pela GNRE.')?>">
+                    <td><input type="checkbox" class="note-selection" name="note_ids[]" value="<?=((int) $note['T007_Id'])?>"<?=$gnreSupported?'':' disabled aria-label="NF não atendida pela GNRE"'?>></td>
                     <td><?=gnre_h((string) ($note['T007_Numero_Nota_Fiscal'] ?: '—'))?></td><td><?=gnre_h((string) ($note['T007_Serie'] ?: '—'))?></td><td><?=gnre_h($dateLabel((string) $note['T007_Data_Emissao']))?></td>
-                    <td title="<?=gnre_h($recipientName ?: 'Não informado')?>"><?=gnre_h($recipientLabel($recipientName))?></td><td><?=gnre_h($recipientUf ?: '—')?></td><td><?=gnre_h((string) ($note['T007_Chave_Acesso_Nfe'] ?: 'Não informada'))?></td>
+                    <td title="<?=gnre_h($recipientName ?: 'Não informado')?>"><?=gnre_h($recipientLabel($recipientName))?></td><td><?=gnre_h($recipientUf ?: '—')?></td><td><?=gnre_h($deliveryUf ?: '—')?><?php if(!$gnreSupported): ?><span class="gnre-note-unavailable-badge">Não atendida pela GNRE</span><?php endif; ?></td><td><?=gnre_h((string) ($note['T007_Chave_Acesso_Nfe'] ?: 'Não informada'))?></td>
                     <td><?=gnre_h($taxValue((bool) $note['indicator_difal'], $note['T007_Valor_Total_Partilha_ICMS_Destino'] ?? 0))?></td><td><?=gnre_h($taxValue((bool) $note['indicator_fcp'], $note['T007_Valor_Total_FCP_Partilha'] ?? 0))?></td><td><?=gnre_h($taxValue((bool) $note['indicator_st'], $note['T007_Valor_ICMS_Substituicao_Retencao'] ?? 0))?></td><td><?=gnre_h($taxValue((bool) $note['indicator_st'], $note['T007_Valor_FCP_ST'] ?? 0))?></td>
                 </tr><?php endforeach; ?>
             </tbody></table></div>
@@ -118,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var button = document.getElementById('toggle-all-notes');
     if (!button) return;
     button.addEventListener('click', function () {
-        var notes = [].slice.call(document.querySelectorAll('.note-selection'));
+        var notes = [].slice.call(document.querySelectorAll('.note-selection:not(:disabled)'));
         var selectAll = notes.some(function (note) { return !note.checked; });
         notes.forEach(function (note) { note.checked = selectAll; });
         button.textContent = selectAll ? 'Desmarcar todas as listadas' : 'Marcar todas as listadas';

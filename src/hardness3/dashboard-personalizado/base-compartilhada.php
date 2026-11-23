@@ -21,7 +21,9 @@ function dashboardBaseCompartilhadaPlanejar($indicador, $sqlBase, $sqlCard, &$er
     }
     if (!empty($indicador['calendarios']) || !empty($indicador['comparativoRepresentantes']) || dashboardIndicadorListagemPaginadaHabilitada($indicador)) return null;
     $lista = isset($indicador['listagem']) ? $indicador['listagem'] : array();
-    if (empty($lista) || (isset($lista['habilitada']) && !$lista['habilitada']) || !empty($lista['agrupamento']) || !empty($lista['detalhamento']) || !empty($indicador['card']['campoContagem'])) return null;
+    $detalheSobDemanda = !empty($config['permitirDetalhamentoModal']) && !empty($lista['detalhamento']['modal']);
+    if (empty($lista) || (isset($lista['habilitada']) && !$lista['habilitada']) || !empty($lista['agrupamento'])
+        || (!empty($lista['detalhamento']) && !$detalheSobDemanda) || !empty($indicador['card']['campoContagem'])) return null;
     $chave = dashboardIndicadorIdentificador(isset($config['campoChave']) ? $config['campoChave'] : '', '');
     $ordem = dashboardIndicadorIdentificador(isset($lista['ordenacao']['campo']) ? $lista['ordenacao']['campo'] : '', '');
     if ($chave === '' || $ordem === '' || !isset($lista['ordenacao']['direcao']) || strtoupper($lista['ordenacao']['direcao']) !== 'DESC') return null;
@@ -70,7 +72,9 @@ function dashboardBaseCompartilhadaPlanejar($indicador, $sqlBase, $sqlCard, &$er
         $secoes[$parte] = array('id' => $id, 'campos' => $campos);
         $partes[] = "SELECT '" . $parte . "' AS parte, " . ($indice + 2) . ' AS bloco, 0 AS ordemValor, secao.`' . $campos[0] . "` AS ordemTexto, 0 AS ordemId, " . dashboardBaseCompartilhadaObjetoSql($campos, 'secao') . ' AS dados FROM (SELECT `' . implode('`, `', $campos) . '` FROM (' . $sql . ') AS dashboard_bloco ORDER BY `' . $campos[0] . '` LIMIT 501) AS secao';
     }
-    return array('sql' => "SELECT saida.parte, saida.dados FROM (WITH dashboard_base_unica AS (" . $sqlBase . ")\n" . implode("\nUNION ALL\n", $partes) . ') AS saida ORDER BY saida.bloco, saida.ordemValor DESC, saida.ordemTexto ASC, saida.ordemId ASC',
+    // A mesma materializacao deve atender contagem, pagina e blocos.
+    $fonteUnica = 'SELECT origem.* FROM (' . $sqlBase . ') AS origem LIMIT 18446744073709551615';
+    return array('sql' => "SELECT saida.parte, saida.dados FROM (WITH dashboard_base_unica AS (" . $fonteUnica . ")\n" . implode("\nUNION ALL\n", $partes) . ') AS saida ORDER BY saida.bloco, saida.ordemValor DESC, saida.ordemTexto ASC, saida.ordemId ASC',
         'camposCard' => $camposCard, 'camposLista' => $camposLista, 'chave' => $chave, 'limite' => $limite, 'secoes' => $secoes);
 }
 
@@ -116,5 +120,12 @@ function dashboardBaseCompartilhadaConsultar($conexao, $indicador, $sqlBase, $sq
     if ($plano === null || $plano === false) return $plano;
     $linhas = dashboardIndicadorConsultar($conexao, $plano['sql'], $parametros, $erro);
     if ($linhas === false) return false;
-    return dashboardBaseCompartilhadaSeparar($linhas, $plano, $erro);
+    $resultado = dashboardBaseCompartilhadaSeparar($linhas, $plano, $erro);
+    if ($resultado === false && $erro === 'Resposta incompleta da base compartilhada.') {
+        // Nao apresentar uma pagina parcial. Voltar as consultas individuais
+        // preserva filtros/totais quando o plano compartilhado nao fecha.
+        $erro = '';
+        return null;
+    }
+    return $resultado;
 }

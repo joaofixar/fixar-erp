@@ -23,9 +23,13 @@ final class LegacyReportCatalog
         $reports=[];
         if(preg_match_all('/array\(\s*"metodo"\s*=>\s*"([^"]+)"(.*?)"link"\s*=>\s*"([^"]+)"/s',$text,$matches,PREG_SET_ORDER))foreach($matches as $match){
             $link=html_entity_decode($match[3],ENT_QUOTES,'UTF-8');$path=parse_url('http://legacy/'.ltrim(str_replace('{$dominio}','legacy',$link),'/'),PHP_URL_PATH);$query=parse_url('http://legacy/'.ltrim(str_replace('{$dominio}','legacy',$link),'/'),PHP_URL_QUERY);if(!is_string($path))continue;
-            $parts=array_values(array_filter(explode('/',trim($path,'/'))));$index=array_search('rel',$parts,true);if($index===false||!isset($parts[$index+1]))continue;$route=$parts[$index+1]==='get'?($parts[$index+2]??''):$parts[$index+1];if($route==='')continue;
+            $parts=array_values(array_filter(explode('/',trim($path,'/'))));$index=array_search('rel',$parts,true);if($index===false||!isset($parts[$index+1]))continue;$endpoint=$parts[$index+1]==='get'?'get/'.($parts[$index+2]??''):$parts[$index+1];$route=$parts[$index+1]==='get'?($parts[$index+2]??''):$parts[$index+1];if($route===''||$endpoint==='get/')continue;
             parse_str((string)$query,$params);$allowed=[];foreach($params as $key=>$_)if($key!=='API_AUTH'&&$key!=='DATAINICIAL'&&$key!=='DATAFINAL'&&$key!=='codigoApp')$allowed[]=$key;
-            $reports[]=['id'=>self::sourceSlug($match[1]),'name'=>$match[1],'description'=>self::sourceObservation($match[2]),'route'=>$route,'app_code'=>isset($params['codigoApp'])?(string)$params['codigoApp']:null,'requires_dates'=>strpos($link,'DATAINICIAL')!==false||strpos($link,'DATAFINAL')!==false,'parameters'=>$allowed];
+            // The customer can replace a report at /api/rel/get/<route> even
+            // when its API links screen still inherits the legacy /api/rel/<route>
+            // entry. Preserve that effective endpoint for MCP execution.
+            if (is_file($root . '/dados_usuarios/' . $database . '/personalizacaoConf/api-rel-get-' . $route . '-alterarPrograma.php')) $endpoint='get/'.$route;
+            $reports[]=['id'=>self::sourceSlug($match[1]),'name'=>$match[1],'description'=>self::sourceObservation($match[2]),'route'=>$route,'endpoint'=>$endpoint,'app_code'=>isset($params['codigoApp'])?(string)$params['codigoApp']:null,'requires_dates'=>strpos($link,'DATAINICIAL')!==false||strpos($link,'DATAFINAL')!==false,'parameters'=>$allowed];
         }
         return $reports===[]?new self():new self($reports,false);
     }

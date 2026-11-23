@@ -10,6 +10,25 @@ $VEN003 = new VEN003();
 
 	switch($g['r'][3]) {
 
+	case 'danfeSimplificada':
+		require_once __DIR__ . '/../../../bibliotecas/classes/DanfeSimplificadaDocumento.php';
+		try {
+			$documento = DanfeSimplificadaDocumento::gerar($_GET['T007_Id'] ?? 0, $g['empresaAtual'] ?? 0, $g['pathDadosAntigo']);
+			header('Content-Type: application/pdf');
+			header('Content-Disposition: inline; filename="' . $documento['nome'] . '"');
+			header('Cache-Control: private, no-store');
+			echo $documento['conteudo'];
+		} catch (\InvalidArgumentException $e) {
+			http_response_code(422);
+			header('Content-Type: text/plain; charset=UTF-8');
+			echo $e->getMessage();
+		} catch (\RuntimeException $e) {
+			http_response_code(500);
+			header('Content-Type: text/plain; charset=UTF-8');
+			echo 'Não foi possível gerar a impressão simplificada da NF-e.';
+		}
+		exit;
+
 	case 'ven003IncluirItensEvento112140PorPercentual':
 		require_once('hardness/class/nfe4_eventos.class.php');
 

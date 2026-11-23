@@ -14,7 +14,8 @@
     if (value === null || value === undefined) return '—';
     return type === 'percentual' ? Number(value).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : moeda(value);
   }
-  function comparativo(card, data, key) {
+  function comparativo(card, data, key, options) {
+    options = options || {};
     var comparison = data.comparativo;
     if (!comparison || !comparison.metricas[key]) return;
     var metric = comparison.metricas[key];
@@ -26,8 +27,9 @@
     var badge = node('span', 'commercial-comparison', arrow + ' ' + text);
     badge.setAttribute('aria-label', (direction === 'alta' ? 'Aumento: ' : direction === 'baixa' ? 'Queda: ' : direction === 'estavel' ? 'Estável: ' : '') + text);
     card.appendChild(badge);
-    var multiMonth = key === 'valorOrcado' && data.periodo.inicio.slice(0, 7) !== data.mesReferencia;
-    card.appendChild(node('small', 'commercial-comparison-values', (multiMonth ? 'Neste mês: ' + valor(metric.atual) + ' · ' : '') + 'Anterior: ' + valor(metric.anterior)));
+    var multiMonth = options.mostrarValorAtual === true || (key === 'valorOrcado' && data.periodo.inicio.slice(0, 7) !== data.mesReferencia);
+    var displayValue = typeof options.formatarValor === 'function' ? options.formatarValor : valor;
+    card.appendChild(node('small', 'commercial-comparison-values', (multiMonth ? (options.rotuloAtual || 'Neste mês') + ': ' + displayValue(metric.atual) + ' · ' : '') + 'Anterior: ' + displayValue(metric.anterior)));
     function range(period) { return period.inicio.split('-').reverse().join('/') + ' a ' + period.fim.split('-').reverse().join('/'); }
     card.appendChild(node('small', 'commercial-comparison-dates', range(comparison.periodos.atual) + ' × ' + range(comparison.periodos.anterior)));
   }
@@ -395,5 +397,5 @@
     });
     panel.appendChild(article); container.appendChild(panel);
   }
-  window.DashboardDesempenhoComercial = { render: render, renderPedidos: renderPedidos };
+  window.DashboardDesempenhoComercial = { render: render, renderPedidos: renderPedidos, comparativo: comparativo };
 }());

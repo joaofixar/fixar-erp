@@ -40,6 +40,12 @@ EOT;
 	return $imagem;
 }
 
+function est002CheckboxSelecionarVolumeMassaGlobal($array){
+    $T314_Id = (int)$array['todosCampos']['T314_Id'];
+
+    return "<input type='checkbox' class='est002-volume-selecionado' value='{$T314_Id}' title='Selecionar volume' onclick='event.stopPropagation();' />";
+}
+
 function campoOpcoesImpressao($array){
 	global $g;
 	$novoIdTelaForm = uniqid();

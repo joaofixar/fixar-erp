@@ -32,8 +32,11 @@ class PDFMerger
 	 */
 	public function __construct()
 	{
-		require_once('../hardness/fpdf/fpdf.php');
-		require_once('fpdi/fpdi.php');
+		if (!class_exists('FPDF', false)) {
+			$fpdf = dirname(__DIR__, 2) . '/hardness/fpdf/fpdf.php';
+			require_once is_file($fpdf) ? $fpdf : __DIR__ . '/fpdf/fpdf.php';
+		}
+		require_once __DIR__ . '/fpdi/fpdi.php';
 	}
 	
 	/**

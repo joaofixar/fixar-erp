@@ -139,13 +139,14 @@ function dashboardComercialPeriodosComparacao($periodo)
     return array('atual' => $atual, 'anterior' => array('inicio' => $deslocar($atual['inicio']), 'fim' => $deslocar($atual['fim'])));
 }
 
-function dashboardComercialVariacao($atual, $anterior)
+function dashboardComercialVariacao($atual, $anterior, $precisao = 2)
 {
-    $atual = $atual === null ? null : round((float) $atual, 2);
-    $anterior = $anterior === null ? null : round((float) $anterior, 2);
+    $precisao = max(0, min(6, (int) $precisao));
+    $atual = $atual === null ? null : round((float) $atual, $precisao);
+    $anterior = $anterior === null ? null : round((float) $anterior, $precisao);
     $resultado = array('atual' => $atual, 'anterior' => $anterior, 'percentual' => null, 'tendencia' => 'sem_base');
     if ($atual === null || $anterior === null) return $resultado;
-    $diferenca = round($atual - $anterior, 2);
+    $diferenca = round($atual - $anterior, $precisao);
     $resultado['tendencia'] = $diferenca > 0 ? 'alta' : ($diferenca < 0 ? 'baixa' : 'estavel');
     // Base zero não permite percentual; valores negativos usam o módulo da base.
     $resultado['percentual'] = $anterior != 0 ? 100 * $diferenca / abs($anterior) : ($diferenca == 0 ? 0.0 : null);

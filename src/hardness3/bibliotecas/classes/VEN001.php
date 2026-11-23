@@ -15242,6 +15242,10 @@ EOT;
         return true;
     }
 
+    public function acoesFinaisInserirOrcamento($T003_Id){
+        return true;
+    }
+
     public function opcaoExibirDifalImpressaoOrcamento($mT003) : bool {
         if ($mT003['T003_Valor_Total_Partilha_ICMS_Destino'] > 0) {
             return true;

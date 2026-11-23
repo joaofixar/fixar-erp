@@ -8,6 +8,7 @@ function t29(bool $ok, string $message): void { if (!$ok) throw new RuntimeExcep
 $states=GnreFavoredStateCatalog::all();
 t29($states===['AC','AL','AM','AP','BA','CE','DF','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','TO'],'catálogo deve conter, em ordem alfabética, todas e somente as UFs do Portal Nacional.');
 t29($states===array_values(array_unique($states)),'catálogo de UFs não pode duplicar siglas.');
+t29(GnreFavoredStateCatalog::supports('SC')&&!GnreFavoredStateCatalog::supports('SP')&&!GnreFavoredStateCatalog::supports('ES'),'catálogo deve indicar se a UF é atendida pela GNRE.');
 
 $page=(string)file_get_contents(__DIR__.'/../public/index.php');
 $flow=(string)file_get_contents(__DIR__.'/../public/guide-draft-flow.php');

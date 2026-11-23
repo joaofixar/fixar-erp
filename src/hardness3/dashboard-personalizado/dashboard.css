@@ -152,6 +152,54 @@ button { cursor: pointer; }
 .chart-area { fill: rgba(40, 96, 220, .1); }
 .chart-line { fill: none; stroke: var(--blue); stroke-width: 3; }
 .chart circle { fill: #fff; stroke: var(--blue); stroke-width: 3; }
+.trend-card header { gap:20px; align-items:flex-start; }
+.trend-card header h3 { margin:5px 0 5px; font-size:19px; }
+.trend-subtitle { margin:0; color:var(--muted); font-size:12px; }
+.trend-total { display:flex; flex-direction:column; gap:5px; text-align:right; white-space:nowrap; }
+.trend-total span { color:var(--muted); font-size:11px; }
+.trend-total strong { color:var(--navy); font-size:22px; font-variant-numeric:tabular-nums; }
+.trend-legend { display:flex; align-items:center; gap:8px; margin:22px 0 2px; color:var(--muted); font-size:11px; }
+.trend-legend i { width:18px; height:3px; border-radius:2px; background:var(--blue); }
+.trend-chart { display:block; min-width:600px; width:100%; height:auto; }
+.trend-grid { stroke:#e8edf4; stroke-width:1; stroke-dasharray:3 4; }
+.trend-chart .chart-label { fill:#718096; font-size:11px; }
+.trend-line { fill:none; stroke:var(--blue); stroke-width:2.3; stroke-linejoin:round; stroke-linecap:round; }
+.trend-area { fill:rgba(40,96,220,.045); }
+.trend-hit { fill:transparent; }
+.trend-point { outline:none; }
+.trend-point circle { fill:var(--surface); stroke:var(--blue); stroke-width:1.8; transition:r .12s; }
+.trend-point:hover circle,.trend-point:focus circle { r:5px; stroke-width:2.5; }
+.trend-chart--comparison .trend-grid { stroke:#d4dff2; stroke-dasharray:none; }
+.trend-chart--comparison .trend-line { stroke-width:2; }
+.trend-chart--comparison .trend-line--previous { stroke-dasharray:7 5; }
+.trend-chart--comparison .trend-area { fill:rgba(40,96,220,.14); }
+.trend-chart--comparison .trend-point circle { fill:var(--blue); stroke-width:.6; }
+.trend-legend--comparison { flex-wrap:wrap; gap:10px 22px; margin:12px 0 16px; }
+.trend-legend--comparison span { display:flex; align-items:center; gap:8px; }
+.trend-legend--comparison .trend-swatch--previous { background:none; height:0; border-top:2px dashed var(--blue); border-radius:0; }
+.trend-values td small { display:block; color:var(--muted); font-size:10px; }
+.trend-values { margin-top:8px; border-top:1px solid #edf1f6; padding-top:12px; }
+.trend-values summary { width:fit-content; color:var(--blue); cursor:pointer; font-size:11px; }
+.trend-values .table-scroll { max-height:260px; margin-top:10px; }
+.calendar-card--weekly header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+.calendar-accumulated { flex-shrink:0; display:flex; flex-direction:column; gap:5px; text-align:right; }
+.calendar-accumulated span,.calendar-accumulated small { color:var(--muted); font-size:11px; }
+.calendar-accumulated strong { font-size:23px; color:var(--navy); font-variant-numeric:tabular-nums; }
+.calendar-scroll { overflow-x:auto; }
+.calendar-card--weekly .calendar-layout { min-width:700px; }
+.calendar-card--weekly .calendar-weekdays,.calendar-card--weekly .calendar-days { grid-template-columns:repeat(7,minmax(0,1fr)) minmax(145px,1.25fr); }
+.calendar-card--weekly .calendar-days { grid-auto-rows:62px; }
+.calendar-card--weekly .calendar-day small { font-size:11px; }
+.calendar-week-total { display:flex; flex-direction:column; justify-content:center; gap:5px; padding:8px 12px; border:1px solid #d9e4f5; border-radius:8px; background:#f2f6fd; text-align:right; }
+.calendar-week-total span { color:var(--muted); font-size:10px; }
+.calendar-week-total strong { color:var(--navy); font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.calendar-day--today { border:2px solid var(--blue); background:#f5f8ff; }
+.calendar-day-heading em { color:var(--blue); font-size:9px; font-weight:700; font-style:normal; }
+@media(max-width:700px) {
+  .trend-card header,.calendar-card--weekly header { flex-direction:column; gap:16px; }
+  .trend-total,.calendar-accumulated { text-align:left; }
+  .trend-card,.calendar-card--weekly { padding:18px; }
+}
 .period-comparison > header { flex-wrap:wrap; gap:12px; }
 .period-comparison > header > div { flex:1 1 230px; min-width:0; }
 .period-comparison > header .chip { flex:0 0 auto; white-space:nowrap; }
@@ -501,6 +549,22 @@ td.list-cell-highlight { font-size: 13px; font-weight: 700; }
 .indicator-sections--compact .indicator-section th:first-child, .indicator-sections--compact .indicator-section td:first-child { white-space: normal; overflow-wrap: anywhere; min-width: 110px; }
 .indicator-sections > .indicator-section--full { grid-column: 1 / -1; }
 .indicator-kpis.indicator-kpis--compact { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.indicator-summary-blocks { grid-column: 1 / -1; display: grid; gap: 22px; }
+.indicator-summary-block > header { margin: 0 0 12px; }
+.indicator-summary-block > header h3 { margin: 0; color: #07224d; font-size: 19px; }
+.indicator-summary-block > header p { margin: 6px 0 0; color: #65748b; font-size: 12px; }
+.indicator-summary-block .indicator-kpis--group { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.indicator-summary-block--cyan .indicator-kpi { border-top-color: #0b9fa8; }
+.indicator-summary-block--orange .indicator-kpi { border-top-color: #d97706; }
+.indicator-kpi.commercial-trend-up { border-top-color:#15803d; }
+.indicator-kpi.commercial-trend-down { border-top-color:#b91c1c; }
+.indicator-kpi.commercial-trend-neutral { border-top-color:#64748b; }
+.indicator-kpi.commercial-trend-up > strong,.indicator-kpi.commercial-trend-up > .commercial-comparison { color:#166534; }
+.indicator-kpi.commercial-trend-down > strong,.indicator-kpi.commercial-trend-down > .commercial-comparison { color:#b91c1c; }
+.indicator-kpi > .commercial-comparison { display:block; min-height:0; margin:10px 0 5px; font-size:12px; }
+.indicator-kpi > .commercial-comparison-values,.indicator-kpi > .commercial-comparison-dates { display:block; color:var(--muted); font-size:10px; line-height:1.5; }
+.indicator-kpi > .commercial-comparison-dates { margin-top:4px; }
+@media (max-width: 650px) { .indicator-summary-block .indicator-kpis--group { grid-template-columns: minmax(0, 1fr); } }
 .indicator-rules { grid-column:1 / -1; color:var(--muted); font-size:12px; margin-top:-8px; }
 .indicator-rules summary { width:fit-content; cursor:pointer; color:var(--blue); padding:6px 0; }
 .indicator-rules p { max-width:1050px; line-height:1.6; margin:4px 0 0; }
@@ -634,3 +698,52 @@ td.list-cell-highlight { font-size: 13px; font-weight: 700; }
   .commercial-analysis-section + .commercial-analysis-section { padding:24px 0 0; border-left:0; border-top:1px solid var(--line); }
 }
 @media(max-width:600px) { .commercial-analysis-summary { padding:18px; } }
+
+/* Quantidade opcional: mantém unidades e escalas separadas do faturamento. */
+.trend-panels { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
+.calendar-card--quantity .calendar-days { grid-auto-rows:minmax(80px,auto); }
+.calendar-card--quantity .calendar-quantity { color:#5d7392; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; }
+.calendar-card--quantity .calendar-accumulated .calendar-quantity { font-size:14px; }
+
+.trend-series-picker { margin-bottom:18px; }
+.trend-series-picker fieldset { min-width:0; margin:0; padding:0; border:0; }
+.trend-series-picker legend { color:var(--navy); font-size:18px; font-weight:700; }
+.trend-series-picker fieldset > p { margin:8px 0 20px; color:var(--muted); font-size:13px; }
+.trend-series-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+.trend-series-option { display:flex; align-items:center; gap:12px; min-height:66px; padding:15px 18px; border:1px solid var(--line); border-radius:12px; cursor:pointer; background:#fff; color:var(--navy); font-size:14px; font-weight:600; }
+.trend-series-option input { width:18px; height:18px; margin:0; accent-color:var(--series-color,#285fe5); cursor:pointer; }
+.trend-series-option i { width:9px; height:9px; border-radius:50%; background:var(--series-color); flex-shrink:0; }
+.trend-series-option.is-selected { border-color:var(--series-color); background:#f8faff; }
+.trend-series-option:focus-within { outline:2px solid #83a6f2; outline-offset:2px; }
+.trend-series-option small { display:block; margin-top:5px; color:var(--muted); font-size:11px; font-weight:400; }
+.trend-series-all { background:#f3f6fc; }
+.trend-period-guide { display:flex; flex-wrap:wrap; gap:12px 24px; margin-top:20px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:11px; }
+.trend-period-guide span { display:flex; align-items:center; gap:8px; }
+.trend-period-guide i { width:20px; border-top:2px solid #557092; }
+.trend-period-guide i.previous { border-top-style:dashed; }
+.trend-period-guide--dates { gap:18px 40px; font-size:12px; line-height:1.6; }
+.trend-period-guide--dates > span > span { display:block; }
+.trend-period-guide--dates strong { display:block; color:var(--navy); font-size:13px; }
+.trend-period-guide--dates i { width:28px; flex-shrink:0; }
+.trend-dates-help { margin:14px 0 8px; color:var(--muted); font-size:12px; line-height:1.6; }
+.trend-chart--selected { min-width:880px; }
+.trend-chart .trend-axis-heading { fill:var(--navy); font-weight:700; }
+.trend-chart .trend-axis-date { font-size:12px; }
+.trend-chart .trend-axis-date--previous { fill:#627894; }
+.trend-date-hit { fill:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.trend-date-hit:hover,.trend-date-hit:focus { fill:rgba(40,95,229,.04); stroke:#8cabe0; stroke-width:1; outline:none; }
+.trend-legend--activities { margin:6px 0 18px; }
+.trend-period-summary { padding:16px 20px; margin:0 0 18px; border:1px solid var(--line); border-radius:12px; background:#f7f9fd; }
+.trend-period-summary > h4 { margin:0 0 16px; color:var(--navy); font-size:14px; }
+.trend-chart-wrap { position:relative; }
+.trend-day-tooltip { position:absolute; top:12px; z-index:5; width:420px; max-width:calc(100% - 24px); padding:16px; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 8px 24px rgba(16,42,84,.16); pointer-events:none; }
+.trend-day-tooltip[hidden] { display:none; }
+.trend-point-heading,.trend-point-values > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.trend-point-heading { color:var(--muted); font-size:12px; }
+.trend-point-heading strong { display:block; margin-top:4px; color:var(--navy); font-size:14px; }
+.trend-point-values { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+.trend-point-values h4 { display:flex; align-items:center; gap:7px; margin:0 0 8px; font-size:12px; }
+.trend-point-values i { width:8px; height:8px; border-radius:50%; }
+.trend-point-values strong { color:var(--navy); font-size:14px; overflow-wrap:anywhere; }
+@media(max-width:900px) { .trend-series-options { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:480px) { .trend-series-option { gap:8px; padding:12px; font-size:12px; } }

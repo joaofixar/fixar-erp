@@ -369,6 +369,17 @@ EOT;
 	break;
 
 	case 'fin003GridTransacoes':
+		require_once 'bibliotecas/classes/ComposicaoRetornoExtrato.php';
+		$composicaoRetornos = ComposicaoRetornoExtrato::consultar($r_acaoId, $g['empresaAtual']);
+		if (!$composicaoRetornos['extrato']) {
+			echo '<div class="ui-state-error">Extrato não encontrado na empresa atual.</div>';
+			break;
+		}
+		$g['composicaoRetornoExtratoId'] = (int) $composicaoRetornos['extrato']['extrato_id'];
+		$g['composicoesRetornoExtrato'] = $composicaoRetornos['grupos'];
+		if ($composicaoRetornos['aviso'] !== '') {
+			echo '<div class="ui-state-highlight">' . htmlspecialchars($composicaoRetornos['aviso'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</div>';
+		}
 		/**
 		* Definição do Grid (Tabela)
 		*/
@@ -384,6 +395,7 @@ EOT;
 			array('colunaValor' => "T216_D031_Id", 'colunaTitulo' => 'D031_Id','colunaAlinhar' => 'center', 'colunaExibir' => false),
 			array('colunaValor' => "T216_Data", 'colunaTitulo' => 'Data', 'callback' => 'gCorrigeData', 'style' => 'width: 1%;'),
 			array('colunaValor' => "T216_Valor", 'colunaTitulo' => 'Valor', 'colunaCasasDecimais'=>'2', 'style' => 'width: 1%;background-color: var(--celula-amarelo-claro);font-weight:bold', 'colunaAlinhar' => 'right'),
+			array('colunaValor' => 'campoComposicaoRetorno', 'colunaTitulo' => 'Composição do retorno', 'colunaTipo' => 'livre', 'callback' => 'composicaoRetornoExtrato', 'style' => 'width:1%'),
 			array('colunaValor' => "T216_Flag_Importar", 'colunaTitulo' => 'P', 'callback' => 'campoMarcarRegistroExtrato', 'colunaAlinhar' => 'center', 'style' => 'width: 1%'),
 			array('colunaValor' => 'campoDesmembrar', 'colunaTitulo' => '', 'colunaTipo'=>'livre', 'callback'=>'campoDesmembrarTransacao', 'style'=>'width:1%;'),
 			array('colunaValor' => "T216_Descricao", 'colunaTitulo' => 'Descricao', 'colunaEditar' => true),

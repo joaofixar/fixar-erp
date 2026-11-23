@@ -106,12 +106,18 @@
     return requestPost('data.php?action=saveFilters', { id: state.selectedId, tab: filterPreferenceTabKey() === '_principal' ? '' : filterPreferenceTabKey(), filters: values });
   }
 
-  function format(value, type) {
-    if (type === 'moeda' || type === 'percentual' || type === 'numero') {
+  function format(value, type, decimalPlaces) {
+    if (type === 'moeda' || type === 'percentual' || type === 'numero' || type === 'toneladas' || type === 'quilos') {
       var formatters = format.numberFormatters || (format.numberFormatters = {});
-      var key = type === 'moeda' ? 'moeda' : 'numero';
-      if (!formatters[key]) formatters[key] = new Intl.NumberFormat('pt-BR', key === 'moeda' ? { style: 'currency', currency: 'BRL' } : { maximumFractionDigits: 2 });
-      return formatters[key].format(Number(value || 0)) + (type === 'percentual' ? '%' : '');
+      var kind = type === 'moeda' ? 'moeda' : type === 'toneladas' || type === 'quilos' ? 'toneladas' : 'numero';
+      var customDecimals = Number.isInteger(decimalPlaces) && decimalPlaces >= 0 && decimalPlaces <= 6;
+      var key = kind + (customDecimals ? ':' + decimalPlaces : '');
+      if (!formatters[key]) {
+        var options = kind === 'moeda' ? { style: 'currency', currency: 'BRL' } : kind === 'toneladas' ? { minimumFractionDigits: 3, maximumFractionDigits: 3 } : { maximumFractionDigits: 2 };
+        if (customDecimals) { options.minimumFractionDigits = decimalPlaces; options.maximumFractionDigits = decimalPlaces; }
+        formatters[key] = new Intl.NumberFormat('pt-BR', options);
+      }
+      return formatters[key].format(Number(value || 0)) + (type === 'percentual' ? '%' : type === 'toneladas' ? ' t' : type === 'quilos' ? ' kg' : '');
     }
     if (type === 'data' && /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return String(value).split('-').reverse().join('/');
     return String(value == null ? '' : value);
@@ -324,10 +330,20 @@
     tabsRow.hidden = false;
     target.hidden = false; target.innerHTML = tabs.map(function (tab) { return '<button type="button" data-tab="' + escapeHtml(tab.id) + '" class="' + (tab.id === state.selectedTab ? 'active' : '') + '">' + escapeHtml(tab.titulo) + '</button>'; }).join('');
     Array.prototype.forEach.call(target.querySelectorAll('[data-tab]'), function (button) { button.addEventListener('click', function () {
-      if (indicator.abasComerciaisLocais && state.loading) return;
+      var sharedFilters = indicator.apresentacao && indicator.apresentacao.filtrosCompartilhadosEntreAbas;
+      if ((indicator.abasComerciaisLocais || (Array.isArray(sharedFilters) && sharedFilters.length)) && state.loading) return;
       var tab = button.getAttribute('data-tab');
       if (switchCommercialTab(tab)) { renderIndicatorHeader(indicator); return; }
       var appliedParams = commercialTabParams(tab);
+      if (!appliedParams && Array.isArray(sharedFilters) && sharedFilters.length && state.exportParams) {
+        var previousParams = new URLSearchParams(state.exportParams);
+        var nextTab = tabs.filter(function (item) { return item.id === tab; })[0];
+        appliedParams = new URLSearchParams({ id: state.selectedId, tab: tab });
+        (nextTab.filtros || indicator.filtros || []).forEach(function (filter) {
+          var key = 'f_' + filter.id;
+          if (sharedFilters.indexOf(filter.id) >= 0 && previousParams.has(key)) appliedParams.set(key, previousParams.get(key));
+        });
+      }
       state.selectedTab = tab; state.paretoRange = null; state.paretoClass = ''; state.paretoClassTotal = 0; state.paretoScrollToList = false; state.exportParams = null; setExportAvailability(false); renderIndicatorHeader(indicator); renderFilters(selectedFilters(indicator)); loadIndicator(true, false, appliedParams);
     }); });
   }
@@ -508,8 +524,9 @@
     $('#indicatorList').innerHTML = '';
   }
 
-  function chart(series, definition, valueFormat) {
+  function chart(series, definition, valueFormat, comparison) {
     if (!definition || definition.habilitado === false) return '';
+    if (definition.apresentacao === 'padrao') return standardTrendChart(series, definition, valueFormat, comparison);
     var points = (series || []).map(function (item) { return { label: item.rotulo || item.periodo, value: Number(item.valor || 0) }; });
     var title = definition.titulo || 'Evolução no período';
     if (!points.length) return '<article class="wide-card"><p class="card-kicker">GRÁFICO</p><h3>' + escapeHtml(title) + '</h3><p class="empty-state">Não há dados para o período filtrado.</p></article>';
@@ -535,6 +552,112 @@
     }).join('');
     var periodLabel = /^\d{2}\/\d{2}$/.test(String(points[0].label || '')) ? 'Por dia' : 'Por mês';
     return '<article class="wide-card"><header><div><p class="card-kicker">EVOLUÇÃO</p><h3>' + escapeHtml(title) + '</h3></div><span class="chip">' + periodLabel + '</span></header><div class="chart-scroll"><svg class="chart" viewBox="0 0 ' + width + ' ' + height + '">' + grid + '<path d="' + area + '" class="chart-area"/><path d="' + path + '" class="chart-line"/>' + marks + '</svg></div></article>';
+  }
+
+  function trendPoints(series, definition) {
+    var valid = (series || []).filter(function (row) { return /^\d{4}-\d{2}(?:-\d{2})?$/.test(String(row.periodo || '')) && isFinite(Number(row.valor)); });
+    if (!valid.length) return [];
+    var monthly = String(valid[0].periodo).length === 7, values = Object.create(null);
+    valid.forEach(function (row) { values[row.periodo] = Number(values[row.periodo] || 0) + Number(row.valor); });
+    var keys = Object.keys(values).sort(), period = definition.periodoFiltrado || {};
+    var start = calendarDate(period.dataInicio || (keys[0] + (monthly ? '-01' : '')));
+    var end = calendarDate(period.dataFim || (keys[keys.length - 1] + (monthly ? '-01' : '')));
+    if (!start || !end || start > end) return [];
+    if (monthly) { start.setDate(1); end.setDate(1); }
+    var points = [], cursor = new Date(start);
+    while (cursor <= end && points.length < 500) {
+      var key = calendarKey(cursor).slice(0, monthly ? 7 : 10);
+      var label = monthly ? key.slice(5, 7) + '/' + key.slice(0, 4) : key.slice(8, 10) + '/' + key.slice(5, 7);
+      points.push({ key: key, label: label, value: Number(values[key] || 0) });
+      if (monthly) cursor.setMonth(cursor.getMonth() + 1); else cursor.setDate(cursor.getDate() + 1);
+    }
+    return points;
+  }
+
+  function standardTrendChart(series, definition, valueFormat, comparison) {
+    if (definition.campoQuantidade) {
+      var money = Object.assign({}, definition), volume = Object.assign({}, definition);
+      delete money.campoQuantidade; delete volume.campoQuantidade;
+      money.titulo = (definition.titulo || 'Tendência do faturamento') + ' (R$)';
+      volume.titulo = definition.tituloQuantidade || 'Quantidade faturada (t)';
+      volume.rotuloSerie = 'Quantidade';
+      var quantityRows = function (rows) { return (rows || []).map(function (row) { return Object.assign({}, row, { valor: row.quantidade }); }); };
+      var quantityComparison = comparison ? Object.assign({}, comparison, { linhas: quantityRows(comparison.linhas) }) : null;
+      return '<div class="trend-panels">' + standardTrendChart(series, money, valueFormat, comparison)
+        + standardTrendChart(quantityRows(series), volume, definition.formatoQuantidade || 'toneladas', quantityComparison) + '</div>';
+    }
+    if (definition.comparativoMesAnterior === true && comparison) return comparisonTrendChart(series, definition, valueFormat, comparison);
+    var metricLabel = definition.rotuloSerie || 'Faturamento';
+    var title = definition.titulo || 'Tendência do faturamento', points = trendPoints(series, definition);
+    var heading = '<div><p class="card-kicker">EVOLUÇÃO</p><h3>' + escapeHtml(title) + '</h3><p class="trend-subtitle">' + escapeHtml(definition.subtitulo || 'Valores no período selecionado') + '</p></div>';
+    if (!points.length) return '<article class="wide-card trend-card"><header>' + heading + '</header><p class="empty-state">Não há dados para o período filtrado.</p></article>';
+    var width = 960, height = 290, left = 96, right = 24, top = 24, bottom = 48;
+    var minimum = Math.min.apply(Math, points.map(function (p) { return p.value; }).concat([0]));
+    var maximum = Math.max.apply(Math, points.map(function (p) { return p.value; }).concat([1]));
+    var roughStep = (maximum - minimum) / 4, magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+    var step = [1, 2, 5, 10].filter(function (n) { return n * magnitude >= roughStep; })[0] * magnitude;
+    minimum = Math.floor(minimum / step) * step; maximum = Math.ceil(maximum / step) * step;
+    var plotWidth = width - left - right, plotHeight = height - top - bottom, total = 0;
+    var y = function (value) { return top + (maximum - value) / (maximum - minimum) * plotHeight; };
+    var coords = points.map(function (point, index) {
+      total += point.value;
+      return Object.assign({}, point, { x: points.length === 1 ? left + plotWidth / 2 : left + plotWidth * index / (points.length - 1), y: y(point.value) });
+    });
+    var path = coords.map(function (p, i) { return (i ? 'L' : 'M') + p.x.toFixed(2) + ',' + p.y.toFixed(2); }).join(' ');
+    var area = path + ' L' + coords[coords.length - 1].x.toFixed(2) + ',' + y(0).toFixed(2) + ' L' + coords[0].x.toFixed(2) + ',' + y(0).toFixed(2) + ' Z';
+    var grid = '';
+    for (var tick = minimum, count = 0; tick <= maximum + step / 100 && count < 12; tick += step, count++) {
+      grid += '<line x1="' + left + '" y1="' + y(tick) + '" x2="' + (width - right) + '" y2="' + y(tick) + '" class="trend-grid"/><text x="' + (left - 14) + '" y="' + (y(tick) + 4) + '" text-anchor="end" class="chart-label">' + escapeHtml(calendarValue(tick, valueFormat)) + '</text>';
+    }
+    var labelEvery = Math.max(1, Math.ceil((points.length - 1) / 7));
+    var marks = coords.map(function (p, i) {
+      var label = i % labelEvery === 0 || i === coords.length - 1 ? '<text x="' + p.x + '" y="' + (height - 14) + '" text-anchor="middle" class="chart-label">' + escapeHtml(p.label) + '</text>' : '';
+      var from = i ? (coords[i - 1].x + p.x) / 2 : left, to = i + 1 < coords.length ? (coords[i + 1].x + p.x) / 2 : width - right;
+      return '<g class="trend-point" tabindex="0" role="img" aria-label="' + escapeHtml(p.label + ': ' + format(p.value, valueFormat)) + '"><title>' + escapeHtml(p.label + ': ' + format(p.value, valueFormat)) + '</title><rect class="trend-hit" x="' + from + '" y="' + top + '" width="' + Math.max(1, to - from) + '" height="' + plotHeight + '"/><circle cx="' + p.x + '" cy="' + p.y + '" r="3"/>' + label + '</g>';
+    }).join('');
+    var unit = String(points[0].key).length === 7 ? 'mês' : 'dia';
+    var table = points.map(function (p) { return '<tr><td>' + escapeHtml(p.label) + '</td><td>' + escapeHtml(format(p.value, valueFormat)) + '</td></tr>'; }).join('');
+    return '<article class="wide-card trend-card"><header>' + heading + '<div class="trend-total"><span>Total do período</span><strong>' + escapeHtml(format(total, valueFormat)) + '</strong></div></header><div class="trend-legend"><i></i>' + escapeHtml(metricLabel) + ' por ' + unit + '</div><div class="chart-scroll"><svg class="trend-chart" viewBox="0 0 ' + width + ' ' + height + '" role="group" aria-label="' + escapeHtml(title) + '">' + grid + '<path d="' + area + '" class="trend-area"/><path d="' + path + '" class="trend-line"/>' + marks + '</svg></div><details class="trend-values"><summary>Ver valores por ' + unit + '</summary><div class="table-scroll"><table><thead><tr><th>Período</th><th>' + escapeHtml(metricLabel) + '</th></tr></thead><tbody>' + table + '</tbody></table></div></details></article>';
+  }
+
+  function comparisonTrendChart(series, definition, valueFormat, comparison) {
+    var metricLabel = definition.rotuloSerie || 'Faturamento';
+    var monthly = comparison.agrupamento === 'mes';
+    function filled(rows, period) {
+      return trendPoints(rows && rows.length ? rows : [{ periodo: period.inicio.slice(0, monthly ? 7 : 10), valor: 0 }], { periodoFiltrado: { dataInicio: period.inicio, dataFim: period.fim } });
+    }
+    var points = filled(series, comparison.atual), previous = filled(comparison.linhas, comparison.anterior);
+    var title = definition.titulo || 'Tendência do faturamento';
+    if (!points.length) return '<article class="wide-card trend-card"><h3>' + escapeHtml(title) + '</h3><p class="empty-state">Não há dados para o período filtrado.</p></article>';
+    var width = 1100, height = 300, left = 92, right = 20, top = 22, bottom = 45;
+    var values = points.concat(previous).map(function (p) { return p.value; }).concat([0]);
+    var minimum = Math.min.apply(Math, values), maximum = Math.max.apply(Math, values.concat([1]));
+    var rough = (maximum - minimum) / 4, magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
+    var step = [1, 2, 5, 10].filter(function (n) { return n * magnitude >= rough; })[0] * magnitude;
+    minimum = Math.floor(minimum / step) * step; maximum = Math.ceil(maximum / step) * step;
+    var plotWidth = width - left - right, plotHeight = height - top - bottom;
+    function x(index) { return points.length === 1 ? left + plotWidth / 2 : left + plotWidth * index / (points.length - 1); }
+    function y(value) { return top + (maximum - value) / (maximum - minimum) * plotHeight; }
+    function plot(rows, anterior) {
+      var coords = rows.slice(0, points.length).map(function (p, i) { return { point: p, x: x(i), y: y(p.value) }; });
+      var path = coords.map(function (p, i) { return (i ? 'L' : 'M') + p.x.toFixed(2) + ',' + p.y.toFixed(2); }).join(' ');
+      var area = !anterior && coords.length ? '<path class="trend-area" d="' + path + ' L' + coords[coords.length - 1].x + ',' + y(0) + ' L' + coords[0].x + ',' + y(0) + ' Z"/>' : '';
+      return area + '<path class="trend-line' + (anterior ? ' trend-line--previous' : '') + '" data-trend-period="' + (anterior ? 'anterior' : 'atual') + '" d="' + path + '"/>' + coords.map(function (p) {
+        var text = (anterior ? 'Anterior' : 'Atual') + ' · ' + p.point.label + ': ' + format(p.point.value, valueFormat);
+        return '<g class="trend-point" tabindex="0" role="img" aria-label="' + escapeHtml(text) + '"><circle cx="' + p.x + '" cy="' + p.y + '" r="2.8"><title>' + escapeHtml(text) + '</title></circle></g>';
+      }).join('');
+    }
+    var grid = '';
+    for (var tick = minimum, count = 0; tick <= maximum + step / 100 && count < 12; tick += step, count++) {
+      grid += '<line class="trend-grid" x1="' + left + '" y1="' + y(tick) + '" x2="' + (width - right) + '" y2="' + y(tick) + '"/><text class="chart-label" x="' + (left - 12) + '" y="' + (y(tick) + 4) + '" text-anchor="end">' + escapeHtml(calendarValue(tick, valueFormat)) + '</text>';
+    }
+    var every = Math.max(1, Math.ceil((points.length - 1) / 8));
+    var labels = points.map(function (p, i) { return i % every && i !== points.length - 1 ? '' : '<text class="chart-label" x="' + x(i) + '" y="' + (height - 15) + '" text-anchor="middle">' + escapeHtml(p.label) + '</text>'; }).join('');
+    function periodLabel(period) { return format(period.inicio, 'data') + ' a ' + format(period.fim, 'data'); }
+    var legend = '<div class="trend-legend trend-legend--comparison"><span><i></i>' + escapeHtml(metricLabel) + ' · Atual · ' + escapeHtml(periodLabel(comparison.atual)) + '</span><span><i class="trend-swatch--previous"></i>' + escapeHtml(metricLabel) + ' · Anterior · ' + escapeHtml(periodLabel(comparison.anterior)) + '</span></div>';
+    var table = points.map(function (p, i) { var prev = previous[i]; return '<tr><td>' + escapeHtml(p.label) + '</td><td>' + escapeHtml(format(p.value, valueFormat)) + '</td><td>' + (prev ? escapeHtml(format(prev.value, valueFormat)) + '<small>' + escapeHtml(prev.label) + '</small>' : '—') + '</td></tr>'; }).join('');
+    var total = points.reduce(function (sum, p) { return sum + p.value; }, 0);
+    return '<article class="wide-card trend-card"><header><div><p class="card-kicker">EVOLUÇÃO</p><h3>' + escapeHtml(title) + '</h3><p class="trend-subtitle">' + escapeHtml(definition.subtitulo || 'Material + serviço de corte') + '</p></div><div class="trend-total"><span>Total do período</span><strong>' + escapeHtml(format(total, valueFormat)) + '</strong></div></header><div class="chart-scroll"><svg class="trend-chart trend-chart--comparison" viewBox="0 0 ' + width + ' ' + height + '" role="group" aria-label="' + escapeHtml(title + ': período atual e mês anterior') + '">' + grid + plot(points, false) + plot(previous, true) + labels + '</svg></div>' + legend + '<details class="trend-values"><summary>Ver valores por ' + (monthly ? 'mês' : 'dia') + '</summary><div class="table-scroll"><table><thead><tr><th>Período atual</th><th>' + escapeHtml(metricLabel) + ' atual</th><th>' + escapeHtml(metricLabel) + ' anterior</th></tr></thead><tbody>' + table + '</tbody></table></div></details></article>';
   }
 
   function cashFlowDate(value) {
@@ -1065,9 +1188,9 @@
   }
 
   function calendarValue(value, type) {
-    var number = Number(value || 0), absolute = Math.abs(number), prefix = type === 'moeda' ? 'R$ ' : '';
-    if (absolute >= 1000000) return prefix + (number / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mi';
-    if (absolute >= 1000) return prefix + (number / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+    var number = Number(value || 0), absolute = Math.abs(number), prefix = type === 'moeda' ? 'R$ ' : '', suffix = type === 'toneladas' ? ' t' : type === 'quilos' ? ' kg' : '';
+    if (absolute >= 1000000) return prefix + (number / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mi' + suffix;
+    if (absolute >= 1000) return prefix + (number / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' + suffix;
     return type === 'moeda' ? format(number, 'moeda') : format(number, type || 'numero');
   }
 
@@ -1110,26 +1233,44 @@
     if (!definition || definition.habilitado === false) return '';
     var title = definition.titulo || 'Calendário de vendas', range = calendarRange(rows, filters, definition);
     if (!range) return '<article class="calendar-card"><header><div><p class="card-kicker">CALENDÁRIO</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(definition.subtitulo || 'Período selecionado') + '</p></div></header><p class="empty-state">Não há dados para o período filtrado.</p></article>';
+    var weekly = definition.exibirTotaisSemanais === true;
+    var today = calendarDate(definition.dataAtual) || new Date();
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var cutoff = range.end < today ? range.end : today, accumulated = 0, weeklyValue = 0, accumulatedQuantity = 0, weeklyQuantity = 0;
+    var showQuantity = !!definition.campoQuantidade, quantities = {}, quantityFormat = definition.formatoQuantidade || 'quilos';
+    function quantity(value) { return format(value, quantityFormat, definition.casasDecimaisQuantidade); }
     var values = {}, bands = calendarBands(rows, definition), counts = bands.map(function () { return 0; });
-    rows.forEach(function (row) { if (calendarDate(row.data)) values[String(row.data).slice(0, 10)] = Number(row.valor || 0); });
+    rows.forEach(function (row) { if (calendarDate(row.data)) { var key = String(row.data).slice(0, 10); values[key] = Number(row.valor || 0); quantities[key] = Number(row.quantidade || 0); } });
+    Object.keys(values).forEach(function (key) { var date = calendarDate(key); if (date >= range.start && date <= cutoff) { accumulated += values[key]; accumulatedQuantity += quantities[key]; } });
+    var summary = definition.exibirAcumuladoAteHoje === true ? '<div class="calendar-accumulated"><span>Acumulado até ' + escapeHtml(format(calendarKey(cutoff), 'data')) + '</span><strong>' + escapeHtml(format(accumulated, definition.formato || 'moeda')) + '</strong>' + (showQuantity ? '<b class="calendar-quantity">' + escapeHtml(quantity(accumulatedQuantity)) + '</b>' : '') + '<small>No período selecionado</small></div>' : '';
     var gridStart = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate() - range.start.getDay());
     var gridEnd = new Date(range.end.getFullYear(), range.end.getMonth(), range.end.getDate() + (6 - range.end.getDay()));
     var days = [], current = new Date(gridStart);
     while (current <= gridEnd) {
-      var key = calendarKey(current), inside = current >= range.start && current <= range.end, hasValue = Object.prototype.hasOwnProperty.call(values, key), bandIndex = -1;
+      var key = calendarKey(current), inside = current >= range.start && current <= range.end, hasValue = inside && Object.prototype.hasOwnProperty.call(values, key), bandIndex = -1;
+      if (hasValue) { weeklyValue += values[key]; weeklyQuantity += quantities[key]; }
       if (hasValue) for (var i = 0; i < bands.length; i++) if (values[key] <= bands[i].ate || i === bands.length - 1) { bandIndex = i; counts[i]++; break; }
       var dayClass = !inside ? ' outside' : (!hasValue ? ' empty' : ' heat-' + bands[bandIndex].cor);
       var colorIndicator = hasValue ? '<i class="calendar-day-indicator" aria-hidden="true"></i>' : '';
       var detail = hasValue ? '<small>' + escapeHtml(calendarValue(values[key], definition.formato || 'moeda')) + '</small>' : '';
-      var tooltip = hasValue ? ' title="' + escapeHtml(key + ': ' + format(values[key], definition.formato || 'moeda')) + '"' : '';
+      if (hasValue && showQuantity) detail += '<small class="calendar-quantity">' + escapeHtml(quantity(quantities[key])) + '</small>';
+      var tooltip = hasValue ? ' title="' + escapeHtml(key + ': ' + format(values[key], definition.formato || 'moeda') + (showQuantity ? ' · ' + quantity(quantities[key]) : '')) + '"' : '';
       var detailDefinition = definition.detalhamento || {};
       var clickable = hasValue && detailDefinition.habilitado !== false && Array.isArray(detailDefinition.colunas) && detailDefinition.colunas.length;
       var interaction = clickable ? ' data-calendar-id="' + escapeHtml(definition.id || '') + '" data-calendar-date="' + escapeHtml(key) + '" tabindex="0" role="button" aria-label="Ver títulos de ' + escapeHtml(format(key, 'data')) + '"' : '';
-      days.push('<div class="calendar-day' + dayClass + (clickable ? ' clickable' : '') + '"' + tooltip + interaction + '><span class="calendar-day-heading"><b>' + (inside ? current.getDate() : '') + '</b>' + colorIndicator + '</span>' + detail + '</div>');
+      var isToday = inside && key === calendarKey(today) && (weekly || definition.exibirAcumuladoAteHoje === true);
+      days.push('<div class="calendar-day' + dayClass + (isToday ? ' calendar-day--today' : '') + (clickable ? ' clickable' : '') + '"' + tooltip + interaction + '><span class="calendar-day-heading"><b>' + (inside ? current.getDate() : '') + '</b>' + colorIndicator + (isToday ? '<em>Hoje</em>' : '') + '</span>' + detail + '</div>');
+      if (weekly && current.getDay() === 6) {
+        var weekStart = new Date(current.getFullYear(), current.getMonth(), current.getDate() - 6), weekEnd = current < range.end ? current : range.end;
+        if (weekStart < range.start) weekStart = range.start;
+        var weekLabel = format(calendarKey(weekStart), 'data').slice(0, 5) + '–' + format(calendarKey(weekEnd), 'data').slice(0, 5);
+        days.push('<div class="calendar-week-total" title="Total da semana ' + escapeHtml(weekLabel) + ', dentro do período selecionado"><span>' + escapeHtml(weekLabel) + '</span><strong>' + escapeHtml(format(weeklyValue, definition.formato || 'moeda')) + '</strong>' + (showQuantity ? '<b class="calendar-quantity">' + escapeHtml(quantity(weeklyQuantity)) + '</b>' : '') + '</div>');
+        weeklyValue = 0; weeklyQuantity = 0;
+      }
       current.setDate(current.getDate() + 1);
     }
     var legend = bands.map(function (band, index) { return '<span><i class="heat-' + band.cor + '"></i>' + escapeHtml(band.rotulo) + '<b>' + counts[index] + '</b></span>'; }).join('');
-    return '<article class="calendar-card"><header><div><p class="card-kicker">CALENDÁRIO</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(definition.subtitulo || 'Período selecionado') + '</p></div></header><div class="calendar-weekdays"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div><div class="calendar-days">' + days.join('') + '</div><footer class="calendar-legend"><span>Legenda:</span>' + legend + '</footer></article>';
+    return '<article class="calendar-card' + (showQuantity ? ' calendar-card--quantity' : '') + (weekly ? ' calendar-card--weekly' : '') + '"><header><div><p class="card-kicker">CALENDÁRIO</p><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(definition.subtitulo || 'Período selecionado') + '</p></div>' + summary + '</header><div class="calendar-scroll"><div class="calendar-layout"><div class="calendar-weekdays"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>' + (weekly ? '<span>Total da semana</span>' : '') + '</div><div class="calendar-days">' + days.join('') + '</div></div></div><footer class="calendar-legend"><span>Legenda:</span>' + legend + '</footer></article>';
   }
 
   function calendars(results, definitions, filters) {
@@ -1140,7 +1281,8 @@
 
   function positionCalendars(definitions) {
     var calendarFirst = (definitions || []).some(function (definition) { return definition && definition.habilitado !== false && definition.posicao === 'apos_resumo'; });
-    var anchor = calendarFirst ? $('#indicatorPrimaryList') : $('#indicatorMap');
+    var beforeChart = (definitions || []).some(function (definition) { return definition && definition.habilitado !== false && definition.posicao === 'antes_grafico'; });
+    var anchor = calendarFirst ? $('#indicatorPrimaryList') : beforeChart ? $('#indicatorChart') : $('#indicatorMap');
     anchor.parentNode.insertBefore($('#indicatorCalendar'), anchor);
   }
 
@@ -1924,25 +2066,50 @@
     if (data.resumos && data.resumos.length) {
       $('#indicatorSummary').classList.remove('composition-split');
       var compact = indicator.apresentacao && indicator.apresentacao.compacta === true;
-      var metrics = [{ titulo: cardDefinition.titulo, descricao: cardDefinition.descricao, valor: data.card.valor, formato: data.card.formato, conferencia: cardDefinition.conferencia }].concat(data.resumos);
-      $('#indicatorSummary').innerHTML = '<div class="indicator-kpis' + (compact ? ' indicator-kpis--compact' : '') + '">' + metrics.map(function (metric) {
-        return '<article class="indicator-kpi"' + conferenceAttributes(metric.conferencia, '', metric.titulo) + '><span>' + escapeHtml(metric.titulo || 'Resultado') + '</span><strong>' + escapeHtml(metric.valor == null && metric.textoNulo ? metric.textoNulo : format(metric.valor, metric.formato)) + '</strong>' + (compact ? '' : '<p>' + escapeHtml(metric.descricao || '') + '</p>' + (metric.conferencia ? '<small class="conference-hint">Ver registros considerados ↗</small>' : '')) + '</article>';
-      }).join('') + '</div>';
+      var metrics = [{ titulo: cardDefinition.titulo, descricao: cardDefinition.descricao, valor: data.card.valor, formato: data.card.formato, conferencia: cardDefinition.conferencia }].concat(data.resumos).map(function (metric, index) {
+        return Object.assign({}, metric, { chaveComparativo: index === 0 ? 'card' : 'resumo' + (index - 1) });
+      });
+      var metricHtml = function (metric) {
+        var comparison = data.comparativoCartoes ? indicatorMetricComparison(data.comparativoCartoes, metric.chaveComparativo, metric.formato) : { css: '', html: '' };
+        return '<article class="indicator-kpi' + (comparison.css ? ' ' + escapeHtml(comparison.css) : '') + '"' + conferenceAttributes(metric.conferencia, '', metric.titulo) + '><span>' + escapeHtml(metric.titulo || 'Resultado') + '</span><strong>' + escapeHtml(metric.valor == null && metric.textoNulo ? metric.textoNulo : format(metric.valor, metric.formato)) + '</strong>' + comparison.html + (compact ? '' : '<p>' + escapeHtml(metric.descricao || '') + '</p>' + (metric.conferencia ? '<small class="conference-hint">Ver registros considerados ↗</small>' : '')) + '</article>';
+      };
+      var summaryGroups = indicator.apresentacao && indicator.apresentacao.gruposResumo;
+      var groupedCount = 0;
+      var validGroups = Array.isArray(summaryGroups) && summaryGroups.length > 0 && summaryGroups.length <= 3 && summaryGroups.every(function (group) {
+        var count = group && group.quantidade;
+        if (!Number.isInteger(count) || count < 1 || count > 9) return false;
+        groupedCount += count;
+        return true;
+      }) && groupedCount === metrics.length;
+      if (validGroups) {
+        var metricOffset = 0;
+        $('#indicatorSummary').innerHTML = '<div class="indicator-summary-blocks">' + summaryGroups.map(function (group) {
+          var items = metrics.slice(metricOffset, metricOffset + group.quantidade);
+          metricOffset += group.quantidade;
+          if (group.ocultarSeZero === true && items.every(function (metric) { return metric.valor != null && Number(metric.valor) === 0; })) return '';
+          var color = ['blue', 'cyan', 'orange'].indexOf(group.cor) >= 0 ? group.cor : 'blue';
+          return '<section class="indicator-summary-block indicator-summary-block--' + color + '"><header><h3>' + escapeHtml(group.titulo || 'Resumo') + '</h3>' + (group.subtitulo ? '<p>' + escapeHtml(group.subtitulo) + '</p>' : '') + '</header><div class="indicator-kpis indicator-kpis--group' + (compact ? ' indicator-kpis--compact' : '') + '">' + items.map(metricHtml).join('') + '</div></section>';
+        }).join('') + '</div>';
+      } else {
+        $('#indicatorSummary').innerHTML = '<div class="indicator-kpis' + (compact ? ' indicator-kpis--compact' : '') + '">' + metrics.map(metricHtml).join('') + '</div>';
+      }
     }
     if (indicator.apresentacao && indicator.apresentacao.criterios) {
       $('#indicatorSummary').innerHTML += '<details class="indicator-rules"><summary>Critérios do indicador</summary><p>' + escapeHtml(indicator.apresentacao.criterios) + '</p></details>';
     }
     var stackedChart = indicator.grafico && indicator.grafico.tipo === 'barras_empilhadas';
-    var generalChart = stackedChart ? '' : indicator.grafico && indicator.grafico.tipo === 'linhas_periodos'
+    var selectableTrend = indicator.grafico && indicator.grafico.seriesSelecionaveis && indicator.grafico.seriesSelecionaveis.habilitado === true;
+    var generalChart = selectableTrend ? '' : stackedChart ? '' : indicator.grafico && indicator.grafico.tipo === 'linhas_periodos'
       ? window.HardnessPeriodComparison.render(data.grafico, indicator.grafico)
       : indicator.grafico && indicator.grafico.tipo === 'pareto'
       ? paretoChart(data.grafico, indicator.grafico, indicator.filtros)
       : (indicator.grafico && indicator.grafico.tipo === 'barras_comparativas'
         ? cashBalanceChart(data.grafico, indicator.grafico, data.card.formato) + comparativeBarChart(data.grafico, indicator.grafico, data.card.formato)
-        : chart(data.grafico, indicator.grafico, data.card.formato));
+        : chart(data.grafico, indicator.grafico, data.card.formato, data.comparativoCartoes && data.comparativoCartoes.grafico));
     var groupedCharts = groupedChannelCharts(data.graficosPorGrupo, indicator.graficosPorGrupo, data.card.formato, indicator.filtros);
     var showGeneralWithGroups = indicator.graficosPorGrupo && indicator.graficosPorGrupo.exibirGraficoGeral === true && data.graficosPorGrupo && data.graficosPorGrupo.length;
     $('#indicatorChart').innerHTML = groupedCharts ? ((showGeneralWithGroups ? generalChart : '') + groupedCharts) : generalChart;
+    if (selectableTrend) window.DashboardTendenciaSeries.mount($('#indicatorChart'), data.grafico, indicator.grafico, data.comparativoCartoes && data.comparativoCartoes.grafico, format);
     bindParetoDetails();
     bindCashFlowDetails(indicator, data.grafico, data.card.formato);
     $('#indicatorCalendar').innerHTML = calendars(data.calendarios, indicator.calendarios, indicator.filtros);
@@ -2023,6 +2190,18 @@
         });
       }
     });
+  }
+
+  function indicatorMetricComparison(comparison, key, valueFormat) {
+    var component = window.DashboardDesempenhoComercial;
+    if (!comparison || !comparison.metricas || !comparison.metricas[key] || !component || typeof component.comparativo !== 'function') return { css: '', html: '' };
+    var card = document.createElement('div');
+    component.comparativo(card, { comparativo: comparison }, key, {
+      mostrarValorAtual: comparison.multiplosMeses === true,
+      rotuloAtual: 'Mês de referência',
+      formatarValor: function (value) { return value == null ? '—' : format(value, valueFormat); }
+    });
+    return { css: card.className.trim(), html: card.innerHTML };
   }
 
   function indicatorSectionChart(definition, sections) {

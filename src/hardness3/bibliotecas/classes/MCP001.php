@@ -197,6 +197,7 @@ class MCP001_
         // VEN001 é resolvida pelo carregador do ERP, incluindo a
         // personalização da empresa quando houver uma configurada.
         $VEN001->acoesFinaisAtualizarOrcamento($quoteId);
+        $VEN001->acoesFinaisInserirOrcamento($quoteId);
 
         $this->mcp001VincularCanalAssistenteIa($quoteId);
         $included = 0;

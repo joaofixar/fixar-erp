@@ -147,6 +147,18 @@ namespace hardness;
 		*/
 		return $retorno;
 	}
+    function ValidaCampoDanfeSimplificada($array) {
+        $nota = $array['todosCampos'];
+        if ((string) ($nota['T007_Flag_ACP'] ?? '') !== '6'
+            || (string) ($nota['T007_Versao_Nfe'] ?? $nota['T007_Versao_NFe'] ?? '') !== '4.00'
+            || empty($nota['T007_Numero_Protocolo_Nfe']) || (int) ($nota['T007_Id'] ?? 0) <= 0) {
+            return '';
+        }
+        $id = (int) $nota['T007_Id'];
+        $url = '/ven/ven003/grid_func-ajax/danfeSimplificada/?ajax=true&T007_Id=' . $id;
+        return '<a href="' . $url . '" target="_blank" rel="noopener" title="Abrir DANFE Simplificado Tipo 2">Abrir</a>';
+    }
+
 	function ValidaCampoDamdfe($array){
 		global $g;
 		$protocoloMDFe = $array['todosCampos']['T276_Numero_Protocolo_MDFe'];

@@ -16,12 +16,6 @@ require_once('prog/est/est002/grid_func-js.php');
 require_once('prog/est/est002/grid_func-js-retornarExpedicao.php');
 require_once('prog/ven/ven012/grid_func-js.php');
 
-function est002CheckboxSelecionarVolumeMassaGlobal($array) {
-    $T314_Id = (int)$array['todosCampos']['T314_Id'];
-
-    return "<input type='checkbox' class='est002-volume-selecionado' value='{$T314_Id}' title='Selecionar volume' onclick='event.stopPropagation();' />";
-}
-
 switch($g['r'][3]){
 		/**
 		* Definição do Grid (Tabela)
@@ -4765,7 +4759,7 @@ EOT;
 	case 'est002VolumesConsultaCapa':
 		$grid = array(
             array('colunaValor' => 'T314_Id', 'colunaTitulo' => 'Chave', 'chavePrimaria' => true, 'colunaAlinhar' => 'center', 'colunaExibir' => false),
-            array('colunaValor' => 'selecionarVolumeMassa', 'colunaTitulo' => 'Sel.', 'colunaTipo' => 'livre', 'callback' => 'est002CheckboxSelecionarVolumeMassaGlobal', 'style' => 'width:35px;'),
+			array('colunaValor' => 'selecionarVolumeMassa', 'colunaTitulo' => 'Exc.', 'colunaTipo' => 'livre', 'callback' => 'est002CheckboxSelecionarVolumeMassaGlobal', 'style' => 'width:35px;'),
             array('colunaValor' => 'T314_Identificador', 'colunaTitulo' => 'Identificador', 'colunaExibir' => false),
             array('colunaValor' => 'T314_Sequencia',     'colunaTitulo' => 'Sequência',     'colunaExibir' => false),
             array('colunaValor' => 'T314_Volume',        'colunaTitulo' => 'Volume',        'colunaAlinhar' => 'left'),
@@ -4784,7 +4778,7 @@ EOT;
          * Botões
          */
 		$botoes = array(
-			array('titulo' => 'Excluir', 'id' => 'est002VolumesConferenciaExcluirSelecionados', 'title' => 'Exclui os volumes marcados')
+			array('titulo' => 'Excluir', 'id' => 'est002VolumesConferenciaExcluirSelecionados', 'title' => 'Exclui os volumes marcados', 'posicao' => 'direita')
 		);
 		echo Botoes::processar($botoes);
 

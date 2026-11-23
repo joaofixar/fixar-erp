@@ -34,6 +34,7 @@ function dashboardExportarFormatar($valor, $formato, $textoNulo = null)
 {
     if ($valor === null && $textoNulo !== null) return dashboardExportarTexto($textoNulo);
     if ($formato === 'moeda') return 'R$ ' . number_format((float) $valor, 2, ',', '.');
+    if ($formato === 'toneladas') return number_format((float) $valor, 3, ',', '.') . ' t';
     if ($formato === 'percentual') return number_format((float) $valor, 2, ',', '.') . '%';
     if ($formato === 'numero') return number_format((float) $valor, 2, ',', '.');
     if ($formato === 'data' && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $valor)) return implode('/', array_reverse(explode('-', (string) $valor)));

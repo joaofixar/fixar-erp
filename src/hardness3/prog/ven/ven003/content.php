@@ -3,6 +3,17 @@ namespace hardness;
 
 switch ($g['r'][3]) {
 
+    case 'ven003ContentEmail':
+        $content1 = uniqid();
+        $g['smarty']->assign('content1', $content1);
+        $g['smarty']->assign('tipo', 'unico');
+        $notaEmailId = (int) (isset($r_T007_Id) ? $r_T007_Id : $r_acaoId);
+        $actions = array(
+            array($content1, '/etc/etc006/grid/etc006GridTodos/', '&T007_Id=' . $notaEmailId),
+        );
+        echo gProcessaAcoes($actions);
+    break;
+
     case 'ven003ContentListaNFDebitoCredito':
         $content1 = uniqid();
         $g['smarty']->assign('content1', $content1);
@@ -223,6 +234,7 @@ switch ($g['r'][3]) {
 			//$botoesEsq .= '<button type="submit" id="ven003enviarCCe">CC-e</button>';
 		}
 		//$botoesEsq .= '<button type="submit" id="ven003abrirTelaAntigo">Versão antiga</button>';
+		$botoes[] = array('titulo' => 'WhatsApp', 'id' => 'ven003EnviarWhats');
 		$botoes[] = array('titulo' => 'Gerar nota espelho', 'id' => 'ven003NotaTransporte');
 		if($row['T007_Flag_ACP'] == '3'){
 			$botoes[] = array('titulo' => 'Alterar NFe', 'id' => 'ven003AlterarModeloNota');
@@ -452,6 +464,88 @@ switch ($g['r'][3]) {
 					    dialogConfirm('Finalizar Nota Fiscal', 'Você tem certeza? ', \$buttons);
                     //}
 				});
+                $('#ven003EnviarWhats').unbind('click').bind('click', function(event) {
+                    event.preventDefault();
+                    var endpoint = '/ven/ven003/form_func-ajax/notaFiscalWhatsApp/';
+                    var parametros = {ajax: true, T007_Id: "{$r_acaoId}"};
+                    function mostrarErro(mensagem) {
+                        dialogConfirm('WhatsApp', $('<div>').text(mensagem).html());
+                    }
+                    $.getJSON(endpoint, parametros).done(function(info) {
+                        if (!info.code) { mostrarErro(info.data); return; }
+                        var celular = $('<p>').text(info.phoneWhatsApp ? 'Celular: +' + info.phoneWhatsApp : 'Celular não cadastrado');
+                        var conteudo = $('<div>').append($('<p>').text(info.data)).append(celular);
+                        if (info.origemTelefone) {
+                            conteudo.append($('<p>').text('Número obtido de: ' + info.origemTelefone));
+                        }
+                        if (!info.pdfDisponivel) {
+                            conteudo.append($('<p>').text('O link do DANFE fica disponível após a autorização da NF-e/NFC-e.'));
+                        } else if (info.tipoPdf === 'ACP') {
+                            conteudo.append($('<p>').text('O PDF será gerado pelo modelo de impressão da ACP.'));
+                        }
+                        function prepararMensagem(formato, dialogo) {
+                            // Abre durante o clique para evitar bloqueio de popup após o AJAX.
+                            var janela = window.open('about:blank', '_blank');
+                            if (!janela) { mostrarErro('Permita a abertura de janelas para continuar.'); return; }
+                            janela.opener = null;
+                            $(dialogo).dialog('destroy').remove();
+                            $('#{$g['divId']}').showLoading();
+                            $.ajax({url: endpoint, type: 'POST', dataType: 'json',
+                                data: $.extend({}, parametros, {formato: formato})})
+                                .done(function(retorno) {
+                                    if (!retorno.code) { janela.close(); mostrarErro(retorno.data); return; }
+                                    janela.location.href = 'https://api.whatsapp.com/send?phone='
+                                        + encodeURIComponent(retorno.phoneWhatsApp) + '&text=' + encodeURIComponent(retorno.data);
+                                })
+                                .fail(function() { janela.close(); mostrarErro('Não foi possível preparar a mensagem.'); })
+                                .always(function() { $('#{$g['divId']}').hideLoading(); });
+                        }
+                        var botoesWhats = [{
+                            text: 'Enviar formato texto',
+                            disabled: !info.phoneWhatsApp,
+                            click: function() { prepararMensagem('texto', this); }
+                        }, {
+                            text: info.tipoPdf === 'ACP' ? 'Enviar link PDF' : 'Enviar PDF e XML',
+                            disabled: !info.phoneWhatsApp || !info.pdfDisponivel,
+                            click: function() { prepararMensagem('pdf', this); }
+                        }, {
+                            text: info.contatoId ? 'Atualizar celular do contato' : 'Atualizar celular do cliente',
+                            click: function() {
+                                $(this).dialog('destroy').remove();
+                                var campos = $('<div>').append($('<p>').text('Informe o celular para envio pelo WhatsApp.'));
+                                campos.append($('<label>').text('DDD: ').append($('<input type="text" name="dddWhats" maxlength="2" size="3">').attr('value', info.ddd)));
+                                campos.append($('<label>').text(' Celular: ').append($('<input type="text" name="celularWhats" maxlength="20" size="16">').attr('value', info.celular)));
+                                campos.append($('<p data-erro-whats>').css('color', '#b00020'));
+                                dialogConfirm(info.contatoId ? 'Atualizar celular do contato' : 'Atualizar celular do cliente', campos.html(), [{
+                                    text: 'Salvar',
+                                    click: function() {
+                                        var dialogo = $(this);
+                                        var salvar = dialogo.parent().find('button');
+                                        salvar.prop('disabled', true);
+                                        $.ajax({url: '/ven/ven003/form_func-ajax/atualizarCelularWhatsApp/', type: 'POST', dataType: 'json',
+                                            data: {ajax: true, T007_Id: parametros.T007_Id,
+                                                ddd: dialogo.find('[name=dddWhats]').val(), celular: dialogo.find('[name=celularWhats]').val()}})
+                                            .done(function(retorno) {
+                                                if (!retorno.code) { dialogo.find('[data-erro-whats]').text(retorno.data); return; }
+                                                dialogo.dialog('destroy').remove();
+                                                $('#ven003EnviarWhats').trigger('click');
+                                            })
+                                            .fail(function() { dialogo.find('[data-erro-whats]').text('Não foi possível atualizar o celular.'); })
+                                            .always(function() { salvar.prop('disabled', false); });
+                                    }
+                                }, {
+                                    text: 'Cancelar',
+                                    click: function() { $(this).dialog('destroy').remove(); }
+                                }]);
+                            }
+                        }, {
+                            text: 'Cancelar',
+                            click: function() { $(this).dialog('destroy').remove(); }
+                        }];
+                        dialogConfirm('Enviar nota fiscal pelo WhatsApp', conteudo.html(), botoesWhats);
+                    }).fail(function() { mostrarErro('Não foi possível consultar a nota fiscal.'); });
+                    return false;
+                });
 				$('#ven003PrevisualizarDANFE').unbind('click').bind('click', function(data){
 					nova_janela('/hardness3/hardness/nota_emitida2/gerar_pre_danfe.php?T007_Id='+encodeURIComponent("{$r_acaoId}"),0,0,1000,600,'no','no','no','no','no','no','Pre_Danfe');
 				});

@@ -2428,7 +2428,8 @@ EOT;
 			$filename             = md5('T005'.$T005_Id.uniqid('',true)).".pdf";
 			$file                 = $dir . $filename;
 			$fileFull             = $g['pathRaiz'] . '/' . $file;
-			$urlFile              = $g['urlRaiz'] . 'hardness3/' . $file;
+			require_once('bibliotecas/classes/LinkCompartilhamentoWhatsApp.php');
+			$urlFile              = LinkCompartilhamentoWhatsApp::gerar($g['urlRaiz'], $file);
 			
             $r_link = '/ven/ven002/form_func-ajax/ven002ImprimirPedido/?ajax=true&gerarHtml=1&T005_Id=' . $T005_Id . '&moeda=' . $moeda; // .'&alcadaUpdate='.$alcadaUpdate;
             $r_link = str_replace(' ', '+', $r_link);

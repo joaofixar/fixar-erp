@@ -18723,8 +18723,8 @@ EOT;
         public function gerarDanfe($T007_Id, $cArquivoXML, $forcar = true)
         {
             global $confUsuario, $g;
-            require_once('../hardness/fpdf/code128.php');
-            require_once('../hardness/fpdf/fpdf.php');
+            require_once(__DIR__ . '/../../hardness/fpdf/code128.php');
+            require_once(__DIR__ . '/../../hardness/fpdf/fpdf.php');
 
             $Dir = $g['pathDados'] . 'tmp/';
             is_dir($Dir) or mkdir($Dir, 0777, true);
@@ -19176,7 +19176,7 @@ EOT;
 
         public function gerarACP($T007_Id)
         {
-            global $g;
+            global $g, $confUsuario;
             
             $cClausula = " SELECT ";
             $cClausula .= " * ";

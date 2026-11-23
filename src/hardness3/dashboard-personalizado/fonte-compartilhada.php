@@ -38,6 +38,35 @@ function dashboardFonteCompartilhadaPlanejar($indicador, $sqlCard, $parametros, 
         if (!$columns) { $erro = 'Bloco compartilhado sem colunas.'; return false; }
         $queries[$id] = array('sql' => 'SELECT `' . implode('`, `', $columns) . '` FROM (' . $sql . ') AS bloco LIMIT 501', 'campos' => $columns);
     }
+    // Calendario e tendencia podem reutilizar a mesma fonte fiscal. O opt-in
+    // exige os mesmos filtros; janelas independentes continuam no fluxo normal.
+    if (isset($config['incluirSeries']) && $config['incluirSeries'] === true) {
+        $graph = isset($indicador['grafico']) ? $indicador['grafico'] : array();
+        if (!empty($graph) && (!isset($graph['habilitado']) || $graph['habilitado'])) {
+            if (!empty($graph['tipo']) || isset($queries['_grafico'])) return null;
+            $day = isset($parametros['dataInicio'], $parametros['dataFim']) && substr($parametros['dataInicio'], 0, 7) === substr($parametros['dataFim'], 0, 7);
+            $date = dashboardIndicadorIdentificador(isset($graph['campoData']) ? $graph['campoData'] : 'data', 'data');
+            $value = dashboardIndicadorIdentificador(isset($graph['campoValor']) ? $graph['campoValor'] : 'valor', 'valor');
+            $calc = isset($graph['calculo']) ? $graph['calculo'] : 'soma';
+            $aggregate = $calc === 'contagem' ? 'COUNT(*)' : (($calc === 'media' ? 'AVG' : 'SUM') . '(`' . $value . '`)');
+            $period = $day ? '%Y-%m-%d' : '%Y-%m'; $label = $day ? '%d/%m' : '%m/%Y';
+            $quantidade = dashboardIndicadorSqlQuantidade($graph) . dashboardTendenciaSeriesSql($graph);
+            $queries['_grafico'] = array('tipo' => 'grafico', 'campos' => dashboardTendenciaSeriesCampos(dashboardIndicadorCamposSerie(array('periodo', 'rotulo', 'valor'), $graph), $graph), 'ordem' => '`periodo` ASC',
+                'sql' => "SELECT DATE_FORMAT(`{$date}`, '{$period}') AS periodo, DATE_FORMAT(`{$date}`, '{$label}') AS rotulo, COALESCE({$aggregate}, 0) AS valor{$quantidade} FROM ({$base}) AS dashboard_base GROUP BY periodo, rotulo ORDER BY periodo LIMIT 501");
+        }
+        foreach (isset($indicador['calendarios']) ? $indicador['calendarios'] : array() as $index => $calendar) {
+            if (!is_array($calendar) || (isset($calendar['habilitado']) && !$calendar['habilitado'])) continue;
+            if (!is_int($index) || $index < 0) return null;
+            if (dashboardIndicadorParametrosCalendario($calendar, $parametros) !== $parametros || isset($queries['_calendario' . $index])) return null;
+            $date = dashboardIndicadorIdentificador(isset($calendar['campoData']) ? $calendar['campoData'] : 'data', 'data');
+            $value = dashboardIndicadorIdentificador(isset($calendar['campoValor']) ? $calendar['campoValor'] : 'valor', 'valor');
+            $calc = isset($calendar['calculo']) ? $calendar['calculo'] : 'soma';
+            $aggregate = $calc === 'contagem' ? 'COUNT(*)' : (($calc === 'media' ? 'AVG' : 'SUM') . '(`' . $value . '`)');
+            $quantidade = dashboardIndicadorSqlQuantidade($calendar);
+            $queries['_calendario' . $index] = array('tipo' => 'calendario', 'indice' => $index, 'campos' => dashboardIndicadorCamposSerie(array('data', 'valor'), $calendar), 'ordem' => '`data` ASC',
+                'sql' => "SELECT DATE(`{$date}`) AS data, COALESCE({$aggregate}, 0) AS valor{$quantidade} FROM ({$base}) AS dashboard_base WHERE `{$date}` IS NOT NULL GROUP BY DATE(`{$date}`) ORDER BY data LIMIT 501");
+        }
+    }
     $componentes = array();
     if (getenv('HARDNESS_DASHBOARD_SHARED_COMPONENTS') !== '0'
         && (!isset($indicador['consultasCompartilhadas']) || $indicador['consultasCompartilhadas'] !== false)) {
@@ -45,7 +74,12 @@ function dashboardFonteCompartilhadaPlanejar($indicador, $sqlCard, $parametros, 
         // Só reúne componentes derivados da fonte exata já autorizada. Os
         // calendários com outro período e as consultas próprias ficam de fora.
         if ($sqlBase !== '' && substr_count($sqlCard, '(' . $sqlBase . ')') === 1) {
-            $consultas = dashboardConsultasCompartilhadasConsultas($indicador, $sqlBase, $sqlCard, $parametros);
+            // As series explicitas ja sao devolvidas diretamente ao motor.
+            // Exclui-las da coleta automatica evita agregacoes duplicadas.
+            $indicadorComponentes = $indicador;
+            if (isset($queries['_grafico'])) $indicadorComponentes['grafico'] = array('habilitado' => false);
+            if (isset($config['incluirSeries']) && $config['incluirSeries'] === true) $indicadorComponentes['calendarios'] = array();
+            $consultas = dashboardConsultasCompartilhadasConsultas($indicadorComponentes, $sqlBase, $sqlCard, $parametros);
             foreach (array_slice($consultas, 1) as $n => $consulta) {
                 if (isset($consulta['secao']) && isset($queries[$consulta['secao']])) continue;
                 if (substr_count($consulta['sql'], $needle) !== 1) continue;
@@ -100,7 +134,14 @@ function dashboardFonteCompartilhadaSeparar($linhas, $plano, &$erro)
         unset($parts[$id]);
     }
     foreach ($card as $value) if ($value !== null && !is_numeric($value)) { $erro = 'Total inválido da fonte compartilhada.'; return false; }
-    return array('card' => $card, 'secoes' => $parts, 'componentes' => $componentes);
+    $result = array('card' => $card, 'secoes' => array(), 'calendarios' => array(), 'componentes' => $componentes);
+    foreach ($parts as $id => $rows) {
+        $query = $plano['consultas'][$id];
+        if (isset($query['tipo']) && $query['tipo'] === 'grafico') $result['grafico'] = $rows;
+        elseif (isset($query['tipo']) && $query['tipo'] === 'calendario') $result['calendarios'][$query['indice']] = $rows;
+        else $result['secoes'][$id] = $rows;
+    }
+    return $result;
 }
 
 function dashboardFonteCompartilhadaConsultar($conexao, $indicador, $sqlCard, $parametros, &$erro)

@@ -33,7 +33,7 @@ $emitter=['cnpj'=>'12345678000199','name'=>'Emitente','errors'=>[]];
 $projected=GnreTdadosProjection::project($projectionGuide,[$projectionItem],$projectionRules,$emitter);
 t66(isset($projected['contribuinteEmitente']['identificacao']['CNPJ']),'snapshot que exige emitente deve projetá-lo');
 t66(isset($projected['valorGNRE'])&&$projected['valorGNRE']==='10.00','valorGNRE deve usar a mesma totalização do XML');
-$itemProjected=$projected['itensGNRE']['item'][0];t66(isset($itemProjected['documentoOrigem'],$itemProjected['contribuinteDestinatario'],$itemProjected['referencia'],$itemProjected['valor'],$itemProjected['camposExtras']),'campos condicionais aplicáveis devem ser projetados');
+$itemProjected=$projected['itensGNRE']['item'][0];t66(isset($itemProjected['documentoOrigem'],$itemProjected['contribuinteDestinatario'],$itemProjected['referencia'],$itemProjected['valor'],$itemProjected['camposExtras']),'campos condicionais aplicáveis devem ser projetados');t66(($itemProjected['referencia']['periodo']??null)==='0','período de apuração 0 deve permanecer no TDadosGNRE projetado');
 $noEmitter=$projectionRules;$noEmitter['receipts']['100001']['fields']['emitter']='N';$withoutEmitter=GnreTdadosProjection::project($projectionGuide,[$projectionItem],$noEmitter,$emitter);t66(!isset($withoutEmitter['contribuinteEmitente']),'snapshot sem emitente não pode inventá-lo');
 $calculated=$projectionRules;$calculated['receipts']['100001']['value']='N';$noTotal=GnreTdadosProjection::project($projectionGuide,[array_merge($projectionItem,['GNRE006'=>[]])],$calculated,$emitter);t66(!isset($noTotal['valorGNRE'])&&GnreRealBatchCohort::describeParticipant($noTotal)['fragment']!=='','o fingerprint preserva TDadosGNRE válido mesmo sem total agregado');
 

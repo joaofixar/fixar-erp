@@ -9,6 +9,30 @@ $CAD002 = new CAD002();
  * Ações
  */
 	switch($g['r'][3]) {
+    case 'notaFiscalWhatsApp':
+        require_once('bibliotecas/classes/NotaFiscalWhatsApp.php');
+        $whatsapp = new NotaFiscalWhatsApp();
+        $formatoWhatsApp = isset($_REQUEST['formato']) ? $_REQUEST['formato'] : '';
+        $resposta = $formatoWhatsApp !== '' && $_SERVER['REQUEST_METHOD'] !== 'POST'
+            ? array('code' => false, 'data' => 'Utilize o botão WhatsApp para preparar a mensagem.')
+            : $whatsapp->preparar(
+            isset($_REQUEST['T007_Id']) ? $_REQUEST['T007_Id'] : 0,
+            $formatoWhatsApp
+        );
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode($resposta);
+        exit;
+
+    case 'atualizarCelularWhatsApp':
+        require_once('bibliotecas/classes/NotaFiscalWhatsApp.php');
+        $whatsapp = new NotaFiscalWhatsApp();
+        $resposta = $_SERVER['REQUEST_METHOD'] === 'POST'
+            ? $whatsapp->atualizarCelular($_POST['T007_Id'] ?? 0, $_POST['ddd'] ?? '', $_POST['celular'] ?? '')
+            : array('code' => false, 'data' => 'Utilize o formulário para atualizar o celular.');
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode($resposta);
+        exit;
+
     case 'salvarTipoDanfe':
         require_once __DIR__ . '/../../../hardness/class/DanfeModelo.php';
         $retornoDanfe = ($_SERVER['REQUEST_METHOD'] === 'POST')

@@ -61,6 +61,8 @@ final class GnreNfEligibilityReader
                     n.T007_Cliente_Inscricao_Estadual,
                     n.T007_Cliente_Codigo_Cidade_IBGE,
                     n.T007_Cliente_Estado,
+                    NULLIF(deliveryState.D018_UF, '') AS GNRE_UF_Entrega,
+                    COALESCE(NULLIF(deliveryState.D018_UF, ''), n.T007_Cliente_Estado) AS GNRE_UF_Favorecida,
                     n.T007_Origem_Modelo,
                     n.T007_Chave_Acesso_Nfe,
                     n.T007_Valor_ICMS_Substituicao_Retencao,
@@ -73,6 +75,8 @@ final class GnreNfEligibilityReader
                 FROM T007 n
                 INNER JOIN T008 item ON item.T008_T007_Id=n.T007_Id
                 INNER JOIN D006 cfop ON cfop.D006_Id=item.T008_D006_Id
+                LEFT JOIN D148 deliveryAddress ON deliveryAddress.D148_Id=n.T007_D148_Id_Entrega
+                LEFT JOIN D018 deliveryState ON deliveryState.D018_Id=deliveryAddress.D148_D018_Id
                 WHERE n.T007_C004_Id=?
                     AND n.T007_Flag_ACP='6'
                     AND n.T007_Data_Emissao BETWEEN ? AND ?
@@ -82,7 +86,7 @@ final class GnreNfEligibilityReader
                     AND IFNULL(n.T007_Protocolo_Inutilizacao, '') = ''
                     AND IFNULL(n.T007_Flag_Denegado, 'N') <> 'S'
                     AND (? = '' OR n.T007_Numero_Nota_Fiscal = ?)
-                    AND (? = '' OR UPPER(IFNULL(n.T007_Cliente_Estado, '')) = ?)
+                    AND (? = '' OR UPPER(IFNULL(COALESCE(NULLIF(deliveryState.D018_UF, ''), n.T007_Cliente_Estado), '')) = ?)
                     AND (? = '' OR n.T007_Cliente_Razao LIKE CONCAT('%', ?, '%'))
                     AND (
                         (EXISTS (SELECT 1 FROM T008 es INNER JOIN D006 cs ON cs.D006_Id=es.T008_D006_Id WHERE es.T008_T007_Id=n.T007_Id AND IFNULL(cs.D006_Flag_Gera_GNRE_ST,'N')='S') AND n.T007_Valor_ICMS_Substituicao_Retencao>0 AND NOT EXISTS (SELECT 1 FROM GNRE002 ds INNER JOIN GNRE001 gs ON gs.GNRE001_Id=ds.GNRE002_GNRE001_Id AND gs.GNRE001_C004_Id=n.T007_C004_Id WHERE ds.GNRE002_T007_Id=n.T007_Id AND ds.GNRE002_Tributo_Origem='ST'))
@@ -92,7 +96,7 @@ final class GnreNfEligibilityReader
                 GROUP BY n.T007_Id, n.T007_Numero_Nota_Fiscal, n.T007_Serie,
                     n.T007_Data_Emissao, n.T007_Cliente_Razao, n.T007_Cliente_CNPJ_CPF,
                     n.T007_Cliente_Inscricao_Estadual, n.T007_Cliente_Codigo_Cidade_IBGE,
-                    n.T007_Cliente_Estado, n.T007_Origem_Modelo,
+                    n.T007_Cliente_Estado, deliveryState.D018_UF, n.T007_Origem_Modelo,
                     n.T007_Chave_Acesso_Nfe, n.T007_Valor_ICMS_Substituicao_Retencao,
                     n.T007_Valor_FCP_ST,
                     n.T007_Valor_Total_Partilha_ICMS_Destino, n.T007_Valor_Total_FCP_Partilha
@@ -123,7 +127,10 @@ final class GnreNfEligibilityReader
                     n.T007_Id, n.T007_Numero_Nota_Fiscal, n.T007_Serie,
                     n.T007_Data_Emissao, n.T007_Cliente_Razao, n.T007_Cliente_CNPJ_CPF,
                     n.T007_Cliente_Inscricao_Estadual, n.T007_Cliente_Codigo_Cidade_IBGE,
-                    n.T007_Cliente_Estado, n.T007_Origem_Modelo, n.T007_Chave_Acesso_Nfe,
+                    n.T007_Cliente_Estado,
+                    NULLIF(deliveryState.D018_UF, '') AS GNRE_UF_Entrega,
+                    COALESCE(NULLIF(deliveryState.D018_UF, ''), n.T007_Cliente_Estado) AS GNRE_UF_Favorecida,
+                    n.T007_Origem_Modelo, n.T007_Chave_Acesso_Nfe,
                     n.T007_Valor_ICMS_Substituicao_Retencao,
                     n.T007_Valor_FCP_ST,
                     n.T007_Valor_Total_Partilha_ICMS_Destino,
@@ -134,6 +141,8 @@ final class GnreNfEligibilityReader
                 FROM T007 n
                 INNER JOIN T008 item ON item.T008_T007_Id=n.T007_Id
                 INNER JOIN D006 cfop ON cfop.D006_Id=item.T008_D006_Id
+                LEFT JOIN D148 deliveryAddress ON deliveryAddress.D148_Id=n.T007_D148_Id_Entrega
+                LEFT JOIN D018 deliveryState ON deliveryState.D018_Id=deliveryAddress.D148_D018_Id
                 WHERE n.T007_Id=? AND n.T007_C004_Id=? AND n.T007_Flag_ACP='6'
                     AND IFNULL(n.T007_Numero_Protocolo_Nfe, '') <> ''
                     AND IFNULL(n.T007_Flag_Cancelada, 'N') <> 'S'
@@ -143,7 +152,7 @@ final class GnreNfEligibilityReader
                 GROUP BY n.T007_Id, n.T007_Numero_Nota_Fiscal, n.T007_Serie,
                     n.T007_Data_Emissao, n.T007_Cliente_Razao, n.T007_Cliente_CNPJ_CPF,
                     n.T007_Cliente_Inscricao_Estadual, n.T007_Cliente_Codigo_Cidade_IBGE,
-                    n.T007_Cliente_Estado, n.T007_Origem_Modelo, n.T007_Chave_Acesso_Nfe,
+                    n.T007_Cliente_Estado, deliveryState.D018_UF, n.T007_Origem_Modelo, n.T007_Chave_Acesso_Nfe,
                     n.T007_Valor_ICMS_Substituicao_Retencao,
                     n.T007_Valor_FCP_ST,
                     n.T007_Valor_Total_Partilha_ICMS_Destino,

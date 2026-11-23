@@ -258,6 +258,13 @@ EOT;
 			$verificarLocal = " AND T139_T224_Id={$r_T224_Id}";
 			$enviarParameter .= '&T224_Id=' . urlencode($r_T224_Id);
 		}
+        if (isset($r_T007_Id)) {
+            $notaEmailId = (int) $r_T007_Id;
+            $empresaEmailId = (int) $g['empresaAtual'];
+            $verificarLocal = " AND T139_T007_Id={$notaEmailId}"
+                . " AND EXISTS (SELECT 1 FROM T007 WHERE T007_Id=T139_T007_Id AND T007_C004_Id={$empresaEmailId})";
+            $enviarParameter .= '&T007_Id=' . $notaEmailId;
+        }
 		if (isset($r_T010_Id)) {
 			$verificarLocal = " AND T139_T010_Id={$r_T010_Id}";
 			$enviarParameter .= '&T010_Id=' . urlencode($r_T010_Id);

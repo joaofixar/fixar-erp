@@ -18,4 +18,9 @@ final class GnreFavoredStateCatalog
             'RR', 'RS', 'SC', 'SE', 'TO',
         ];
     }
+
+    public static function supports(string $uf): bool
+    {
+        return in_array(strtoupper(trim($uf)), self::all(), true);
+    }
 }

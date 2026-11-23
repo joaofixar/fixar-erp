@@ -17517,3 +17517,8 @@ $resIndiceT030 = mysql_query($sqlIndiceT030);
 if ($resIndiceT030 && mysql_num_rows($resIndiceT030) == 0) {
     Criar_Indice('T030_T066_Id');
 }
+
+// O reinício de conferência filtra os registros de volumes pelo pedido.
+Criar_Indice('T313_T005_Id');
+Criar_Indice('T314_T005_Id');
+Criar_Indice('T315_T005_Id');

@@ -16,6 +16,7 @@ require_once __DIR__ . '/analise-sql.php';
 require_once __DIR__ . '/controle-carteira-bancos.php';
 require_once __DIR__ . '/barras-empilhadas.php';
 require_once __DIR__ . '/fonte-compartilhada.php';
+require_once __DIR__ . '/tendencia-series.php';
 
 function dashboardIndicadorIdentificador($valor, $padrao = '')
 {
@@ -448,7 +449,7 @@ function dashboardIndicadorFiltrosSemOpcoesDinamicas($filtros)
 
 function dashboardIndicadorFormatoPermitido($formato)
 {
-    return in_array($formato, array('moeda', 'numero', 'percentual', 'texto', 'data'), true) ? $formato : 'numero';
+    return in_array($formato, array('moeda', 'numero', 'toneladas', 'percentual', 'texto', 'data'), true) ? $formato : 'numero';
 }
 
 function dashboardIndicadorNormalizarNome($nome)
@@ -796,6 +797,18 @@ function dashboardIndicadorDefinicaoPublica($indicador, $filtros)
     if (isset($listaPublica['detalhamento']['itens'])) unset($listaPublica['detalhamento']['itens']['sqlBase']);
     $grafico = isset($indicador['grafico']) ? $indicador['grafico'] : array();
     if (isset($grafico['tipo']) && $grafico['tipo'] === 'linhas_periodos') unset($grafico['sqlBase']);
+    if (isset($grafico['apresentacao']) && $grafico['apresentacao'] === 'padrao') {
+        $grafico['periodoFiltrado'] = array();
+        foreach ($filtros as $filter) if (isset($filter['id'], $filter['valor']) && in_array($filter['id'], array('dataInicio', 'dataFim'), true)) $grafico['periodoFiltrado'][$filter['id']] = $filter['valor'];
+    }
+    $calendarios = isset($indicador['calendarios']) && is_array($indicador['calendarios']) ? $indicador['calendarios'] : array();
+    foreach ($calendarios as &$calendar) {
+        if (!empty($calendar['exibirAcumuladoAteHoje']) || !empty($calendar['exibirTotaisSemanais'])) {
+            $today = new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo'));
+            $calendar['dataAtual'] = $today->format('Y-m-d');
+        }
+    }
+    unset($calendar);
     return array(
         'id' => $indicador['id'],
         'titulo' => $indicador['titulo'],
@@ -803,6 +816,8 @@ function dashboardIndicadorDefinicaoPublica($indicador, $filtros)
         'icone' => isset($indicador['icone']) ? $indicador['icone'] : 'chart',
         'cor' => isset($indicador['cor']) ? $indicador['cor'] : 'blue',
         'apresentacao' => array('compacta' => !empty($indicador['apresentacao']['compacta']),
+            'gruposResumo' => isset($indicador['apresentacao']['gruposResumo']) && is_array($indicador['apresentacao']['gruposResumo']) ? $indicador['apresentacao']['gruposResumo'] : array(),
+            'filtrosCompartilhadosEntreAbas' => isset($indicador['apresentacao']['filtrosCompartilhadosEntreAbas']) && is_array($indicador['apresentacao']['filtrosCompartilhadosEntreAbas']) ? $indicador['apresentacao']['filtrosCompartilhadosEntreAbas'] : array(),
             'criterios' => isset($indicador['apresentacao']['criterios']) && is_string($indicador['apresentacao']['criterios']) ? $indicador['apresentacao']['criterios'] : ''),
         'painelCotacoes' => dashboardCotacoesHabilitado($indicador),
         'portalRepresentantes' => !empty($indicador['portalRepresentantes']['habilitado']),
@@ -817,7 +832,7 @@ function dashboardIndicadorDefinicaoPublica($indicador, $filtros)
         'composicao' => isset($indicador['composicao']) ? $indicador['composicao'] : array(),
         'grafico' => $grafico,
         'graficosPorGrupo' => isset($indicador['graficosPorGrupo']) ? $indicador['graficosPorGrupo'] : array(),
-        'calendarios' => isset($indicador['calendarios']) && is_array($indicador['calendarios']) ? $indicador['calendarios'] : array(),
+        'calendarios' => $calendarios,
         'listagem' => $listaPublica,
         'comparativoRepresentantes' => isset($indicador['comparativoRepresentantes']) ? $indicador['comparativoRepresentantes'] : array(),
         'abasComerciaisLocais' => $abasLocais,
@@ -1136,6 +1151,50 @@ function dashboardIndicadorExecutar($conexao, $indicador, $empresa, $entrada, &$
     }
 }
 
+function dashboardIndicadorComponenteVisivel($componente, $valores)
+{
+    if (!isset($componente['exibirQuando'])) return true;
+    $regra = $componente['exibirQuando'];
+    return is_array($regra) && isset($regra['filtro'], $regra['valores']) && is_string($regra['filtro'])
+        && is_array($regra['valores']) && isset($valores[$regra['filtro']])
+        && in_array($valores[$regra['filtro']], $regra['valores'], true);
+}
+
+function dashboardIndicadorAplicarVisibilidade($indicador, $valores, &$erro)
+{
+    $grupos = isset($indicador['apresentacao']['gruposResumo']) && is_array($indicador['apresentacao']['gruposResumo']) ? $indicador['apresentacao']['gruposResumo'] : array();
+    $condicional = false;
+    foreach ($grupos as $grupo) if (isset($grupo['exibirQuando'])) $condicional = true;
+    if ($condicional) {
+        $metricas = array_merge(array(isset($indicador['card']) ? $indicador['card'] : array()), isset($indicador['resumos']) ? $indicador['resumos'] : array());
+        $visiveis = array(); $gruposVisiveis = array(); $offset = 0;
+        foreach ($grupos as $grupo) {
+            if (!isset($grupo['quantidade']) || !is_int($grupo['quantidade']) || $grupo['quantidade'] < 1 || $grupo['quantidade'] > 9) { $erro = 'Grupo de resumo condicional inválido.'; return false; }
+            if (dashboardIndicadorComponenteVisivel($grupo, $valores)) {
+                $visiveis = array_merge($visiveis, array_slice($metricas, $offset, $grupo['quantidade']));
+                $gruposVisiveis[] = $grupo;
+            }
+            $offset += $grupo['quantidade'];
+        }
+        if ($offset !== count($metricas) || !$visiveis) { $erro = 'A visibilidade dos grupos não corresponde às métricas.'; return false; }
+        $indicador['card'] = array_shift($visiveis);
+        $indicador['resumos'] = $visiveis;
+        $indicador['apresentacao']['gruposResumo'] = $gruposVisiveis;
+    }
+    if (isset($indicador['secoes']) && is_array($indicador['secoes'])) {
+        $indicador['secoes'] = array_values(array_filter($indicador['secoes'], function ($secao) use ($valores) { return dashboardIndicadorComponenteVisivel($secao, $valores); }));
+        if (isset($indicador['fonteCompartilhada']['secoes'])) {
+            $ids = array_column($indicador['secoes'], 'id');
+            $indicador['fonteCompartilhada']['secoes'] = array_values(array_intersect($indicador['fonteCompartilhada']['secoes'], $ids));
+        }
+    }
+    if (!dashboardTendenciaSeriesValidar(isset($indicador['grafico']) ? $indicador['grafico'] : array(), $erro)) return false;
+    if (dashboardTendenciaSeries(isset($indicador['grafico']) ? $indicador['grafico'] : array())) {
+        $indicador['grafico']['seriesSelecionaveis']['series'] = array_values(array_filter($indicador['grafico']['seriesSelecionaveis']['series'], function ($serie) use ($valores) { return dashboardIndicadorComponenteVisivel($serie, $valores); }));
+    }
+    return $indicador;
+}
+
 function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entrada, &$erro)
 {
     $erro = '';
@@ -1194,6 +1253,8 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
         $erro = implode(' ', $errosFiltros);
         return false;
     }
+    $indicador = dashboardIndicadorAplicarVisibilidade($indicador, $filtros['valores'], $erro);
+    if ($indicador === false) return false;
     if (dashboardSaldoCaixaHabilitado($indicador) && !dashboardSaldoCaixaPreparar($conexao, $indicador, $empresa, $filtros, $erro)) return false;
     if (!empty($indicador['desempenhoComercial']['habilitado'])) {
         return dashboardComercialExecutar($conexao, $indicador, $empresa, $filtros, $erro, $entrada);
@@ -1397,6 +1458,8 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
         return false;
     }
     $resultadoCard = isset($linhasCard[0]) ? $linhasCard[0] : array('quantidade' => 0, 'valor' => 0);
+    $comparativoCartoes = dashboardIndicadorConsultarComparativoCartoes($conexao, $indicador, $sqlBase, $sqlCard, $resultadoCard, $parametros, $erro);
+    if ($comparativoCartoes === false) return false;
 
     $comparativoRepresentantes = dashboardIndicadorComparativoRepresentantes(
         $conexao,
@@ -1561,12 +1624,17 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
         $porDia = $mesInicio !== '' && $mesInicio === $mesFim;
         $formatoPeriodo = $porDia ? '%Y-%m-%d' : '%Y-%m';
         $formatoRotulo = $porDia ? '%d/%m' : '%m/%Y';
-        $sqlGrafico = "SELECT DATE_FORMAT(`{$campoData}`, '{$formatoPeriodo}') AS periodo, DATE_FORMAT(`{$campoData}`, '{$formatoRotulo}') AS rotulo, COALESCE({$valorGrafico}, 0) AS valor FROM ({$sqlBase}) AS dashboard_base GROUP BY periodo, rotulo ORDER BY periodo";
-        $graficoResultado = dashboardIndicadorConsultar($conexao, $sqlGrafico, $parametros, $erro);
+        $quantidadeGrafico = dashboardIndicadorSqlQuantidade($grafico) . dashboardTendenciaSeriesSql($grafico);
+        $sqlGrafico = "SELECT DATE_FORMAT(`{$campoData}`, '{$formatoPeriodo}') AS periodo, DATE_FORMAT(`{$campoData}`, '{$formatoRotulo}') AS rotulo, COALESCE({$valorGrafico}, 0) AS valor{$quantidadeGrafico} FROM ({$sqlBase}) AS dashboard_base GROUP BY periodo, rotulo ORDER BY periodo";
+        $graficoResultado = $fonteCompartilhada !== null && isset($fonteCompartilhada['grafico'])
+            ? $fonteCompartilhada['grafico'] : dashboardIndicadorConsultar($conexao, $sqlGrafico, $parametros, $erro);
         if ($graficoResultado === false) {
             return false;
         }
     }
+
+    $graficoResultado = dashboardTendenciaSeriesNormalizar($graficoResultado, $grafico, $erro);
+    if ($graficoResultado === false) return false;
 
     $quantidadeClassePareto = null;
     if ($classePareto !== null) {
@@ -1607,14 +1675,16 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
     $calendariosResultado = array();
     $calendarioDetalhes = array();
     $calendarios = isset($indicador['calendarios']) && is_array($indicador['calendarios']) ? $indicador['calendarios'] : array();
-    foreach ($calendarios as $calendario) {
+    foreach ($calendarios as $calendarioIndice => $calendario) {
         if (!is_array($calendario) || (isset($calendario['habilitado']) && !$calendario['habilitado'])) {
             $calendariosResultado[] = array();
             continue;
         }
         $sqlCalendario = dashboardIndicadorSqlCalendario($sqlBase, $calendario, $campoCard);
         $parametrosCalendario = dashboardIndicadorParametrosCalendario($calendario, $parametros);
-        $resultadoCalendario = dashboardIndicadorConsultar($conexao, $sqlCalendario, $parametrosCalendario, $erro);
+        $resultadoCalendario = $fonteCompartilhada !== null && isset($fonteCompartilhada['calendarios'][$calendarioIndice])
+            ? $fonteCompartilhada['calendarios'][$calendarioIndice]
+            : dashboardIndicadorConsultar($conexao, $sqlCalendario, $parametrosCalendario, $erro);
         if ($resultadoCalendario === false) {
             return false;
         }
@@ -1789,6 +1859,7 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
     return array(
         'indicador' => $definicaoPublica,
         'resumos' => $resumosResultado,
+        'comparativoCartoes' => $comparativoCartoes,
         'secoes' => $secoesResultado,
         'card' => array(
             'valor' => isset($resultadoCard['valor']) ? (float) $resultadoCard['valor'] : 0,

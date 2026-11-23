@@ -285,13 +285,27 @@ function dashboardIndicadorParametrosCalendario($calendario, $parametros)
     return $parametros;
 }
 
+// Volume opcional, somado junto ao valor, sem uma leitura adicional da fonte.
+function dashboardIndicadorSqlQuantidade($definicao)
+{
+    $campo = dashboardIndicadorIdentificador(isset($definicao['campoQuantidade']) ? $definicao['campoQuantidade'] : '');
+    return $campo === '' ? '' : ', COALESCE(SUM(`' . $campo . '`), 0) AS quantidade';
+}
+
+function dashboardIndicadorCamposSerie($campos, $definicao)
+{
+    if (dashboardIndicadorSqlQuantidade($definicao) !== '') $campos[] = 'quantidade';
+    return $campos;
+}
+
 function dashboardIndicadorSqlCalendario($sqlBase, $calendario, $campoCard)
 {
     $data = dashboardIndicadorIdentificador(isset($calendario['campoData']) ? $calendario['campoData'] : 'data', 'data');
     $valor = dashboardIndicadorIdentificador(isset($calendario['campoValor']) ? $calendario['campoValor'] : $campoCard, $campoCard);
     $calculo = isset($calendario['calculo']) ? $calendario['calculo'] : 'soma';
     $agregacao = $calculo === 'contagem' ? 'COUNT(*)' : ($calculo === 'media' ? 'AVG(`' . $valor . '`)' : 'SUM(`' . $valor . '`)');
-    return "SELECT DATE(`{$data}`) AS data, COALESCE({$agregacao}, 0) AS valor FROM ({$sqlBase}) AS dashboard_base WHERE `{$data}` IS NOT NULL GROUP BY DATE(`{$data}`) ORDER BY data";
+    $quantidade = dashboardIndicadorSqlQuantidade($calendario);
+    return "SELECT DATE(`{$data}`) AS data, COALESCE({$agregacao}, 0) AS valor{$quantidade} FROM ({$sqlBase}) AS dashboard_base WHERE `{$data}` IS NOT NULL GROUP BY DATE(`{$data}`) ORDER BY data";
 }
 
 function dashboardIndicadorConsultarDetalheCalendario($conexao, $sqlBase, $calendario, $campoCard, $parametros, $data, &$erro)

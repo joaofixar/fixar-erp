@@ -79,7 +79,9 @@ final class LegacyReportGateway
         if (isset($report['app_code']) && is_string($report['app_code'])) $query['codigoApp'] = $report['app_code'];
         $base = rtrim($this->tenant->getRootUrl(), '/');
         if ($base === '') throw new \RuntimeException('legacy_report_url_unavailable');
-        $url = $base . '/api/rel/' . rawurlencode((string) $report['route']) . '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        $endpoint = isset($report['endpoint']) && is_string($report['endpoint']) ? trim($report['endpoint'], '/') : (string) $report['route'];
+        if (preg_match('#\A(?:get/)?[A-Za-z0-9_]+\z#', $endpoint) !== 1) throw new \RuntimeException('legacy_report_url_unavailable');
+        $url = $base . '/api/rel/' . implode('/', array_map('rawurlencode', explode('/', $endpoint))) . '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         $stream = @fopen($url, 'rb', false, stream_context_create(['http' => ['method' => 'GET', 'timeout' => 120, 'ignore_errors' => false, 'header' => "Accept: application/json\r\n"]]));
         if ($stream === false) throw new \RuntimeException('legacy_report_unavailable');
         return $stream;

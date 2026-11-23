@@ -629,7 +629,10 @@ EOT;
 						$mT003A  = mysql_fetch_array($T003A);
 						$T003_Id = $mT003A['T003A_T003_Id'];
 						$acaoId  = $T003_Id;
-						
+
+						// Personalizar ações executadas somente na inclusão do orçamento.
+						$VEN001->acoesFinaisInserirOrcamento($acaoId);
+
 						if($g['C031']['habilitaEnsaioOrcamento'] == 'S'){
 							$VEN001->incluirEnsaioOrcamento($acaoId);
 						}

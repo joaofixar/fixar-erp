@@ -179,6 +179,44 @@ switch ($g['r'][3]) {
 EOT;
 	break;
 
+	case 'fin003ContentComposicaoRetorno':
+		require_once 'bibliotecas/classes/ComposicaoRetornoExtrato.php';
+		$consultaRetorno = ComposicaoRetornoExtrato::consultar($r_acaoId, $g['empresaAtual']);
+		$grupoRetorno = ComposicaoRetornoExtrato::localizar($consultaRetorno,
+			isset($r_T216_Id) ? $r_T216_Id : 0, isset($r_T037_Id) ? $r_T037_Id : 0,
+			isset($r_assinatura) ? $r_assinatura : '');
+		if (!$grupoRetorno) {
+			echo '<div class="ui-state-error">A composição não foi confirmada ou mudou. Atualize o extrato e abra o link novamente.</div>';
+			break;
+		}
+		$escapar = function ($valor) { return htmlspecialchars((string) $valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); };
+		$quantidadeTitulos = count($grupoRetorno['membros']);
+		echo '<div class="fin003-composicao-retorno"><style>'
+			. '.fin003-composicao-retorno{padding:12px}.fin003-composicao-retorno p{margin:8px 0}'
+			. '.fin003-composicao-retorno .tabela-scroll{max-height:410px;overflow:auto}'
+			. '.fin003-composicao-retorno table{width:100%;border-collapse:collapse}'
+			. '.fin003-composicao-retorno th,.fin003-composicao-retorno td{padding:8px;border:1px solid #d6dce2;text-align:left}'
+			. '.fin003-composicao-retorno th{background:#e9eef4;position:sticky;top:0}'
+			. '.fin003-composicao-retorno .valor{text-align:right;white-space:nowrap}'
+			. '</style><p><strong>Retorno ' . (int) $grupoRetorno['retorno_id'] . '</strong> · Arquivo: '
+			. $escapar($grupoRetorno['arquivo']) . '<br>Conta: ' . $escapar($consultaRetorno['extrato']['conta_bancaria'])
+			. '<br>Crédito: ' . $escapar(ComposicaoRetornoExtrato::formatarData($grupoRetorno['movimento']['data_movimento']))
+			. ' · <strong>R$ ' . $escapar(ComposicaoRetornoExtrato::formatarCentavos($grupoRetorno['total'])) . '</strong></p>'
+			. '<p>' . $quantidadeTitulos . ($quantidadeTitulos === 1 ? ' título nesta composição.' : ' títulos nesta composição.') . '</p>'
+			. '<div class="tabela-scroll"><table><thead><tr><th>Título</th><th>Empresa</th><th>Cliente</th>'
+			. '<th>Pagamento</th><th>Crédito</th><th>Recebido</th></tr></thead><tbody>';
+		foreach ($grupoRetorno['membros'] as $tituloRetorno) {
+			echo '<tr><td>' . $escapar($tituloRetorno['duplicata']) . '<br><small>ID ' . (int) $tituloRetorno['titulo_id']
+				. '</small></td><td>' . $escapar($tituloRetorno['empresa_titulo']) . '</td><td>' . $escapar($tituloRetorno['cliente'])
+				. '</td><td>' . $escapar(ComposicaoRetornoExtrato::formatarData($tituloRetorno['pagamento_no_retorno']))
+				. '</td><td>' . $escapar(ComposicaoRetornoExtrato::formatarData($tituloRetorno['credito_no_retorno']))
+				. '</td><td class="valor">' . $escapar(ComposicaoRetornoExtrato::formatarCentavos(ComposicaoRetornoExtrato::centavos($tituloRetorno['recebido_no_retorno']))) . '</td></tr>';
+		}
+		echo '</tbody><tfoot><tr><td colspan="5"><strong>Total desta composição</strong></td><td class="valor"><strong>'
+			. $escapar(ComposicaoRetornoExtrato::formatarCentavos($grupoRetorno['total'])) . '</strong></td></tr></tfoot></table></div>'
+			. '<p>Consulta dos valores recebidos informados no retorno importado. Não efetua baixas ou processamento do extrato.</p></div>';
+	break;
+
 	case 'fin003ContentIncluirTransferencia':
 	
 		/*

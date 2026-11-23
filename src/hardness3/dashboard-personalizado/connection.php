@@ -3,6 +3,8 @@ namespace hardness;
 
 function dashboardPersonalizadoIndicadorUsaEspelho($indicador)
 {
+    // Opt-in por indicador: mesma origem para periodo atual, historico e exportacao.
+    if (isset($indicador['conexaoLeitura']) && $indicador['conexaoLeitura'] === 'principal') return false;
     return empty($indicador['saldoCaixa']['habilitado']) || empty($indicador['saldoCaixa']['usarSaldoAtual']);
 }
 

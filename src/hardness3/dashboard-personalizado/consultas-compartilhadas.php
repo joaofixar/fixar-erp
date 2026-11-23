@@ -99,7 +99,8 @@ function dashboardConsultasCompartilhadasConsultas($i, $base, $card, $parametros
         $fim = isset($parametros['dataFim']) ? substr((string) $parametros['dataFim'], 0, 7) : '';
         $dia = $inicio !== '' && $inicio === $fim;
         $periodo = $dia ? '%Y-%m-%d' : '%Y-%m'; $rotulo = $dia ? '%d/%m' : '%m/%Y';
-        $adicionar("SELECT DATE_FORMAT(`{$data}`, '{$periodo}') AS periodo, DATE_FORMAT(`{$data}`, '{$rotulo}') AS rotulo, COALESCE({$agg}, 0) AS valor FROM ({$base}) AS dashboard_base GROUP BY periodo, rotulo ORDER BY periodo", array('periodo', 'rotulo', 'valor'), '`periodo` ASC');
+        $quantidade = dashboardIndicadorSqlQuantidade($graf) . dashboardTendenciaSeriesSql($graf);
+        $adicionar("SELECT DATE_FORMAT(`{$data}`, '{$periodo}') AS periodo, DATE_FORMAT(`{$data}`, '{$rotulo}') AS rotulo, COALESCE({$agg}, 0) AS valor{$quantidade} FROM ({$base}) AS dashboard_base GROUP BY periodo, rotulo ORDER BY periodo", dashboardTendenciaSeriesCampos(dashboardIndicadorCamposSerie(array('periodo', 'rotulo', 'valor'), $graf), $graf), '`periodo` ASC');
     }
     if (getenv('HARDNESS_DASHBOARD_SHARED_COMPONENTS') !== '0') {
         if (dashboardBarrasEmpilhadasHabilitado($i)) {
@@ -110,7 +111,7 @@ function dashboardConsultasCompartilhadasConsultas($i, $base, $card, $parametros
             // Calendários fixos continuam independentes quando mudam as datas.
             // Não amplia nem recorta a fonte materializada para atendê-los.
             if (dashboardIndicadorParametrosCalendario($calendario, $parametros) !== $parametros) continue;
-            $adicionar(dashboardIndicadorSqlCalendario($base, $calendario, $campoCard), array('data', 'valor'), '`data` ASC');
+            $adicionar(dashboardIndicadorSqlCalendario($base, $calendario, $campoCard), dashboardIndicadorCamposSerie(array('data', 'valor'), $calendario), '`data` ASC');
         }
         $listaTotal = isset($i['listagem']) ? $i['listagem'] : array();
         if (dashboardIndicadorListagemPaginadaHabilitada($i) && empty($listaTotal['_barras'])
