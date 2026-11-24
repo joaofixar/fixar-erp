@@ -9,8 +9,8 @@ Orbit: ERPFX-45
 
 **Status:** ready-for-agent
 
-- [ ] A base na branch `visual-novo`, nascida do master, serve o desktop com o gancho do shell
-- [ ] O template do desktop guarda só o gancho, e a cara nova mora em arquivo que a publicação não envia
-- [ ] O trazer com sobrescrita recoloca o gancho
-- [ ] Se a âncora do gancho sumiu, o trazer para
-- [ ] O CSS do shell e a folha do tema são arquivos que a publicação não envia
+- [x] A base na branch `visual-novo`, nascida do master, serve o desktop com o gancho do shell
+- [x] O template do desktop guarda só o gancho, e a cara nova mora em arquivo que a publicação não envia
+- [x] O trazer com sobrescrita recoloca o gancho
+- [x] Se a âncora do gancho sumiu, o trazer para
+- [x] O CSS do shell e a folha do tema são arquivos que a publicação não envia

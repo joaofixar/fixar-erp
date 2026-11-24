@@ -16,12 +16,12 @@ Publicação do Hardness
    Linhas com SHA e assunto: a publicação andou.
 
 2. Trazer a ponta. Onde os dois lados mudaram o mesmo arquivo, fica a publicação.
-   Em seguida a branch recebe de novo os ajustes do PHP 8.
+   Em seguida a branch recebe de novo os ajustes do PHP 8 e o gancho do desktop.
 
    bash bin/publicacao trazer --sobrescrever
 
    O comando imprime publicacao/<sha>. O src da base ainda é o antigo.
-   Se o trecho de bibliotecas/funcoesGerais.php não encaixa, o comando para.
+   Se o trecho de bibliotecas/funcoesGerais.php ou a âncora do gancho não encaixa, o comando para.
 
 3. Passar a servir esse código.
 

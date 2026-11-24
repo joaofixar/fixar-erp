@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Reaplica os ajustes do PHP 8 em cima da árvore da publicação.
-# Caminhos alterados saem no stdout. Se o funcoesGerais.php não encaixa, termina em erro.
+# Reaplica os ajustes do PHP 8 e o gancho do desktop em cima da árvore da publicação.
+# Caminhos alterados saem no stdout. Se um trecho não encaixa, termina em erro.
 import re
 import sys
 from pathlib import Path
@@ -307,6 +307,28 @@ def adaptar_chaves(texto):
     return bytes(novo)
 
 
+# O desktop liga o shell por este trecho. A publicação devolve o template sem ele.
+ANCORA_GANCHO = (
+    b"\t\t{$cssJs}\n"
+    b'\t\t<style type="text/css">\n'
+    b"\t\t{$cssExtra}\n"
+    b"\t\t</style>\n"
+)
+GANCHO = (
+    ANCORA_GANCHO
+    + b'\t\t<link rel="stylesheet" href="/fx/shell.css" type="text/css">\n'
+    + b'\t\t<link rel="stylesheet" href="/fx/tema.css" type="text/css">\n'
+)
+
+
+def adaptar_gancho(texto):
+    if GANCHO in texto:
+        return texto
+    if ANCORA_GANCHO in texto:
+        return texto.replace(ANCORA_GANCHO, GANCHO, 1)
+    return None
+
+
 def adaptar_pontuais(relativo, texto):
     for arquivo, cru, seguro in PONTUAIS:
         if arquivo != relativo:
@@ -402,6 +424,19 @@ def adaptar(raiz):
         if novo != original:
             caminho.write_bytes(novo)
             alterados.append(relativo)
+    gancho = raiz / "smarty/templates/index.tpl"
+    if gancho.is_file():
+        original = gancho.read_bytes()
+        novo = adaptar_gancho(original)
+        if novo is None:
+            print(
+                "A adaptação de smarty/templates/index.tpl não encaixa.",
+                file=sys.stderr,
+            )
+            return 1
+        if novo != original:
+            gancho.write_bytes(novo)
+            alterados.append("smarty/templates/index.tpl")
     for relativo in alterados:
         print(relativo)
     return 0
