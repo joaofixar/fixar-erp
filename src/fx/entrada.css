@@ -21,7 +21,14 @@
 /* A base fica no layer das utilities e perde para o CSS sem layer do miolo.
    :where deixa a utility ganhar no próprio shell. O #desktop fica de fora. */
 @layer utilities {
-  :where(#fx-shell, #fx-shell *, #fx-paleta, #fx-paleta *) {
+  :where(
+    #fx-shell,
+    #fx-shell *,
+    #fx-paleta,
+    #fx-paleta *,
+    [data-fx-pop],
+    [data-fx-pop] *
+  ) {
     box-sizing: border-box;
   }
 
@@ -29,7 +36,8 @@
     #fx-shell button,
     #fx-shell input,
     #fx-paleta button,
-    #fx-paleta input
+    #fx-paleta input,
+    [data-fx-pop] button
   ) {
     font: inherit;
     color: inherit;
