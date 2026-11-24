@@ -1229,6 +1229,54 @@
     return start && end && start <= end ? { start: start, end: end } : null;
   }
 
+  function calendarMonths(rows, range) {
+    var months = [], byMonth = {}, cursor = new Date(range.start.getFullYear(), range.start.getMonth(), 1);
+    var lastMonth = new Date(range.end.getFullYear(), range.end.getMonth(), 1);
+    while (cursor <= lastMonth) {
+      var start = cursor < range.start ? range.start : cursor;
+      var end = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
+      if (end > range.end) end = range.end;
+      var month = { key: calendarKey(cursor).slice(0, 7), start: calendarKey(start), end: calendarKey(end), value: 0, quantity: 0, weekdays: [] };
+      for (var day = 0; day < 7; day++) month.weekdays.push({ value: 0, quantity: 0 });
+      months.push(month); byMonth[month.key] = month;
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    }
+    rows.forEach(function (row) {
+      var date = calendarDate(row.data);
+      if (!date || date < range.start || date > range.end) return;
+      var month = byMonth[calendarKey(date).slice(0, 7)], weekday = month.weekdays[date.getDay()];
+      var value = Number(row.valor || 0), quantity = Number(row.quantidade || 0);
+      month.value += value; month.quantity += quantity;
+      weekday.value += value; weekday.quantity += quantity;
+    });
+    return months;
+  }
+
+  function calendarMonthly(rows, definition, range, summary) {
+    var names = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    var weekdays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'], order = [1, 2, 3, 4, 5, 6, 0];
+    var showQuantity = !!definition.campoQuantidade;
+    function amounts(value, quantity) {
+      return '<strong>' + escapeHtml(format(value, definition.formato || 'moeda')) + '</strong>'
+        + (showQuantity ? '<small class="calendar-quantity">' + escapeHtml(format(quantity, definition.formatoQuantidade || 'quilos', definition.casasDecimaisQuantidade)) + '</small>' : '');
+    }
+    var body = calendarMonths(rows, range).map(function (month) {
+      var label = names[Number(month.key.slice(5, 7)) - 1] + ' ' + month.key.slice(0, 4);
+      var interval = format(month.start, 'data').slice(0, 5) + ' a ' + format(month.end, 'data').slice(0, 5);
+      var cells = order.map(function (day) {
+        var total = month.weekdays[day];
+        return '<td' + (day === 0 || day === 6 ? ' class="calendar-month-weekend"' : '') + '>' + amounts(total.value, total.quantity) + '</td>';
+      }).join('');
+      return '<tr><th scope="row"><strong>' + escapeHtml(label) + '</strong><small>' + escapeHtml(interval) + '</small></th>'
+        + cells + '<td class="calendar-month-total">' + amounts(month.value, month.quantity) + '</td></tr>';
+    }).join('');
+    return '<article class="calendar-card calendar-card--monthly' + (showQuantity ? ' calendar-card--quantity' : '') + '"><header><div><p class="card-kicker">CALENDÁRIO</p><h3>'
+      + escapeHtml(definition.titulo || 'Calendário de vendas') + '</h3><p>Uma linha por mês · cada coluna soma o mesmo dia da semana · somente as datas do filtro</p></div>' + summary
+      + '</header><div class="calendar-scroll" tabindex="0" role="region" aria-label="Calendário mensal por dia da semana"><table class="calendar-months"><thead><tr><th scope="col">Mês</th>'
+      + order.map(function (day) { return '<th scope="col">' + weekdays[day] + '</th>'; }).join('')
+      + '<th scope="col">Total do mês</th></tr></thead><tbody>' + body + '</tbody></table></div></article>';
+  }
+
   function calendar(rows, definition, filters) {
     if (!definition || definition.habilitado === false) return '';
     var title = definition.titulo || 'Calendário de vendas', range = calendarRange(rows, filters, definition);
@@ -1239,10 +1287,12 @@
     var cutoff = range.end < today ? range.end : today, accumulated = 0, weeklyValue = 0, accumulatedQuantity = 0, weeklyQuantity = 0;
     var showQuantity = !!definition.campoQuantidade, quantities = {}, quantityFormat = definition.formatoQuantidade || 'quilos';
     function quantity(value) { return format(value, quantityFormat, definition.casasDecimaisQuantidade); }
-    var values = {}, bands = calendarBands(rows, definition), counts = bands.map(function () { return 0; });
+    var values = {};
     rows.forEach(function (row) { if (calendarDate(row.data)) { var key = String(row.data).slice(0, 10); values[key] = Number(row.valor || 0); quantities[key] = Number(row.quantidade || 0); } });
     Object.keys(values).forEach(function (key) { var date = calendarDate(key); if (date >= range.start && date <= cutoff) { accumulated += values[key]; accumulatedQuantity += quantities[key]; } });
     var summary = definition.exibirAcumuladoAteHoje === true ? '<div class="calendar-accumulated"><span>Acumulado até ' + escapeHtml(format(calendarKey(cutoff), 'data')) + '</span><strong>' + escapeHtml(format(accumulated, definition.formato || 'moeda')) + '</strong>' + (showQuantity ? '<b class="calendar-quantity">' + escapeHtml(quantity(accumulatedQuantity)) + '</b>' : '') + '<small>No período selecionado</small></div>' : '';
+    if (definition.agruparMesesPorDiaSemana === true && calendarKey(range.start).slice(0, 7) !== calendarKey(range.end).slice(0, 7)) return calendarMonthly(rows, definition, range, summary);
+    var bands = calendarBands(rows, definition), counts = bands.map(function () { return 0; });
     var gridStart = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate() - range.start.getDay());
     var gridEnd = new Date(range.end.getFullYear(), range.end.getMonth(), range.end.getDate() + (6 - range.end.getDay()));
     var days = [], current = new Date(gridStart);
@@ -2109,7 +2159,15 @@
     var groupedCharts = groupedChannelCharts(data.graficosPorGrupo, indicator.graficosPorGrupo, data.card.formato, indicator.filtros);
     var showGeneralWithGroups = indicator.graficosPorGrupo && indicator.graficosPorGrupo.exibirGraficoGeral === true && data.graficosPorGrupo && data.graficosPorGrupo.length;
     $('#indicatorChart').innerHTML = groupedCharts ? ((showGeneralWithGroups ? generalChart : '') + groupedCharts) : generalChart;
-    if (selectableTrend) window.DashboardTendenciaSeries.mount($('#indicatorChart'), data.grafico, indicator.grafico, data.comparativoCartoes && data.comparativoCartoes.grafico, format);
+    if (selectableTrend) {
+      var trendParams = indicatorParams();
+      (indicator.filtros || []).forEach(function (filter) { if (filter.valor != null) trendParams.set('f_' + filter.id, String(filter.valor)); });
+      window.DashboardTendenciaSeries.mount($('#indicatorChart'), data.grafico, indicator.grafico, data.comparativoCartoes && data.comparativoCartoes.grafico, format, function (year) {
+        var params = new URLSearchParams(trendParams.toString());
+        params.set('action', 'indicator'); params.set('somenteComparativoTendencia', '1'); params.set('anoComparativoTendencia', String(year));
+        return request('data.php?' + params.toString()).then(function (result) { return result.comparativoTendencia; });
+      });
+    }
     bindParetoDetails();
     bindCashFlowDetails(indicator, data.grafico, data.card.formato);
     $('#indicatorCalendar').innerHTML = calendars(data.calendarios, indicator.calendarios, indicator.filtros);

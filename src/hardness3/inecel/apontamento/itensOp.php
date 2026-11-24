@@ -3,20 +3,8 @@ namespace hardness;
 
 header("X-Robots-Tag: noindex, nofollow", true);
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
-
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: ./index.php');
-    exit;
-}
-
-if (empty($_SESSION['Usuario_Atual'])) {
-    header('Location: ./index.php');
-    exit;
-}
+require_once(__DIR__ . '/sessaoApontamento.php');
+apontamentoExigirLogin();
 
 $g = array(
     'usuarioAtual' => $_SESSION['Usuario_Atual'],
@@ -421,6 +409,7 @@ document.getElementById('fotos-modal-overlay').addEventListener('click', functio
     }
 });
 </script>
+<script src="./js/sessaoKeepAlive.js"></script>
 </body>
 </html>
 

@@ -17,6 +17,8 @@ require_once __DIR__ . '/controle-carteira-bancos.php';
 require_once __DIR__ . '/barras-empilhadas.php';
 require_once __DIR__ . '/fonte-compartilhada.php';
 require_once __DIR__ . '/tendencia-series.php';
+require_once __DIR__ . '/tendencia-anos.php';
+require_once __DIR__ . '/custos-producao.php';
 
 function dashboardIndicadorIdentificador($valor, $padrao = '')
 {
@@ -24,7 +26,7 @@ function dashboardIndicadorIdentificador($valor, $padrao = '')
     return preg_match('/^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/', $valor) ? $valor : $padrao;
 }
 
-function dashboardIndicadorValidarSql($sql, &$erro, $permitirMultiEmpresa = false, $permitirUnionAll = false)
+function dashboardIndicadorValidarSql($sql, &$erro, $permitirMultiEmpresa = false, $permitirUnionAll = false, $tabelasCustos = false)
 {
     $erro = '';
     $sql = trim((string) $sql);
@@ -72,6 +74,7 @@ function dashboardIndicadorValidarSql($sql, &$erro, $permitirMultiEmpresa = fals
 
     preg_match_all('/\b(?:FROM|JOIN)\s+`?([a-zA-Z][a-zA-Z0-9_]*)`?/i', $sql, $tabelas);
     foreach ($tabelas[1] as $tabela) {
+        if ($tabelasCustos && in_array(strtoupper($tabela), array('SMT006', 'SMT009', 'PCP001', 'PCP002', 'PCP003'), true)) continue;
         // Material, distritos de clientes, metas e planos de corte da Inecel.
         if (!preg_match('/^(?:T|D|C|R|N)[0-9]{3}[A-Z]?$/i', $tabela) && !in_array(strtoupper($tabela), array('SMT029', 'SMT030', 'SMT063', 'SMT071', 'SMT072', 'SMT078', 'SMT094', 'SMT095', 'SMT120', 'SMT130', 'SMT134'), true)) {
             $erro = 'Tabela não permitida no dashboard: ' . $tabela . '.';
@@ -1198,6 +1201,9 @@ function dashboardIndicadorAplicarVisibilidade($indicador, $valores, &$erro)
 function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entrada, &$erro)
 {
     $erro = '';
+    if (!empty($indicador['custosProducao']['habilitado'])) {
+        return dashboardCustosProducaoExecutar($conexao, $indicador, $empresa, $entrada, $erro);
+    }
     $indicador = dashboardIndicadorConfigurarDetalheSecao($indicador, $entrada, $erro);
     if ($indicador === false) return false;
     if (dashboardAbcClientesHabilitado($indicador)) {
@@ -1369,6 +1375,11 @@ function dashboardIndicadorExecutarInterno($conexao, $indicador, $empresa, $entr
             $erro = 'O SQL usa o parâmetro :' . $parametro . ', mas não existe um filtro com esse id.';
             return false;
         }
+    }
+
+    if (isset($entrada['somenteComparativoTendencia']) && $entrada['somenteComparativoTendencia'] === '1') {
+        $comparativo = dashboardTendenciaAnoConsultar($conexao, $indicador, $sqlBase, $parametros, $entrada['anoComparativoTendencia'] ?? null, $erro);
+        return $comparativo === false ? false : array('comparativoTendencia' => $comparativo);
     }
 
     $indicador = dashboardBarrasEmpilhadasPreparar($indicador, $entrada, $parametros, $erro);

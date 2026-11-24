@@ -10,26 +10,8 @@ if (!defined('APONTAMENTO_DEBUG_SQL_TEMPO')) {
 }
 header("X-Robots-Tag: noindex, nofollow", true);
 
-if (function_exists('session_status')) {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-} else if (session_id() === '') {
-    session_start();
-}
-
-
-
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: ./index.php');
-    exit;
-}
-
-if (empty($_SESSION['Usuario_Atual'])) {
-    header('Location: ./index.php');
-    exit;
-}
+require_once(__DIR__ . '/sessaoApontamento.php');
+apontamentoExigirLogin();
 
 if (isset($_GET['debug_sql_tempo'])) {
     if ($_GET['debug_sql_tempo'] === '1') {
@@ -1685,6 +1667,7 @@ function apontamentoImprimirSelecionados() {
     }
 });
 </script>
+<script src="./js/sessaoKeepAlive.js"></script>
 </body>
 </html>
 

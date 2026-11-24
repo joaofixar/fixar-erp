@@ -23,7 +23,8 @@ if (isset($_REQUEST['login'])) {
         @session_destroy();
         $_SESSION = array();
     }
-    session_start();
+    require_once(__DIR__ . '/sessaoApontamento.php');
+    apontamentoIniciarSessao();
 
     $e = '1';
     $l = $_REQUEST['login'];

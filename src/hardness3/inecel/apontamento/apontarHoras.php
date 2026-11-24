@@ -3,20 +3,8 @@ namespace hardness;
 
 header("X-Robots-Tag: noindex, nofollow", true);
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
-
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: ./index.php');
-    exit;
-}
-
-if (empty($_SESSION['Usuario_Atual'])) {
-    header('Location: ./index.php');
-    exit;
-}
+require_once(__DIR__ . '/sessaoApontamento.php');
+apontamentoExigirLogin();
 
 $g = array(
     'usuarioAtual' => $_SESSION['Usuario_Atual'],
@@ -89,6 +77,335 @@ function horasOpPossuiPlanoCorte(int $itemId): bool
 
     $plano = horasBuscarUmaLinha("SELECT SMT134_Id FROM SMT134 WHERE SMT134_T255_Id = '{$item['T256_T255_Id']}' LIMIT 1");
     return !empty($plano);
+}
+
+function horasEscapar($valor): string
+{
+    return \mysqli_real_escape_string(horasDb(), (string) $valor);
+}
+
+function horasAgoraBanco(): string
+{
+    $linha = horasBuscarUmaLinha("SELECT NOW() AS Agora");
+    return $linha ? (string) $linha['Agora'] : date('Y-m-d H:i:s');
+}
+
+/**
+ * Plano de corte: o mesmo processo em todos os itens (T256) da OP, ou seja,
+ * mesma T262_Ordem e mesma operacao (T262A_SMT006_Id). Retorna um T262_Id
+ * por item, sempre incluindo o proprio processo informado.
+ */
+function horasProcessosEquivalentesOp(int $t262Id): array
+{
+    $base = horasBuscarUmaLinha("
+        SELECT T262.T262_Id, T262.T262_T256_Id, T262.T262_Ordem, T262A.T262A_SMT006_Id, T256.T256_T255_Id
+        FROM T262
+        INNER JOIN T256 ON T256.T256_Id = T262.T262_T256_Id
+        LEFT JOIN T262A ON T262A.T262A_T262_Id = T262.T262_Id
+        WHERE T262.T262_Id = '{$t262Id}'
+        LIMIT 1
+    ");
+    if (!$base) {
+        return array();
+    }
+
+    $ordem = (int) $base['T262_Ordem'];
+    $smt006Id = (int) $base['T262A_SMT006_Id'];
+    if ($smt006Id <= 0) {
+        // Sem operacao definida nao da para garantir que e' o mesmo processo
+        // nos outros itens: aponta so no proprio item.
+        return array((int) $base['T262_Id']);
+    }
+    $linhas = horasBuscarLinhas("
+        SELECT T262.T262_Id, T262.T262_T256_Id
+        FROM T262
+        INNER JOIN T256 ON T256.T256_Id = T262.T262_T256_Id
+        INNER JOIN T262A ON T262A.T262A_T262_Id = T262.T262_Id
+        WHERE T256.T256_T255_Id = '{$base['T256_T255_Id']}'
+          AND T262.T262_Ordem = '{$ordem}'
+          AND T262A.T262A_SMT006_Id = '{$smt006Id}'
+        ORDER BY T262.T262_T256_Id ASC, T262.T262_Id ASC
+    ");
+
+    $porItem = array();
+    foreach ($linhas as $linha) {
+        $itemLinha = (int) $linha['T262_T256_Id'];
+        if (!isset($porItem[$itemLinha])) {
+            $porItem[$itemLinha] = (int) $linha['T262_Id'];
+        }
+    }
+    $porItem[(int) $base['T262_T256_Id']] = (int) $base['T262_Id'];
+
+    return array_values($porItem);
+}
+
+/**
+ * Operadores (funcionarios D109) para o apontamento com plano de corte.
+ * O usuario gravado em SMT009_C007_Id vem de D109A_C007_Id.
+ */
+function horasBuscarOperadores(): array
+{
+    return horasBuscarLinhas("
+        SELECT D109.D109_Id, D109.D109_Nome, D109.D109_Codigo_Barras, D109A.D109A_C007_Id
+        FROM D109
+        LEFT JOIN D109A ON D109A.D109A_D109_Id = D109.D109_Id
+        ORDER BY D109.D109_Nome ASC
+    ");
+}
+
+/**
+ * Plano de corte: inicia o apontamento de horas para um ou mais operadores
+ * ao mesmo tempo, replicando para o mesmo processo em todos os itens da OP.
+ */
+function horasIniciarPlanoCorte(int $itemId, int $t262Id, int $d079Id, $operadoresPost): void
+{
+    $processo = horasBuscarUmaLinha("SELECT T262_Id FROM T262 WHERE T262_Id = '{$t262Id}' AND T262_T256_Id = '{$itemId}' LIMIT 1");
+    if (!$processo) {
+        horasFlash('erro', 'Processo nao encontrado para este item.');
+        return;
+    }
+
+    $processoStatus = horasBuscarUmaLinha("SELECT T262A_Status FROM T262A WHERE T262A_T262_Id = '{$t262Id}' LIMIT 1");
+    if ($processoStatus && $processoStatus['T262A_Status'] === 'B') {
+        horasFlash('erro', 'Este processo ja foi finalizado e nao aceita novos apontamentos.');
+        return;
+    }
+
+    $maquinaEscolhida = $d079Id > 0 ? horasBuscarUmaLinha("SELECT D079_Id FROM D079 WHERE D079_Id = '{$d079Id}' LIMIT 1") : null;
+    if (!$maquinaEscolhida) {
+        horasFlash('erro', 'Selecione a maquina em que esta trabalhando.');
+        return;
+    }
+
+    $operadoresIds = array();
+    foreach ((array) $operadoresPost as $valor) {
+        $valor = (int) $valor;
+        if ($valor > 0) {
+            $operadoresIds[$valor] = $valor;
+        }
+    }
+    if (empty($operadoresIds)) {
+        horasFlash('erro', 'Informe pelo menos um operador.');
+        return;
+    }
+
+    $listaOperadores = implode(',', $operadoresIds);
+    $operadores = horasBuscarLinhas("
+        SELECT D109.D109_Id, D109.D109_Nome, D109A.D109A_C007_Id
+        FROM D109
+        LEFT JOIN D109A ON D109A.D109A_D109_Id = D109.D109_Id
+        WHERE D109.D109_Id IN ({$listaOperadores})
+    ");
+    if (count($operadores) !== count($operadoresIds)) {
+        horasFlash('erro', 'Operador nao encontrado no cadastro de funcionarios.');
+        return;
+    }
+    foreach ($operadores as $operador) {
+        if ((int) $operador['D109A_C007_Id'] <= 0) {
+            horasFlash('erro', 'O operador ' . $operador['D109_Nome'] . ' nao possui usuario vinculado no cadastro de funcionario (D109A).');
+            return;
+        }
+    }
+
+    // Mesmo processo em todos os itens da OP, exceto os ja baixados.
+    $processosOp = horasProcessosEquivalentesOp($t262Id);
+    $listaProcessos = implode(',', array_map('intval', $processosOp));
+    $baixados = array();
+    foreach (horasBuscarLinhas("SELECT T262A_T262_Id FROM T262A WHERE T262A_T262_Id IN ({$listaProcessos}) AND T262A_Status = 'B'") as $linha) {
+        $baixados[(int) $linha['T262A_T262_Id']] = true;
+    }
+
+    $jaAbertos = array();
+    foreach (horasBuscarLinhas("
+        SELECT SMT009_T262_Id, SMT009_D109_Id
+        FROM SMT009
+        WHERE SMT009_T262_Id IN ({$listaProcessos})
+          AND SMT009_D109_Id IN ({$listaOperadores})
+          AND SMT009_Data_Hora_Fim IS NULL
+    ") as $linha) {
+        $jaAbertos[(int) $linha['SMT009_T262_Id'] . '-' . (int) $linha['SMT009_D109_Id']] = true;
+    }
+
+    $inseridos = 0;
+    $itensAfetados = array();
+    horasExec("START TRANSACTION");
+    try {
+        $inicio = horasEscapar(horasAgoraBanco());
+        foreach ($processosOp as $processoOpId) {
+            $processoOpId = (int) $processoOpId;
+            if (isset($baixados[$processoOpId])) {
+                continue;
+            }
+            foreach ($operadores as $operador) {
+                $d109Id = (int) $operador['D109_Id'];
+                $c007Id = (int) $operador['D109A_C007_Id'];
+                if (isset($jaAbertos[$processoOpId . '-' . $d109Id])) {
+                    continue;
+                }
+                horasExec("
+                    INSERT INTO SMT009 (SMT009_T262_Id, SMT009_Data_Hora_Inicio, SMT009_D109_Id, SMT009_C007_Id, SMT009_D079_Id)
+                    VALUES ('{$processoOpId}', '{$inicio}', '{$d109Id}', '{$c007Id}', '{$d079Id}')
+                ");
+                $inseridos++;
+                $itensAfetados[$processoOpId] = true;
+            }
+        }
+        horasExec("COMMIT");
+    } catch (\Exception $e) {
+        horasExec("ROLLBACK");
+        horasFlash('erro', 'Nao foi possivel iniciar o apontamento: ' . $e->getMessage());
+        return;
+    }
+
+    if ($inseridos === 0) {
+        horasFlash('erro', 'Os operadores informados ja estao em andamento neste processo.');
+        return;
+    }
+
+    horasFlash('sucesso', 'Apontamento de horas iniciado para ' . count($operadores) . ' operador(es) em ' . count($itensAfetados) . ' item(ns) da OP.');
+}
+
+/**
+ * Operadores cujo ULTIMO apontamento neste processo terminou com motivo de
+ * parada (pararam e ainda nao retomaram). Apontamentos antigos sem D109 sao
+ * agrupados pelo usuario (C007).
+ */
+function horasOperadoresParados(int $t262Id): array
+{
+    return horasBuscarLinhas("
+        SELECT
+            COALESCE(D109.D109_Nome, C007.C007_Primeiro_Nome, '-') AS Operador,
+            COALESCE(SMT012.SMT012_Descricao, '-') AS Motivo
+        FROM SMT009 s
+        LEFT JOIN D109 ON D109.D109_Id = s.SMT009_D109_Id
+        LEFT JOIN C007 ON C007.C007_Id = s.SMT009_C007_Id
+        LEFT JOIN SMT012 ON SMT012.SMT012_Id = s.SMT009_SMT012_Id
+        WHERE s.SMT009_T262_Id = '{$t262Id}'
+          AND s.SMT009_Data_Hora_Fim IS NOT NULL
+          AND IFNULL(s.SMT009_SMT012_Id, 0) > 0
+          AND s.SMT009_Id = (
+              SELECT MAX(s2.SMT009_Id)
+              FROM SMT009 s2
+              WHERE s2.SMT009_T262_Id = s.SMT009_T262_Id
+                AND (
+                    (s.SMT009_D109_Id > 0 AND s2.SMT009_D109_Id = s.SMT009_D109_Id)
+                    OR (IFNULL(s.SMT009_D109_Id, 0) = 0 AND IFNULL(s2.SMT009_D109_Id, 0) = 0 AND s2.SMT009_C007_Id = s.SMT009_C007_Id)
+                )
+          )
+    ");
+}
+
+/**
+ * Plano de corte: finaliza o apontamento de um operador (em todos os itens
+ * da OP). O processo so e' baixado quando o ultimo operador finalizar e
+ * nenhum outro operador estiver com parada pendente.
+ */
+function horasFinalizarPlanoCorte(int $itemId, int $smt009Id, int $smt012Id): void
+{
+    $registro = horasBuscarUmaLinha("
+        SELECT SMT009.SMT009_Id, SMT009.SMT009_T262_Id, SMT009.SMT009_D109_Id
+        FROM SMT009
+        INNER JOIN T262 ON T262.T262_Id = SMT009.SMT009_T262_Id
+        WHERE SMT009.SMT009_Id = '{$smt009Id}'
+          AND T262.T262_T256_Id = '{$itemId}'
+          AND SMT009.SMT009_Data_Hora_Fim IS NULL
+        LIMIT 1
+    ");
+    if (!$registro) {
+        horasFlash('erro', 'Apontamento em andamento nao encontrado.');
+        return;
+    }
+
+    $d109Id = (int) $registro['SMT009_D109_Id'];
+    if ($d109Id > 0) {
+        $listaProcessos = implode(',', array_map('intval', horasProcessosEquivalentesOp((int) $registro['SMT009_T262_Id'])));
+        $abertos = horasBuscarLinhas("
+            SELECT SMT009_Id, SMT009_T262_Id
+            FROM SMT009
+            WHERE SMT009_T262_Id IN ({$listaProcessos})
+              AND SMT009_D109_Id = '{$d109Id}'
+              AND SMT009_Data_Hora_Fim IS NULL
+        ");
+    } else {
+        // Apontamento antigo, sem operador (D109): finaliza so ele.
+        $abertos = array($registro);
+    }
+
+    $idsFinalizar = array();
+    $processosAfetados = array();
+    foreach ($abertos as $linha) {
+        $idsFinalizar[] = (int) $linha['SMT009_Id'];
+        $processosAfetados[(int) $linha['SMT009_T262_Id']] = true;
+    }
+    $listaIds = implode(',', $idsFinalizar);
+    $listaAfetados = implode(',', array_keys($processosAfetados));
+
+    $motivoSql = $smt012Id > 0 ? "'{$smt012Id}'" : 'NULL';
+    $statusFinal = $smt012Id > 0 ? 'P' : 'B';
+    $aguardandoOutros = 0;
+    $operadoresParados = array();
+
+    horasExec("START TRANSACTION");
+    try {
+        // Trava os processos para dois operadores finalizando ao mesmo tempo
+        // nao deixarem o processo sem baixar.
+        $trava = horasExec("SELECT T262A_Id FROM T262A WHERE T262A_T262_Id IN ({$listaAfetados}) FOR UPDATE");
+        if ($trava instanceof \mysqli_result) {
+            $trava->free();
+        }
+
+        $fim = horasEscapar(horasAgoraBanco());
+        horasExec("
+            UPDATE SMT009
+            SET SMT009_Data_Hora_Fim = '{$fim}',
+                SMT009_SMT012_Id = {$motivoSql},
+                SMT009_Quantidade_Apontada = 0,
+                SMT009_Quantidade_Refugada = 0
+            WHERE SMT009_Id IN ({$listaIds})
+        ");
+
+        foreach (array_keys($processosAfetados) as $processoId) {
+            $restante = horasBuscarUmaLinha("
+                SELECT COUNT(*) AS Qtde
+                FROM SMT009
+                WHERE SMT009_T262_Id = '{$processoId}'
+                  AND SMT009_Data_Hora_Fim IS NULL
+                LOCK IN SHARE MODE
+            ");
+            if ($restante && (int) $restante['Qtde'] > 0) {
+                $aguardandoOutros++;
+                continue;
+            }
+
+            $statusProcesso = $statusFinal;
+            if ($statusProcesso === 'B') {
+                // Outro operador que parou com motivo (ultimo apontamento
+                // dele neste processo tem motivo) ainda vai voltar: o
+                // processo fica parado em vez de baixar.
+                foreach (horasOperadoresParados($processoId) as $parado) {
+                    $statusProcesso = 'P';
+                    $operadoresParados[$parado['Operador'] . ' (' . $parado['Motivo'] . ')'] = true;
+                }
+            }
+            horasExec("UPDATE T262A SET T262A_Status = '{$statusProcesso}' WHERE T262A_T262_Id = '{$processoId}'");
+        }
+
+        horasExec("COMMIT");
+    } catch (\Exception $e) {
+        horasExec("ROLLBACK");
+        horasFlash('erro', 'Nao foi possivel finalizar o apontamento: ' . $e->getMessage());
+        return;
+    }
+
+    if ($aguardandoOutros > 0) {
+        horasFlash('sucesso', 'Apontamento do operador finalizado. O processo continua em andamento ate o ultimo operador finalizar.');
+    } else if (!empty($operadoresParados)) {
+        horasFlash('sucesso', 'Apontamento finalizado. O processo NAO foi baixado porque existe operador com parada pendente: ' . implode(', ', array_keys($operadoresParados)) . '. Ele precisa retomar e finalizar sem motivo.');
+    } else if ($statusFinal === 'B') {
+        horasFlash('sucesso', 'Apontamento finalizado. Ultimo operador: processo baixado.');
+    } else {
+        horasFlash('sucesso', 'Apontamento finalizado. Processo parado pelo motivo informado.');
+    }
 }
 
 function horasFormatarDataHora($valor)
@@ -334,8 +651,9 @@ function horas_selected_company_name(array $companies): string
 }
 
 /**
- * SMT009_C007_Id grava o usuario logado (C007_Id da sessao) - nao ha
- * selecao manual de funcionario nesta tela.
+ * OP sem plano de corte: SMT009_C007_Id grava o usuario logado.
+ * OP com plano de corte: o usuario escolhe um ou mais operadores (D109);
+ * grava SMT009_D109_Id e SMT009_C007_Id = D109A_C007_Id do operador.
  */
 
 $opId = isset($_GET['op_id']) ? (int) $_GET['op_id'] : 0;
@@ -350,6 +668,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
     $t262Id = isset($_POST['t262_id']) ? (int) $_POST['t262_id'] : 0;
     $d079Id = isset($_POST['d079_id']) ? (int) $_POST['d079_id'] : 0;
     $usuarioLogadoId = (int) $_SESSION['Usuario_Atual'];
+
+    // Plano de corte: escolhe operador(es) D109 e inicia em todos os itens da OP.
+    if (horasOpPossuiPlanoCorte($itemPostId)) {
+        horasIniciarPlanoCorte($itemPostId, $t262Id, $d079Id, isset($_POST['operadores']) ? $_POST['operadores'] : array());
+        header('Location: ./apontarHoras.php?op_id=' . $opPostId . '&item_id=' . $itemPostId);
+        exit;
+    }
 
     if ($t262Id <= 0 || $usuarioLogadoId <= 0) {
         horasFlash('erro', 'Nao foi possivel identificar o usuario logado.');
@@ -407,6 +732,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
     $quantidadeRefugada = isset($_POST['quantidade_refugada']) ? (float) str_replace(',', '.', trim((string) $_POST['quantidade_refugada'])) : 0.0;
     $quantidadeApontada = max(0.0, $quantidadeApontada);
     $quantidadeRefugada = max(0.0, $quantidadeRefugada);
+
+    // Plano de corte: finaliza o operador em todos os itens da OP e so baixa
+    // o processo quando o ultimo operador finalizar.
+    if (horasOpPossuiPlanoCorte($itemPostId)) {
+        horasFinalizarPlanoCorte($itemPostId, $smt009Id, $smt012Id);
+        header('Location: ./apontarHoras.php?op_id=' . $opPostId . '&item_id=' . $itemPostId);
+        exit;
+    }
 
     $registro = horasBuscarUmaLinha("
         SELECT SMT009.SMT009_Id, SMT009.SMT009_T262_Id
@@ -549,6 +882,34 @@ $motivos = array();
 $maquinas = array();
 $historico = array();
 $opTemPlanoCorte = $item ? horasOpPossuiPlanoCorte((int) $item['T256_Id']) : false;
+$operadores = array();
+$abertosPorProcesso = array();
+$qtdeItensOp = 0;
+
+if ($item && $opTemPlanoCorte) {
+    $operadores = horasBuscarOperadores();
+
+    foreach (horasBuscarLinhas("
+        SELECT
+            SMT009.SMT009_Id,
+            SMT009.SMT009_T262_Id,
+            SMT009.SMT009_Data_Hora_Inicio,
+            SMT009.SMT009_D079_Id,
+            COALESCE(D109.D109_Nome, C007.C007_Primeiro_Nome) AS Operador
+        FROM SMT009
+        INNER JOIN T262 ON T262.T262_Id = SMT009.SMT009_T262_Id
+        LEFT JOIN D109 ON D109.D109_Id = SMT009.SMT009_D109_Id
+        LEFT JOIN C007 ON C007.C007_Id = SMT009.SMT009_C007_Id
+        WHERE T262.T262_T256_Id = '{$itemId}'
+          AND SMT009.SMT009_Data_Hora_Fim IS NULL
+        ORDER BY SMT009.SMT009_Id ASC
+    ") as $aberto) {
+        $abertosPorProcesso[(int) $aberto['SMT009_T262_Id']][] = $aberto;
+    }
+
+    $contagemItens = horasBuscarUmaLinha("SELECT COUNT(*) AS Qtde FROM T256 WHERE T256_T255_Id = '{$item['T256_T255_Id']}'");
+    $qtdeItensOp = $contagemItens ? (int) $contagemItens['Qtde'] : 0;
+}
 
 if ($item) {
     $processos = horasBuscarLinhas("
@@ -611,7 +972,7 @@ if ($item) {
             SMT009.SMT009_Id,
             SMT009.SMT009_Data_Hora_Inicio,
             SMT009.SMT009_Data_Hora_Fim,
-            C007.C007_Primeiro_Nome,
+            COALESCE(D109.D109_Nome, C007.C007_Primeiro_Nome) AS C007_Primeiro_Nome,
             SMT012.SMT012_Descricao,
             T262.T262_Ordem,
             T262.T262_Descricao,
@@ -622,6 +983,7 @@ if ($item) {
         LEFT JOIN D079 ON D079_Id = T262_D079_Id
         LEFT JOIN SMT006 ON SMT006.SMT006_Descricao = T262.T262_Descricao
         LEFT JOIN C007 ON C007.C007_Id = SMT009.SMT009_C007_Id
+        LEFT JOIN D109 ON D109.D109_Id = SMT009.SMT009_D109_Id
         LEFT JOIN SMT012 ON SMT012_Id = SMT009.SMT009_SMT012_Id
         WHERE T262.T262_T256_Id = '{$itemId}'
         ORDER BY SMT009.SMT009_Id DESC
@@ -651,7 +1013,7 @@ if ($item) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Apontamento de Horas OP</title>
     <style>
-        :root{--bg:<?php echo horas_h($companyTheme['bg']); ?>;--card:<?php echo horas_h($companyTheme['panel']); ?>;--line:<?php echo horas_h($companyTheme['line']); ?>;--text:#20324d;--muted:#697c96;--primary:<?php echo horas_h($companyTheme['primary']); ?>;--shadow:0 18px 40px rgba(17,47,84,.12);--success-bg:#ebfaf1;--success-text:#216f4b;--danger-bg:#fff0f0;--danger-text:#a53a3a;--warn-bg:#fff7e0;--warn-text:#8a5a00}
+        :root{--bg:<?php echo horas_h($companyTheme['bg']); ?>;--card:<?php echo horas_h($companyTheme['panel']); ?>;--line:<?php echo horas_h($companyTheme['line']); ?>;--text:#20324d;--muted:#697c96;--primary:<?php echo horas_h($companyTheme['primary']); ?>;--accent:<?php echo horas_h($companyTheme['accent']); ?>;--shadow:0 18px 40px rgba(17,47,84,.12);--success-bg:#ebfaf1;--success-text:#216f4b;--danger-bg:#fff0f0;--danger-text:#a53a3a;--warn-bg:#fff7e0;--warn-text:#8a5a00}
         *{box-sizing:border-box}
         body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#f4f7fb 0%,var(--bg) 100%);color:var(--text)}
         .page{max-width:1420px;margin:0 auto;padding:16px}
@@ -711,6 +1073,15 @@ if ($item) {
         .maquina-item.selecionado .maquina-item-id{color:var(--primary)}
         .maquina-item.selecionado .maquina-item-check{opacity:1}
         .maquina-item-vazio{padding:12px;font-size:13px;color:var(--muted);text-align:center}
+        .operadores-abertos{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+        .operador-aberto{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border:1px solid #e5e9ef;border-radius:6px;background:#fff;font-size:13px}
+        .operador-aberto small{color:var(--muted)}
+        .operador-aberto.operador-parado{background:var(--danger-bg);border-color:#f0c4c4}
+        .operador-aberto.operador-parado small{color:var(--danger-text)}
+        .operador-selecionados{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:4px}
+        .operador-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--accent);color:var(--primary);font-size:13px;font-weight:700}
+        .operador-chip button{border:none;background:transparent;color:var(--primary);font-size:16px;line-height:1;cursor:pointer;padding:0}
+        .modal-info{font-size:12px;color:var(--muted);margin:-4px 0 10px}
         @media (max-width:760px){.top-meta{flex-direction:column;align-items:flex-start}}
     </style>
 </head>
@@ -768,7 +1139,40 @@ if ($item) {
                                     <span>Refugada: <strong><?php echo horas_h(number_format($processoQtdRefugada, 3, ',', '.')); ?></strong></span>
                                 </div>
                             <?php endif; ?>
-                            <?php if ($statusProcesso === 'B'): ?>
+                            <?php if ($opTemPlanoCorte): ?>
+                                <?php
+                                    $abertosProcesso = $abertosPorProcesso[(int) $processo['T262_Id']] ?? array();
+                                    $maquinaAberta = !empty($abertosProcesso) ? (int) $abertosProcesso[0]['SMT009_D079_Id'] : 0;
+                                ?>
+                                <?php if ($statusProcesso === 'B'): ?>
+                                    <div class="badge-finalizado">Processo finalizado</div>
+                                <?php else: ?>
+                                    <?php $paradosProcesso = horasOperadoresParados((int) $processo['T262_Id']); ?>
+                                    <?php if (!empty($paradosProcesso)): ?>
+                                        <div class="operadores-abertos">
+                                            <?php foreach ($paradosProcesso as $parado): ?>
+                                                <div class="operador-aberto operador-parado">
+                                                    <span><strong><?php echo horas_h($parado['Operador']); ?></strong><br><small>Parado: <?php echo horas_h($parado['Motivo']); ?></small></span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($abertosProcesso)): ?>
+                                        <div class="badge-aberto">Em andamento: <?php echo count($abertosProcesso); ?> operador(es)</div>
+                                        <div class="operadores-abertos">
+                                            <?php foreach ($abertosProcesso as $aberto): ?>
+                                                <div class="operador-aberto">
+                                                    <span><strong><?php echo horas_h($aberto['Operador'] ?: '-'); ?></strong><br><small>desde <?php echo horas_h(horasFormatarDataHora($aberto['SMT009_Data_Hora_Inicio'])); ?></small></span>
+                                                    <button type="button" class="button danger" onclick="horasAbrirFinalizar(<?php echo (int) $aberto['SMT009_Id']; ?>, 0, 0, <?php echo horas_h(json_encode((string) $aberto['Operador'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?: '""'); ?>)">Finalizar</button>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <button type="button" class="button primary" onclick="horasAbrirIniciar(<?php echo (int) $processo['T262_Id']; ?>, <?php echo $maquinaAberta; ?>)">Adicionar operador</button>
+                                    <?php else: ?>
+                                        <button type="button" class="button primary" onclick="horasAbrirIniciar(<?php echo (int) $processo['T262_Id']; ?>, 0)">Iniciar</button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            <?php elseif ($statusProcesso === 'B'): ?>
                                 <div class="badge-finalizado">Processo finalizado</div>
                             <?php elseif (!empty($processo['Aberto_Id'])): ?>
                                 <div class="badge-aberto">Em andamento: <?php echo horas_h($processo['Aberto_Usuario']); ?> desde <?php echo horas_h(horasFormatarDataHora($processo['Aberto_Inicio'])); ?></div>
@@ -828,13 +1232,25 @@ if ($item) {
 
 <div class="modal-overlay" id="horasModalIniciar">
     <div class="modal-box">
-        <h3>Selecionar maquina</h3>
+        <h3><?php echo $opTemPlanoCorte ? 'Iniciar apontamento' : 'Selecionar maquina'; ?></h3>
         <form method="post" id="horasFormIniciar" action="./apontarHoras.php?op_id=<?php echo (int) $opId; ?>&item_id=<?php echo (int) $itemId; ?>" onsubmit="return horasValidarIniciar(event)">
             <input type="hidden" name="acao" value="iniciar">
             <input type="hidden" name="item_id" value="<?php echo (int) $itemId; ?>">
             <input type="hidden" name="op_id" value="<?php echo (int) $opId; ?>">
             <input type="hidden" name="t262_id" id="horasIniciarT262Id" value="">
             <input type="hidden" name="d079_id" id="horasIniciarD079Id" value="">
+            <?php if ($opTemPlanoCorte): ?>
+                <div class="modal-field">
+                    <label for="horasOperadorBusca">Operador (leia o codigo de barras ou digite o nome/codigo)</label>
+                    <input type="text" id="horasOperadorBusca" placeholder="Codigo de barras, codigo ou nome" oninput="horasFiltrarOperadores()" onkeydown="horasOperadorTecla(event)" autocomplete="off">
+                </div>
+                <div class="maquina-lista" id="horasOperadorLista" style="display:none"></div>
+                <div class="operador-selecionados" id="horasOperadoresSelecionados"></div>
+                <div id="horasOperadoresInputs"></div>
+                <?php if ($qtdeItensOp > 1): ?>
+                    <div class="modal-info">O apontamento sera iniciado neste processo para os <?php echo (int) $qtdeItensOp; ?> itens desta OP.</div>
+                <?php endif; ?>
+            <?php endif; ?>
             <div class="modal-field">
                 <label for="horasIniciarBusca">Buscar maquina (numero ou nome)</label>
                 <input type="text" id="horasIniciarBusca" placeholder="Digite o numero ou o nome da maquina" oninput="horasFiltrarMaquinas()" autocomplete="off">
@@ -869,6 +1285,7 @@ if ($item) {
 <div class="modal-overlay" id="horasModalFinalizar">
     <div class="modal-box">
         <h3>Finalizar apontamento</h3>
+        <div class="modal-info" id="horasFinalizarOperador"></div>
         <form method="post" id="horasFormFinalizar" action="./apontarHoras.php?op_id=<?php echo (int) $opId; ?>&item_id=<?php echo (int) $itemId; ?>" onsubmit="return horasValidarFinalizar(event)">
             <input type="hidden" name="acao" value="finalizar">
             <input type="hidden" name="item_id" value="<?php echo (int) $itemId; ?>">
@@ -905,7 +1322,25 @@ if ($item) {
     </div>
 </div>
 <script>
-function horasAbrirIniciar(t262Id) {
+<?php
+    $horasJsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $horasJsonFlags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+    $horasOperadoresJs = array();
+    foreach ($operadores as $operador) {
+        $horasOperadoresJs[] = array(
+            'id' => (int) $operador['D109_Id'],
+            'nome' => (string) $operador['D109_Nome'],
+            'codigo' => trim((string) $operador['D109_Codigo_Barras']),
+            'usuario' => (int) $operador['D109A_C007_Id'],
+        );
+    }
+    $horasOperadoresJson = json_encode($horasOperadoresJs, $horasJsonFlags);
+?>
+var HORAS_OPERADORES = <?php echo $horasOperadoresJson !== false ? $horasOperadoresJson : '[]'; ?>;
+var horasOperadoresSelecionados = [];
+function horasAbrirIniciar(t262Id, maquinaId) {
     document.getElementById('horasIniciarT262Id').value = t262Id;
     document.getElementById('horasIniciarD079Id').value = '';
     document.getElementById('horasIniciarBusca').value = '';
@@ -914,8 +1349,145 @@ function horasAbrirIniciar(t262Id) {
     itens.forEach(function (item) {
         item.classList.remove('selecionado');
         item.style.display = '';
+        if (maquinaId && String(item.getAttribute('data-id')) === String(maquinaId)) {
+            horasSelecionarMaquina(item);
+        }
     });
+    var buscaOperador = document.getElementById('horasOperadorBusca');
+    horasOperadoresSelecionados = [];
+    horasRenderizarOperadores();
     document.getElementById('horasModalIniciar').classList.add('active');
+    if (buscaOperador) {
+        buscaOperador.value = '';
+        horasFiltrarOperadores();
+        buscaOperador.focus();
+    }
+}
+function horasNormalizar(texto) {
+    texto = String(texto || '').toLowerCase().trim();
+    if (texto.normalize) {
+        texto = texto.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+    return texto;
+}
+function horasOperadoresFiltrados(termo) {
+    termo = horasNormalizar(termo);
+    if (termo === '') {
+        return [];
+    }
+    return HORAS_OPERADORES.filter(function (op) {
+        return horasNormalizar(op.nome).indexOf(termo) !== -1 || horasNormalizar(op.codigo).indexOf(termo) !== -1;
+    });
+}
+function horasFiltrarOperadores() {
+    var busca = document.getElementById('horasOperadorBusca');
+    var lista = document.getElementById('horasOperadorLista');
+    if (!busca || !lista) {
+        return;
+    }
+    var encontrados = horasOperadoresFiltrados(busca.value);
+    lista.innerHTML = '';
+    if (busca.value.trim() === '') {
+        lista.style.display = 'none';
+        return;
+    }
+    lista.style.display = '';
+    if (encontrados.length === 0) {
+        var vazio = document.createElement('div');
+        vazio.className = 'maquina-item-vazio';
+        vazio.textContent = 'Nenhum operador encontrado.';
+        lista.appendChild(vazio);
+        return;
+    }
+    encontrados.slice(0, 50).forEach(function (op) {
+        var linha = document.createElement('div');
+        linha.className = 'maquina-item';
+        var info = document.createElement('span');
+        info.className = 'maquina-item-info';
+        var codigo = document.createElement('span');
+        codigo.className = 'maquina-item-id';
+        codigo.textContent = op.codigo ? op.codigo : '#' + op.id;
+        var nome = document.createElement('span');
+        nome.className = 'maquina-item-nome';
+        nome.textContent = op.nome;
+        info.appendChild(codigo);
+        info.appendChild(nome);
+        linha.appendChild(info);
+        linha.onclick = function () { horasAdicionarOperador(op); };
+        lista.appendChild(linha);
+    });
+}
+function horasOperadorTecla(event) {
+    if (event.key !== 'Enter') {
+        return;
+    }
+    // Leitor de codigo de barras envia Enter: nao deixa submeter o formulario.
+    event.preventDefault();
+    var busca = document.getElementById('horasOperadorBusca');
+    var termo = horasNormalizar(busca.value);
+    if (termo === '') {
+        return;
+    }
+    var exato = HORAS_OPERADORES.filter(function (op) {
+        return op.codigo !== '' && horasNormalizar(op.codigo) === termo;
+    });
+    var encontrados = exato.length > 0 ? exato : horasOperadoresFiltrados(termo);
+    if (encontrados.length === 1) {
+        horasAdicionarOperador(encontrados[0]);
+    } else if (encontrados.length === 0) {
+        document.getElementById('horasIniciarErro').textContent = 'Operador nao encontrado: ' + busca.value;
+        busca.select();
+    } else {
+        document.getElementById('horasIniciarErro').textContent = 'Mais de um operador encontrado, selecione na lista.';
+    }
+}
+function horasAdicionarOperador(op) {
+    var erro = document.getElementById('horasIniciarErro');
+    var busca = document.getElementById('horasOperadorBusca');
+    if (!op.usuario) {
+        erro.textContent = 'O operador ' + op.nome + ' nao possui usuario vinculado no cadastro de funcionario.';
+        return;
+    }
+    var jaExiste = horasOperadoresSelecionados.some(function (sel) { return sel.id === op.id; });
+    if (!jaExiste) {
+        horasOperadoresSelecionados.push(op);
+    }
+    erro.textContent = '';
+    busca.value = '';
+    horasFiltrarOperadores();
+    horasRenderizarOperadores();
+    busca.focus();
+}
+function horasRemoverOperador(id) {
+    horasOperadoresSelecionados = horasOperadoresSelecionados.filter(function (sel) { return sel.id !== id; });
+    horasRenderizarOperadores();
+}
+function horasRenderizarOperadores() {
+    var area = document.getElementById('horasOperadoresSelecionados');
+    var inputs = document.getElementById('horasOperadoresInputs');
+    if (!area || !inputs) {
+        return;
+    }
+    area.innerHTML = '';
+    inputs.innerHTML = '';
+    horasOperadoresSelecionados.forEach(function (op) {
+        var chip = document.createElement('span');
+        chip.className = 'operador-chip';
+        chip.appendChild(document.createTextNode(op.nome));
+        var remover = document.createElement('button');
+        remover.type = 'button';
+        remover.title = 'Remover';
+        remover.innerHTML = '&times;';
+        remover.onclick = function () { horasRemoverOperador(op.id); };
+        chip.appendChild(remover);
+        area.appendChild(chip);
+
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'operadores[]';
+        input.value = op.id;
+        inputs.appendChild(input);
+    });
 }
 function horasFecharIniciar() {
     document.getElementById('horasModalIniciar').classList.remove('active');
@@ -936,6 +1508,11 @@ function horasSelecionarMaquina(elemento) {
     document.getElementById('horasIniciarErro').textContent = '';
 }
 function horasValidarIniciar(event) {
+    if (HORAS_OP_TEM_PLANO_CORTE && horasOperadoresSelecionados.length === 0) {
+        document.getElementById('horasIniciarErro').textContent = 'Informe pelo menos um operador.';
+        event.preventDefault();
+        return false;
+    }
     var d079Id = document.getElementById('horasIniciarD079Id').value;
     if (!d079Id) {
         document.getElementById('horasIniciarErro').textContent = 'Selecione uma maquina.';
@@ -950,7 +1527,9 @@ var horasFinalizarQuantidadeAlvo = 0;
 function horasFormatarQtd(valor) {
     return valor.toFixed(3).replace('.', ',');
 }
-function horasAbrirFinalizar(smt009Id, somaAnterior, quantidadeAlvo) {
+function horasAbrirFinalizar(smt009Id, somaAnterior, quantidadeAlvo, operadorNome) {
+    var infoOperador = document.getElementById('horasFinalizarOperador');
+    infoOperador.textContent = operadorNome ? 'Operador: ' + operadorNome + (HORAS_OP_TEM_PLANO_CORTE ? ' (finaliza em todos os itens da OP)' : '') : '';
     horasFinalizarSomaAnterior = somaAnterior || 0;
     horasFinalizarQuantidadeAlvo = quantidadeAlvo || 0;
     document.getElementById('horasFinalizarSmt009Id').value = smt009Id;
@@ -1016,5 +1595,6 @@ function horasValidarFinalizar(event) {
     return true;
 }
 </script>
+<script src="./js/sessaoKeepAlive.js"></script>
 </body>
 </html>
