@@ -1,9 +1,13 @@
 /* Shell do desktop logado. A faixa fica fora do #desktop e não usa a classe
-   .tabs: o C.R.M. chama $('.tabs') na página inteira. */
+   .tabs: o C.R.M. chama $('.tabs') na página inteira.
+   A lista de abas vive só nesta página: recarregar ou entrar de novo abre vazia.
+   Fechar a aba chama dialog("close") sem tecla Esc. A pergunta de algumas
+   janelas continua no Esc delas (beforeClose em sistema.js, keyCode 27). */
 (function () {
   var abas = [];
   var visivel = null;
   var abrirOriginal = null;
+  var arrastando = null;
 
   function escapar(texto) {
     return String(texto).replace(/[&<>"']/g, function (caractere) {
@@ -160,21 +164,92 @@
       .map(function (aba) {
         var ativa = aba.raiz === visivel;
         var classe = ativa
-          ? "tw:max-w-56 tw:shrink-0 tw:truncate tw:rounded-t-md tw:bg-paper tw:px-3 tw:py-1.5 tw:text-ink"
-          : "tw:max-w-56 tw:shrink-0 tw:truncate tw:rounded-t-md tw:px-3 tw:py-1.5 tw:text-muted";
+          ? "tw:flex tw:max-w-56 tw:shrink-0 tw:items-center tw:rounded-t-md tw:bg-paper tw:text-ink"
+          : "tw:flex tw:max-w-56 tw:shrink-0 tw:items-center tw:rounded-t-md tw:text-muted";
         return (
-          '<button type="button" class="' +
+          '<div role="tab" draggable="true" class="' +
           classe +
           '" data-fx-aba="' +
           escapar(aba.raiz) +
           '" aria-selected="' +
           (ativa ? "true" : "false") +
           '">' +
+          '<span class="tw:min-w-0 tw:flex-1 tw:truncate tw:px-3 tw:py-1.5 tw:text-left">' +
           escapar(aba.titulo) +
-          "</button>"
+          "</span>" +
+          '<button type="button" class="tw:grid tw:size-7 tw:shrink-0 tw:place-items-center tw:rounded-md tw:text-muted tw:hover:bg-black/5" data-fx-fechar="' +
+          escapar(aba.raiz) +
+          '" aria-label="Fechar ' +
+          escapar(aba.titulo) +
+          '">×</button></div>'
         );
       })
       .join("");
+    mostrarVisivel();
+  }
+
+  function mostrarVisivel() {
+    var faixa = document.getElementById("fx-faixa");
+    if (!faixa || visivel == null) return;
+    var filhos = faixa.children;
+    var aba = null;
+    for (var i = 0; i < filhos.length; i++) {
+      if (filhos[i].getAttribute("data-fx-aba") === visivel) aba = filhos[i];
+    }
+    if (!aba) return;
+    var faixaRect = faixa.getBoundingClientRect();
+    var abaRect = aba.getBoundingClientRect();
+    if (abaRect.left < faixaRect.left) {
+      faixa.scrollLeft -= faixaRect.left - abaRect.left;
+    } else if (abaRect.right > faixaRect.right) {
+      faixa.scrollLeft += abaRect.right - faixaRect.right;
+    }
+  }
+
+  function conteudosDaAba(raiz) {
+    var lista = [];
+    window.jQuery(".ui-dialog-content").each(function () {
+      var conteudo = window.jQuery(this);
+      if (String(conteudo.data("janelaIdRoot")) !== String(raiz)) return;
+      lista.push(conteudo);
+    });
+    lista.reverse();
+    return lista;
+  }
+
+  function fecharJanelas(raiz) {
+    conteudosDaAba(raiz).forEach(function (conteudo) {
+      conteudo.parent().hide();
+      window.jQuery("#w-overlay-" + conteudo.attr("id")).remove();
+      if (!conteudo.data("dialog")) return;
+      conteudo.dialog("close");
+    });
+  }
+
+  function fecharAba(raiz) {
+    var indice = indiceDaAba(raiz);
+    if (indice < 0) return;
+    var eraVisivel = visivel === raiz;
+    abas.splice(indice, 1);
+    if (eraVisivel) {
+      var proxima = abas[indice] || abas[indice - 1] || null;
+      visivel = proxima ? proxima.raiz : null;
+    }
+    fecharJanelas(raiz);
+    desenharFaixa();
+    aplicarMiolo();
+    window.setTimeout(aplicarMiolo, 400);
+  }
+
+  function soltarAba(destino) {
+    if (!arrastando || destino === arrastando) return;
+    var de = indiceDaAba(arrastando);
+    var para = indiceDaAba(destino);
+    if (de < 0 || para < 0) return;
+    var item = abas.splice(de, 1)[0];
+    abas.splice(para, 0, item);
+    arrastando = null;
+    desenharFaixa();
   }
 
   function indiceDaAba(raiz) {
@@ -262,12 +337,45 @@
       '<div id="fx-area" class="tw:min-h-0 tw:min-w-0"></div></div>';
     document.body.appendChild(shell);
 
-    document.getElementById("fx-faixa").addEventListener("click", function (evento) {
-      var botao = evento.target.closest("[data-fx-aba]");
-      if (!botao) return;
-      visivel = botao.getAttribute("data-fx-aba");
+    var faixa = document.getElementById("fx-faixa");
+    faixa.addEventListener("click", function (evento) {
+      var fechar = evento.target.closest("[data-fx-fechar]");
+      if (fechar) {
+        evento.preventDefault();
+        fecharAba(fechar.getAttribute("data-fx-fechar"));
+        return;
+      }
+      var aba = evento.target.closest("[data-fx-aba]");
+      if (!aba) return;
+      visivel = aba.getAttribute("data-fx-aba");
       desenharFaixa();
       aplicarMiolo();
+    });
+    faixa.addEventListener("dragstart", function (evento) {
+      if (evento.target.closest("[data-fx-fechar]")) {
+        evento.preventDefault();
+        return;
+      }
+      var aba = evento.target.closest("[data-fx-aba]");
+      if (!aba) return;
+      arrastando = aba.getAttribute("data-fx-aba");
+      evento.dataTransfer.effectAllowed = "move";
+      evento.dataTransfer.setData("text/plain", arrastando);
+    });
+    faixa.addEventListener("dragover", function (evento) {
+      if (!arrastando) return;
+      if (!evento.target.closest("[data-fx-aba]")) return;
+      evento.preventDefault();
+      evento.dataTransfer.dropEffect = "move";
+    });
+    faixa.addEventListener("drop", function (evento) {
+      var aba = evento.target.closest("[data-fx-aba]");
+      if (!aba || !arrastando) return;
+      evento.preventDefault();
+      soltarAba(aba.getAttribute("data-fx-aba"));
+    });
+    faixa.addEventListener("dragend", function () {
+      arrastando = null;
     });
 
     // O Hardness fecha a janela que deixou de ser a visível. A aba precisa ficar.
