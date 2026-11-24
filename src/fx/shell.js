@@ -198,7 +198,7 @@
     if (!caixa || !area) return;
     var rect = area.getBoundingClientRect();
     caixa.style.left = rect.left + rect.width / 2 + "px";
-    caixa.style.top = rect.top + Math.min(rect.height, 640) / 2 + "px";
+    caixa.style.top = rect.top + rect.height / 2 + "px";
     caixa.style.transform = "translate(-50%, -50%)";
   }
 
@@ -231,8 +231,8 @@
       var camada = document.createElement("div");
       camada.id = "fx-paleta";
       camada.innerHTML =
-        '<div data-fx-paleta-fundo class="tw:fixed tw:inset-0 tw:z-[200000] tw:bg-side/40"></div>' +
-        '<div data-fx-paleta-caixa role="dialog" aria-modal="true" aria-label="Pesquisar o menu" class="tw:fixed tw:z-[200001] tw:flex tw:w-[min(520px,calc(100%-32px))] tw:max-h-[min(540px,68vh)] tw:flex-col tw:overflow-hidden tw:rounded-lg tw:bg-paper tw:text-[13px] tw:leading-snug tw:text-ink tw:shadow-[0_24px_60px_#141c2866]">' +
+        '<div data-fx-paleta-fundo class="tw:fixed tw:inset-0 tw:z-200000 tw:bg-side/40"></div>' +
+        '<div data-fx-paleta-caixa role="dialog" aria-modal="true" aria-label="Pesquisar o menu" class="tw:fixed tw:z-200001 tw:flex tw:w-[min(520px,calc(100%-32px))] tw:max-h-[min(540px,68vh)] tw:flex-col tw:overflow-hidden tw:rounded-lg tw:bg-paper tw:text-[13px] tw:leading-snug tw:text-ink tw:shadow-[0_24px_60px_#141c2866]">' +
         '<input id="fx-paleta-filtro" type="text" autocomplete="off" spellcheck="false" placeholder="Filtrar o menu" aria-label="Filtrar o menu" class="tw:w-full tw:border-b tw:border-solid tw:border-line tw:bg-paper tw:px-3.5 tw:py-3 tw:text-ink tw:outline-none">' +
         '<div id="fx-paleta-lista" role="listbox" class="tw:min-h-0 tw:flex-1 tw:overflow-auto tw:py-1"></div></div>';
       document.body.appendChild(camada);
@@ -301,7 +301,8 @@
 
   function aoTecla(evento) {
     var ctrlK =
-      (evento.ctrlKey || evento.metaKey) &&
+      evento.ctrlKey &&
+      !evento.metaKey &&
       !evento.altKey &&
       !evento.shiftKey &&
       evento.key &&
