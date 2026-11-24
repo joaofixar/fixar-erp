@@ -9,12 +9,12 @@ Orbit: ERPFX-50
 
 **Status:** ready-for-agent
 
-- [ ] Com uma empresa, o controle é rótulo e não abre lista
-- [ ] Com mais de uma empresa, o controle abre a lista, cada item com o nome completo
-- [ ] O controle fechado mostra o nome abreviado e o título mostra o nome completo
-- [ ] Trocar de empresa recarrega o menu, fecha as abas e as janelas e atualiza a área de trabalho
-- [ ] O avatar abre o menu com o login e, abaixo, o nome do perfil
-- [ ] O nome da pessoa fica fora do shell
-- [ ] A troca de usuário só aparece se o perfil permitir, e tem o mesmo efeito da troca de empresa
-- [ ] Sem permissão, a lista de usuários não aparece
-- [ ] Sair é o último item e encerra a sessão
+- [x] Com uma empresa, o controle é rótulo e não abre lista
+- [x] Com mais de uma empresa, o controle abre a lista, cada item com o nome completo
+- [x] O controle fechado mostra o nome abreviado e o título mostra o nome completo
+- [x] Trocar de empresa recarrega o menu, fecha as abas e as janelas e atualiza a área de trabalho
+- [x] O avatar abre o menu com o login e, abaixo, o nome do perfil
+- [x] O nome da pessoa fica fora do shell
+- [x] A troca de usuário só aparece se o perfil permitir, e tem o mesmo efeito da troca de empresa
+- [x] Sem permissão, a lista de usuários não aparece
+- [x] Sair é o último item e encerra a sessão

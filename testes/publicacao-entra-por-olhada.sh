@@ -445,6 +445,7 @@ EOF
 cat >"$pub/sistema/index-framework.php" <<'EOF'
 jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
 wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
+$selectEmpresa .= "<option value='{$row['C004_Id']}'{$selected}>{$row['C004_Nome_Abreviado']}</option>";
 EOF
 cat >"$pub/sistema/interfaceUsuario.php" <<'EOF'
 class interfaceUsuario { public $gridFiltro, $colunasOcultar;
@@ -474,6 +475,7 @@ cat >"$pub/sistema/index-framework.php" <<'EOF'
 // deles
 jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
 wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
+$selectEmpresa .= "<option value='{$row['C004_Id']}'{$selected}>{$row['C004_Nome_Abreviado']}</option>";
 EOF
 cat >"$pub/sistema/interfaceUsuario.php" <<'EOF'
 // deles
@@ -499,6 +501,7 @@ cat >"$erp/src/hardness3/sistema/index-framework.php" <<'EOF'
 // fixar
 jGJfq: $g['divId-last'] = $g['divIdChain'][count($g['divIdChain']) - 1];
 wQr4K: $g['divIdParent-last'] = $g['divIdParentChain'][count($g['divIdParentChain']) - 1];
+$selectEmpresa .= "<option value='{$row['C004_Id']}'{$selected}>{$row['C004_Nome_Abreviado']}</option>";
 EOF
 cat >"$erp/src/hardness3/sistema/interfaceUsuario.php" <<'EOF'
 // fixar
@@ -548,6 +551,9 @@ if ! grep -q "is_array(\$g\['divIdChain'\])" <<<"$(git -C "$erp" show "publicaca
 fi
 if ! grep -q '// deles' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/index-framework.php")"; then
   reclamar "o texto da publicação saiu ao ajustar a cadeia de telas"
+fi
+if ! grep -q 'data-nome=' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/index-framework.php")"; then
+  reclamar "o nome completo da empresa não entrou na lista"
 fi
 if ! grep -q 'colunasOcultar = array()' <<<"$(git -C "$erp" show "publicacao/$sha_ponta:src/hardness3/sistema/interfaceUsuario.php")"; then
   reclamar "a lista de colunas ocultas não foi ajustada na branch"

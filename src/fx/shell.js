@@ -14,7 +14,15 @@
    Ctrl+K alterna. A lupa abre a mesma paleta. Esc, Ctrl+K de novo ou um
    clique fora fecha sem abrir. Os atalhos Alt+letra do menu (sistema.js,
    abrirMenuPorNome e Alt+M) saem. Setas, Enter e Esc deixam de andar nesse
-   menu e seguem no miolo. */
+   menu e seguem no miolo.
+   A empresa sob a marca é rótulo quando há uma só. Com mais de uma, o
+   controle abre a lista pelo nome completo. Trocar chama a troca do
+   Hardness e, no retorno, esvazia a faixa e as janelas, repinta o menu e
+   a área. O avatar mostra o login e, abaixo, o perfil. A lista de usuários
+   só entra se o rodapé já oferece a troca, e faz o mesmo que a empresa.
+   Sair vai para /logout. O nome da pessoa fica de fora. Os dois menus
+   nascem no body, como a paleta: o #desktop é uma camada por cima da
+   área, e um menu dentro do shell ficaria atrás da janela aberta. */
 (function () {
   var abas = [];
   var visivel = null;
@@ -23,6 +31,7 @@
   var paletaAberta = false;
   var filtroPaleta = "";
   var destaquePaleta = -1;
+  var popAberto = null;
 
   function escapar(texto) {
     return String(texto).replace(/[&<>"']/g, function (caractere) {
@@ -37,11 +46,12 @@
   }
 
   function nomeCurto() {
+    var campo = document.querySelector("#campoEmpresa span");
+    if (campo && campo.textContent.trim()) return campo.textContent.trim();
     if (window.g && g.nomeEmpresaAbreviado) {
       return String(g.nomeEmpresaAbreviado).trim();
     }
-    var campo = document.querySelector("#campoEmpresa span");
-    return campo ? campo.textContent.trim() : "";
+    return "";
   }
 
   function nomeCompleto() {
@@ -50,21 +60,294 @@
     return nome || nomeCurto();
   }
 
-  function letraDoAcesso() {
+  function decodificar(texto) {
+    var el = document.createElement("textarea");
+    el.innerHTML = texto;
+    return el.value;
+  }
+
+  function fatiasAntesDoBanco() {
+    var fonte = document.querySelector("#footer > div > font[title]");
+    if (!fonte) return [];
+    var no = fonte.previousSibling;
+    while (no && no.nodeType !== 3) no = no.previousSibling;
+    if (!no) return [];
+    return no.textContent
+      .replace(/\u00a0/g, " ")
+      .split("|")
+      .map(function (parte) {
+        return parte.replace(/\s+/g, " ").trim();
+      })
+      .filter(Boolean);
+  }
+
+  function loginDoAcesso() {
     var campo = document.querySelector("#campoUsuario span");
     if (campo && campo.textContent.trim()) {
-      return campo.textContent.trim().charAt(0);
+      return campo.textContent.replace(/\s+/g, " ").trim();
     }
-    var bloco = document.querySelector("#footer > div");
-    if (!bloco) return "";
-    var partes = bloco.textContent.split("|");
-    for (var i = 0; i < partes.length; i++) {
-      var texto = partes[i].trim();
-      if (!texto) continue;
-      if (i === 0) continue;
-      return texto.charAt(0);
+    var fatias = fatiasAntesDoBanco();
+    if (fatias.length >= 2) return fatias[fatias.length - 2];
+    return fatias[0] || "";
+  }
+
+  function perfilDoAcesso() {
+    var fatias = fatiasAntesDoBanco();
+    if (!fatias.length) return "";
+    if (document.getElementById("campoUsuario")) return fatias[0];
+    return fatias[fatias.length - 1];
+  }
+
+  function loginDaOpcao(texto) {
+    var limpo = String(texto)
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return limpo.split(" ")[0] || "";
+  }
+
+  function empresas() {
+    var select = document.getElementById("selecionaEmpresa");
+    if (!select || select.options.length < 2) return [];
+    var lista = [];
+    for (var i = 0; i < select.options.length; i++) {
+      var opcao = select.options[i];
+      var nome = opcao.getAttribute("data-nome") || opcao.textContent;
+      nome = String(nome).replace(/\s+/g, " ").trim();
+      if (!nome) continue;
+      lista.push({ id: opcao.value, nome: nome });
     }
-    return "";
+    return lista;
+  }
+
+  function usuariosDoAcesso() {
+    var select = document.getElementById("selecionaUsuario");
+    if (!select) return [];
+    var lista = [];
+    for (var i = 0; i < select.options.length; i++) {
+      var opcao = select.options[i];
+      var login = loginDaOpcao(opcao.textContent);
+      if (!login) continue;
+      lista.push({ id: opcao.value, login: login });
+    }
+    return lista;
+  }
+
+  function pintarEmpresa() {
+    var caixa = document.getElementById("fx-empresa");
+    if (!caixa) return;
+    var curto = nomeCurto();
+    var completo = nomeCompleto();
+    var lista = empresas();
+    var controle;
+    if (lista.length < 2) {
+      controle =
+        '<p class="tw:m-0 tw:px-3.5 tw:pb-3 tw:pt-1 tw:text-xs tw:leading-snug tw:text-side-muted" title="' +
+        escapar(completo) +
+        '">' +
+        escapar(curto) +
+        "</p>";
+    } else {
+      controle =
+        '<button type="button" data-fx-empresa class="tw:m-0 tw:block tw:w-full tw:rounded-md tw:px-3.5 tw:pb-3 tw:pt-1 tw:text-left tw:text-xs tw:leading-snug tw:text-side-muted tw:hover:bg-white/10" title="' +
+        escapar(completo) +
+        '" aria-expanded="' +
+        (popAberto === "empresa" ? "true" : "false") +
+        '" aria-label="Empresa">' +
+        escapar(curto) +
+        "</button>";
+    }
+    caixa.innerHTML = controle;
+  }
+
+  function htmlPopEmpresa() {
+    var select = document.getElementById("selecionaEmpresa");
+    var atual = select ? String(select.value) : "";
+    return (
+      '<div data-fx-pop role="listbox" aria-label="Empresas" class="tw:fixed tw:z-[200002] tw:w-64 tw:rounded-lg tw:border tw:border-solid tw:border-line tw:bg-paper tw:p-1.5 tw:text-[13px] tw:text-ink tw:shadow-[0_10px_30px_#141c2829]">' +
+      empresas()
+        .map(function (empresa) {
+          var marcada = String(empresa.id) === atual;
+          return (
+            '<button type="button" role="option" data-fx-empresa-item="' +
+            escapar(empresa.id) +
+            '" aria-selected="' +
+            (marcada ? "true" : "false") +
+            '" class="tw:block tw:w-full tw:rounded-md tw:px-2 tw:py-1.5 tw:text-left tw:text-ink' +
+            (marcada ? " tw:font-semibold" : "") +
+            ' tw:hover:bg-black/5">' +
+            escapar(empresa.nome) +
+            "</button>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function pintarAvatar() {
+    var caixa = document.getElementById("fx-avatar");
+    if (!caixa) return;
+    var login = loginDoAcesso();
+    var letra = login ? login.charAt(0) : "";
+    var aberto = popAberto === "avatar";
+    caixa.innerHTML =
+      '<button type="button" data-fx-avatar class="tw:grid tw:size-7 tw:place-items-center tw:rounded-full tw:bg-accent tw:text-xs tw:font-semibold tw:text-white" aria-label="Usuário" aria-expanded="' +
+      (aberto ? "true" : "false") +
+      '">' +
+      escapar(letra) +
+      "</button>";
+  }
+
+  function htmlPopAvatar() {
+    var login = loginDoAcesso();
+    var perfil = perfilDoAcesso();
+    var usuarios = usuariosDoAcesso();
+    var select = document.getElementById("selecionaUsuario");
+    var atual = select ? String(select.value) : "";
+    var lista = usuarios
+      .map(function (usuario) {
+        var marcada = String(usuario.id) === atual;
+        return (
+          '<button type="button" role="menuitem" data-fx-usuario-item="' +
+          escapar(usuario.id) +
+          '" class="tw:block tw:w-full tw:rounded-md tw:px-2 tw:py-1.5 tw:text-left tw:text-ink' +
+          (marcada ? " tw:font-semibold" : "") +
+          ' tw:hover:bg-black/5">' +
+          escapar(usuario.login) +
+          "</button>"
+        );
+      })
+      .join("");
+    return (
+      '<div data-fx-pop role="menu" aria-label="Usuário" class="tw:fixed tw:z-[200002] tw:w-64 tw:rounded-lg tw:border tw:border-solid tw:border-line tw:bg-paper tw:p-1.5 tw:text-[13px] tw:leading-snug tw:text-ink tw:shadow-[0_10px_30px_#141c2829]">' +
+      '<p class="tw:m-0 tw:px-2 tw:pt-1.5 tw:font-semibold tw:text-ink">' +
+      escapar(login) +
+      "</p>" +
+      '<p class="tw:m-0 tw:px-2 tw:pb-1.5 tw:text-xs tw:text-muted">' +
+      escapar(perfil) +
+      "</p>" +
+      lista +
+      '<button type="button" data-fx-sair role="menuitem" class="tw:mt-1 tw:block tw:w-full tw:rounded-md tw:border-t tw:border-solid tw:border-line tw:px-2 tw:py-1.5 tw:text-left tw:text-ink tw:hover:bg-black/5">Sair</button>' +
+      "</div>"
+    );
+  }
+
+  function soltarPop() {
+    var pop = document.querySelector("[data-fx-pop]");
+    if (pop) pop.remove();
+  }
+
+  function colocarPop(html, ancora, lado) {
+    soltarPop();
+    if (!html || !ancora) return;
+    var suporte = document.createElement("div");
+    suporte.innerHTML = html;
+    var pop = suporte.firstElementChild;
+    if (!pop) return;
+    document.body.appendChild(pop);
+    var rect = ancora.getBoundingClientRect();
+    var margem = lado === "direita" ? 4 : 0;
+    pop.style.top = rect.bottom + margem + "px";
+    pop.style.left = "0px";
+    var esquerda =
+      lado === "direita" ? rect.right - pop.offsetWidth : rect.left + 8;
+    if (esquerda < 8) esquerda = 8;
+    pop.style.left = esquerda + "px";
+  }
+
+  function sincronizarPop() {
+    if (popAberto === "empresa") {
+      colocarPop(
+        htmlPopEmpresa(),
+        document.getElementById("fx-empresa"),
+        "esquerda",
+      );
+      return;
+    }
+    if (popAberto === "avatar") {
+      colocarPop(
+        htmlPopAvatar(),
+        document.getElementById("fx-avatar"),
+        "direita",
+      );
+      return;
+    }
+    soltarPop();
+  }
+
+  function redesenharAcesso() {
+    pintarEmpresa();
+    pintarAvatar();
+    sincronizarPop();
+  }
+
+  function fecharPops() {
+    if (!popAberto) return;
+    popAberto = null;
+    redesenharAcesso();
+  }
+
+  function alternarPop(nome) {
+    if (paletaAberta) fecharPaleta();
+    popAberto = popAberto === nome ? null : nome;
+    redesenharAcesso();
+  }
+
+  function atualizarNomes(html) {
+    if (!html) return;
+    var metaNova = html.match(/name="fx-empresa-nome"\s+content="([^"]*)"/);
+    if (metaNova) {
+      var meta = document.querySelector('meta[name="fx-empresa-nome"]');
+      if (meta) meta.setAttribute("content", decodificar(metaNova[1]));
+    }
+    var curto = html.match(/nomeEmpresaAbreviado'\s*:\s*'([^']*)'/);
+    if (curto && window.g) g.nomeEmpresaAbreviado = decodificar(curto[1]);
+  }
+
+  function depoisDaTroca(html) {
+    atualizarNomes(html);
+    abas = [];
+    visivel = null;
+    fecharJanelasSoltas();
+    desenharFaixa();
+    var menu = document.getElementById("fx-menu");
+    if (menu) menu.innerHTML = htmlMenu();
+    popAberto = null;
+    redesenharAcesso();
+    medirArea();
+  }
+
+  function trocar(selectId, nomeFn, id) {
+    var select = document.getElementById(selectId);
+    var fn = window[nomeFn];
+    if (!select || typeof fn !== "function" || !window.jQuery) {
+      fecharPops();
+      return;
+    }
+    if (String(select.value) === String(id)) {
+      fecharPops();
+      return;
+    }
+    select.value = String(id);
+    var ajax = window.jQuery.ajax;
+    window.jQuery.ajax = function (opts) {
+      if (opts && typeof opts.success === "function") {
+        var sucesso = opts.success;
+        opts.success = function (html) {
+          var resultado = sucesso.apply(this, arguments);
+          depoisDaTroca(typeof html === "string" ? html : "");
+          return resultado;
+        };
+      }
+      window.jQuery.ajax = ajax;
+      return ajax.apply(this, arguments);
+    };
+    try {
+      fn(select);
+    } finally {
+      window.jQuery.ajax = ajax;
+    }
   }
 
   function gruposDoMenu() {
@@ -224,6 +507,7 @@
   }
 
   function abrirPaleta() {
+    if (popAberto) fecharPops();
     paletaAberta = true;
     filtroPaleta = "";
     destaquePaleta = 0;
@@ -313,6 +597,12 @@
       evento.stopPropagation();
       if (paletaAberta) fecharPaleta();
       else abrirPaleta();
+      return;
+    }
+    if (popAberto && evento.key === "Escape") {
+      evento.preventDefault();
+      evento.stopPropagation();
+      fecharPops();
       return;
     }
     if (!paletaAberta) return;
@@ -491,10 +781,12 @@
 
   function fecharJanelas(raiz) {
     conteudosDaAba(raiz).forEach(function (conteudo) {
-      conteudo.parent().hide();
-      window.jQuery("#w-overlay-" + conteudo.attr("id")).remove();
-      if (!conteudo.data("dialog")) return;
+    conteudo.parent().hide();
+    window.jQuery("#w-overlay-" + conteudo.attr("id")).remove();
+    if (!conteudo.data("dialog")) return;
+    try {
       conteudo.dialog("close");
+    } catch (e) {}
     });
   }
 
@@ -611,8 +903,6 @@
     if (document.getElementById("fx-shell")) return;
     if (window.g && String(g.oneWindow) === "1") return;
 
-    var curto = nomeCurto();
-    var completo = nomeCompleto();
     var shell = document.createElement("div");
     shell.id = "fx-shell";
     shell.className =
@@ -620,12 +910,8 @@
     shell.innerHTML =
       '<aside class="tw:flex tw:min-h-0 tw:flex-col tw:bg-side tw:text-side-ink">' +
       '<p class="tw:m-0 tw:px-3.5 tw:pt-4 tw:text-[15px] tw:font-semibold tw:tracking-wide">FX ERP</p>' +
-      '<p class="tw:m-0 tw:px-3.5 tw:pb-3 tw:pt-1 tw:text-xs tw:leading-snug tw:text-side-muted" title="' +
-      escapar(completo) +
-      '">' +
-      escapar(curto) +
-      "</p>" +
-      '<nav class="tw:min-h-0 tw:flex-1 tw:overflow-auto tw:pb-3">' +
+      '<div id="fx-empresa"></div>' +
+      '<nav id="fx-menu" class="tw:min-h-0 tw:flex-1 tw:overflow-auto tw:pb-3">' +
       htmlMenu() +
       "</nav></aside>" +
       '<div class="tw:grid tw:min-h-0 tw:min-w-0 tw:grid-rows-[48px_36px_minmax(0,1fr)]">' +
@@ -638,12 +924,58 @@
       '<button type="button" class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Alertas">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
       "</button>" +
-      '<button type="button" class="tw:grid tw:size-7 tw:place-items-center tw:rounded-full tw:bg-accent tw:text-xs tw:font-semibold tw:text-white" aria-label="Usuário">' +
-      escapar(letraDoAcesso()) +
-      "</button></div></header>" +
+      '<div id="fx-avatar" class="tw:relative"></div></div></header>' +
       '<div id="fx-faixa" class="tw:flex tw:min-w-0 tw:items-end tw:gap-0.5 tw:overflow-x-auto tw:bg-canvas tw:px-2"></div>' +
       '<div id="fx-area" class="tw:min-h-0 tw:min-w-0"></div></div>';
     document.body.appendChild(shell);
+    redesenharAcesso();
+    shell.addEventListener("click", function (evento) {
+      if (evento.target.closest("[data-fx-empresa]")) {
+        evento.preventDefault();
+        alternarPop("empresa");
+        return;
+      }
+      if (evento.target.closest("[data-fx-avatar]")) {
+        evento.preventDefault();
+        alternarPop("avatar");
+      }
+    });
+    document.addEventListener("click", function (evento) {
+      var empresa = evento.target.closest("[data-fx-empresa-item]");
+      if (empresa) {
+        evento.preventDefault();
+        trocar(
+          "selecionaEmpresa",
+          "changeEmpresaAtual",
+          empresa.getAttribute("data-fx-empresa-item"),
+        );
+        return;
+      }
+      var usuario = evento.target.closest("[data-fx-usuario-item]");
+      if (usuario) {
+        evento.preventDefault();
+        trocar(
+          "selecionaUsuario",
+          "changeUsuarioAtual",
+          usuario.getAttribute("data-fx-usuario-item"),
+        );
+        return;
+      }
+      if (evento.target.closest("[data-fx-sair]")) {
+        evento.preventDefault();
+        window.location = "/logout";
+        return;
+      }
+      if (!popAberto) return;
+      if (
+        evento.target.closest(
+          "[data-fx-pop], [data-fx-empresa], [data-fx-avatar]",
+        )
+      ) {
+        return;
+      }
+      fecharPops();
+    });
     shell.querySelector("[data-fx-pesquisar]").addEventListener(
       "click",
       aoPesquisar,
@@ -705,7 +1037,10 @@
     }
     window.fixDesktopSize = medirArea;
     medirArea();
-    window.addEventListener("resize", medirArea);
+    window.addEventListener("resize", function () {
+      medirArea();
+      fecharPops();
+    });
 
     abrirOriginal = window.abrirJanela;
     window.abrirJanela = aoAbrirJanela;

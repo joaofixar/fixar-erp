@@ -38,6 +38,13 @@ PAI_SEGURO = (
     b"wQr4K: if (!is_array($g['divIdParentChain'])) { $g['divIdParentChain'] = array(); }"
     b" $g['divIdParent-last'] = $g['divIdParentChain'] ? $g['divIdParentChain'][count($g['divIdParentChain']) - 1] : '';"
 )
+# A lista da empresa no shell mostra o nome completo. O select do rodapé continua abreviado.
+EMPRESA_OPCAO = (
+    b"$selectEmpresa .= \"<option value='{$row['C004_Id']}'{$selected}>{$row['C004_Nome_Abreviado']}</option>\";"
+)
+EMPRESA_OPCAO_COMPLETA = (
+    b"$selectEmpresa .= \"<option value='{$row['C004_Id']}'{$selected} data-nome='\" . htmlspecialchars($row['C004_Nome_Empresa'], ENT_QUOTES) . \"'>{$row['C004_Nome_Abreviado']}</option>\";"
+)
 # No PHP 8 o mysqli recusa false. A consulta que falha devolve o vazio do PHP 7.
 CONSULTAS = (
     (
@@ -418,6 +425,14 @@ def adaptar(raiz):
             if PAI in novo:
                 novo = novo.replace(PAI, PAI_SEGURO)
             elif PAI_SEGURO not in novo:
+                print(
+                    "A adaptação de sistema/index-framework.php não encaixa.",
+                    file=sys.stderr,
+                )
+                return 1
+            if EMPRESA_OPCAO in novo:
+                novo = novo.replace(EMPRESA_OPCAO, EMPRESA_OPCAO_COMPLETA)
+            elif EMPRESA_OPCAO_COMPLETA not in novo:
                 print(
                     "A adaptação de sistema/index-framework.php não encaixa.",
                     file=sys.stderr,
