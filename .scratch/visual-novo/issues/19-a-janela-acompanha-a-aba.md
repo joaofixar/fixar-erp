@@ -9,9 +9,9 @@ Orbit: ERPFX-48
 
 **Status:** ready-for-agent
 
-- [ ] O formulário de inclusão abre como janela sobre a aba de onde saiu
-- [ ] Várias janelas empilham sobre a aba visível
-- [ ] Trocar de aba esconde a pilha e voltar mostra a mesma pilha, na mesma ordem
-- [ ] Fechar a aba fecha a pilha junto
-- [ ] Cliente/Fornecedor, com a faixa vazia, abre como janela, e o fechar dela vale
-- [ ] Abrir um módulo fecha essa janela e o que estiver empilhado nela; a aba fica visível e a janela não volta
+- [x] O formulário de inclusão abre como janela sobre a aba de onde saiu
+- [x] Várias janelas empilham sobre a aba visível
+- [x] Trocar de aba esconde a pilha e voltar mostra a mesma pilha, na mesma ordem
+- [x] Fechar a aba fecha a pilha junto
+- [x] Cliente/Fornecedor, com a faixa vazia, abre como janela, e o fechar dela vale
+- [x] Abrir um módulo fecha essa janela e o que estiver empilhado nela; a aba fica visível e a janela não volta

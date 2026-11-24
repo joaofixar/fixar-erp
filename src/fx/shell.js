@@ -2,7 +2,13 @@
    .tabs: o C.R.M. chama $('.tabs') na página inteira.
    A lista de abas vive só nesta página: recarregar ou entrar de novo abre vazia.
    Fechar a aba chama dialog("close") sem tecla Esc. A pergunta de algumas
-   janelas continua no Esc delas (beforeClose em sistema.js, keyCode 27). */
+   janelas continua no Esc delas (beforeClose em sistema.js, keyCode 27).
+   A janela (inclusão, Cliente/Fornecedor) usa a raiz da aba visível, empilha
+   por cima e some junto quando a aba fecha ou quando outra aba fica visível.
+   Com a faixa vazia, a primeira janela auto no centro ocupa a área e segue
+   fechável. O novoDialog do sistema.js, sem diálogo aberto, trocaria esse
+   caso por full sem barra de título. Abrir um módulo fecha essa janela solta
+   e o que estiver empilhado nela; ela não volta. */
 (function () {
   var abas = [];
   var visivel = null;
@@ -226,6 +232,32 @@
     });
   }
 
+  function fecharJanelasSoltas() {
+    var raizes = [];
+    window.jQuery(".ui-dialog-content").each(function () {
+      var raiz = window.jQuery(this).data("janelaIdRoot");
+      if (raiz == null) return;
+      raiz = String(raiz);
+      if (indiceDaAba(raiz) >= 0) return;
+      if (raizes.indexOf(raiz) < 0) raizes.push(raiz);
+    });
+    raizes.forEach(fecharJanelas);
+  }
+
+  function semDialogoVisivel() {
+    var algum = false;
+    window.jQuery(".ui-dialog").each(function () {
+      if (window.jQuery(this).is(":visible")) algum = true;
+    });
+    return !algum;
+  }
+
+  function ocupaAAreaSozinha(tamanho, posicao) {
+    var auto = tamanho === "auto" || typeof tamanho === "undefined";
+    var centro = posicao === "center" || typeof posicao === "undefined";
+    return visivel == null && auto && centro && semDialogoVisivel();
+  }
+
   function fecharAba(raiz) {
     var indice = indiceDaAba(raiz);
     if (indice < 0) return;
@@ -284,16 +316,23 @@
     var evento = arguments[0];
     var raiz = arguments[1];
     var titulo = arguments[4];
+    var tamanho = arguments[8];
     var posicao = arguments[10];
     if (evento && evento.ctrlKey) {
       return abrirOriginal.apply(this, arguments);
     }
     medirArea();
-    var resultado = abrirOriginal.apply(this, arguments);
-    if (posicao === "topleft" && raiz) {
-      lembrarAba(String(raiz), titulo ? String(titulo) : String(raiz));
+    if (ocupaAAreaSozinha(tamanho, posicao)) {
+      arguments[8] = "full";
+      if (arguments.length < 9) arguments.length = 9;
     }
-    return resultado;
+    if (posicao === "topleft" && raiz) {
+      fecharJanelasSoltas();
+      var resultado = abrirOriginal.apply(this, arguments);
+      lembrarAba(String(raiz), titulo ? String(titulo) : String(raiz));
+      return resultado;
+    }
+    return abrirOriginal.apply(this, arguments);
   }
 
   function montar() {
@@ -380,6 +419,13 @@
 
     // O Hardness fecha a janela que deixou de ser a visível. A aba precisa ficar.
     window.closeLastBtn = false;
+    if (typeof window.divIdRootAberto === "function") {
+      var raizAbertaOriginal = window.divIdRootAberto;
+      window.divIdRootAberto = function () {
+        if (visivel != null) return visivel;
+        return raizAbertaOriginal.apply(this, arguments);
+      };
+    }
     window.fixDesktopSize = medirArea;
     medirArea();
     window.addEventListener("resize", medirArea);
