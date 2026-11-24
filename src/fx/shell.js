@@ -5,10 +5,11 @@
    janelas continua no Esc delas (beforeClose em sistema.js, keyCode 27).
    A janela (inclusão, Cliente/Fornecedor) usa a raiz da aba visível, empilha
    por cima e some junto quando a aba fecha ou quando outra aba fica visível.
-   Com a faixa vazia, a primeira janela auto no centro ocupa a área e segue
-   fechável. O novoDialog do sistema.js, sem diálogo aberto, trocaria esse
-   caso por full sem barra de título. Abrir um módulo fecha essa janela solta
-   e o que estiver empilhado nela; ela não volta. */
+   Com a faixa vazia, a primeira janela auto ou forcarAuto no centro ocupa a
+   área e segue fechável. O atalho F2 manda forcarAuto; o abrirJanela do
+   sistema.js troca isso por auto, e o novoDialog, sem diálogo aberto,
+   trocaria o caso por full sem barra de título. Abrir um módulo fecha essa
+   janela solta e o que estiver empilhado nela; ela não volta. */
 (function () {
   var abas = [];
   var visivel = null;
@@ -252,8 +253,11 @@
     return !algum;
   }
 
-  function ocupaAAreaSozinha(tamanho, posicao) {
-    var auto = tamanho === "auto" || typeof tamanho === "undefined";
+  function deveOcuparAArea(tamanho, posicao) {
+    var auto =
+      tamanho === "auto" ||
+      tamanho === "forcarAuto" ||
+      typeof tamanho === "undefined";
     var centro = posicao === "center" || typeof posicao === "undefined";
     return visivel == null && auto && centro && semDialogoVisivel();
   }
@@ -322,7 +326,7 @@
       return abrirOriginal.apply(this, arguments);
     }
     medirArea();
-    if (ocupaAAreaSozinha(tamanho, posicao)) {
+    if (deveOcuparAArea(tamanho, posicao)) {
       arguments[8] = "full";
       if (arguments.length < 9) arguments.length = 9;
     }
