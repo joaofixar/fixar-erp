@@ -74,3 +74,8 @@ src/hardness3/**/*[Ee]mprefix*
 src/hardness3/**/*[Nn]acomaq*
 src/hardness3/**/*[Pp]anceri*
 src/hardness3/**/*[Vv]edapar*
+
+# Grafo do sistema
+
+graphify-out/cache/
+graphify-out/.graphify_*
