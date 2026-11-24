@@ -15,16 +15,22 @@
   --color-ink: #1a1d21;
   --color-muted: #5c6570;
   --color-line: #d5d9e0;
+  --color-accent-soft: #e6eef8;
 }
 
 /* A base fica no layer das utilities e perde para o CSS sem layer do miolo.
    :where deixa a utility ganhar no próprio shell. O #desktop fica de fora. */
 @layer utilities {
-  :where(#fx-shell, #fx-shell *) {
+  :where(#fx-shell, #fx-shell *, #fx-paleta, #fx-paleta *) {
     box-sizing: border-box;
   }
 
-  :where(#fx-shell button, #fx-shell input) {
+  :where(
+    #fx-shell button,
+    #fx-shell input,
+    #fx-paleta button,
+    #fx-paleta input
+  ) {
     font: inherit;
     color: inherit;
     background-color: transparent;

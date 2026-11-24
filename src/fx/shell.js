@@ -9,12 +9,20 @@
    área e segue fechável. O atalho F2 manda forcarAuto; o abrirJanela do
    sistema.js troca isso por auto, e o novoDialog, sem diálogo aberto,
    trocaria o caso por full sem barra de título. Abrir um módulo fecha essa
-   janela solta e o que estiver empilhado nela; ela não volta. */
+   janela solta e o que estiver empilhado nela; ela não volta.
+   A paleta pesquisa o menu do perfil e nasce no body, fora do #desktop.
+   Ctrl+K alterna. A lupa abre a mesma paleta. Esc, Ctrl+K de novo ou um
+   clique fora fecha sem abrir. Os atalhos Alt+letra do menu (sistema.js,
+   abrirMenuPorNome e Alt+M) saem. Setas, Enter e Esc deixam de andar nesse
+   menu e seguem no miolo. */
 (function () {
   var abas = [];
   var visivel = null;
   var abrirOriginal = null;
   var arrastando = null;
+  var paletaAberta = false;
+  var filtroPaleta = "";
+  var destaquePaleta = -1;
 
   function escapar(texto) {
     return String(texto).replace(/[&<>"']/g, function (caractere) {
@@ -117,6 +125,261 @@
       .join("");
   }
 
+  function dobrar(texto) {
+    return String(texto)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\./g, "")
+      .toLowerCase();
+  }
+
+  function acaoDoMenu(acao) {
+    return String(acao).replace(/\s*return false;\s*$/i, "");
+  }
+
+  function itensDaPaleta() {
+    var chave = dobrar(filtroPaleta.trim());
+    var lista = [];
+    gruposDoMenu().forEach(function (grupo) {
+      grupo.entradas.forEach(function (entrada) {
+        if (
+          !chave ||
+          dobrar(entrada.nome).indexOf(chave) >= 0 ||
+          dobrar(grupo.nome).indexOf(chave) >= 0
+        ) {
+          lista.push({
+            grupo: grupo.nome,
+            nome: entrada.nome,
+            acao: entrada.acao,
+          });
+        }
+      });
+    });
+    return lista;
+  }
+
+  function htmlListaPaleta(itens) {
+    if (!itens.length) {
+      return '<p class="tw:m-0 tw:px-3.5 tw:py-4 tw:text-muted">Não há item</p>';
+    }
+    var grupo = "";
+    return itens
+      .map(function (item, indice) {
+        var titulo = "";
+        if (item.grupo !== grupo) {
+          grupo = item.grupo;
+          titulo =
+            '<p class="tw:m-0 tw:px-3.5 tw:pb-0.5 tw:pt-2.5 tw:text-[11px] tw:font-semibold tw:uppercase tw:tracking-wide tw:text-muted">' +
+            escapar(item.grupo) +
+            "</p>";
+        }
+        var ativo = indice === destaquePaleta;
+        return (
+          titulo +
+          '<button type="button" role="option" data-fx-paleta-item="' +
+          indice +
+          '" aria-selected="' +
+          (ativo ? "true" : "false") +
+          '" class="tw:mx-1.5 tw:block tw:w-[calc(100%-0.75rem)] tw:rounded-md tw:px-2 tw:py-1.5 tw:text-left tw:text-ink' +
+          (ativo ? " tw:bg-accent-soft" : "") +
+          '" onclick="' +
+          escapar(acaoDoMenu(item.acao)) +
+          '">' +
+          escapar(item.nome) +
+          "</button>"
+        );
+      })
+      .join("");
+  }
+
+  function posicionarPaleta() {
+    var caixa = document.querySelector("[data-fx-paleta-caixa]");
+    var area = document.getElementById("fx-area");
+    if (!caixa || !area) return;
+    var rect = area.getBoundingClientRect();
+    caixa.style.left = rect.left + rect.width / 2 + "px";
+    caixa.style.top = rect.top + Math.min(rect.height, 640) / 2 + "px";
+    caixa.style.transform = "translate(-50%, -50%)";
+  }
+
+  function mostrarDestaque() {
+    var lista = document.getElementById("fx-paleta-lista");
+    if (!lista) return;
+    var ativo = lista.querySelector('[aria-selected="true"]');
+    if (ativo && ativo.scrollIntoView) {
+      ativo.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  function pintarPaleta() {
+    var lista = document.getElementById("fx-paleta-lista");
+    if (!lista) return;
+    var itens = itensDaPaleta();
+    if (!itens.length) destaquePaleta = -1;
+    else if (destaquePaleta < 0 || destaquePaleta >= itens.length) {
+      destaquePaleta = 0;
+    }
+    lista.innerHTML = htmlListaPaleta(itens);
+    mostrarDestaque();
+  }
+
+  function abrirPaleta() {
+    paletaAberta = true;
+    filtroPaleta = "";
+    destaquePaleta = 0;
+    if (!document.getElementById("fx-paleta")) {
+      var camada = document.createElement("div");
+      camada.id = "fx-paleta";
+      camada.innerHTML =
+        '<div data-fx-paleta-fundo class="tw:fixed tw:inset-0 tw:z-[200000] tw:bg-side/40"></div>' +
+        '<div data-fx-paleta-caixa role="dialog" aria-modal="true" aria-label="Pesquisar o menu" class="tw:fixed tw:z-[200001] tw:flex tw:w-[min(520px,calc(100%-32px))] tw:max-h-[min(540px,68vh)] tw:flex-col tw:overflow-hidden tw:rounded-lg tw:bg-paper tw:text-[13px] tw:leading-snug tw:text-ink tw:shadow-[0_24px_60px_#141c2866]">' +
+        '<input id="fx-paleta-filtro" type="text" autocomplete="off" spellcheck="false" placeholder="Filtrar o menu" aria-label="Filtrar o menu" class="tw:w-full tw:border-b tw:border-solid tw:border-line tw:bg-paper tw:px-3.5 tw:py-3 tw:text-ink tw:outline-none">' +
+        '<div id="fx-paleta-lista" role="listbox" class="tw:min-h-0 tw:flex-1 tw:overflow-auto tw:py-1"></div></div>';
+      document.body.appendChild(camada);
+      camada.querySelector("[data-fx-paleta-fundo]").addEventListener(
+        "click",
+        function () {
+          fecharPaleta();
+        },
+      );
+      document.getElementById("fx-paleta-lista").addEventListener(
+        "click",
+        function (evento) {
+          if (!evento.target.closest("[data-fx-paleta-item]")) return;
+          fecharPaleta();
+        },
+      );
+      document
+        .getElementById("fx-paleta-filtro")
+        .addEventListener("input", function (evento) {
+          filtroPaleta = evento.target.value;
+          destaquePaleta = 0;
+          pintarPaleta();
+        });
+    }
+    var campo = document.getElementById("fx-paleta-filtro");
+    campo.value = "";
+    pintarPaleta();
+    posicionarPaleta();
+    campo.focus();
+  }
+
+  function fecharPaleta() {
+    paletaAberta = false;
+    filtroPaleta = "";
+    destaquePaleta = -1;
+    var camada = document.getElementById("fx-paleta");
+    if (camada) camada.remove();
+  }
+
+  function aoPesquisar() {
+    if (paletaAberta) {
+      var campo = document.getElementById("fx-paleta-filtro");
+      if (campo) campo.focus();
+      return;
+    }
+    abrirPaleta();
+  }
+
+  function moverDestaque(passo) {
+    var itens = itensDaPaleta();
+    if (!itens.length || destaquePaleta < 0) return;
+    var proximo = destaquePaleta + passo;
+    if (proximo < 0) proximo = 0;
+    if (proximo >= itens.length) proximo = itens.length - 1;
+    if (proximo === destaquePaleta) return;
+    destaquePaleta = proximo;
+    pintarPaleta();
+  }
+
+  function escolherDestaque() {
+    var lista = document.getElementById("fx-paleta-lista");
+    if (!lista) return;
+    var botao = lista.querySelector('[aria-selected="true"]');
+    if (botao) botao.click();
+  }
+
+  function aoTecla(evento) {
+    var ctrlK =
+      (evento.ctrlKey || evento.metaKey) &&
+      !evento.altKey &&
+      !evento.shiftKey &&
+      evento.key &&
+      evento.key.toLowerCase() === "k";
+    if (ctrlK) {
+      if (!document.getElementById("fx-shell")) return;
+      evento.preventDefault();
+      evento.stopPropagation();
+      if (paletaAberta) fecharPaleta();
+      else abrirPaleta();
+      return;
+    }
+    if (!paletaAberta) return;
+    if (evento.key === "Escape") {
+      evento.preventDefault();
+      evento.stopPropagation();
+      fecharPaleta();
+      return;
+    }
+    if (evento.key === "ArrowDown" || evento.key === "ArrowUp") {
+      evento.preventDefault();
+      evento.stopPropagation();
+      moverDestaque(evento.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (evento.key === "Enter") {
+      evento.preventDefault();
+      evento.stopPropagation();
+      escolherDestaque();
+    }
+  }
+
+  function tirarAtalhosDoMenu() {
+    if (!window.shortcut || typeof window.shortcut.remove !== "function") {
+      return;
+    }
+    [
+      "Alt+M",
+      "Alt+C",
+      "Alt+V",
+      "Alt+E",
+      "Alt+F",
+      "Alt+L",
+      "Alt+X",
+      "Alt+B",
+      "Alt+G",
+      "Alt+T",
+      "Alt+O",
+      "Alt+S",
+    ].forEach(function (atalho) {
+      window.shortcut.remove(atalho);
+    });
+  }
+
+  function tirarTeclasDoMenu() {
+    if (typeof window.eventosTeclado !== "function") return;
+    if (window.eventosTeclado.fxSemMenu) return;
+    var original = window.eventosTeclado;
+    function semMenu(tecla) {
+      if (
+        tecla === "Up" ||
+        tecla === "Down" ||
+        tecla === "Left" ||
+        tecla === "Right" ||
+        tecla === "Enter" ||
+        tecla === "Esc"
+      ) {
+        var aberto = document.querySelector("#topoMenu #barra li a.hover");
+        if (aberto && window.jQuery) {
+          window.jQuery("#topoMenu #barra li a.hover").trigger("mouseout");
+        }
+      }
+      return original.apply(this, arguments);
+    }
+    semMenu.fxSemMenu = true;
+    window.eventosTeclado = semMenu;
+  }
+
   function medirArea() {
     var area = document.getElementById("fx-area");
     if (!area) return;
@@ -137,6 +400,7 @@
     desktop.style.width = rect.width + "px";
     desktop.style.height = rect.height + "px";
     desktop.style.margin = "0";
+    if (paletaAberta) posicionarPaleta();
   }
 
   function caixas(raiz) {
@@ -367,7 +631,7 @@
       '<header class="tw:flex tw:min-w-0 tw:items-center tw:gap-2 tw:border-b tw:border-solid tw:border-line tw:bg-paper tw:px-3">' +
       '<div class="tw:flex-1"></div>' +
       '<div class="tw:flex tw:items-center tw:gap-0.5">' +
-      '<button type="button" class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Pesquisar o menu">' +
+      '<button type="button" data-fx-pesquisar class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Pesquisar o menu">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
       "</button>" +
       '<button type="button" class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Alertas">' +
@@ -379,6 +643,14 @@
       '<div id="fx-faixa" class="tw:flex tw:min-w-0 tw:items-end tw:gap-0.5 tw:overflow-x-auto tw:bg-canvas tw:px-2"></div>' +
       '<div id="fx-area" class="tw:min-h-0 tw:min-w-0"></div></div>';
     document.body.appendChild(shell);
+    shell.querySelector("[data-fx-pesquisar]").addEventListener(
+      "click",
+      aoPesquisar,
+    );
+    document.addEventListener("keydown", aoTecla, true);
+    tirarAtalhosDoMenu();
+    tirarTeclasDoMenu();
+    window.setTimeout(tirarAtalhosDoMenu, 0);
 
     var faixa = document.getElementById("fx-faixa");
     faixa.addEventListener("click", function (evento) {
