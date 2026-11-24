@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FX ERP · protótipo do shell</title>
+<!--
+  PROTOTYPE, throwaway. Não é o shell de produção.
+  Três variantes do desktop, trocáveis por ?variant=barra|trilho|paleta.
+  Pergunta: o shell com sidebar, topo e abas parece certo para operar o dia inteiro?
+  Menu: src/hardness3/bibliotecas/menu.php (itens fora do bloco do usuário 63 e da loja de apps).
+  Aba = abrirJanela com topleft. O restante abre janela.
+-->
+<style>
+  :root {
+    --ink: #1a1d21;
+    --muted: #5c6570;
+    --line: #d5d9e0;
+    --paper: #fff;
+    --bg: #e7eaee;
+    --side: #1b2430;
+    --side-ink: #e8edf2;
+    --side-muted: #9aa6b4;
+    --accent: #1d4f8a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 13px/1.35 "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  button, input { font: inherit; }
+  button {
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  #shell { height: 100%; }
+  .frame { height: 100%; min-height: 0; }
+  .frame.barra { display: grid; grid-template-columns: 232px 1fr; }
+  .frame.trilho { display: grid; grid-template-columns: 72px 1fr 196px; }
+  .frame.paleta { display: grid; grid-template-rows: 48px 1fr; }
+  .main { min-width: 0; min-height: 0; display: grid; }
+  .frame.barra .main { grid-template-rows: 48px 36px 1fr; }
+  .frame.trilho .main { grid-template-rows: 48px 1fr; }
+  .side, .rail {
+    background: var(--side);
+    color: var(--side-ink);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .rail { position: relative; z-index: 3; }
+  .brand {
+    padding: 16px 14px 2px;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+  }
+  .rail .brand { padding: 12px 4px 0; text-align: center; font-size: 13px; }
+  .company { position: relative; padding: 4px 10px 12px; }
+  .rail .company { padding: 4px 6px 10px; }
+  .company-label, .company-btn {
+    display: block;
+    width: 100%;
+    color: var(--side-muted);
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .company-btn { border-radius: 6px; padding: 4px 6px; }
+  .company-btn:hover, .group:hover, .rail-btn:hover { background: rgba(255,255,255,.08); }
+  .top .company { padding: 0 4px; max-width: 12rem; }
+  .top .company-label, .top .company-btn {
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .top .company-btn:hover { background: rgba(0,0,0,.06); }
+  .rail .company-label, .rail .company-btn {
+    font-size: 9px;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .groups, .flyout, .rail-groups { overflow: auto; min-height: 0; }
+  .groups { flex: 1; padding-bottom: 12px; }
+  .group, .rail-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 8px);
+    margin: 1px 4px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .group.on { background: rgba(255,255,255,.08); }
+  .rail-groups { flex: 1; padding: 4px 0 12px; }
+  .rail-btn {
+    width: 56px;
+    height: 40px;
+    margin: 2px auto;
+    padding: 0;
+    justify-content: center;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+  .rail-btn.on { background: rgba(255,255,255,.14); }
+  .item {
+    display: block;
+    width: calc(100% - 12px);
+    margin: 0 6px;
+    padding: 6px 8px 6px 18px;
+    border-radius: 6px;
+    color: var(--side-ink);
+  }
+  .item:hover, .pitem:hover { background: rgba(29, 79, 138, .12); }
+  .flyout .item:hover { background: rgba(255,255,255,.08); }
+  .flyout {
+    position: absolute;
+    left: 72px;
+    top: 0;
+    bottom: 0;
+    width: 250px;
+    background: #243044;
+    box-shadow: 8px 0 24px rgba(0,0,0,.2);
+    padding: 8px 0;
+  }
+  .flyout-title {
+    padding: 10px 14px 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--side-muted);
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px 0 12px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    min-width: 0;
+  }
+  .top .grow { flex: 1; }
+  .tools { display: flex; align-items: center; gap: 2px; }
+  .tool { position: relative; }
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+  }
+  .icon-btn:hover, .tab-x:hover { background: rgba(0,0,0,.06); }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 0 8px;
+    background: #dde1e6;
+    overflow: auto;
+    min-width: 0;
+  }
+  .frame.paleta .tabs {
+    background: transparent;
+    align-items: center;
+    padding: 0;
+    flex: 1;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    max-width: 220px;
+    border-radius: 7px 7px 0 0;
+    color: var(--muted);
+  }
+  .frame.paleta .tab { border-radius: 999px; max-width: 180px; }
+  .tab.on { background: var(--paper); color: var(--ink); }
+  .frame.paleta .tab.on { background: #e6eef8; color: var(--accent); }
+  .tab-name {
+    padding: 7px 4px 7px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tab-x {
+    width: 22px;
+    height: 22px;
+    margin-right: 4px;
+    border-radius: 4px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .tabrail {
+    background: #f3f5f7;
+    border-left: 1px solid var(--line);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .tabrail h2 {
+    margin: 0;
+    padding: 14px 12px 6px;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tabrail .tabs {
+    display: block;
+    background: transparent;
+    padding: 0 0 12px;
+    overflow: auto;
+  }
+  .tabrail .tab {
+    display: flex;
+    width: calc(100% - 12px);
+    max-width: none;
+    margin: 2px 6px;
+    border-radius: 6px;
+  }
+  .tabrail .tab.on { border: 1px solid var(--line); }
+  .work {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+    background: var(--bg);
+    overflow: auto;
+  }
+  .empty, .sair {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    text-align: center;
+    color: var(--muted);
+    padding: 24px;
+    gap: 8px;
+  }
+  .sheet { min-height: 100%; background: var(--paper); }
+  .sheet-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .kicker { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  h1 { margin: 0; font-size: 18px; font-weight: 650; }
+  .incluir {
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    padding: 7px 12px;
+    text-align: center;
+  }
+  .grade-wrap { padding: 0 0 24px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border-bottom: 1px solid var(--line); padding: 0 12px; text-align: left; }
+  th { height: 32px; font-size: 11px; color: var(--muted); font-weight: 650; background: #f7f8fa; }
+  td { height: 28px; }
+  .vazio { margin: 0; padding: 14px 16px; color: var(--muted); }
+  .dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 28, 40, .35);
+  }
+  .janela {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    transform: translate(-50%, -50%);
+    width: min(480px, calc(100% - 32px));
+    background: var(--paper);
+    border: 1px solid #c5ccd6;
+    border-radius: 8px;
+    box-shadow: 0 16px 40px rgba(20, 28, 40, .28);
+    z-index: 2;
+  }
+  .janela header, .pop header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    font-weight: 650;
+  }
+  .janela-body { padding: 12px 14px 16px; display: grid; gap: 8px; }
+  .janela-body label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; }
+  .janela-body input {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 8px;
+    background: #f7f8fa;
+  }
+  .linkish { color: var(--accent); padding: 4px 6px; border-radius: 4px; }
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(15, 20, 28, .28);
+  }
+  .palette {
+    position: fixed;
+    z-index: 30;
+    width: min(520px, calc(100vw - 32px));
+    max-height: min(540px, 68vh);
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.28);
+    overflow: hidden;
+  }
+  #filtro {
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 14px;
+    outline: none;
+  }
+  .plist { overflow: auto; padding: 4px 0 8px; }
+  .pgroup {
+    padding: 10px 14px 2px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pitem {
+    display: block;
+    width: calc(100% - 12px);
+    margin: 1px 6px;
+    padding: 7px 8px;
+    border-radius: 6px;
+  }
+  .pitem.hit { background: #e6eef8; }
+  .none { padding: 16px 14px; color: var(--muted); }
+  .phint { padding: 8px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+  .pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 7;
+    min-width: 240px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.16);
+    padding: 6px;
+  }
+  .side .pop, .rail .pop, .top .company .pop { left: 0; right: auto; width: 260px; }
+  .who { padding: 8px 8px 6px; }
+  .who .login { font-weight: 650; }
+  .who .perfil { color: var(--muted); font-size: 12px; }
+  .pop .lbl { padding: 6px 8px 2px; font-size: 11px; color: var(--muted); }
+  .pop button {
+    display: block;
+    width: 100%;
+    padding: 7px 8px;
+    border-radius: 6px;
+  }
+  .pop button:hover { background: #eef2f6; }
+  .pop button.on { font-weight: 650; }
+  .sair { background: var(--paper); }
+  .sair button {
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  #switcher {
+    position: fixed;
+    z-index: 50;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    width: min(760px, calc(100vw - 24px));
+    background: #111418;
+    color: white;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    padding: 10px 12px 12px;
+  }
+  #switcher .ask { font-size: 12px; color: #d5dbe3; padding: 0 6px 8px; }
+  #switcher .row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  #switcher .row button {
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: #2a313a;
+    text-align: center;
+  }
+  #switcher .vlabel { font-weight: 650; min-width: 12em; text-align: center; }
+  #switcher .toggles { display: flex; justify-content: center; gap: 16px; padding: 8px 0 4px; font-size: 12px; color: #d5dbe3; }
+  #switcher label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  #switcher .state { font-size: 11px; color: #b7c0cb; padding: 4px 6px 0; text-align: center; }
+</style>
+</head>
+<body>
+<div id="shell"></div>
+<div id="switcher"></div>
+<script>
+const MENU = [{"grupo":"Cadastros","nome":"Cliente/Fornecedor","abre":"janela"},{"grupo":"Cadastros","nome":"Transportadoras","abre":"janela"},{"grupo":"Cadastros","nome":"Representantes","abre":"janela"},{"grupo":"Cadastros","nome":"Agenda de Contatos","abre":"janela"},{"grupo":"Cadastros","nome":"Produtos","abre":"janela"},{"grupo":"Cadastros","nome":"Bancos/Caixas","abre":"janela"},{"grupo":"Cadastros","nome":"Centro de Custos","abre":"janela"},{"grupo":"Cadastros","nome":"Funcionários","abre":"janela"},{"grupo":"Cadastros","nome":"Plano de Contas","abre":"janela"},{"grupo":"Cadastros","nome":"Cliente - Grupos","abre":"janela"},{"grupo":"Vendas","nome":"C.R.M.","abre":"aba"},{"grupo":"Vendas","nome":"Emails","abre":"aba"},{"grupo":"Vendas","nome":"Notas Fiscais","abre":"aba"},{"grupo":"Vendas","nome":"Emitir Notas Fiscais (Loja)","abre":"aba"},{"grupo":"Vendas","nome":"Análise de Orçamento","abre":"janela"},{"grupo":"Vendas","nome":"Análise de Pedido","abre":"janela"},{"grupo":"Vendas","nome":"Nota de Devolução","abre":"aba"},{"grupo":"Vendas","nome":"PDV","abre":"janela"},{"grupo":"Estoque","nome":"S.R.M.","abre":"aba"},{"grupo":"Estoque","nome":"P.C.P.","abre":"aba"},{"grupo":"Estoque","nome":"Estoque","abre":"aba"},{"grupo":"Estoque","nome":"Expedição Mercadorias","abre":"aba"},{"grupo":"Estoque","nome":"Notas Fiscais Recebidas","abre":"aba"},{"grupo":"Estoque","nome":"Conhecimentos","abre":"aba"},{"grupo":"Estoque","nome":"RMA","abre":"aba"},{"grupo":"Estoque","nome":"Análise de Ordem de compra","abre":"janela"},{"grupo":"Estoque","nome":"Conferência Cega","abre":"janela"},{"grupo":"Financeiro","nome":"Contas a Receber","abre":"aba"},{"grupo":"Financeiro","nome":"Contas a Pagar","abre":"aba"},{"grupo":"Financeiro","nome":"Caixa e Bancos","abre":"aba"},{"grupo":"Financeiro","nome":"Análise de Crédito","abre":"janela"},{"grupo":"Financeiro","nome":"Análise de Crédito (Nota)","abre":"janela"},{"grupo":"Financeiro","nome":"Projeção Orçamentária","abre":"aba"},{"grupo":"Financeiro","nome":"Cobranças","abre":"aba"},{"grupo":"Financeiro","nome":"Créditos Troca","abre":"aba"},{"grupo":"Financeiro","nome":"Serasa - Relato","abre":"janela"},{"grupo":"Fiscal","nome":"CFOP","abre":"janela"},{"grupo":"Fiscal","nome":"NCM","abre":"janela"},{"grupo":"Fiscal","nome":"ICMS","abre":"janela"},{"grupo":"Fiscal","nome":"NCM por Grupo","abre":"janela"},{"grupo":"Fiscal","nome":"Simples Nacional","abre":"janela"},{"grupo":"Fiscal","nome":"Cidades","abre":"janela"},{"grupo":"Fiscal","nome":"Países","abre":"janela"},{"grupo":"Fiscal","nome":"Exportar Sintegra","abre":"janela"},{"grupo":"Fiscal","nome":"Exportar XML NF-e","abre":"janela"},{"grupo":"Fiscal","nome":"Exportar TXT NF-e","abre":"janela"},{"grupo":"Fiscal","nome":"Exportar XML NF-e (Entrada)","abre":"janela"},{"grupo":"Fiscal","nome":"Exportar XML CT-e (Recebido)","abre":"janela"},{"grupo":"Fiscal","nome":"Exportar XML CT-e (Emitido)","abre":"janela"},{"grupo":"Fiscal","nome":"Exportação EBS","abre":"janela"},{"grupo":"Fiscal","nome":"SPED Contribuições","abre":"janela"},{"grupo":"Fiscal","nome":"SPED Fiscal","abre":"janela"},{"grupo":"Fiscal","nome":"Outros","abre":"janela"},{"grupo":"Comex","nome":"Importação","abre":"aba"},{"grupo":"Comex","nome":"Análise PO","abre":"janela"},{"grupo":"Contábil","nome":"Contábil","abre":"aba"},{"grupo":"Gerencial","nome":"Relatórios","abre":"aba"},{"grupo":"Gerencial","nome":"BI Dashboards","abre":"aba"},{"grupo":"Gerencial","nome":"API","abre":"janela"},{"grupo":"Outros","nome":"Log Erros","abre":"janela"},{"grupo":"Outros","nome":"Importação CSV","abre":"aba"},{"grupo":"Outros","nome":"Auditoria","abre":"janela"},{"grupo":"Outros","nome":"Exportar Dados PDV","abre":"janela"},{"grupo":"Outros","nome":"Contratos Clientes","abre":"janela"},{"grupo":"Outros","nome":"Email - Whitelist","abre":"janela"},{"grupo":"Configuração","nome":"Usuários/Perfis","abre":"janela"},{"grupo":"Configuração","nome":"Usuário","abre":"janela"},{"grupo":"Configuração","nome":"Empresas","abre":"janela"},{"grupo":"Configuração","nome":"Produtos","abre":"janela"},{"grupo":"Configuração","nome":"Comercial","abre":"janela"},{"grupo":"Configuração","nome":"Financeiro","abre":"janela"},{"grupo":"Configuração","nome":"P.C.P.","abre":"janela"},{"grupo":"Configuração","nome":"Comex","abre":"janela"},{"grupo":"Configuração","nome":"Nota Fiscal","abre":"janela"},{"grupo":"Configuração","nome":"MDF-e","abre":"janela"},{"grupo":"Configuração","nome":"Periféricos","abre":"janela"},{"grupo":"Configuração","nome":"BI","abre":"janela"},{"grupo":"Configuração","nome":"Suporte Técnico","abre":"janela"},{"grupo":"Configuração","nome":"Banco Dados Clientes","abre":"janela"},{"grupo":"Configuração","nome":"Contadores Clientes","abre":"janela"},{"grupo":"Configuração","nome":"Usuarios Clientes","abre":"janela"},{"grupo":"Configuração","nome":"Opções","abre":"janela"}];
+
+const VARIANTES = [
+  { id: "barra", nome: "Barra lateral" },
+  { id: "trilho", nome: "Trilho" },
+  { id: "paleta", nome: "Paleta primeiro" },
+];
+const SIGLA = {
+  Cadastros: "Cd", Vendas: "Vd", Estoque: "Es", Financeiro: "Fi", Fiscal: "Fs",
+  Comex: "Cx", "Contábil": "Ct", Gerencial: "Ge", Outros: "Ou", "Configuração": "Cg",
+};
+const EMPRESA_REAL = { id: "fixar", curto: "FIXAR INDUSTRIAL", nome: "FIXAR INDUSTRIAL DE FIXADORES LTDA" };
+const EMPRESA_EXEMPLO = { id: "exemplo", curto: "EXEMPLO", nome: "Outra empresa (exemplo)" };
+const USUARIO = { id: "fixar", login: "fixar", perfil: "Local" };
+
+const params = new URLSearchParams(location.search);
+const variantInicial = VARIANTES.some(v => v.id === params.get("variant")) ? params.get("variant") : "barra";
+
+const state = {
+  variant: variantInicial,
+  empresaId: "fixar",
+  segunda: false,
+  podeTrocar: true,
+  abas: [],
+  abaId: null,
+  janela: null,
+  paleta: false,
+  filtro: "",
+  destaque: 0,
+  painel: null,
+  grupoAberto: "Vendas",
+  geracao: 1,
+  sair: false,
+};
+
+let caret = null;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function chave(item) { return item.grupo + "||" + item.nome; }
+function fold(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\./g, "").toLowerCase();
+}
+function grupos() {
+  const lista = [];
+  MENU.forEach(m => { if (!lista.includes(m.grupo)) lista.push(m.grupo); });
+  return lista;
+}
+function empresas() {
+  return state.segunda ? [EMPRESA_REAL, EMPRESA_EXEMPLO] : [EMPRESA_REAL];
+}
+function empresaAtual() {
+  return empresas().find(e => e.id === state.empresaId) || EMPRESA_REAL;
+}
+function abaVisivel() {
+  return state.abas.find(a => a.chave === state.abaId) || null;
+}
+function filtrados() {
+  const q = fold(state.filtro.trim());
+  if (!q) return MENU.slice();
+  return MENU.filter(m => fold(m.nome).includes(q) || fold(m.grupo).includes(q));
+}
+function achar(grupo, nome) {
+  return MENU.find(m => m.grupo === grupo && m.nome === nome);
+}
+
+function semear() {
+  ["C.R.M.", "Estoque"].forEach(nome => {
+    const item = MENU.find(m => m.nome === nome && m.abre === "aba");
+    state.abas.push({ chave: chave(item), grupo: item.grupo, nome: item.nome, geracao: 1 });
+  });
+  state.abaId = state.abas[0].chave;
+}
+
+function recarregar() {
+  state.janela = null;
+  state.painel = null;
+  state.geracao += 1;
+  state.abas.forEach(a => { a.geracao = state.geracao; });
+}
+
+function abrir(item) {
+  if (item.abre === "aba") {
+    let aba = state.abas.find(a => a.chave === chave(item));
+    if (!aba) {
+      aba = { chave: chave(item), grupo: item.grupo, nome: item.nome, geracao: state.geracao };
+      state.abas.push(aba);
+    }
+    state.abaId = aba.chave;
+    state.grupoAberto = item.grupo;
+  } else {
+    state.janela = { nome: item.nome, grupo: item.grupo, sobre: state.abaId, inclusao: false };
+  }
+  state.paleta = false;
+  state.filtro = "";
+  state.painel = null;
+  if (state.variant === "trilho") state.grupoAberto = null;
+}
+
+function fecharAba(id) {
+  const i = state.abas.findIndex(a => a.chave === id);
+  if (i < 0) return;
+  state.abas.splice(i, 1);
+  if (state.janela && state.janela.sobre === id) state.janela = null;
+  if (state.abaId === id) {
+    const proxima = state.abas[i] || state.abas[i - 1] || null;
+    state.abaId = proxima ? proxima.chave : null;
+  }
+}
+
+function iconeLupa() {
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+}
+function iconeSino() {
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
+}
+
+function htmlEmpresa() {
+  const emp = empresaAtual();
+  const lista = empresas();
+  const controle = lista.length === 1
+    ? `<div class="company-label" title="${esc(emp.nome)}">${esc(emp.curto)}</div>`
+    : `<button type="button" class="company-btn" data-act="empresa" title="${esc(emp.nome)}">${esc(emp.curto)}</button>`;
+  const pop = state.painel === "empresa" ? `<div class="pop" data-panel>
+    ${lista.map(e => `<button type="button" class="${e.id === emp.id ? "on" : ""}" data-act="pick-empresa" data-id="${esc(e.id)}">${esc(e.nome)}</button>`).join("")}
+  </div>` : "";
+  return `<div class="company">${controle}${pop}</div>`;
+}
+
+function htmlTools() {
+  const sino = state.painel === "sino" ? `<div class="pop" data-panel>
+    <header>Notificações</header>
+    <p class="vazio">O que o sino lista ainda não foi decidido.</p>
+  </div>` : "";
+  const usuario = USUARIO;
+  const avatar = state.painel === "avatar" ? `<div class="pop" data-panel>
+    <div class="who"><div class="login">${esc(usuario.login)}</div><div class="perfil">${esc(usuario.perfil)}</div></div>
+    ${state.podeTrocar ? `<div class="lbl">Trocar usuário</div>
+      <button type="button" class="on" data-act="pick-usuario" data-id="${esc(usuario.id)}">${esc(usuario.login)}</button>` : ""}
+    <button type="button" data-act="sair">Sair</button>
+  </div>` : "";
+  return `<div class="tools">
+    <div class="tool"><button type="button" class="icon-btn" data-act="abrir-paleta" aria-label="Abrir a paleta">${iconeLupa()}</button></div>
+    <div class="tool"><button type="button" class="icon-btn" data-act="sino" aria-label="Notificações">${iconeSino()}</button>${sino}</div>
+    <div class="tool"><button type="button" class="icon-btn" data-act="avatar" aria-label="Usuário"><span class="avatar">F</span></button>${avatar}</div>
+  </div>`;
+}
+
+function htmlAbas(extraClass) {
+  if (!state.abas.length) {
+    return `<div class="tabs ${extraClass || ""}"></div>`;
+  }
+  const botoes = state.abas.map(a => {
+    const on = a.chave === state.abaId ? " on" : "";
+    return `<div class="tab${on}">
+      <button type="button" class="tab-name" data-act="show-tab" data-chave="${esc(a.chave)}">${esc(a.nome)}</button>
+      <button type="button" class="tab-x" data-act="close-tab" data-chave="${esc(a.chave)}" aria-label="Fechar ${esc(a.nome)}">×</button>
+    </div>`;
+  }).join("");
+  return `<div class="tabs ${extraClass || ""}">${botoes}</div>`;
+}
+
+function htmlItens(grupo) {
+  return MENU.filter(m => m.grupo === grupo).map(m =>
+    `<button type="button" class="item" data-act="open-item" data-grupo="${esc(m.grupo)}" data-nome="${esc(m.nome)}">${esc(m.nome)}</button>`
+  ).join("");
+}
+
+function htmlMenuAberto() {
+  return grupos().map(g => {
+    const on = state.grupoAberto === g;
+    const itens = on ? htmlItens(g) : "";
+    return `<button type="button" class="group${on ? " on" : ""}" data-act="toggle-grupo" data-grupo="${esc(g)}">${esc(g)}</button>${itens}`;
+  }).join("");
+}
+
+function htmlTrabalho() {
+  const aba = abaVisivel();
+  let miolo;
+  if (!aba) {
+    miolo = `<div class="empty"><div>Nenhuma aba aberta.</div><div>A lupa ou Ctrl+K abre a paleta.</div></div>`;
+  } else {
+    miolo = `<div class="sheet">
+      <div class="sheet-bar">
+        <div><div class="kicker">${esc(aba.grupo)}</div><h1>${esc(aba.nome)}</h1></div>
+        <button type="button" class="incluir" data-act="incluir">Incluir</button>
+      </div>
+      <div class="grade-wrap">
+        <table class="grade"><thead><tr><th>Código</th><th>Descrição</th><th>Situação</th><th>Quantidade</th></tr></thead></table>
+        <p class="vazio">Nenhum registro</p>
+      </div>
+    </div>`;
+  }
+  let janela = "";
+  if (state.janela) {
+    const sobre = state.abas.find(a => a.chave === state.janela.sobre);
+    const onde = sobre ? `Sobre a aba ${sobre.nome}.` : "Sobre a área de trabalho.";
+    const titulo = state.janela.inclusao ? "Inclusão" : state.janela.nome;
+    janela = `<div class="dim"></div><div class="janela" role="dialog" aria-label="${esc(titulo)}">
+      <header><span>${esc(titulo)}</span><button type="button" class="linkish" data-act="fechar-janela">Fechar</button></header>
+      <div class="janela-body">
+        <div>${esc(onde)} Não grava.</div>
+        <label>Campo<input disabled placeholder="não grava"></label>
+        <label>Outro campo<input disabled placeholder="não grava"></label>
+      </div>
+    </div>`;
+  }
+  return `<div class="work" data-work>${miolo}${janela}</div>`;
+}
+
+function htmlBarra() {
+  return `<div class="frame barra">
+    <aside class="side">
+      <div class="brand">FX ERP</div>
+      ${htmlEmpresa()}
+      <nav class="groups">${htmlMenuAberto()}</nav>
+    </aside>
+    <div class="main">
+      <header class="top"><div class="grow"></div>${htmlTools()}</header>
+      ${htmlAbas()}
+      ${htmlTrabalho()}
+    </div>
+  </div>`;
+}
+
+function htmlTrilho() {
+  const fly = state.grupoAberto ? `<div class="flyout">
+    <div class="flyout-title">${esc(state.grupoAberto)}</div>
+    ${htmlItens(state.grupoAberto)}
+  </div>` : "";
+  const botoes = grupos().map(g => {
+    const on = state.grupoAberto === g ? " on" : "";
+    return `<button type="button" class="rail-btn${on}" data-act="toggle-grupo" data-grupo="${esc(g)}" title="${esc(g)}">${esc(SIGLA[g] || g.slice(0, 2))}</button>`;
+  }).join("");
+  return `<div class="frame trilho">
+    <aside class="rail">
+      <div class="brand">FX</div>
+      ${htmlEmpresa()}
+      <div class="rail-groups">${botoes}</div>
+      ${fly}
+    </aside>
+    <div class="main">
+      <header class="top"><div class="grow"></div>${htmlTools()}</header>
+      ${htmlTrabalho()}
+    </div>
+    <aside class="tabrail"><h2>Abas</h2>${htmlAbas()}</aside>
+  </div>`;
+}
+
+function htmlPaleta() {
+  return `<div class="frame paleta">
+    <header class="top">
+      <div class="brand" style="padding:0">FX ERP</div>
+      ${htmlEmpresa()}
+      ${htmlAbas()}
+      ${htmlTools()}
+    </header>
+    ${htmlTrabalho()}
+  </div>`;
+}
+
+function htmlPaletaCaixa() {
+  if (!state.paleta) return "";
+  const items = filtrados();
+  let lista;
+  if (!items.length) {
+    lista = `<div class="none">Não há item</div>`;
+  } else {
+    let grupo = "";
+    lista = items.map((m, i) => {
+      const titulo = m.grupo !== grupo ? `<div class="pgroup">${esc(m.grupo)}</div>` : "";
+      grupo = m.grupo;
+      const hit = i === state.destaque ? " hit" : "";
+      return `${titulo}<button type="button" class="pitem${hit}" data-act="open-item" data-grupo="${esc(m.grupo)}" data-nome="${esc(m.nome)}">${esc(m.nome)}</button>`;
+    }).join("");
+  }
+  return `<div class="backdrop" data-act="fechar-paleta"></div>
+    <div class="palette" data-palette>
+      <input id="filtro" placeholder="Filtrar o menu" value="${esc(state.filtro)}" autocomplete="off" spellcheck="false">
+      <div class="plist">${lista}</div>
+      <div class="phint">Enter abre · Esc fecha</div>
+    </div>`;
+}
+
+function htmlSair() {
+  return `<div class="sair"><h1>Sair</h1><p>O shell iria para /logout.</p><button type="button" data-act="voltar">Voltar ao protótipo</button></div>`;
+}
+
+function textoEstado() {
+  const emp = empresaAtual();
+  const aba = abaVisivel();
+  const itens = state.paleta ? filtrados() : [];
+  const dest = state.paleta && state.destaque >= 0 ? itens[state.destaque] : null;
+  const partes = [
+    "empresa " + emp.nome,
+    "usuário " + USUARIO.login,
+    "perfil " + USUARIO.perfil,
+    aba ? `aba ${aba.nome} (${state.abas.length} abertas)` : "nenhuma aba",
+    state.janela ? `janela ${state.janela.nome}` : "nenhuma janela",
+    state.paleta
+      ? `paleta aberta${state.filtro ? ` filtro "${state.filtro}"` : ""}${dest ? ` · destaque ${dest.nome}` : " · sem destaque"}`
+      : "paleta fechada",
+    "atualização " + state.geracao,
+    state.segunda ? "lista de empresas" : "empresa é rótulo",
+    state.podeTrocar ? "troca de usuário ligada" : "troca de usuário oculta",
+  ];
+  return partes.join(" · ");
+}
+
+function posicionarPaleta() {
+  const caixa = document.querySelector(".palette");
+  const trabalho = document.querySelector("[data-work]");
+  if (!caixa || !trabalho) return;
+  const r = trabalho.getBoundingClientRect();
+  caixa.style.left = (r.left + r.width / 2) + "px";
+  caixa.style.top = (r.top + Math.min(r.height, 640) / 2) + "px";
+  caixa.style.transform = "translate(-50%, -50%)";
+}
+
+function render() {
+  const shell = document.getElementById("shell");
+  if (state.sair) {
+    shell.innerHTML = htmlSair();
+  } else if (state.variant === "trilho") {
+    shell.innerHTML = htmlTrilho() + htmlPaletaCaixa();
+  } else if (state.variant === "paleta") {
+    shell.innerHTML = htmlPaleta() + htmlPaletaCaixa();
+  } else {
+    shell.innerHTML = htmlBarra() + htmlPaletaCaixa();
+  }
+  const i = Math.max(0, VARIANTES.findIndex(v => v.id === state.variant));
+  const letra = "ABC"[i];
+  document.getElementById("switcher").innerHTML = `
+    <div class="ask">Pergunta: este shell aguenta o dia inteiro? Cores provisórias. Fechar a aba está aqui só para operar.</div>
+    <div class="row">
+      <button type="button" data-nav="-1" aria-label="Variante anterior">←</button>
+      <div class="vlabel">${letra} · ${esc(VARIANTES[i].nome)}</div>
+      <button type="button" data-nav="1" aria-label="Próxima variante">→</button>
+    </div>
+    <div class="toggles">
+      <label><input type="checkbox" id="segunda" ${state.segunda ? "checked" : ""}> Segunda empresa (exemplo)</label>
+      <label><input type="checkbox" id="troca" ${state.podeTrocar ? "checked" : ""}> Troca de usuário</label>
+    </div>
+    <div class="state">${esc(textoEstado())}</div>`;
+  const input = document.getElementById("filtro");
+  if (input) {
+    input.focus();
+    const pos = caret == null ? input.value.length : caret;
+    input.setSelectionRange(pos, pos);
+    caret = null;
+  }
+  document.querySelector(".pitem.hit")?.scrollIntoView({ block: "nearest" });
+  posicionarPaleta();
+}
+
+function setVariant(id) {
+  state.variant = id;
+  if (id === "trilho") state.grupoAberto = null;
+  if (id === "barra" && !state.grupoAberto) {
+    const aba = abaVisivel();
+    state.grupoAberto = aba ? aba.grupo : "Vendas";
+  }
+  const url = new URL(location.href);
+  url.searchParams.set("variant", id);
+  history.replaceState(null, "", url);
+  render();
+}
+
+function cycle(delta) {
+  const i = Math.max(0, VARIANTES.findIndex(v => v.id === state.variant));
+  const n = (i + delta + VARIANTES.length) % VARIANTES.length;
+  setVariant(VARIANTES[n].id);
+}
+
+function abrirPaleta() {
+  state.paleta = !state.paleta;
+  state.filtro = "";
+  state.destaque = state.paleta && MENU.length ? 0 : -1;
+  state.painel = null;
+  caret = null;
+  render();
+}
+
+document.addEventListener("click", (e) => {
+  const nav = e.target.closest("[data-nav]");
+  if (nav) {
+    cycle(Number(nav.dataset.nav));
+    return;
+  }
+  const act = e.target.closest("[data-act]");
+  if (!act) return;
+  const a = act.dataset.act;
+  if (a === "toggle-grupo") {
+    state.grupoAberto = state.grupoAberto === act.dataset.grupo ? null : act.dataset.grupo;
+    state.painel = null;
+    render();
+    return;
+  }
+  if (a === "open-item") {
+    const item = achar(act.dataset.grupo, act.dataset.nome);
+    if (item) abrir(item);
+    render();
+    return;
+  }
+  if (a === "show-tab") {
+    state.abaId = act.dataset.chave;
+    state.painel = null;
+    render();
+    return;
+  }
+  if (a === "close-tab") {
+    fecharAba(act.dataset.chave);
+    render();
+    return;
+  }
+  if (a === "incluir") {
+    const aba = abaVisivel();
+    if (!aba) return;
+    state.janela = { nome: "Inclusão", grupo: aba.grupo, sobre: aba.chave, inclusao: true };
+    state.painel = null;
+    render();
+    return;
+  }
+  if (a === "fechar-janela") {
+    state.janela = null;
+    render();
+    return;
+  }
+  if (a === "abrir-paleta") {
+    abrirPaleta();
+    return;
+  }
+  if (a === "fechar-paleta") {
+    state.paleta = false;
+    state.filtro = "";
+    render();
+    return;
+  }
+  if (a === "empresa" || a === "sino" || a === "avatar") {
+    const nome = a === "empresa" ? "empresa" : a;
+    state.paleta = false;
+    state.painel = state.painel === nome ? null : nome;
+    render();
+    return;
+  }
+  if (a === "pick-empresa") {
+    state.empresaId = act.dataset.id;
+    recarregar();
+    render();
+    return;
+  }
+  if (a === "pick-usuario") {
+    recarregar();
+    render();
+    return;
+  }
+  if (a === "sair") {
+    state.sair = true;
+    state.paleta = false;
+    state.painel = null;
+    render();
+    return;
+  }
+  if (a === "voltar") {
+    state.sair = false;
+    render();
+  }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "filtro") return;
+  state.filtro = e.target.value;
+  const itens = filtrados();
+  state.destaque = itens.length ? 0 : -1;
+  caret = e.target.selectionStart;
+  render();
+});
+
+document.addEventListener("change", (e) => {
+  if (e.target.id === "segunda") {
+    state.segunda = e.target.checked;
+    if (!state.segunda && state.empresaId === "exemplo") {
+      state.empresaId = "fixar";
+      recarregar();
+    }
+    state.painel = null;
+    render();
+  }
+  if (e.target.id === "troca") {
+    state.podeTrocar = e.target.checked;
+    if (!state.podeTrocar && state.painel === "avatar") state.painel = null;
+    render();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    abrirPaleta();
+    return;
+  }
+  if (state.paleta) {
+    const itens = filtrados();
+    if (e.key === "Escape") {
+      e.preventDefault();
+      state.paleta = false;
+      state.filtro = "";
+      render();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!itens.length) return;
+      const dir = e.key === "ArrowDown" ? 1 : -1;
+      const max = itens.length - 1;
+      state.destaque = Math.min(max, Math.max(0, state.destaque + dir));
+      render();
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const item = itens[state.destaque];
+      if (item) abrir(item);
+      render();
+      return;
+    }
+    return;
+  }
+  if (e.key === "Escape") {
+    if (state.painel) { state.painel = null; render(); return; }
+    if (state.janela) { state.janela = null; render(); return; }
+    if (state.variant === "trilho" && state.grupoAberto) { state.grupoAberto = null; render(); }
+    return;
+  }
+  const digitando = e.target.closest("input, textarea, [contenteditable]");
+  if (digitando) return;
+  if (e.key === "ArrowLeft") { e.preventDefault(); cycle(-1); }
+  if (e.key === "ArrowRight") { e.preventDefault(); cycle(1); }
+});
+
+semear();
+if (!params.get("variant")) {
+  const url = new URL(location.href);
+  url.searchParams.set("variant", state.variant);
+  history.replaceState(null, "", url);
+}
+render();
+</script>
+</body>
+</html>

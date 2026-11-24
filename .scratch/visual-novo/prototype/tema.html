@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FX ERP · protótipo do tema</title>
+<!--
+  PROTOTYPE, throwaway. Não é o tema de produção.
+  Três variantes do vocabulário, trocáveis por ?variant=papeis|continuidade|azul.
+  O passo troca por ?passo=12|13|14. A área sem aba, por ?vazio=1.
+  Premissa: o layout é a barra já escolhida em shell.html.
+  As variantes discordam de quais tokens existem e do que cada um preenche.
+  Decisão: Papéis. O passo que abre é 12.
+-->
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    color: var(--paint-ink);
+    background: var(--tw-body);
+    font-family: var(--tw-font);
+    font-size: var(--tw-font-size);
+    line-height: var(--tw-leading);
+  }
+  body.map-on { --map-w: 360px; }
+  * { box-sizing: border-box; }
+  button, input { font: inherit; color: inherit; min-width: 0; }
+  button { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+  #app { height: 100%; margin-right: var(--map-w, 0px); }
+  #shell { height: 100%; display: grid; grid-template-columns: 232px 1fr; min-height: 0; }
+  .side {
+    background: var(--paint-side);
+    color: var(--paint-side-ink);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .brand { padding: 16px 14px 2px; font-size: 15px; font-weight: 650; letter-spacing: .04em; }
+  .company { padding: 4px 14px 12px; color: var(--paint-side-muted); font-size: 12px; }
+  .group, .item { display: block; width: calc(100% - 8px); margin: 1px 4px; padding: 8px 10px; border-radius: 6px; }
+  .group { font-weight: 650; }
+  .group.on { background: rgba(255,255,255,.1); }
+  .item { padding-left: 22px; }
+  .main { min-width: 0; min-height: 0; display: grid; grid-template-rows: 48px 36px 1fr; }
+  .top {
+    display: flex; align-items: center; gap: 8px; padding: 0 12px;
+    background: var(--paint-paper); border-bottom: 1px solid var(--paint-line);
+  }
+  .top .grow { flex: 1; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center;
+    color: var(--paint-ink);
+  }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--paint-accent); color: var(--paint-paper); font-size: 12px; font-weight: 650;
+  }
+  .tabs {
+    display: flex; align-items: flex-end; gap: 2px; padding: 0 8px;
+    background: var(--paint-canvas); overflow: auto;
+  }
+  .tab {
+    display: flex; align-items: center; max-width: 220px; border-radius: 7px 7px 0 0;
+    color: var(--paint-muted); padding: 6px 12px;
+  }
+  .tab.on { background: var(--paint-paper); color: var(--paint-ink); }
+  .work { position: relative; min-height: 0; overflow: auto; background: var(--tw-body); }
+  .miolo { padding: 0 0 72px; }
+  .filtro, .bloco { margin: 10px 12px; background: var(--paint-paper); border: 1px solid var(--paint-line); }
+  .filtro { display: flex; gap: 8px; align-items: end; padding: 8px; background: var(--paint-filter-bg); }
+  .filtro label, .campo { display: grid; gap: 2px; color: var(--paint-muted); font-size: .92em; }
+  .filtro input, .campo input {
+    background: var(--paint-field); color: var(--paint-ink);
+    border: 1px solid var(--paint-field-border); border-radius: 3px;
+    height: var(--tw-field); padding: 0 8px;
+  }
+  .campo input.ro { background: var(--paint-readonly); }
+  .campo input.err { background: var(--paint-error); }
+  .ui-btn {
+    height: var(--tw-field); padding: 0 10px; border-radius: 3px;
+    background: var(--paint-ui-default); color: var(--paint-ui-default-ink);
+    border: 1px solid var(--paint-line);
+  }
+  .grade-scroll { max-height: 240px; overflow: auto; margin: 0 12px; border: 1px solid var(--paint-line); background: var(--paint-paper); }
+  .grade-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+  .grade-scroll::-webkit-scrollbar-track { background: var(--paint-scroll-track); }
+  .grade-scroll::-webkit-scrollbar-thumb { background: var(--paint-scroll-handle); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td { text-align: left; border-bottom: 1px solid var(--paint-line); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  th { background: var(--paint-thead); color: var(--paint-thead-ink); padding: var(--tw-th); font-weight: 650; position: sticky; top: 0; }
+  td { padding: var(--tw-td); background: var(--paint-paper); }
+  tr.is-zebra td { background: var(--paint-zebra); }
+  tr.is-hover td { background: var(--paint-hover); }
+  tr.is-sel td { background: var(--paint-selected); }
+  tr.is-sel td.cel { background: var(--paint-selected-cell); }
+  tr td[data-slot="celula-verde"] { background: var(--paint-celula-verde); }
+  tr td[data-slot="celula-amarelo"] { background: var(--paint-celula-amarelo); }
+  tr td[data-slot="celula-amarelo-claro"] { background: var(--paint-celula-amarelo-claro); }
+  tr td[data-slot="celula-vermelho"] { background: var(--paint-celula-vermelho); }
+  tr td[data-slot="celula-azul"] { background: var(--paint-celula-azul); }
+  td.st { color: var(--paint-ink); }
+  .badge[data-slot="aviso-azul"] { background: var(--paint-aviso-azul); }
+  .badge[data-slot="aviso-vermelho"] { background: var(--paint-aviso-vermelho); }
+  .badge[data-slot="aviso-verde"] { background: var(--paint-aviso-verde); }
+  .badge[data-slot="aviso-amarelo"] { background: var(--paint-aviso-amarelo); }
+  .badge {
+    display: inline-block; padding: .125rem .375rem; border-radius: .625rem;
+    color: #fff; font-weight: 700; font-size: .85em;
+  }
+  .cols { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+  .cols > * { min-width: 0; }
+  @media (min-width: 1280px) {
+    .cols { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
+  }
+  .titulo {
+    margin: 0; padding: var(--tw-title); color: var(--paint-title);
+    border-bottom: 1px solid var(--paint-title-line); font-size: 1em; font-weight: 650;
+  }
+  .campos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px; }
+  .campo input, .filtro input { width: 100%; }
+  .abas { display: flex; gap: 2px; padding: 0 8px; background: var(--paint-cabecalho); }
+  .abas button { min-height: var(--tw-tab); padding: .3em 1em; border: 1px solid var(--paint-line); border-bottom: 0; }
+  .abas .on { background: var(--paint-tab-active); color: var(--paint-ink); }
+  .abas .off { background: var(--paint-tab); color: var(--paint-ink); }
+  .abas .hov { background: var(--paint-tab-hover); color: var(--paint-ink); }
+  .papeis { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; }
+  .papel {
+    min-width: 92px; padding: 6px 8px; border: 1px solid var(--paint-line);
+    display: grid; gap: 4px; font-size: .85em;
+  }
+  .papel .ico { width: 16px; height: 16px; }
+  .papel small { color: inherit; opacity: .8; }
+  .janela {
+    margin: 0 8px 8px; background: var(--paint-paper); border: 1px solid var(--paint-line);
+    box-shadow: 0 8px 24px var(--paint-shadow);
+  }
+  .janela header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: var(--tw-title); background: var(--paint-window); color: var(--paint-window-ink);
+    font-weight: 650;
+  }
+  .janela .corpo { padding: 10px; display: grid; gap: 8px; }
+  .vazia {
+    display: none; height: 100%; place-items: center; color: var(--paint-desktop-text);
+    font-size: 2em;
+  }
+  body.vazio .miolo { display: none; }
+  body.vazio .vazia { display: grid; }
+  body.vazio .tab { visibility: hidden; }
+  [data-slot] { cursor: pointer; }
+  .is-hot { outline: 2px solid #ff5a1f; outline-offset: -2px; }
+  #mapa {
+    position: fixed; top: 0; right: 0; bottom: 0; width: var(--map-w, 360px);
+    background: #1c1917; color: #f5f5f4; overflow: auto; z-index: 40;
+    font: 12px/1.4 "Segoe UI", system-ui, sans-serif; display: none;
+  }
+  body.map-on #mapa { display: block; }
+  #mapa header { position: sticky; top: 0; background: #1c1917; padding: 12px 12px 8px; border-bottom: 1px solid #44403c; }
+  #mapa h2 { margin: 0 0 4px; font-size: 13px; }
+  #mapa .olho { color: #a8a29e; margin: 0; }
+  #mapa .sec { padding: 8px 12px 12px; }
+  #mapa h3 { margin: 10px 0 4px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #a8a29e; }
+  .tok { display: grid; grid-template-columns: 14px 1fr; gap: 6px; padding: 4px; border-radius: 4px; }
+  .tok .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #57534e; margin-top: 2px; }
+  .tok .fills { color: #d6d3d1; margin: 2px 0 0; padding: 0; list-style: none; }
+  .tok .fills li { font-family: ui-monospace, monospace; font-size: 11px; }
+  #mapa .fora li { margin: 2px 0; }
+  .switcher {
+    position: fixed; z-index: 50; left: calc((100% - var(--map-w, 0px)) / 2); bottom: 14px;
+    transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+    background: #111; color: #fff; border-radius: 999px; padding: 6px 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35); font: 13px/1 "Segoe UI", system-ui, sans-serif;
+  }
+  .switcher button { color: #fff; border-radius: 999px; padding: 6px 8px; }
+  .switcher button.on { background: #fff; color: #111; }
+  .switcher .nome { min-width: 11rem; text-align: center; font-weight: 650; }
+  #erro { display: none; margin: 8px; padding: 8px; background: #7f1d1d; color: #fff; }
+</style>
+</head>
+<body class="map-on">
+<div id="erro"></div>
+<div id="app">
+  <div id="shell">
+    <aside class="side" data-slot="side">
+      <div class="brand" data-slot="side-ink">FX ERP</div>
+      <div class="company" data-slot="side-muted">FIXAR INDUSTRIAL</div>
+      <button class="group on" type="button" data-slot="side">Vendas</button>
+      <button class="item" type="button" data-slot="side-ink">Pedidos</button>
+      <button class="item" type="button" data-slot="side-ink">Orçamentos</button>
+      <button class="group" type="button" data-slot="side">Estoque</button>
+      <button class="group" type="button" data-slot="side">Financeiro</button>
+    </aside>
+    <div class="main">
+      <header class="top" data-slot="paper">
+        <span class="grow"></span>
+        <button class="icon-btn" type="button" data-slot="icon" aria-label="Paleta">⌕</button>
+        <button class="icon-btn" type="button" data-slot="icon" aria-label="Sino">○</button>
+        <span class="avatar" data-slot="accent">F</span>
+      </header>
+      <nav class="tabs" data-slot="canvas">
+        <button class="tab on" type="button" data-slot="paper">Pedidos</button>
+        <button class="tab" type="button" data-slot="muted">Clientes</button>
+      </nav>
+      <div class="work" data-slot="canvas">
+        <div class="vazia" data-slot="desktop-text">FX ERP</div>
+        <div class="miolo">
+          <div class="filtro" data-slot="filter-bg">
+            <label data-slot="muted">Pedido <input readonly value="10482" data-slot="field"></label>
+            <label data-slot="muted">Cliente <input readonly value="" data-slot="field"></label>
+            <button class="ui-btn" type="button" data-slot="ui-default">Filtrar</button>
+          </div>
+          <div class="grade-scroll" data-slot="scroll-track">
+            <table class="grade">
+              <thead>
+                <tr>
+                  <th data-slot="thead">Pedido</th>
+                  <th data-slot="thead">Cliente</th>
+                  <th data-slot="thead">Emissão</th>
+                  <th data-slot="thead">Valor</th>
+                  <th data-slot="thead">Situação</th>
+                  <th data-slot="thead">Aviso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>10482</td><td>Oficina Leste</td><td>12/11/2026</td><td>1.240,00</td>
+                  <td class="st" data-slot="celula-verde">Liberado</td><td></td>
+                </tr>
+                <tr class="is-zebra">
+                  <td data-slot="zebra">10483</td><td data-slot="zebra">Metalúrgica Sul</td><td data-slot="zebra">12/11/2026</td><td data-slot="zebra">8.900,00</td>
+                  <td class="st" data-slot="celula-amarelo">Em análise</td>
+                  <td><span class="badge" data-slot="aviso-amarelo">prazo</span></td>
+                </tr>
+                <tr class="is-hover">
+                  <td data-slot="hover">10480</td><td data-slot="hover">Comercial Norte</td><td data-slot="hover">11/11/2026</td><td data-slot="hover">430,00</td>
+                  <td class="st" data-slot="celula-amarelo-claro">Aguardando</td><td></td>
+                </tr>
+                <tr class="is-sel">
+                  <td data-slot="selected">10479</td><td class="cel" data-slot="selected-cell">Atlas Parafusos</td><td data-slot="selected">11/11/2026</td><td data-slot="selected">2.110,00</td>
+                  <td class="st" data-slot="celula-vermelho">Atrasado</td>
+                  <td><span class="badge" data-slot="aviso-vermelho">bloqueado</span></td>
+                </tr>
+                <tr class="is-zebra">
+                  <td data-slot="zebra">10478</td><td data-slot="zebra">Casa do Aço</td><td data-slot="zebra">10/11/2026</td><td data-slot="zebra">760,00</td>
+                  <td class="st" data-slot="celula-azul">Faturar</td>
+                  <td><span class="badge" data-slot="aviso-azul">nf</span></td>
+                </tr>
+                <tr>
+                  <td>10477</td><td>Serra Azul</td><td>10/11/2026</td><td>15.400,00</td>
+                  <td class="st" data-slot="celula-verde">Liberado</td>
+                  <td><span class="badge" data-slot="aviso-verde">ok</span></td>
+                </tr>
+                <tr class="is-zebra">
+                  <td data-slot="zebra">10476</td><td data-slot="zebra">Porto Peças</td><td data-slot="zebra">09/11/2026</td><td data-slot="zebra">980,00</td>
+                  <td class="st" data-slot="celula-amarelo">Em análise</td><td></td>
+                </tr>
+                <tr>
+                  <td>10475</td><td>Via Fix</td><td>09/11/2026</td><td>210,00</td>
+                  <td class="st" data-slot="celula-vermelho">Atrasado</td><td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cols">
+            <section class="bloco">
+              <h2 class="titulo" data-slot="title">Pedido 10482</h2>
+              <div class="campos">
+                <label class="campo">Código <input readonly value="10482" data-slot="field"></label>
+                <label class="campo">Descrição <input class="ro" readonly value="PEDIDO GRAVADO" data-slot="readonly"></label>
+                <label class="campo">Quantidade <input class="err" readonly value="" data-slot="error"></label>
+              </div>
+              <div class="abas" data-slot="cabecalho">
+                <button class="on" type="button" data-slot="tab-active">Dados</button>
+                <button class="off" type="button" data-slot="tab">Itens</button>
+                <button class="hov" type="button" data-slot="tab-hover">Observações</button>
+              </div>
+            </section>
+            <section class="bloco">
+              <div class="janela" data-slot="paper">
+                <header data-slot="window">
+                  <span>Incluir pedido</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" data-slot="icon-header" style="color:var(--paint-icon-header)"><use href="#glyph"/></svg>
+                </header>
+                <div class="corpo">
+                  <label class="campo">Cliente <input readonly value="" data-slot="field"></label>
+                  <button class="ui-btn" type="button" data-slot="ui-active" style="background:var(--paint-ui-active);color:var(--paint-ui-active-ink)">Gravar</button>
+                </div>
+              </div>
+              <h2 class="titulo" data-slot="title">Papéis do ThemeRoller</h2>
+              <div class="papeis">
+                <div class="papel" data-slot="ui-content" style="background:var(--paint-ui-content);color:var(--paint-ui-content-ink);border-color:var(--paint-ui-content-border)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon)"><use href="#glyph"/></svg>
+                  <span>content</span><small data-slot="icon">ícone</small>
+                </div>
+                <div class="papel" data-slot="ui-header" style="background:var(--paint-ui-header);color:var(--paint-ui-header-ink)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon-header)"><use href="#glyph"/></svg>
+                  <span>header</span>
+                </div>
+                <div class="papel" data-slot="ui-default" style="background:var(--paint-ui-default);color:var(--paint-ui-default-ink)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon)"><use href="#glyph"/></svg>
+                  <span>default</span>
+                </div>
+                <div class="papel" data-slot="ui-hover" style="background:var(--paint-ui-hover);color:var(--paint-ink);border-color:var(--paint-ui-hover-border)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon-hover)"><use href="#glyph"/></svg>
+                  <span>hover</span>
+                </div>
+                <div class="papel" data-slot="ui-active" style="background:var(--paint-ui-active);color:var(--paint-ui-active-ink)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon-active)"><use href="#glyph"/></svg>
+                  <span>active</span>
+                </div>
+                <div class="papel" data-slot="ui-highlight" style="background:var(--paint-ui-highlight);color:var(--paint-ui-highlight-ink)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon-highlight)"><use href="#glyph"/></svg>
+                  <span>highlight</span>
+                </div>
+                <div class="papel" data-slot="ui-error" style="background:var(--paint-ui-error);color:var(--paint-ui-error-ink)">
+                  <svg class="ico" viewBox="0 0 16 16" style="color:var(--paint-icon-error)"><use href="#glyph"/></svg>
+                  <span>error</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<aside id="mapa" aria-label="Mapa dos tokens, protótipo">
+  <header>
+    <h2>Mapa do protótipo</h2>
+    <p class="olho" id="gist"></p>
+    <p class="olho" id="tipo"></p>
+  </header>
+  <div class="sec" id="dens"></div>
+  <div class="sec" id="toks"></div>
+  <div class="sec" id="fora"></div>
+</aside>
+<div class="switcher">
+  <button type="button" id="prev" aria-label="Variante anterior">←</button>
+  <span class="nome" id="nome"></span>
+  <button type="button" id="next" aria-label="Próxima variante">→</button>
+  <button type="button" data-passo="12">12</button>
+  <button type="button" data-passo="13">13</button>
+  <button type="button" data-passo="14">14</button>
+  <button type="button" id="vazio">área vazia</button>
+  <button type="button" id="mapa-btn">mapa</button>
+</div>
+<svg width="0" height="0" hidden>
+  <symbol id="glyph" viewBox="0 0 16 16">
+    <path fill="currentColor" d="M3 3h4v4H3zm6 0h4v4H9zM3 9h4v4H3zm6 0h4v4H9z"/>
+  </symbol>
+</svg>
+<script>
+const VARIANTES = [
+  { id: "papeis", nome: "Papéis" },
+  { id: "continuidade", nome: "Continuidade" },
+  { id: "azul", nome: "Um azul" },
+];
+const GIST = {
+  papeis: "Poucos tokens. O cromado é quieto. Cor fica no status, no erro, na seleção e no acento. O hover da grade continua o amarelo.",
+  continuidade: "Cada superfície de hoje guarda o hex de hoje. A sidebar nova não pinta a grade. O body continua o gradiente cinza.",
+  azul: "Uma rampa azul pinta o cromado do miolo e a sidebar. O hover da grade é azul. O body é chapado.",
+};
+const STATUS = {
+  "celula-verde": "#B6F9B1",
+  "celula-amarelo": "#FCF6A4",
+  "celula-amarelo-claro": "#F9F7BD",
+  "celula-vermelho": "#FCDAC2",
+  "celula-azul": "#B3D8F9",
+  "aviso-azul": "#063fdb",
+  "aviso-vermelho": "#E82728",
+  "aviso-verde": "#6fc293",
+  "aviso-amarelo": "#F1D126",
+};
+const HEX = {
+  papeis: Object.assign({
+    side: "#1b2430", "side-ink": "#e8edf2", "side-muted": "#9aa6b4", accent: "#1d4f8a",
+    canvas: "#e7eaee", paper: "#ffffff", ink: "#1a1d21", muted: "#5c6570", line: "#d5d9e0",
+    "accent-soft": "#e6eef8", hover: "#FFE98C", header: "#f4f6f8", "selected-cell": "#d3e2f5",
+    readonly: "#f3f4f6", error: "#ffaaaa", shadow: "#141c2833", "scroll-handle": "#b7c0cb",
+  }, STATUS),
+  continuidade: Object.assign({
+    side: "#1b2430", "side-ink": "#e8edf2", "side-muted": "#9aa6b4", accent: "#1d4f8a",
+    paper: "#ffffff", ink: "#0A1C1D", black: "#000000", muted: "#5e5e5f", line: "#c0c0c0",
+    "grid-header": "#58657A", "on-header": "#ffffff", zebra: "#D1EEFC", hover: "#FFE98C",
+    filter: "#F4F2F2", title: "#2e6e9e", "title-line": "#C5DBEC", field: "#FBFBFB",
+    readonly: "#ede7de", error: "#ffaaaa", cabecalho: "#EAF4FD",
+    "body-0": "#aaaaaa", "body-1": "#c9c9c9", "body-2": "#e5e5e5",
+    "ui-content": "#ede7de", "ui-content-ink": "#413a3a", "ui-header": "#444444", "ui-header-ink": "#ffffff",
+    "ui-default": "#c9c5c5", "ui-default-ink": "#030202", "ui-hover": "#89d5fb", "ui-hover-border": "#20b4f8",
+    "ui-active": "#0972a5", "ui-active-ink": "#f9f0f0", "ui-highlight": "#eeeeee", "ui-highlight-ink": "#2e7db2",
+    "ui-error": "#f93439", "ui-error-ink": "#111111",
+    icon: "#2d2f2d", "icon-header": "#ffffff", "icon-hover": "#222222", "icon-active": "#222222",
+    "icon-highlight": "#4b8e0b", "icon-error": "#a83300",
+    "scroll-track": "#F1F1F1", "scroll-handle": "#c5c5c5", "desktop-text": "#B1A5A5", shadow: "#A6A6A6",
+  }, STATUS),
+  azul: Object.assign({
+    side: "#3d4c5c", "side-ink": "#e8edf2", "side-muted": "#b7c3cf", accent: "#1d4f8a",
+    canvas: "#c0c8d1", paper: "#ffffff", ink: "#414040", muted: "#737a85", line: "#afb5bb",
+    mist: "#d0d9e4", "mist-strong": "#879db4", zebra: "#f1f2f3", hover: "#d5e6fa",
+    selected: "#e9eff7", "selected-cell": "#c8d8ee", error: "#ffaaaa",
+    "scroll-track": "#f6f9fa", "scroll-handle": "#b4c2cc", shadow: "#5b5b5e44",
+  }, STATUS),
+};
+const PASSOS = {
+  papeis: {
+    font: '"Segoe UI", system-ui, sans-serif',
+    face: "Segoe UI, system-ui, sans-serif",
+    12: { fontSize: "12px", leading: "1.3", th: "4px 8px", td: "2px 8px", tab: "22px", field: "24px", title: "4px 8px" },
+    13: { fontSize: "13px", leading: "1.3", th: "5px 8px", td: "4px 8px", tab: "24px", field: "26px", title: "5px 8px" },
+    14: { fontSize: "14px", leading: "1.35", th: "6px 10px", td: "5px 10px", tab: "28px", field: "30px", title: "6px 10px" },
+  },
+  continuidade: {
+    font: 'Roboto, "Segoe UI", sans-serif',
+    face: "Roboto, com queda para Segoe UI se a face não estiver instalada",
+    12: { fontSize: "12px", leading: "1.45", th: "6px", td: "8px 6px", tab: "23px", field: "24px", title: "0.44em 0.5em" },
+    13: { fontSize: "13px", leading: "1.45", th: "7px", td: "9px 7px", tab: "25px", field: "26px", title: "0.44em 0.5em" },
+    14: { fontSize: "14px", leading: "1.45", th: "8px", td: "10px 8px", tab: "27px", field: "28px", title: "0.44em 0.5em" },
+  },
+  azul: {
+    font: "system-ui, sans-serif",
+    face: "system-ui, sans-serif",
+    12: { fontSize: "12px", leading: "1.35", th: "5px 8px", td: "4px 8px", tab: "24px", field: "26px", title: "5px 8px" },
+    13: { fontSize: "13px", leading: "1.35", th: "6px 8px", td: "6px 8px", tab: "26px", field: "28px", title: "6px 8px" },
+    14: { fontSize: "14px", leading: "1.4", th: "7px 10px", td: "8px 10px", tab: "30px", field: "32px", title: "7px 10px" },
+  },
+};
+function parseMapa(texto) {
+  const o = {};
+  texto.trim().split("\n").forEach(linha => {
+    const pedaco = linha.trim();
+    if (!pedaco || pedaco.startsWith("#")) return;
+    const [slot, token] = pedaco.split(":").map(s => s.trim());
+    o[slot] = token;
+  });
+  return o;
+}
+const SLOT = {
+  papeis: parseMapa(`
+    side: side
+    side-ink: side-ink
+    side-muted: side-muted
+    accent: accent
+    canvas: canvas
+    paper: paper
+    ink: ink
+    muted: muted
+    line: line
+    accent-soft: accent-soft
+    hover: hover
+    thead: header
+    thead-ink: muted
+    zebra: header
+    selected: accent-soft
+    selected-cell: selected-cell
+    filter-bg: header
+    field: paper
+    field-border: line
+    readonly: readonly
+    error: error
+    title: accent
+    title-line: line
+    tab: header
+    tab-active: paper
+    tab-hover: accent-soft
+    cabecalho: header
+    window: side
+    window-ink: side-ink
+    ui-content: paper
+    ui-content-ink: ink
+    ui-content-border: line
+    ui-default: header
+    ui-default-ink: ink
+    ui-hover: accent-soft
+    ui-hover-border: accent
+    ui-active: accent
+    ui-active-ink: paper
+    ui-highlight: accent-soft
+    ui-highlight-ink: accent
+    ui-error: error
+    ui-error-ink: ink
+    ui-header: side
+    ui-header-ink: side-ink
+    scroll-track: canvas
+    scroll-handle: scroll-handle
+    icon: ink
+    icon-header: side-ink
+    icon-hover: accent
+    icon-active: paper
+    icon-highlight: accent
+    icon-error: aviso-vermelho
+    shadow: shadow
+    desktop-text: muted
+    ink-strong: ink
+    body-0: canvas
+    body-1: canvas
+    body-2: canvas
+    celula-verde: celula-verde
+    celula-amarelo: celula-amarelo
+    celula-amarelo-claro: celula-amarelo-claro
+    celula-vermelho: celula-vermelho
+    celula-azul: celula-azul
+    aviso-azul: aviso-azul
+    aviso-vermelho: aviso-vermelho
+    aviso-verde: aviso-verde
+    aviso-amarelo: aviso-amarelo
+  `),
+  continuidade: parseMapa(`
+    side: side
+    side-ink: side-ink
+    side-muted: side-muted
+    accent: accent
+    canvas: body-1
+    paper: paper
+    ink: ink
+    muted: muted
+    line: line
+    accent-soft: ui-hover
+    hover: hover
+    thead: grid-header
+    thead-ink: on-header
+    zebra: zebra
+    selected: hover
+    selected-cell: hover
+    filter-bg: filter
+    field: field
+    field-border: line
+    readonly: readonly
+    error: error
+    title: title
+    title-line: title-line
+    tab: ui-default
+    tab-active: ui-active
+    tab-hover: ui-hover
+    cabecalho: cabecalho
+    window: ui-header
+    window-ink: ui-header-ink
+    ui-content: ui-content
+    ui-content-ink: ui-content-ink
+    ui-content-border: line
+    ui-default: ui-default
+    ui-default-ink: ui-default-ink
+    ui-hover: ui-hover
+    ui-hover-border: ui-hover-border
+    ui-active: ui-active
+    ui-active-ink: ui-active-ink
+    ui-highlight: ui-highlight
+    ui-highlight-ink: ui-highlight-ink
+    ui-error: ui-error
+    ui-error-ink: ui-error-ink
+    ui-header: ui-header
+    ui-header-ink: ui-header-ink
+    scroll-track: scroll-track
+    scroll-handle: scroll-handle
+    icon: icon
+    icon-header: icon-header
+    icon-hover: icon-hover
+    icon-active: icon-active
+    icon-highlight: icon-highlight
+    icon-error: icon-error
+    shadow: shadow
+    desktop-text: desktop-text
+    ink-strong: black
+    body-0: body-0
+    body-1: body-1
+    body-2: body-2
+    celula-verde: celula-verde
+    celula-amarelo: celula-amarelo
+    celula-amarelo-claro: celula-amarelo-claro
+    celula-vermelho: celula-vermelho
+    celula-azul: celula-azul
+    aviso-azul: aviso-azul
+    aviso-vermelho: aviso-vermelho
+    aviso-verde: aviso-verde
+    aviso-amarelo: aviso-amarelo
+  `),
+  azul: parseMapa(`
+    side: side
+    side-ink: side-ink
+    side-muted: side-muted
+    accent: accent
+    canvas: canvas
+    paper: paper
+    ink: ink
+    muted: muted
+    line: line
+    accent-soft: selected
+    hover: hover
+    thead: mist
+    thead-ink: ink
+    zebra: zebra
+    selected: selected
+    selected-cell: selected-cell
+    filter-bg: mist
+    field: paper
+    field-border: line
+    readonly: mist
+    error: error
+    title: accent
+    title-line: line
+    tab: mist
+    tab-active: paper
+    tab-hover: hover
+    cabecalho: canvas
+    window: mist
+    window-ink: ink
+    ui-content: paper
+    ui-content-ink: ink
+    ui-content-border: line
+    ui-default: mist
+    ui-default-ink: ink
+    ui-hover: mist-strong
+    ui-hover-border: accent
+    ui-active: accent
+    ui-active-ink: paper
+    ui-highlight: selected
+    ui-highlight-ink: accent
+    ui-error: error
+    ui-error-ink: ink
+    ui-header: mist
+    ui-header-ink: ink
+    scroll-track: scroll-track
+    scroll-handle: scroll-handle
+    icon: ink
+    icon-header: ink
+    icon-hover: accent
+    icon-active: paper
+    icon-highlight: accent
+    icon-error: aviso-vermelho
+    shadow: shadow
+    desktop-text: muted
+    ink-strong: ink
+    body-0: canvas
+    body-1: canvas
+    body-2: canvas
+    celula-verde: celula-verde
+    celula-amarelo: celula-amarelo
+    celula-amarelo-claro: celula-amarelo-claro
+    celula-vermelho: celula-vermelho
+    celula-azul: celula-azul
+    aviso-azul: aviso-azul
+    aviso-vermelho: aviso-vermelho
+    aviso-verde: aviso-verde
+    aviso-amarelo: aviso-amarelo
+  `),
+};
+const ALVOS = `
+# corpo e papel
+canvas | --fundo
+canvas | --fundo-body
+canvas | --gray
+canvas | fundoPrincipal (a imagem desktop.png sai)
+body-0 | body, parada 0 do gradiente
+body-1 | body, parada 51% do gradiente
+body-2 | body, parada 100% do gradiente
+paper | --fundo-grid
+paper | --fundo-grid-linha-color1
+paper | --fundo-grid-totais
+paper | --fundo-grid-totais-gradient
+paper | --fundo-campo-form
+paper | --fundo-campo-form-gradient
+paper | --fundo-dropdown-menu
+paper | tabelaTabulacaoLinha
+ink | --letra1
+ink | --letra2
+ink | --letra-form
+ink | --letra-form-focus
+ink | --letra-tab-hover
+ink | --letra-dropdown-menu
+ink | tabelaCorDaLinha
+ink-strong | --letra-grid-linhaPreta
+muted | --letra-grid-linhaCinza
+muted | --letra-zoomButton
+muted | --letra-log
+muted | #desktopText
+line | --border-td-bottom
+line | --borda-campo-form
+line | --borda-grid-totais
+line | --borda-tab-default
+line | --borda-tab-active
+line | --borda-tab-hover
+line | --borda-tab-bottom
+line | --border-grid-thead-bottom
+line | --border-grid-thead-top
+line | --border-topo-top
+line | --border-divnoBorder
+line | --border-observacoes
+line | --border-bottom-observacoes-totais
+line | filtroBoxBorda
+line | tabsBordaExterior
+line | tabsBordaJanelaPrincipal
+line | tabsBordaJanelaPrincipalBottom
+line | cabecalhoDiv borda
+title-line | formDivTituloLinha
+line | containerFinanceiro borda
+line | containerTop borda
+line | observacoes borda
+line | divContainer borda
+line | comercial borda
+line | tableFinanceiro borda
+accent | --Gradient
+accent | formDivTituloCor
+accent-soft | --blue
+accent-soft | --dark-blue
+accent-soft | --fundo-dropdown-menu-focus
+accent-soft | --fundo-observacoes
+accent-soft | --fundo-notificacao
+accent-soft | --filtro-fundo-campo-focus
+accent-soft | --filtro-fundo-campo-focus-gradient
+hover | tabelaMouseHoverLinha
+thead | --fundo-grid-thead
+thead | --fundo-grid-thead-gradient
+thead | tabelaThFundo
+thead-ink | tabelaThCor
+zebra | --fundo-grid-linha-color2
+zebra | tabelaTabulacaoLinha2
+selected | --fundo-grid-linha-selecionada
+selected-cell | --fundo-grid-linha-selecionada-celula
+selected-cell | --fundo-grid-linha-selecionada-marcada
+accent | --border-grid-linha-selecionada-marcada
+filter-bg | --fundo-filtro
+filter-bg | --filtro-fundo-campo
+filter-bg | filtroBoxDeFundo
+field | input.formInput fundo literal #FBFBFB
+field-border | input.formInput borda
+readonly | --fundo-campo-form-readonly
+readonly | --fundo-campo-form-readonly-gradient
+readonly | input readonly literal #ede7de
+error | formFundoInputErro
+title | título de seção do formulário
+title-line | risco sob o título
+tab | --fundo-tab-default
+tab | --fundo-tab-default-gradient
+tab | --fundo-tab-fundo
+tab-active | --fundo-tab-active
+tab-active | --fundo-tab-active-gradient
+tab-hover | --fundo-tab-hover
+cabecalho | --fundo-content-cabecalho
+cabecalho | --fundo-topo
+cabecalho | --fundo-topo-gradient
+cabecalho | cabecalhoDiv fundo
+cabecalho | --bi-fundo-indicador-padrao
+cabecalho | --bi-fundo-indicador-padrao-gradient
+ink | --bi-label-indicador-padrao
+ink | --bi-valor-indicador-padrao
+window | --fundo-dialog-titlebar
+window | --fundo-dialog-titlebar-gradient
+window-ink | cor do título da janela
+# ThemeRoller, atalho background, sem a textura
+ui-content | .ui-widget-content background
+ui-content-ink | .ui-widget-content color
+ui-content-border | .ui-widget-content border
+ui-header | .ui-widget-header background
+ui-header-ink | .ui-widget-header color
+ui-default | .ui-state-default background
+ui-default-ink | .ui-state-default color
+ui-hover | .ui-state-hover background
+ui-hover-border | .ui-state-hover border
+ui-active | .ui-state-active background
+ui-active-ink | .ui-state-active color
+ui-highlight | .ui-state-highlight background
+ui-highlight-ink | .ui-state-highlight color
+ui-error | .ui-state-error background
+ui-error-ink | .ui-state-error color
+icon | .ui-icon
+icon-header | .ui-widget-header .ui-icon
+icon-hover | .ui-state-hover .ui-icon
+icon-active | .ui-state-active .ui-icon
+icon-highlight | .ui-state-highlight .ui-icon
+icon-error | .ui-state-error .ui-icon
+scroll-track | --scroll-track
+scroll-handle | --scroll-handle
+shadow | --sombra
+shadow | --sombra-leve
+side | --dark-gray
+side | sidebar
+aviso-azul | --BGAzul
+aviso-vermelho | --BGVermelho
+aviso-verde | --BGVerde
+aviso-amarelo | --BGAmarelo
+celula-verde | --celula-verde
+celula-amarelo | --celula-amarelo
+celula-amarelo-claro | --celula-amarelo-claro
+celula-vermelho | --celula-vermelho
+celula-azul | --celula-azul
+`.trim().split("\n").filter(l => l.trim() && !l.trim().startsWith("#")).map(l => {
+  const [slot, nome] = l.split("|").map(s => s.trim());
+  return { slot, nome };
+});
+const FORA = [
+  ["--teste", "rascunho no tema-2021, não vira token"],
+  ["--border-topo-bottom", "valor none, não é cor"],
+  ["--borda-top-tab-active", "valor none, não é cor"],
+  ["--fundo-menu", "a sidebar não lê o menu antigo"],
+  ["--fundo-menu-modulo", "a sidebar não lê o menu antigo"],
+  ["--fundo-menu-ahover", "a sidebar não lê o menu antigo"],
+  ["menuBorda", "a sidebar não lê"],
+  ["menuBordaSuperior", "a sidebar não lê"],
+  ["menuCorDoLink", "a sidebar não lê"],
+  ["menuCorDoLinkHover", "a sidebar não lê"],
+  ["menuFundoHover", "a sidebar não lê"],
+  ["menuBordaHoverLeft", "a sidebar não lê"],
+  ["menuBordaHoverRight", "a sidebar não lê"],
+  ["menuDropFundo", "a sidebar não lê"],
+  ["menuDropBorda", "a sidebar não lê"],
+  ["menuDropSombra", "a sidebar não lê"],
+  ["menuDropLink", "a sidebar não lê"],
+  ["menuDropHoverFundo", "a sidebar não lê"],
+  ["menuDropHoverSombra", "a sidebar não lê"],
+  ["textura do ThemeRoller", "o png do atalho background sai; fica a cor"],
+  ["sprite ui-icons", "o desenho fica; só a cor do ícone é token"],
+  ["#header-info", "o topo novo não usa essa caixa"],
+];
+const DENSIDADE_ALVOS = [
+  "fonteGeral font-size",
+  "body font-size (o cache grava 13px e perde)",
+  "tabsSistema font-size, height e padding",
+  "gridTh font-size e padding",
+  "gridTd font-size e padding",
+  "tituloJanelaSistema font-size e padding",
+  "dropdown-menu-bootstrap font-size e line-height",
+  "input.formInput font-size (o cache grava 12px e perde)",
+  ".ui-widget font-family",
+];
+
+const params = new URLSearchParams(location.search);
+let variant = VARIANTES.some(v => v.id === params.get("variant")) ? params.get("variant") : "papeis";
+let passo = ["12", "13", "14"].includes(params.get("passo")) ? params.get("passo") : "12";
+let vazio = params.get("vazio") === "1";
+
+function tokenDe(id, slot) {
+  const token = SLOT[id][slot];
+  if (!token) throw new Error("Slot sem token: " + slot + " em " + id);
+  if (!HEX[id][token]) throw new Error("Token sem hex: " + token + " em " + id);
+  return token;
+}
+function checar() {
+  const chaves = Object.keys(SLOT.papeis);
+  for (const id of ["continuidade", "azul"]) {
+    for (const slot of chaves) {
+      if (!(slot in SLOT[id])) throw new Error(id + " sem o slot " + slot);
+    }
+    for (const slot of Object.keys(SLOT[id])) {
+      if (!chaves.includes(slot)) throw new Error(id + " tem slot fora do mapa: " + slot);
+    }
+  }
+  for (const alvo of ALVOS) {
+    if (!SLOT.papeis[alvo.slot]) throw new Error("Alvo sem slot: " + alvo.nome);
+  }
+  for (const id of Object.keys(SLOT)) {
+    for (const slot of Object.keys(SLOT[id])) tokenDe(id, slot);
+  }
+}
+function aplicar() {
+  const root = document.documentElement;
+  const hex = HEX[variant];
+  const dens = PASSOS[variant][passo];
+  root.dataset.variant = variant;
+  root.style.setProperty("--tw-font", PASSOS[variant].font);
+  root.style.setProperty("--tw-font-size", dens.fontSize);
+  root.style.setProperty("--tw-leading", dens.leading);
+  root.style.setProperty("--tw-th", dens.th);
+  root.style.setProperty("--tw-td", dens.td);
+  root.style.setProperty("--tw-tab", dens.tab);
+  root.style.setProperty("--tw-field", dens.field);
+  root.style.setProperty("--tw-title", dens.title);
+  for (const slot of Object.keys(SLOT[variant])) {
+    root.style.setProperty("--paint-" + slot, hex[tokenDe(variant, slot)]);
+  }
+  const b0 = hex[tokenDe(variant, "body-0")];
+  const b1 = hex[tokenDe(variant, "body-1")];
+  const b2 = hex[tokenDe(variant, "body-2")];
+  root.style.setProperty("--tw-body", b0 === b1 && b1 === b2 ? b0 : "linear-gradient(45deg, " + b0 + ", " + b1 + " 51%, " + b2 + ")");
+  document.body.classList.toggle("vazio", vazio);
+  document.querySelectorAll("[data-slot]").forEach(el => {
+    el.dataset.token = tokenDe(variant, el.dataset.slot);
+    el.classList.remove("is-hot");
+  });
+  pintarMapa();
+  const item = VARIANTES.find(v => v.id === variant);
+  document.getElementById("nome").textContent = item.nome;
+  document.querySelectorAll("[data-passo]").forEach(b => b.classList.toggle("on", b.dataset.passo === passo));
+  document.getElementById("vazio").classList.toggle("on", vazio);
+  document.getElementById("mapa-btn").classList.toggle("on", document.body.classList.contains("map-on"));
+  const q = new URLSearchParams({ variant, passo });
+  if (vazio) q.set("vazio", "1");
+  history.replaceState(null, "", "?" + q.toString());
+}
+function pintarMapa() {
+  document.getElementById("gist").textContent = GIST[variant];
+  document.getElementById("tipo").textContent = "Tipo: " + PASSOS[variant].face + ". Passo " + passo + ".";
+  const dens = PASSOS[variant][passo];
+  document.getElementById("dens").innerHTML =
+    "<h3>Densidade neste passo</h3><ul class='fills'>" +
+    "<li>fonte " + dens.fontSize + "</li><li>entrelinha " + dens.leading + "</li>" +
+    "<li>cabeçalho da grade " + dens.th + "</li><li>célula " + dens.td + "</li>" +
+    "<li>aba do miolo " + dens.tab + "</li><li>campo " + dens.field + "</li>" +
+    "<li>título " + dens.title + "</li></ul>" +
+    "<ul class='fills'>" + DENSIDADE_ALVOS.map(n => "<li>" + n + "</li>").join("") + "</ul>";
+  const grupos = new Map();
+  for (const alvo of ALVOS) {
+    const token = tokenDe(variant, alvo.slot);
+    if (!grupos.has(token)) grupos.set(token, []);
+    grupos.get(token).push(alvo.nome);
+  }
+  const ordem = [...grupos.keys()];
+  document.getElementById("toks").innerHTML = "<h3>Token e o que ele preenche</h3>" + ordem.map(token => {
+    const fills = grupos.get(token).map(n => "<li>" + n + "</li>").join("");
+    return "<div class='tok' data-token='" + token + "'><span class='sw' style='background:" + HEX[variant][token] + "'></span><div><strong>--tw-color-" + token + "</strong> " + HEX[variant][token] + "<ul class='fills'>" + fills + "</ul></div></div>";
+  }).join("");
+  document.getElementById("fora").innerHTML = "<h3>Sem token</h3><ul class='fora'>" + FORA.map(([nome, porque]) => "<li><code>" + nome + "</code> — " + porque + "</li>").join("") + "</ul>";
+}
+function ciclo(delta) {
+  const i = VARIANTES.findIndex(v => v.id === variant);
+  variant = VARIANTES[(i + delta + VARIANTES.length) % VARIANTES.length].id;
+  aplicar();
+}
+document.getElementById("prev").onclick = () => ciclo(-1);
+document.getElementById("next").onclick = () => ciclo(1);
+document.querySelectorAll("[data-passo]").forEach(b => b.onclick = () => { passo = b.dataset.passo; aplicar(); });
+document.getElementById("vazio").onclick = () => { vazio = !vazio; aplicar(); };
+document.getElementById("mapa-btn").onclick = () => {
+  document.body.classList.toggle("map-on");
+  aplicar();
+};
+document.body.addEventListener("click", ev => {
+  const el = ev.target.closest("[data-token]");
+  if (!el || ev.target.closest(".switcher")) return;
+  const token = el.dataset.token;
+  document.querySelectorAll(".is-hot").forEach(n => n.classList.remove("is-hot"));
+  document.querySelectorAll("[data-token='" + token + "']").forEach(n => n.classList.add("is-hot"));
+  const linha = document.querySelector("#mapa [data-token='" + token + "']");
+  if (linha) linha.scrollIntoView({ block: "nearest" });
+});
+document.addEventListener("keydown", ev => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  if (ev.key === "ArrowLeft") { ciclo(-1); ev.preventDefault(); }
+  if (ev.key === "ArrowRight") { ciclo(1); ev.preventDefault(); }
+  if (ev.key === "[") { passo = passo === "14" ? "13" : "12"; aplicar(); }
+  if (ev.key === "]") { passo = passo === "12" ? "13" : "14"; aplicar(); }
+});
+try {
+  checar();
+  aplicar();
+} catch (err) {
+  const caixa = document.getElementById("erro");
+  caixa.style.display = "block";
+  caixa.textContent = err.message;
+  throw err;
+}
+</script>
+</body>
+</html>
