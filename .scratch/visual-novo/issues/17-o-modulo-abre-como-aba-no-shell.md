@@ -9,11 +9,11 @@ Orbit: ERPFX-46
 
 **Status:** ready-for-agent
 
-- [ ] Quem entra vê a marca FX ERP no alto da sidebar, a empresa abreviada sob a marca e o nome completo no título
-- [ ] A sidebar lista o menu do perfil, na ordem do menu; o nome do grupo é só título e o item abre
-- [ ] O topo mostra lupa, sino e avatar, e a faixa de abas fica sobre a área de trabalho
-- [ ] Abrir um módulo cria uma aba cujo miolo é o conteúdo de hoje
-- [ ] As abas internas do C.R.M. ficam na área de trabalho; a faixa do shell fica fora dela e não é a aba interna do módulo
-- [ ] Trocar de aba esconde o miolo e voltar mostra o mesmo, nas mesmas abas internas
-- [ ] Abrir de novo um item já aberto mostra o que já está aberto, no lugar em que está, e a aba nova entra no fim da faixa
-- [ ] O shell não mostra o nome do banco nem o HTML livre da empresa
+- [x] Quem entra vê a marca FX ERP no alto da sidebar, a empresa abreviada sob a marca e o nome completo no título
+- [x] A sidebar lista o menu do perfil, na ordem do menu; o nome do grupo é só título e o item abre
+- [x] O topo mostra lupa, sino e avatar, e a faixa de abas fica sobre a área de trabalho
+- [x] Abrir um módulo cria uma aba cujo miolo é o conteúdo de hoje
+- [x] As abas internas do C.R.M. ficam na área de trabalho; a faixa do shell fica fora dela e não é a aba interna do módulo
+- [x] Trocar de aba esconde o miolo e voltar mostra o mesmo, nas mesmas abas internas
+- [x] Abrir de novo um item já aberto mostra o que já está aberto, no lugar em que está, e a aba nova entra no fim da faixa
+- [x] O shell não mostra o nome do banco nem o HTML livre da empresa

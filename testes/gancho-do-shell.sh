@@ -140,6 +140,8 @@ identificar "$erp"
   printf '%s' "$ancora"
   printf '\t\t<link rel="stylesheet" href="/fx/shell.css" type="text/css">\n'
   printf '\t\t<link rel="stylesheet" href="/fx/tema.css" type="text/css">\n'
+  printf '\t\t<meta name="fx-empresa-nome" content="{$empresaAtualNome|escape:'\''html'\''}">\n'
+  printf '\t\t<script src="/fx/shell.js" defer></script>\n'
   printf '<!-- fixar -->\n'
 } >"$erp/src/hardness3/smarty/templates/index.tpl"
 printf '%s\n' "$sha_base" >"$erp/bin/ponto"
@@ -169,7 +171,10 @@ fi
 if ! grep -q 'href="/fx/tema.css"' "$template"; then
   reclamar "o desktop servido não liga a folha do tema"
 fi
-for folha in shell.css tema.css; do
+if ! grep -q 'src="/fx/shell.js"' "$template"; then
+  reclamar "o desktop servido não liga o script do shell"
+fi
+for folha in shell.css tema.css shell.js; do
   caminho="$raiz_repo/src/fx/$folha"
   if [ ! -f "$caminho" ]; then
     reclamar "falta src/fx/$folha, arquivo que a publicação não envia"

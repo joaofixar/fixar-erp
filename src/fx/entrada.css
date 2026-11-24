@@ -1,0 +1,39 @@
+/* Fonte do CSS do shell. A publicação não envia este arquivo nem o CSS gerado. */
+@import "tailwindcss/theme.css" layer(theme) prefix(tw) source(none);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw) source(none);
+
+@source "./shell.js";
+
+@theme {
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --color-side: #1b2430;
+  --color-side-ink: #e8edf2;
+  --color-side-muted: #9aa6b4;
+  --color-accent: #1d4f8a;
+  --color-canvas: #e7eaee;
+  --color-paper: #ffffff;
+  --color-ink: #1a1d21;
+  --color-muted: #5c6570;
+  --color-line: #d5d9e0;
+}
+
+/* A base fica no layer das utilities e perde para o CSS sem layer do miolo.
+   :where deixa a utility ganhar no próprio shell. O #desktop fica de fora. */
+@layer utilities {
+  :where(#fx-shell, #fx-shell *) {
+    box-sizing: border-box;
+  }
+
+  :where(#fx-shell button, #fx-shell input) {
+    font: inherit;
+    color: inherit;
+    background-color: transparent;
+    border-style: none;
+  }
+}
+
+#topo,
+#footer,
+#messageAlert {
+  display: none;
+}

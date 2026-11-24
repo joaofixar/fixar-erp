@@ -14,6 +14,8 @@
 		</style>
 		<link rel="stylesheet" href="/fx/shell.css" type="text/css">
 		<link rel="stylesheet" href="/fx/tema.css" type="text/css">
+		<meta name="fx-empresa-nome" content="{$empresaAtualNome|escape:'html'}">
+		<script src="/fx/shell.js" defer></script>
 
 		{* Fontes *}
 		<link rel="preconnect" href="https://fonts.gstatic.com">

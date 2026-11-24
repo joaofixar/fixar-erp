@@ -318,6 +318,8 @@ GANCHO = (
     ANCORA_GANCHO
     + b'\t\t<link rel="stylesheet" href="/fx/shell.css" type="text/css">\n'
     + b'\t\t<link rel="stylesheet" href="/fx/tema.css" type="text/css">\n'
+    + b'\t\t<meta name="fx-empresa-nome" content="{$empresaAtualNome|escape:\'html\'}">\n'
+    + b'\t\t<script src="/fx/shell.js" defer></script>\n'
 )
 
 
