@@ -243,9 +243,14 @@ textarea {
   background-image: none;
 }
 
+/* A classe hover só chega na grade grande. O amarelo de hoje também
+   acompanha o ponteiro na grade comum, senão a linha sob o mouse fica branca. */
 .grid tbody tr.hover,
 .gridFixo tbody tr.hover,
-.grid tbody.big tr.hover {
+.grid tbody.big tr.hover,
+.grid tbody tr:hover,
+.gridFixo tbody tr:hover,
+.grid tbody.big tr:hover {
   background: var(--tw-color-hover);
 }
 
