@@ -35,8 +35,7 @@ switch ($g['r'][3]) {
 		$tabBI = uniqid();
 		$tabsList = array();
 
-		// Avisos
-		$tabsList[] = array(uniqid(), '/etc/etc011/outros/etc011Avisos/', 'Início', '&tab=geral');
+		/* o cockpit abre nos dashboards */
 
 		// Mostrar dashdoards disponíveis para a alçada atual
 		$D132 = mysql_query("SELECT D132_Grupo FROM D132

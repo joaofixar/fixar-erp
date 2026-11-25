@@ -374,6 +374,32 @@
 #messageAlert .click {
   display: none !important;
 }
+#fx-trabalho {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  padding: 16px 20px 24px;
+  text-align: left;
+}
+#fx-trabalho [data-fx-certificado] {
+  text-align: center;
+}
+#fx-trabalho [data-fx-aviso],
+#fx-trabalho [data-fx-nota] {
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  border-radius: 8px;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+}
+#fx-trabalho [data-fx-nota] h2 {
+  font-size: 15px;
+  margin: 4px 0;
+}
+#fx-trabalho [data-fx-nota] time {
+  color: #5c6570;
+  font-size: 12px;
+}
 @property --tw-border-style {
   syntax: "*";
   inherits: false;

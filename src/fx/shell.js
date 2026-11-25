@@ -27,6 +27,11 @@
    que não está oculto, ocultar, atualizar, enviar e o suporte continuam
    os do Hardness (alertAdicionar e acoesNotificacoes em sistema.js, o
    painel #messageAlert de index.tpl). O Aviso fica na área de trabalho.
+   Com a faixa vazia, a área mostra o cartão do certificado quando ele
+   existe, os avisos e as notas da mais nova à mais antiga. Uma aba
+   visível tira os três. Versão, cobrança, últimas atualizações, logo de
+   fundo e notificação de vídeo ficam de fora. A senha continua janela.
+   O cockpit que o sistema abre sozinho no login não vira aba.
    Empresa, avatar e paleta fecham esse pop. Fechar descarta o rascunho. */
 (function () {
   var abas = [];
@@ -942,6 +947,78 @@
       })
       .join("");
     mostrarVisivel();
+    if (!document.getElementById("fx-trabalho")) montarTrabalho();
+    atualizarTrabalho();
+  }
+
+  function dataDaNota(nota) {
+    var tempo = nota.querySelector("time");
+    return tempo ? tempo.getAttribute("datetime") || "" : "";
+  }
+
+  function blocoCertificado(desktop) {
+    var imgs = desktop.getElementsByTagName("img");
+    for (var i = 0; i < imgs.length; i++) {
+      var src = imgs[i].getAttribute("src") || "";
+      if (src.indexOf("certificadoDigital") < 0) continue;
+      var card = imgs[i].parentElement;
+      if (!card || card === desktop) return null;
+      return card;
+    }
+    return null;
+  }
+
+  function ehCockpitInicial(raiz, titulo, url) {
+    return (
+      String(raiz) === "Cockpit" &&
+      !titulo &&
+      String(url).indexOf("etc011ContentCockpit") >= 0
+    );
+  }
+
+  function montarTrabalho() {
+    var desktop = document.getElementById("desktop");
+    if (!desktop || document.getElementById("fx-trabalho")) return;
+    var certificado = blocoCertificado(desktop);
+    var avisos = [];
+    var listaAvisos = desktop.querySelectorAll("[data-fx-aviso]");
+    for (var i = 0; i < listaAvisos.length; i++) avisos.push(listaAvisos[i]);
+    var notas = [];
+    var listaNotas = desktop.querySelectorAll("[data-fx-nota]");
+    for (var j = 0; j < listaNotas.length; j++) notas.push(listaNotas[j]);
+    notas.sort(function (a, b) {
+      var da = dataDaNota(a);
+      var db = dataDaNota(b);
+      if (da === db) return 0;
+      return da < db ? 1 : -1;
+    });
+    var trabalho = document.createElement("div");
+    trabalho.id = "fx-trabalho";
+    if (certificado) {
+      certificado.setAttribute("data-fx-certificado", "");
+      trabalho.appendChild(certificado);
+    }
+    avisos.forEach(function (aviso) {
+      trabalho.appendChild(aviso);
+    });
+    notas.forEach(function (nota) {
+      var midias = nota.querySelectorAll("video, iframe");
+      for (var k = midias.length - 1; k >= 0; k--) midias[k].remove();
+      trabalho.appendChild(nota);
+    });
+    desktop.appendChild(trabalho);
+    for (var n = 0; n < desktop.children.length; n++) {
+      var filho = desktop.children[n];
+      if (filho === trabalho) continue;
+      if (filho.classList && filho.classList.contains("ui-dialog")) continue;
+      filho.hidden = true;
+    }
+  }
+
+  function atualizarTrabalho() {
+    var trabalho = document.getElementById("fx-trabalho");
+    if (!trabalho) return;
+    trabalho.hidden = visivel != null;
   }
 
   function mostrarVisivel() {
@@ -1076,6 +1153,7 @@
     if (evento && evento.ctrlKey) {
       return abrirOriginal.apply(this, arguments);
     }
+    if (ehCockpitInicial(raiz, titulo, arguments[6])) return;
     medirArea();
     if (deveOcuparAArea(tamanho, posicao)) {
       arguments[8] = "full";
@@ -1245,6 +1323,8 @@
       fecharPops();
     });
 
+    montarTrabalho();
+    atualizarTrabalho();
     abrirOriginal = window.abrirJanela;
     window.abrirJanela = aoAbrirJanela;
   }

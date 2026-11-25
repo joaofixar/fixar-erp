@@ -206,6 +206,33 @@ PONTUAIS = (
         b"<?php",
     ),
 )
+
+# A área de trabalho e a cobrança. O trecho seguro contém o cru, então a
+# presença do seguro vem primeiro para não aplicar duas vezes.
+AREA = (
+    (
+        "sistema/index-framework.php",
+        b"verificaBoleto($Cnpj_Empresa_Usuaria, 'S', 63, true);",
+        b"if (false) { verificaBoleto($Cnpj_Empresa_Usuaria, 'S', 63, true); }",
+    ),
+    (
+        "sistema/index-framework.php",
+        b"verificaBoletoParceiro('', 'S', 63, true);",
+        b"if (false) { verificaBoletoParceiro('', 'S', 63, true); }",
+    ),
+    (
+        "sistema/index-framework.php",
+        b"$g['smarty']->assign('certificado', $alertaCertificado);",
+        b"$g['smarty']->assign('certificado', $alertaCertificado);"
+        b" require_once __DIR__ . '/../../fx/area.php';"
+        b" $g['smarty']->assign('avisos', fxAreaTrabalho($g));",
+    ),
+    (
+        "prog/etc/etc011/tab.php",
+        "$tabsList[] = array(uniqid(), '/etc/etc011/outros/etc011Avisos/', 'Início', '&tab=geral');".encode(),
+        b"/* o cockpit abre nos dashboards */",
+    ),
+)
 # function __autoload() deixou de existir; o corpo de uma linha vai para o spl_autoload_register.
 AUTOLOAD = re.compile(br"function __autoload\((\$\w+)\)\s*\{([^{}]*)\}")
 # 'colunaAlinhar' => center: constante indefinida no PHP 8.
@@ -349,6 +376,18 @@ def adaptar_pontuais(relativo, texto):
     return texto
 
 
+def adaptar_area(relativo, texto):
+    for arquivo, cru, seguro in AREA:
+        if arquivo != relativo:
+            continue
+        if seguro in texto:
+            continue
+        if cru not in texto:
+            return None
+        texto = texto.replace(cru, seguro, 1)
+    return texto
+
+
 def guardar_log(texto, chamada):
     # A conexão chama log() antes de o funcoesGerais.php declarar a função.
     # No PHP 8 o nome cai na função matemática. A guarda deixa o pedido seguir.
@@ -377,6 +416,11 @@ def adaptar(raiz):
             print(f"A adaptação de {relativo} não encaixa.", file=sys.stderr)
             return 1
         novo = pontual
+        area = adaptar_area(relativo, novo)
+        if area is None:
+            print(f"A adaptação de {relativo} não encaixa.", file=sys.stderr)
+            return 1
+        novo = area
         if relativo in CONEXOES:
             for chamada in LOGS:
                 novo = guardar_log(novo, chamada)
