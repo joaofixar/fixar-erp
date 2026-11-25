@@ -18,12 +18,12 @@
    A empresa sob a marca é rótulo quando há uma só. Com mais de uma, o
    controle abre a lista pelo nome completo. Trocar chama a troca do
    Hardness e, no retorno, esvazia a faixa e as janelas, repinta o menu e
-   a área. O avatar mostra o login e, abaixo, o perfil. Entre o perfil e
-   Sair ficam Pequeno, Médio e Grande, com o passo atual marcado. Escolher
-   grava o mesmo campo da tela de configuração e a página abre de novo
-   nesse passo. A lista de usuários só entra se o rodapé já oferece a
-   troca, e faz o mesmo que a empresa. Sair vai para /logout. O nome da
-   pessoa fica de fora. Os dois menus
+   a área. O avatar mostra o login e, abaixo, o perfil. A lista de usuários
+   vem em seguida, só se o rodapé já oferece a troca, e faz o mesmo que a
+   empresa. Depois dela ficam Pequeno, Médio e Grande, com o passo atual
+   marcado. Escolher grava o mesmo campo da tela de configuração e a página
+   abre de novo nesse passo. Sair vai para /logout. O nome da pessoa fica
+   de fora. Os dois menus
    nascem no body, como a paleta: o #desktop é uma camada por cima da
    área, e um menu dentro do shell ficaria atrás da janela aberta.
    O sino abre o pop Alertas pendurado no ícone. A lista, a contagem do
@@ -270,8 +270,8 @@
       '<p class="tw:m-0 tw:px-2 tw:pb-1.5 tw:text-xs tw:text-muted">' +
       escapar(perfil) +
       "</p>" +
-      htmlDensidade() +
       lista +
+      htmlDensidade() +
       '<button type="button" data-fx-sair role="menuitem" class="tw:mt-1 tw:block tw:w-full tw:rounded-md tw:border-t tw:border-solid tw:border-line tw:px-2 tw:py-1.5 tw:text-left tw:text-ink tw:hover:bg-black/5">Sair</button>' +
       "</div>"
     );
