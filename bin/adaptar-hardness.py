@@ -235,6 +235,21 @@ AREA = (
         "$tabsList[] = array(uniqid(), '/etc/etc011/outros/etc011Avisos/', 'Início', '&tab=geral');".encode(),
         b"/* o cockpit abre nos dashboards */",
     ),
+    (
+        "sistema/index-framework.php",
+        b"if ($compacto) { goto NLXCk; } $g['smarty']->assign('menu', $g['smarty']->fetch('menu.tpl')); goto yFgqs; NLXCk: $g['smarty']->assign('menu', $g['smarty']->fetch('menuERP.tpl'));",
+        b"require_once __DIR__ . '/../../fx/menu.php';"
+        b" if ($compacto) { goto NLXCk; }"
+        b" $menuShell = fxMenuDoShell($menuNormal, $g);"
+        b" $g['smarty']->assign('menuArray', $menuShell);"
+        b" $g['smarty']->assign('menu', $g['smarty']->fetch('menu.tpl'));"
+        b" $g['smarty']->assign('menuArray', $menuNormal);"
+        b" goto yFgqs; NLXCk:"
+        b" $menuShell = fxMenuDoShell($menuNormal, $g);"
+        b" $g['smarty']->assign('menuArray', $menuShell);"
+        b" $g['smarty']->assign('menu', $g['smarty']->fetch('menuERP.tpl'));"
+        b" $g['smarty']->assign('menuArray', $menuNormal);",
+    ),
 )
 # function __autoload() deixou de existir; o corpo de uma linha vai para o spl_autoload_register.
 AUTOLOAD = re.compile(br"function __autoload\((\$\w+)\)\s*\{([^{}]*)\}")

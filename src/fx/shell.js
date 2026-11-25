@@ -30,12 +30,18 @@
    que não está oculto, ocultar, atualizar, enviar e o suporte continuam
    os do Hardness (alertAdicionar e acoesNotificacoes em sistema.js, o
    painel #messageAlert de index.tpl). O Aviso fica na área de trabalho.
+   Empresa, avatar e paleta fecham esse pop. Fechar descarta o rascunho.
    Com a faixa vazia, a área mostra o cartão do certificado quando ele
    existe, os avisos e as notas da mais nova à mais antiga. Uma aba
    visível tira os três. Versão, cobrança, últimas atualizações, logo de
    fundo e notificação de vídeo ficam de fora. A senha continua janela.
    O cockpit que o sistema abre sozinho no login não vira aba.
-   Empresa, avatar e paleta fecham esse pop. Fechar descarta o rascunho. */
+   A Loja de apps entra em Configuração para o root de hoje e abre o
+   catálogo. O item de criar app sai. A nuvem sai do topo. Modo IDE e
+   Editando App não são desenhados. O grupo Apps fica depois de Gerencial
+   e antes de Outros. Cada item abre o endereço de hoje numa aba nova do
+   navegador e não vira aba do desktop. A paleta alcança os dois porque
+   lista o mesmo menu. */
 (function () {
   var abas = [];
   var visivel = null;
@@ -1202,10 +1208,25 @@
     return abrirOriginal.apply(this, arguments);
   }
 
+  function tirarNuvemESelos() {
+    var nuvem = document.querySelector("#topo .lojaApp");
+    if (nuvem) nuvem.remove();
+    var footer = document.getElementById("footer");
+    if (!footer) return;
+    var spans = footer.querySelectorAll("span");
+    for (var i = spans.length - 1; i >= 0; i--) {
+      var texto = spans[i].textContent || "";
+      if (texto.indexOf("Modo IDE") !== -1 || texto.indexOf("Editando App") !== -1) {
+        spans[i].remove();
+      }
+    }
+  }
+
   function montar() {
     if (!document.getElementById("topo") || !document.getElementById("desktop")) {
       return;
     }
+    tirarNuvemESelos();
     if (document.getElementById("fx-shell")) return;
     if (window.g && String(g.oneWindow) === "1") return;
 
