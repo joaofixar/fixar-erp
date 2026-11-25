@@ -312,6 +312,82 @@ select.formInput,
   color: var(--tw-color-ink) !important;
 }
 
+/* Campo do formulário. O tema-2021 pinta degradê, borda e raio de 3px na
+   mesma especificidade; estas regras repetem os seletores e entram depois. */
+.formFormulario input.formInput,
+.ui-widget-content .formFormulario input.formInput,
+.ui-widget-header .formFormulario input.formInput,
+.formFormulario select.formInput,
+.ui-widget-content .formFormulario select.formInput,
+.ui-widget-header .formFormulario select.formInput,
+.formFormulario textarea.formInput,
+.ui-widget-content .formFormulario textarea.formInput,
+.ui-widget-header .formFormulario textarea.formInput {
+  box-sizing: border-box;
+  padding: 0 8px;
+  border: 1px solid var(--tw-color-line);
+  border-radius: 6px;
+  background: var(--tw-color-paper);
+  box-shadow: 0 1px 1px rgb(15 23 42 / 0.03);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.formFormulario textarea.formInput,
+.ui-widget-content .formFormulario textarea.formInput,
+.ui-widget-header .formFormulario textarea.formInput {
+  padding: 5px 8px;
+}
+
+.formFormulario select.formInput,
+.ui-widget-content .formFormulario select.formInput,
+.ui-widget-header .formFormulario select.formInput {
+  padding: 0 4px;
+}
+
+/* Somente leitura: fundo mais apagado, sem sombra, texto legível. */
+.formFormulario input.formInput[readonly="readonly"],
+.ui-widget-content .formFormulario input.formInput[readonly="readonly"],
+.ui-widget-header .formFormulario input.formInput[readonly="readonly"],
+.formFormulario input.formInput[disabled="disabled"],
+.ui-widget-content .formFormulario input.formInput[disabled="disabled"],
+.ui-widget-header .formFormulario input.formInput[disabled="disabled"],
+.formFormulario select.formInput[readonly="readonly"],
+.ui-widget-content .formFormulario select.formInput[readonly="readonly"],
+.ui-widget-header .formFormulario select.formInput[readonly="readonly"],
+.formFormulario select.formInput[disabled="disabled"],
+.ui-widget-content .formFormulario select.formInput[disabled="disabled"],
+.ui-widget-header .formFormulario select.formInput[disabled="disabled"],
+.formFormulario textarea.formInput[readonly="readonly"],
+.ui-widget-content .formFormulario textarea.formInput[readonly="readonly"],
+.ui-widget-header .formFormulario textarea.formInput[readonly="readonly"],
+.formFormulario textarea.formInput[disabled="disabled"],
+.ui-widget-content .formFormulario textarea.formInput[disabled="disabled"],
+.ui-widget-header .formFormulario textarea.formInput[disabled="disabled"] {
+  border-color: var(--tw-color-line);
+  background: var(--tw-color-readonly);
+  box-shadow: none;
+  color: var(--tw-color-ink) !important;
+}
+
+.formFormulario .formInput.ui-state-focus:not([readonly]):not([disabled]),
+.ui-widget-content .formFormulario .formInput.ui-state-focus:not([readonly]):not([disabled]),
+.formFormulario .formInput:focus:not([readonly]):not([disabled]) {
+  border-color: var(--tw-color-accent);
+  box-shadow: 0 0 0 3px var(--tw-color-accent-soft);
+  outline: 0;
+}
+
+.formFormulario .form-rotulo {
+  color: var(--tw-color-muted);
+  font-weight: 500;
+}
+
+.formFormulario .fx-asterisco {
+  margin-right: 2px;
+  color: #b42318;
+  font-weight: 600;
+}
+
 .ui-datepicker-current-day .ui-state-active {
   background-color: var(--tw-color-accent);
   color: var(--tw-color-paper);

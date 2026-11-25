@@ -203,9 +203,23 @@ async function fecharDialogo(trecho) {
 try {
   dizer("Entrando com o usuário local");
   await pagina.goto(base + "/login", { waitUntil: "domcontentloaded" });
-  const empresa = (await pagina.locator("#login-company").innerText()).replace(/\s+/g, " ").trim();
-  assert.ok(empresa, "a tela de login não mostrou a empresa de validação");
+  const logoDoLogin = pagina.locator(".login-card img.login-logo");
+  await logoDoLogin.waitFor();
+  assert.ok(
+    await logoDoLogin.evaluate((img) => img.complete && img.naturalWidth > 0),
+    "o logo da Fixar não carregou no login",
+  );
   await pagina.locator("#login-user").fill(usuario);
+  await pagina.locator("#login-password").fill("senha-errada");
+  await pagina.locator("#form-login button[type=submit]").click();
+  await pagina.locator("#login-erro:not(.hide)").waitFor({ timeout: 20000 });
+  assert.match(await pagina.locator("#login-erro").innerText(), /inválida/i, "o erro não ficou no cartão");
+  assert.equal(await pagina.locator("#login-user").inputValue(), usuario, "o usuário digitado se perdeu");
+  await pagina.locator("#ver-senha").click();
+  assert.equal(await pagina.locator("#login-password").getAttribute("type"), "text", "o olho não mostrou a senha");
+  await pagina.locator("#ver-senha").click();
+  assert.equal(await pagina.locator("#login-password").getAttribute("type"), "password");
+  await pagina.locator("#login-password").fill(senha);
   await pagina.locator("#login-password").fill(senha);
   await pagina.locator("#form-login button[type=submit]").click();
   await pagina.locator("#fx-shell").waitFor({ timeout: 45000 });
@@ -214,6 +228,10 @@ try {
   dizer("A marca, a empresa e o menu");
   const marca = pagina.locator("#fx-shell aside p").first();
   assert.equal((await marca.innerText()).trim(), "FX ERP");
+  assert.ok(
+    await pagina.locator("#fx-shell [data-fx-logo]").evaluate((img) => img.complete && img.naturalWidth > 0),
+    "o logo branco não carregou na marca",
+  );
   const opcoes = await pagina.locator("#selecionaEmpresa option").count();
   const rotulo = pagina.locator("#fx-empresa p");
   const botaoEmpresa = pagina.locator("#fx-empresa button");
@@ -226,7 +244,7 @@ try {
   }
   const nomeSobAMarca = (await visivelEmpresa.innerText()).replace(/\s+/g, " ").trim();
   const nomeCompleto = await visivelEmpresa.getAttribute("title");
-  assert.equal(nomeSobAMarca, empresa, "a empresa sob a marca não é a do login");
+  assert.ok(nomeSobAMarca, "a marca não mostra a empresa");
   assert.ok(
     nomeCompleto && nomeCompleto.includes(nomeSobAMarca),
     "o título não mostra o nome completo",
@@ -235,14 +253,8 @@ try {
   const menu = await grupos();
   const nomes = menu.map((grupo) => grupo.nome);
   assert.ok(nomes.length > 1, "a sidebar não listou o menu");
-  const apps = menu.find((grupo) => grupo.nome === "Apps");
-  assert.ok(apps, "quem está logado não vê o grupo Apps");
-  assert.ok(apps.itens.includes("Reforma Tributária"), "o grupo Apps não tem Reforma Tributária");
-  const gerencial = nomes.indexOf("Gerencial");
-  const outros = nomes.indexOf("Outros");
-  const indiceApps = nomes.indexOf("Apps");
-  if (gerencial >= 0) assert.ok(indiceApps > gerencial, "Apps fica depois de Gerencial");
-  if (outros >= 0) assert.ok(indiceApps < outros, "Apps fica antes de Outros");
+  assert.equal(nomes.includes("Apps"), false, "o grupo Apps continua na sidebar");
+  assert.equal(await pagina.locator("[data-fx-apps]").isVisible(), true, "quem está logado não vê o Apps do topo");
   const idLogado = await pagina.evaluate(() =>
     window.g && window.g.usuarioAtual != null ? String(window.g.usuarioAtual) : "",
   );
@@ -429,6 +441,15 @@ try {
     "a inclusão virou aba",
   );
   await fecharDialogo("Clientes/Fornecedores");
+
+  await pagina.locator("[data-fx-inicio]").click();
+  assert.equal(await modulosVisiveis(), 0, "Início deixou uma aba à mostra");
+  assert.deepEqual(await titulos(), [segundo.titulo, "Clientes e Fornecedores"], "Início fechou abas");
+  assert.equal(await pagina.locator("#fx-trabalho").isVisible(), true, "Início não mostrou a área de trabalho");
+  await pagina.locator("#fx-faixa [role=tab]", { hasText: "Clientes e Fornecedores" }).click();
+  await incluir.first().waitFor();
+  assert.equal(await modulosVisiveis(), 1, "a aba não voltou depois do Início");
+
   await pagina.locator("#fx-faixa [aria-label='Fechar Clientes e Fornecedores']").click();
   await pagina
     .locator("#fx-faixa [role=tab]", { hasText: "Clientes e Fornecedores" })
@@ -601,7 +622,7 @@ try {
     { timeout: 45000 },
   );
 
-  dizer("O sino e o grupo Apps");
+  dizer("O sino e o Apps do topo");
   await pagina.locator("[data-fx-sino]").click();
   const alertas = pagina.getByRole("dialog", { name: "Alertas" });
   await alertas.waitFor();
@@ -609,8 +630,16 @@ try {
   await pagina.keyboard.press("Escape");
   await alertas.waitFor({ state: "hidden" });
 
+  assert.equal(
+    await pagina.locator("#fx-menu [data-fx-grupo-titulo='apps']").count(),
+    0,
+    "o grupo Apps continua na sidebar",
+  );
+  await pagina.locator("[data-fx-apps]").click();
+  const popApps = pagina.getByRole("menu", { name: "Apps" });
+  await popApps.waitFor();
   const popup = contexto.waitForEvent("page");
-  await (await item("Reforma Tributária")).click();
+  await popApps.locator("[data-fx-item]", { hasText: "Reforma Tributária" }).click();
   const fora = await popup;
   await fora.waitForLoadState("domcontentloaded");
   assert.match(fora.url(), /reformaTributaria/);

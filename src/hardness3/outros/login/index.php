@@ -298,103 +298,8 @@ if (!empty($sys['favicon'])) {
 	$faviconPath = "<link rel='icon' type='image/x-icon' href='{$favicon}'>";
 }
 
-// Caso for a sigma irá logar com a empresa 4 como padrão. Analisar ua maneira disso ser configurável por empresa.
-if($confUsuario['dbDatabase']=='e212bkp'){
-	$sql = "SELECT C004_Id, C004_Nome_Abreviado, C004_Logo_Marca FROM C004 WHERE C004_Id=4";
-}else{
-	$sql = "SELECT C004_Id, C004_Nome_Abreviado, C004_Logo_Marca FROM C004 ORDER BY C004_Id ASC LIMIT 1";
-}
-$res = mysqli_query($sql);
-$row = mysql_fetch_assoc($res);
-$row['C004_Nome_Abreviado'] = substr($row['C004_Nome_Abreviado'], 0, 27);
-$nomeEmpresa = htmlspecialchars($row['C004_Nome_Abreviado'], ENT_QUOTES, 'UTF-8');
-$nomeEmpresaInicial = function_exists('mb_substr')
-	? mb_strtoupper(mb_substr(trim($row['C004_Nome_Abreviado']), 0, 1, 'UTF-8'), 'UTF-8')
-	: strtoupper(substr(trim($row['C004_Nome_Abreviado']), 0, 1));
-$nomeEmpresaInicial = htmlspecialchars($nomeEmpresaInicial, ENT_QUOTES, 'UTF-8');
-
-$logoClienteMarkup = "<span class=\"login-company-monogram\" aria-hidden=\"true\">{$nomeEmpresaInicial}</span>";
-if (!empty($row['C004_Logo_Marca'])) {
-	$logoClienteInfo = pathinfo($row['C004_Logo_Marca']);
-	$logoClienteExtensao = !empty($logoClienteInfo['extension']) ? strtolower($logoClienteInfo['extension']) : '';
-	if (in_array($logoClienteExtensao, array('gif', 'jpeg', 'jpg', 'png', 'svg', 'webp'))) {
-		$logoCliente = '/hardness3/dados_usuarios/'
-			. rawurlencode($confUsuario['dbDatabase'])
-			. '/imagens/logo/'
-			. rawurlencode($row['C004_Id'] . '.' . $logoClienteExtensao);
-		$logoCliente = htmlspecialchars($logoCliente, ENT_QUOTES, 'UTF-8');
-		$logoClienteMarkup = "<img class=\"login-company-logo\" src=\"{$logoCliente}\" alt=\"Logo de {$nomeEmpresa}\" onerror=\"this.hidden=true;this.nextElementSibling.hidden=false;\"><span class=\"login-company-monogram\" aria-hidden=\"true\" hidden>{$nomeEmpresaInicial}</span>";
-	}
-}
-
-$backgroundColor = !empty($sys['loginBackground']) ? trim($sys['loginBackground']) : '';
-$backgroundStyle = '';
-if ($backgroundColor !== '' && !preg_match('/[{}<>]/', $backgroundColor) && stripos($backgroundColor, 'javascript:') === false) {
-	$backgroundDeclaration = preg_match('/(?:^|;)\s*background(?:-[a-z-]+)?\s*:/i', $backgroundColor)
-		? $backgroundColor
-		: "background: {$backgroundColor};";
-	$backgroundStyle = ' style="' . htmlspecialchars($backgroundDeclaration, ENT_QUOTES, 'UTF-8') . '"';
-}
-$nomeRepresentante = !empty($sys['nomeEmpresa']) ? $sys['nomeEmpresa'] : 'Hardness Sistemas';
-$rodape = htmlspecialchars($nomeRepresentante, ENT_QUOTES, 'UTF-8') . ' ' . date('Y');
-$fundacaoMarkup = '';
-if (!empty($sys['anoFundacao']) && preg_match('/^\d{4}$/', (string) $sys['anoFundacao'])) {
-	$anoFundacao = (int) $sys['anoFundacao'];
-	if ($anoFundacao >= 1800 && $anoFundacao <= (int) date('Y')) {
-		$fundacaoMarkup = "<span>Desde {$anoFundacao}</span>";
-	}
-}
-$logo = !empty($sys['logoSistema']) ? $sys['logoSistema'] : '';
-$logo = htmlspecialchars($logo, ENT_QUOTES, 'UTF-8');
-$widthLogoConfigurada = '';
-if (isset($widthLogo)) {
-	$widthLogoConfigurada = trim($widthLogo);
-} elseif (!empty($sys['widthLogo'])) {
-	$widthLogoConfigurada = trim($sys['widthLogo']);
-}
-if ($widthLogoConfigurada !== '' && preg_match('/^\d+(?:\.\d+)?(?:px|%|rem|em|vw)?$/', $widthLogoConfigurada)) {
-	if (is_numeric($widthLogoConfigurada)) {
-		$widthLogoConfigurada .= 'px';
-	}
-	$logoStyle = " style=\"--login-logo-width: " . htmlspecialchars($widthLogoConfigurada, ENT_QUOTES, 'UTF-8') . ";\"";
-} else {
-	$logoStyle = '';
-}
-$logoMarkup = $logo !== ''
-	? "<img class=\"login-logo\" src=\"{$logo}\" alt=\"Logo do sistema\"{$logoStyle}>"
-	: '';
-$impactoTitulo = !empty($sys['tituloImpactoLogin']) ? trim($sys['tituloImpactoLogin']) : '';
-$textoCredibilidade = !empty($sys['textoCredibilidadeLogin']) ? trim($sys['textoCredibilidadeLogin']) : '';
-$impactoMarkup = '';
-$classePainelMarca = 'login-visual';
-if ($impactoTitulo !== '' || $textoCredibilidade !== '') {
-	$impactoTituloMarkup = '';
-	$textoCredibilidadeMarkup = '';
-	if ($impactoTitulo !== '') {
-		$impactoTitulo = htmlspecialchars($impactoTitulo, ENT_QUOTES, 'UTF-8');
-		$impactoTituloMarkup = "<h2>{$impactoTitulo}</h2>";
-	}
-	if ($textoCredibilidade !== '') {
-		$textoCredibilidade = htmlspecialchars($textoCredibilidade, ENT_QUOTES, 'UTF-8');
-		$textoCredibilidadeMarkup = "<p class=\"login-impact__credibility\">{$textoCredibilidade}</p>";
-	}
-	$impactoMarkup = <<<HTML
-		<div class="login-impact">
-			{$impactoTituloMarkup}
-			{$textoCredibilidadeMarkup}
-		</div>
-HTML;
-} else {
-	$classePainelMarca .= ' login-visual--logo-only';
-}
-$brandPanelMarkup = <<<HTML
-<aside class="{$classePainelMarca}" aria-label="Marca do sistema"{$backgroundStyle}>
-	<div class="login-visual__content">
-		{$logoMarkup}
-		{$impactoMarkup}
-	</div>
-</aside>
-HTML;
+$anoAtual = date('Y');
+$loginDigitado = htmlspecialchars((string) ($_POST['login'] ?? ''), ENT_QUOTES, 'UTF-8');
 
 //Funções de esqueci a senha
 $pswScript = <<< JS
@@ -502,6 +407,18 @@ $pswScript = <<< JS
 		var botaoLogin = $(this).find("button[type='submit']");
 		botaoLogin.prop("disabled", true).addClass("is-loading").text("Entrando...");
 	});
+
+	$("#ver-senha").click(function() {
+		// O jQuery 1.8 recusa trocar o type de input pelo .attr().
+		var campo = document.getElementById("login-password");
+		var mostrar = campo.type === "password";
+		campo.type = mostrar ? "text" : "password";
+		$(this)
+			.attr("aria-pressed", mostrar ? "true" : "false")
+			.attr("aria-label", mostrar ? "Esconder a senha" : "Mostrar a senha")
+			.toggleClass("is-visivel", mostrar);
+		campo.focus();
+	});
 JS;
 
 $oauthLoginTx = (string) ($_GET['mcp_oauth_tx'] ?? '');
@@ -522,50 +439,55 @@ echo <<<EOT
 <script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
 <script>
 	$(document).ready(function() {
+		// Os erros da autenticação chegam como alert(); com o modal de senha
+		// fechado, viram a caixa de erro do cartão.
+		var alertaNativo = window.alert;
+		window.alert = function(mensagem) {
+			if ($("body").hasClass("is-modal-open")) return alertaNativo.call(window, mensagem);
+			$("#login-erro").removeClass("hide").find("span").text(mensagem);
+		};
 		{$js}
-		$('input:first').focus();
+		$($("#login-user").val() ? "#login-password" : "#login-user").focus();
 		{$pswScript}
 	});
 </script>
 </head>
 <body>
-<main class="login-shell login-shell--split">
-	{$brandPanelMarkup}
-	<section class="login-stage">
-		<div class="login-access">
-			<div class="login-content">
-				<header class="login-brand">
-					<h1>Seja bem-vindo</h1>
-					<div class="login-company-heading">
-						{$logoClienteMarkup}
-						<div class="login-company-copy">
-							<strong id="login-company">{$nomeEmpresa}</strong>
-						</div>
-					</div>
-				</header>
-				<form id="form-login" class="login-form" action="./" method="post">
-					{$oauthLoginHidden}
-					<div class="alert alert-error hide">
-						<strong>Erro!</strong> <span></span>
-					</div>
-					<div class="field-group">
-						<label for="login-user">Usuário</label>
-						<input id="login-user" type="text" placeholder="Digite seu usuário" name="login" autocomplete="username">
-					</div>
-					<div class="field-group">
-						<label for="login-password">Senha</label>
-						<input id="login-password" type="password" placeholder="Digite sua senha" name="senha" autocomplete="current-password">
-					</div>
-					<button class="button button--primary login-submit" type="submit">Entrar</button>
-					<button id="open-psw" class="forgot-password" type="button" aria-haspopup="dialog" aria-controls="modal-psw" aria-expanded="false">Esqueceu a senha?</button>
-				</form>
+<main class="login-shell">
+	<section class="login-card" aria-labelledby="login-titulo">
+		<img class="login-logo" src="./fixar.png" alt="Fixar Industrial" width="200" height="101">
+		<header class="login-heading">
+			<h1 id="login-titulo">Entrar</h1>
+			<p>Use o usuário e a senha do ERP.</p>
+		</header>
+		<form id="form-login" class="login-form" action="./" method="post">
+			{$oauthLoginHidden}
+			<div id="login-erro" class="alert alert-error hide" role="alert">
+				<span></span>
 			</div>
-			<footer class="footer">
-				<p>&copy; {$rodape}</p>
-				{$fundacaoMarkup}
-			</footer>
-		</div>
+			<div class="field-group">
+				<label for="login-user">Usuário</label>
+				<input id="login-user" type="text" placeholder="Seu usuário" name="login" value="{$loginDigitado}" autocomplete="username" autocapitalize="none" spellcheck="false">
+			</div>
+			<div class="field-group">
+				<div class="field-label-row">
+					<label for="login-password">Senha</label>
+					<button id="open-psw" class="forgot-password" type="button" aria-haspopup="dialog" aria-controls="modal-psw" aria-expanded="false">Esqueceu a senha?</button>
+				</div>
+				<div class="password-field">
+					<input id="login-password" type="password" placeholder="Sua senha" name="senha" autocomplete="current-password">
+					<button id="ver-senha" class="password-toggle" type="button" aria-label="Mostrar a senha" aria-pressed="false">
+						<svg class="icone-olho" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+						<svg class="icone-olho-fechado" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></svg>
+					</button>
+				</div>
+			</div>
+			<button class="button button--primary login-submit" type="submit">Entrar</button>
+		</form>
 	</section>
+	<footer class="footer">
+		<p>&copy; Fixar Industrial {$anoAtual}</p>
+	</footer>
 </main>
 
 <div id="modal-psw" class="password-dialog-backdrop hide" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="password-title" aria-describedby="password-description">

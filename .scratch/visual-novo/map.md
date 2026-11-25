@@ -47,6 +47,10 @@ O PHP do núcleo em `src/hardness3` está ofuscado. A leitura fica em `referenci
 - [O filtro, o botão e a grade vazia ganham desenho](.scratch/visual-novo/issues/31-o-filtro-o-botao-e-a-grade-vazia-ganham-desenho.md): filtro em colunas no tipo do passo, botões do miolo redesenhados, estado vazio na grade, ícones de ação no Lucide pelo [ADR 0011](../../docs/adr/0011-icone-de-acao-sai-do-sprite.md). Orbit ERPFX-60.
 - [O filtro abre nos campos principais e ganha rodapé](.scratch/visual-novo/issues/32-o-filtro-abre-nos-campos-principais-e-ganha-rodape.md): campos principais e "Mais filtros (N)", rodapé com Limpar e Filtrar, rótulo medido, datas alinhadas, ajuda do filtro removida. Orbit ERPFX-61.
 - [As ações do filtro ficam juntas e a tela de grade ganha superfícies](.scratch/visual-novo/issues/33-as-acoes-do-filtro-ficam-juntas-e-a-tela-ganha-superficies.md): ações do filtro na última célula, seta em Mais filtros, faixa cinza e área branca, grade sem o bege. Orbit ERPFX-62.
+- [O login vira um cartão com a marca da Fixar](.scratch/visual-novo/issues/34-o-login-vira-um-cartao-com-a-marca-da-fixar.md): cartão central com o logo dourado, botão marinho e foco amarelo, erro no cartão, olho na senha; a marca da sidebar ganha o logo branco. Orbit ERPFX-63.
+- [Apps sai da sidebar para o topo](.scratch/visual-novo/issues/35-apps-sai-da-sidebar-para-o-topo.md): o grupo Apps vira um pop ao lado do sino, com a Loja de apps no fim. Orbit ERPFX-64.
+- [A sidebar ganha Início](.scratch/visual-novo/issues/36-a-sidebar-ganha-inicio.md): Início mostra a área de trabalho sem fechar as abas. Orbit ERPFX-65.
+- [O formulário ganha o tema dos campos](.scratch/visual-novo/issues/37-o-formulario-ganha-tema-e-o-de-cliente-vira-grade.md): campo branco, somente leitura, foco e asterisco em todo formulário. A grade sobre as posições absolutas foi experimentada no Cliente e recuada; fica para planejar. Orbit ERPFX-66.
 
 ## Not yet specified
 

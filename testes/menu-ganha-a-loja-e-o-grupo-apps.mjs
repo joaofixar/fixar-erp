@@ -1,5 +1,6 @@
-// A nuvem e os selos saem do desktop. A sidebar e a paleta listam o menu,
-// e o grupo Apps abre numa aba nova do navegador, sem virar aba do desktop.
+// A nuvem e os selos saem do desktop. A sidebar e a paleta listam o menu.
+// O grupo Apps sai da sidebar para o pop ao lado do sino e abre numa aba
+// nova do navegador, sem virar aba do desktop.
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -108,12 +109,19 @@ test("a nuvem sai do topo e os selos não aparecem", () => {
   assert.equal(doc.querySelector("#campoEmpresa span").textContent, "VAL");
 });
 
-test("a sidebar e a paleta alcançam o grupo Apps e a Loja de apps", () => {
+function itensDoPopApps(window) {
+  const doc = window.document;
+  doc.querySelector("[data-fx-apps]").click();
+  const pop = doc.querySelector("[data-fx-pop][aria-label='Apps']");
+  assert.ok(pop, "o pop de Apps não abriu");
+  return [...pop.querySelectorAll("[data-fx-item]")];
+}
+
+test("o grupo Apps sai da sidebar e a paleta alcança Apps e a Loja de apps", () => {
   const window = pagina();
   const doc = window.document;
   assert.deepEqual(grupos(window), [
     { nome: "Gerencial", itens: ["Relatórios"] },
-    { nome: "Apps", itens: ["Reforma Tributária"] },
     { nome: "Outros", itens: ["Log Erros"] },
     { nome: "Configuração", itens: ["Loja de apps"] },
   ]);
@@ -134,10 +142,36 @@ function acionar(window, botao) {
   window.eval("(function (event) { " + codigo + " }).call(null, {})");
 }
 
+test("o botão Apps do topo lista os apps e a Loja de apps", () => {
+  const window = pagina();
+  const doc = window.document;
+  const botao = doc.querySelector("#fx-shell header [data-fx-apps]");
+  assert.equal(botao.hidden, false);
+  const itens = itensDoPopApps(window);
+  assert.deepEqual(
+    itens.map((item) => item.textContent),
+    ["Reforma Tributária", "Loja de apps"],
+  );
+  assert.equal(botao.getAttribute("aria-expanded"), "true");
+  botao.click();
+  assert.equal(doc.querySelector("[data-fx-pop]"), null);
+  assert.equal(botao.getAttribute("aria-expanded"), "false");
+});
+
+test("sem grupo Apps o botão do topo não aparece", () => {
+  const window = pagina();
+  const doc = window.document;
+  doc.querySelectorAll("#barra > li").forEach((li) => {
+    if (li.querySelector(":scope > a").textContent === "Apps") li.remove();
+  });
+  doc.querySelector("[data-fx-avatar]").click();
+  assert.equal(doc.querySelector("[data-fx-apps]").hidden, true);
+});
+
 test("o item do grupo Apps abre o endereço de hoje e não vira aba", () => {
   const window = pagina();
   const doc = window.document;
-  const botao = [...doc.querySelectorAll("#fx-menu [data-fx-item]")].find(function (item) {
+  const botao = itensDoPopApps(window).find(function (item) {
     return item.textContent === "Reforma Tributária";
   });
   acionar(window, botao);

@@ -43,10 +43,12 @@
    O cockpit que o sistema abre sozinho no login não vira aba.
    A Loja de apps entra em Configuração para o root de hoje e abre o
    catálogo. O item de criar app sai. A nuvem sai do topo. Modo IDE e
-   Editando App não são desenhados. O grupo Apps fica depois de Gerencial
-   e antes de Outros. Cada item abre o endereço de hoje numa aba nova do
+   Editando App não são desenhados. O grupo Apps sai da sidebar e abre num
+   pop pelo botão ao lado do sino, com a Loja de apps no pé quando o menu
+   tem a loja. Cada item abre o endereço de hoje numa aba nova do
    navegador e não vira aba do desktop. A paleta alcança os dois porque
-   lista o mesmo menu. */
+   lista o mesmo menu. Início, no topo da sidebar, mostra a área de
+   trabalho sem fechar as abas. */
 (function () {
   var abas = [];
   var visivel = null;
@@ -124,7 +126,7 @@
       nome: "Financeiro e fiscal",
       grupos: ["financeiro", "fiscal", "comex", "contabil"],
     },
-    { nome: "Gestão", grupos: ["gerencial", "apps"] },
+    { nome: "Gestão", grupos: ["gerencial"] },
     { nome: "Sistema", grupos: ["outros", "configuracao"] },
   ];
 
@@ -480,6 +482,10 @@
       );
       return;
     }
+    if (popAberto === "apps") {
+      colocarPop(htmlPopApps(), document.querySelector("[data-fx-apps]"), "direita");
+      return;
+    }
     soltarPop();
   }
 
@@ -487,6 +493,7 @@
     pintarEmpresa();
     pintarAvatar();
     pintarSino();
+    pintarApps();
     sincronizarPop();
   }
 
@@ -932,10 +939,29 @@
     );
   }
 
+  function htmlInicio() {
+    var ativo = visivel == null;
+    return (
+      '<div class="tw:pt-3">' +
+      '<button type="button" data-fx-inicio title="Início"' +
+      (ativo ? ' aria-current="page"' : "") +
+      ' class="tw:mx-2 tw:flex tw:h-8 tw:w-[calc(100%-1rem)] tw:items-center tw:gap-2.5 tw:rounded-md tw:px-2 tw:text-left ' +
+      (ativo
+        ? "tw:bg-white/10 tw:font-medium tw:text-white"
+        : "tw:text-side-ink tw:hover:bg-white/10") +
+      '">' +
+      icone("casa", 16, "tw:shrink-0 tw:opacity-90") +
+      '<span data-fx-rotulo class="tw:min-w-0 tw:flex-1 tw:truncate">Início</span>' +
+      "</button></div>"
+    );
+  }
+
+  // O grupo Apps fica no topo, ao lado do sino; a paleta continua listando.
   function htmlMenu() {
-    var html = "";
+    var html = htmlInicio();
     var secaoAtual = null;
     gruposDoMenu().forEach(function (grupo) {
+      if (chaveDoGrupo(grupo.nome) === "apps") return;
       var secao =
         secaoDoGrupo(chaveDoGrupo(grupo.nome)) || secaoAtual || SECOES[0].nome;
       if (secao !== secaoAtual) {
@@ -973,6 +999,61 @@
         .join("") +
       "</div>"
     );
+  }
+
+  function grupoApps() {
+    var grupos = gruposDoMenu();
+    for (var i = 0; i < grupos.length; i++) {
+      if (chaveDoGrupo(grupos[i].nome) === "apps") return grupos[i];
+    }
+    return null;
+  }
+
+  function entradaDaLoja() {
+    var grupos = gruposDoMenu();
+    for (var i = 0; i < grupos.length; i++) {
+      for (var j = 0; j < grupos[i].entradas.length; j++) {
+        if (grupos[i].entradas[j].acao.indexOf("lojaApps") >= 0) {
+          return grupos[i].entradas[j];
+        }
+      }
+    }
+    return null;
+  }
+
+  function htmlPopApps() {
+    var grupo = grupoApps();
+    if (!grupo) return "";
+    var loja = entradaDaLoja();
+    return (
+      '<div data-fx-pop role="menu" aria-label="Apps" class="tw:fixed tw:z-[200002] tw:max-h-[70vh] tw:w-64 tw:overflow-auto tw:rounded-xl tw:border tw:border-solid tw:border-line tw:bg-paper tw:p-1.5 tw:text-[13px] tw:leading-snug tw:text-ink tw:shadow-[0_12px_32px_#141c2829]">' +
+      '<div class="tw:px-2 tw:pb-1 tw:pt-1.5 tw:text-[11px] tw:font-semibold tw:uppercase tw:tracking-wide tw:text-muted">Apps</div>' +
+      grupo.entradas
+        .map(function (entrada) {
+          return htmlItem(entrada, true);
+        })
+        .join("") +
+      (loja
+        ? '<div class="tw:mx-1 tw:my-1 tw:h-px tw:bg-line"></div>' +
+          htmlItem({ nome: "Loja de apps", acao: loja.acao }, true)
+        : "") +
+      "</div>"
+    );
+  }
+
+  function pintarApps() {
+    var botao = document.querySelector("[data-fx-apps]");
+    if (!botao) return;
+    botao.hidden = !grupoApps();
+    botao.setAttribute("aria-expanded", popAberto === "apps" ? "true" : "false");
+  }
+
+  function irParaInicio() {
+    fecharPops();
+    if (visivel == null) return;
+    visivel = null;
+    desenharFaixa();
+    aplicarMiolo();
   }
 
   function atualizarMenu() {
@@ -1022,7 +1103,7 @@
     if (visivel == null) {
       caminho.innerHTML =
         icone("casa", 15, "tw:shrink-0 tw:text-muted") +
-        '<span class="tw:truncate tw:font-medium tw:text-ink">Área de trabalho</span>';
+        '<span class="tw:truncate tw:font-medium tw:text-ink">Início</span>';
       return;
     }
     var entrada = entradaDaRaiz(visivel);
@@ -1842,6 +1923,28 @@
     }
   }
 
+  // O "* " do rótulo obrigatório vem no texto (formEditor.tpl). Em span
+  // próprio ele ganha cor; o textContent continua o mesmo.
+  function marcarObrigatorios(raiz) {
+    var rotulos = raiz.querySelectorAll(".form-rotulo:not([data-fx-obrigatorio])");
+    for (var i = 0; i < rotulos.length; i++) {
+      var rotulo = rotulos[i];
+      rotulo.setAttribute("data-fx-obrigatorio", "");
+      var texto = rotulo.firstChild;
+      if (!texto || texto.nodeType !== 3 || !/^\s*\*\s/.test(texto.nodeValue)) continue;
+      var marca = document.createElement("span");
+      marca.className = "fx-asterisco";
+      marca.textContent = "*";
+      texto.nodeValue = texto.nodeValue.replace(/^\s*\*/, "");
+      rotulo.insertBefore(marca, texto);
+    }
+  }
+
+  function marcarAsteriscos() {
+    var formularios = document.querySelectorAll(".ui-dialog .formFormulario");
+    for (var i = 0; i < formularios.length; i++) marcarObrigatorios(formularios[i]);
+  }
+
   function observarMiolo() {
     if (typeof MutationObserver !== "function") return;
     var agendado = false;
@@ -1853,11 +1956,14 @@
         agendado = false;
         arrumarFiltros();
         pintarVazios();
+        marcarAsteriscos();
       });
     }).observe(document.body, { childList: true, subtree: true });
     arrumarFiltros();
     pintarVazios();
+    marcarAsteriscos();
   }
+
 
   function limparFiltroDoVazio(botao) {
     var painel = botao.closest(".ui-tabs-panel, .ui-dialog-content");
@@ -1894,7 +2000,7 @@
     shell.innerHTML =
       '<aside class="tw:flex tw:min-h-0 tw:min-w-0 tw:flex-col tw:overflow-hidden tw:bg-side tw:text-side-ink">' +
       '<div data-fx-marca class="tw:relative tw:flex tw:h-[52px] tw:shrink-0 tw:items-center tw:gap-2.5 tw:border-b tw:border-white/10 tw:px-3">' +
-      '<span aria-hidden="true" class="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-lg tw:bg-accent tw:text-[11px] tw:font-bold tw:tracking-wide tw:text-white">FX</span>' +
+      '<img data-fx-logo src="/fx/fixar-branca.png" alt="Fixar Industrial" width="48" height="24" class="tw:block tw:h-6 tw:w-12 tw:shrink-0">' +
       '<div data-fx-rotulo class="tw:min-w-0 tw:flex-1">' +
       '<p class="tw:m-0 tw:truncate tw:text-[14px] tw:font-semibold tw:leading-tight tw:text-white">FX ERP</p>' +
       '<div id="fx-empresa"></div></div>' +
@@ -1915,6 +2021,9 @@
       icone("lupa", 15, "tw:shrink-0") +
       '<span class="tw:flex-1 tw:text-left">Pesquisar…</span>' +
       "<kbd data-fx-tecla>Ctrl K</kbd>" +
+      "</button>" +
+      '<button type="button" data-fx-apps hidden class="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-md tw:text-muted tw:hover:bg-black/5 tw:hover:text-ink" aria-label="Apps" title="Apps" aria-haspopup="menu" aria-expanded="false">' +
+      icone("grade", 18) +
       "</button>" +
       '<button type="button" data-fx-sino class="tw:relative tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-md tw:text-muted tw:hover:bg-black/5 tw:hover:text-ink" aria-label="Alertas" aria-haspopup="dialog" aria-expanded="false">' +
       icone("sino", 18) +
@@ -1946,6 +2055,16 @@
         }
         fecharPops();
         alternarGrupo(chave);
+        return;
+      }
+      if (evento.target.closest("[data-fx-inicio]")) {
+        evento.preventDefault();
+        irParaInicio();
+        return;
+      }
+      if (evento.target.closest("[data-fx-apps]")) {
+        evento.preventDefault();
+        alternarPop("apps");
         return;
       }
       if (evento.target.closest("[data-fx-sino]")) {
@@ -2016,7 +2135,7 @@
       }
       if (
         evento.target.closest(
-          "[data-fx-pop], [data-fx-empresa], [data-fx-avatar], [data-fx-sino], [data-fx-grupo-titulo], #messageAlert, .ui-datepicker",
+          "[data-fx-pop], [data-fx-empresa], [data-fx-avatar], [data-fx-sino], [data-fx-apps], [data-fx-grupo-titulo], #messageAlert, .ui-datepicker",
         )
       ) {
         return;
@@ -2087,9 +2206,13 @@
     window.closeLastBtn = false;
     if (typeof window.divIdRootAberto === "function") {
       var raizAbertaOriginal = window.divIdRootAberto;
+      // No Início as abas ficam escondidas; a janela aberta ali não pode
+      // herdar a raiz de uma delas, senão nasce escondida.
       window.divIdRootAberto = function () {
         if (visivel != null) return visivel;
-        return raizAbertaOriginal.apply(this, arguments);
+        var raiz = raizAbertaOriginal.apply(this, arguments);
+        if (indiceDaAba(String(raiz)) >= 0) return "fx-inicio-" + Date.now();
+        return raiz;
       };
     }
     window.fixDesktopSize = medirArea;

@@ -68,7 +68,7 @@ function pagina(miolo) {
     return window.menuUniques[codigo];
   };
   window.divIdRootAberto = function () {
-    return "aberta";
+    return window.raizAberta || "aberta";
   };
   window.eval(fonte);
   return window;
@@ -127,6 +127,32 @@ test("o tamanho guardado não encolhe a aba e volta depois", () => {
   acionar(window, item(window, "Cliente/Fornecedor"));
   assert.deepEqual(window.guardadoNaChamada, [undefined]);
   assert.deepEqual(window.g.tamanhosJanelas[url], [700, 400]);
+});
+
+test("Início mostra a área de trabalho e a aba continua na faixa", () => {
+  const window = pagina();
+  const doc = window.document;
+  acionar(window, item(window, "Cliente/Fornecedor"));
+  doc.querySelector("[data-fx-inicio]").click();
+  assert.deepEqual(abas(window), ["Clientes e Fornecedores"]);
+  assert.equal(doc.querySelector("#fx-faixa [aria-selected='true']"), null);
+  assert.equal(doc.querySelector("[data-fx-inicio]").getAttribute("aria-current"), "page");
+  assert.equal(doc.getElementById("fx-caminho").textContent, "Início");
+  assert.equal(doc.getElementById("fx-trabalho").hidden, false);
+
+  doc.querySelector("#fx-faixa [data-fx-aba]").click();
+  assert.equal(doc.querySelector("[data-fx-inicio]").hasAttribute("aria-current"), false);
+  assert.equal(doc.getElementById("fx-trabalho").hidden, true);
+});
+
+test("a janela aberta no Início não herda a raiz de uma aba escondida", () => {
+  const window = pagina();
+  acionar(window, item(window, "Cliente/Fornecedor"));
+  window.document.querySelector("[data-fx-inicio]").click();
+  window.raizAberta = "cad001";
+  assert.notEqual(window.divIdRootAberto(), "cad001");
+  window.raizAberta = "outra";
+  assert.equal(window.divIdRootAberto(), "outra");
 });
 
 test("a caixa pequena do menu continua janela sobre a aba visível", () => {

@@ -10,13 +10,11 @@
     --tw-text-xs--line-height: calc(1 / 0.75);
     --tw-font-weight-medium: 500;
     --tw-font-weight-semibold: 600;
-    --tw-font-weight-bold: 700;
     --tw-tracking-wide: 0.025em;
     --tw-tracking-wider: 0.05em;
     --tw-leading-tight: 1.25;
     --tw-leading-snug: 1.375;
     --tw-radius-md: 0.375rem;
-    --tw-radius-lg: 0.5rem;
     --tw-radius-xl: 0.75rem;
     --tw-color-side: #1b2430;
     --tw-color-side-ink: #e8edf2;
@@ -82,6 +80,9 @@
   .tw\:mx-2 {
     margin-inline: calc(var(--tw-spacing) * 2);
   }
+  .tw\:my-1 {
+    margin-block: var(--tw-spacing);
+  }
   .tw\:my-1\.5 {
     margin-block: calc(var(--tw-spacing) * 1.5);
   }
@@ -120,6 +121,9 @@
   .tw\:h-4 {
     height: calc(var(--tw-spacing) * 4);
   }
+  .tw\:h-6 {
+    height: calc(var(--tw-spacing) * 6);
+  }
   .tw\:h-7 {
     height: calc(var(--tw-spacing) * 7);
   }
@@ -143,6 +147,9 @@
   }
   .tw\:min-h-0 {
     min-height: 0px;
+  }
+  .tw\:w-12 {
+    width: calc(var(--tw-spacing) * 12);
   }
   .tw\:w-56 {
     width: calc(var(--tw-spacing) * 56);
@@ -247,9 +254,6 @@
   }
   .tw\:rounded-full {
     border-radius: calc(infinity * 1px);
-  }
-  .tw\:rounded-lg {
-    border-radius: var(--tw-radius-lg);
   }
   .tw\:rounded-md {
     border-radius: var(--tw-radius-md);
@@ -437,10 +441,6 @@
     --tw-leading: var(--tw-leading-tight);
     line-height: var(--tw-leading-tight);
   }
-  .tw\:font-bold {
-    --tw-font-weight: var(--tw-font-weight-bold);
-    font-weight: var(--tw-font-weight-bold);
-  }
   .tw\:font-medium {
     --tw-font-weight: var(--tw-font-weight-medium);
     font-weight: var(--tw-font-weight-medium);
@@ -620,7 +620,7 @@
   width: 0;
   overflow: hidden;
 }
-#fx-shell[data-fx-recolhida] [data-fx-marca] > [data-fx-troca], #fx-shell[data-fx-recolhida] [data-fx-grupo-titulo] [data-fx-rotulo], #fx-shell[data-fx-recolhida] [data-fx-itens] {
+#fx-shell[data-fx-recolhida] [data-fx-marca] > [data-fx-troca], #fx-shell[data-fx-recolhida] [data-fx-grupo-titulo] [data-fx-rotulo], #fx-shell[data-fx-recolhida] [data-fx-inicio] [data-fx-rotulo], #fx-shell[data-fx-recolhida] [data-fx-itens] {
   display: none;
 }
 #fx-shell[data-fx-recolhida] [data-fx-secao-titulo] {
@@ -630,7 +630,7 @@
   font-size: 0;
   background: rgb(255 255 255 / 0.1);
 }
-#fx-shell[data-fx-recolhida] [data-fx-grupo-titulo] {
+#fx-shell[data-fx-recolhida] [data-fx-grupo-titulo], #fx-shell[data-fx-recolhida] [data-fx-inicio] {
   justify-content: center;
   width: 40px;
   height: 36px;
