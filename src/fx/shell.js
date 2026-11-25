@@ -22,7 +22,12 @@
    só entra se o rodapé já oferece a troca, e faz o mesmo que a empresa.
    Sair vai para /logout. O nome da pessoa fica de fora. Os dois menus
    nascem no body, como a paleta: o #desktop é uma camada por cima da
-   área, e um menu dentro do shell ficaria atrás da janela aberta. */
+   área, e um menu dentro do shell ficaria atrás da janela aberta.
+   O sino abre o pop Alertas pendurado no ícone. A lista, a contagem do
+   que não está oculto, ocultar, atualizar, enviar e o suporte continuam
+   os do Hardness (alertAdicionar e acoesNotificacoes em sistema.js, o
+   painel #messageAlert de index.tpl). O Aviso fica na área de trabalho.
+   Empresa, avatar e paleta fecham esse pop. Fechar descarta o rascunho. */
 (function () {
   var abas = [];
   var visivel = null;
@@ -279,17 +284,206 @@
   function redesenharAcesso() {
     pintarEmpresa();
     pintarAvatar();
+    pintarSino();
     sincronizarPop();
+  }
+
+  function painelAlertas() {
+    return document.querySelector("#messageAlert .messages");
+  }
+
+  function tituloAlertas() {
+    var painel = painelAlertas();
+    if (!painel) return;
+    var titulo = painel.querySelector(".header span");
+    if (titulo) titulo.textContent = "Alertas";
+    painel.setAttribute("role", "dialog");
+    painel.setAttribute("aria-label", "Alertas");
+  }
+
+  function descartarRascunho() {
+    var caixa = document.querySelector("#messageAlert .boxenviarmensagem");
+    if (!caixa) return;
+    var area = caixa.querySelector("textarea");
+    if (area) area.value = "";
+    var select = caixa.querySelector("select");
+    if (select) select.selectedIndex = 0;
+    var data = caixa.querySelector(".campoData");
+    if (data) data.value = "";
+    var tempo = caixa.querySelector(".campoTempo");
+    if (tempo) tempo.value = "";
+    var travar = caixa.querySelector('input[name="msgTravar"]');
+    if (travar) travar.checked = false;
+    var erros = caixa.querySelectorAll("span");
+    for (var i = 0; i < erros.length; i++) erros[i].style.display = "none";
+    caixa.style.display = "none";
+  }
+
+  function restaurarItensOcultos() {
+    var itens = document.querySelectorAll("#messageAlert li.msgalert");
+    for (var i = 0; i < itens.length; i++) {
+      var estilo = itens[i].getAttribute("style") || "";
+      if (!/lightgreen/i.test(estilo)) itens[i].setAttribute("style", "");
+    }
+    var olho = document.querySelector(
+      "#messageAlert .exibirOcultarNotificacoes",
+    );
+    if (!olho) return;
+    olho.classList.remove("exibindo");
+    olho.setAttribute("src", "/hardness3/static/img/check.png");
+    // Rótulo de index.tpl com o olho desligado. O item do pop continua Alerta.
+    olho.setAttribute("title", "Exibir notificações desabilitadas");
+  }
+
+  function posicionarSino() {
+    var botao = document.querySelector("[data-fx-sino]");
+    var painel = painelAlertas();
+    if (!botao || !painel) return;
+    var rect = botao.getBoundingClientRect();
+    var largura = painel.offsetWidth || 450;
+    var esquerda = rect.right - largura;
+    if (esquerda < 8) esquerda = 8;
+    painel.style.position = "fixed";
+    painel.style.top = rect.bottom + 4 + "px";
+    painel.style.right = "auto";
+    painel.style.left = esquerda + "px";
+    painel.style.zIndex = "200002";
+    var alerta = document.getElementById("messageAlert");
+    if (alerta) alerta.style.zIndex = "200002";
+    var corpo = painel.querySelector(".body");
+    var area = document.getElementById("fx-area");
+    if (!corpo || !area) return;
+    var altura = area.getBoundingClientRect().height;
+    var limite = altura > 80 ? altura - 32 : 0;
+    corpo.style.height = "auto";
+    if (limite && corpo.scrollHeight > limite) corpo.style.height = limite + "px";
+  }
+
+  function pararAnimacaoDoPainel() {
+    if (!window.jQuery) return;
+    var api = window.jQuery("#messageAlert .messages");
+    if (api && typeof api.stop === "function") api.stop(true, false);
+    var painel = painelAlertas();
+    if (!painel) return;
+    painel.style.height = "";
+    painel.style.overflow = "";
+  }
+
+  function vigiarTitulo() {
+    var painel = painelAlertas();
+    if (!painel || painel.dataset.fxTitulo) return;
+    var titulo = painel.querySelector(".header span");
+    if (!titulo || typeof MutationObserver !== "function") return;
+    painel.dataset.fxTitulo = "1";
+    var observador = new MutationObserver(function () {
+      if (popAberto !== "sino") return;
+      if (titulo.textContent !== "Alertas") titulo.textContent = "Alertas";
+    });
+    observador.observe(titulo, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+
+  function abrirPainelAlertas() {
+    var alerta = document.getElementById("messageAlert");
+    var painel = painelAlertas();
+    if (!alerta || !painel) return;
+    pararAnimacaoDoPainel();
+    window.messageAlertHover = true;
+    if (window.jQuery) window.jQuery("body").unbind("click.message");
+    var enviada = alerta.querySelector(".mensagemenviada");
+    if (enviada) enviada.style.display = "none";
+    var corpo = painel.querySelector(".body");
+    if (corpo) corpo.style.display = "";
+    var agendados = alerta.querySelectorAll(".itemAgendado");
+    for (var i = 0; i < agendados.length; i++) agendados[i].remove();
+    descartarRascunho();
+    tituloAlertas();
+    vigiarTitulo();
+    painel.style.display = "block";
+    alerta.classList.add("fx-aberto");
+    posicionarSino();
+  }
+
+  function fecharPainelAlertas() {
+    pararAnimacaoDoPainel();
+    window.messageAlertHover = false;
+    if (window.jQuery) window.jQuery("body").unbind("click.message");
+    descartarRascunho();
+    restaurarItensOcultos();
+    var painel = painelAlertas();
+    if (painel) painel.style.display = "none";
+    var alerta = document.getElementById("messageAlert");
+    if (!alerta) return;
+    alerta.classList.remove("fx-aberto");
+    alerta.style.zIndex = "";
+  }
+
+  function pintarSino() {
+    var botao = document.querySelector("[data-fx-sino]");
+    if (!botao) return;
+    botao.setAttribute("aria-expanded", popAberto === "sino" ? "true" : "false");
+    var origem = document.querySelector("#messageAlert .alerts");
+    var numero = origem ? parseInt(origem.textContent, 10) : 0;
+    if (isNaN(numero) || numero < 0) numero = 0;
+    var selo = botao.querySelector("[data-fx-sino-contagem]");
+    if (!selo) return;
+    selo.textContent = numero ? String(numero) : "";
+    selo.hidden = numero === 0;
+  }
+
+  function observarContagem() {
+    var origem = document.querySelector("#messageAlert .alerts");
+    if (!origem || origem.dataset.fxObservado) return;
+    origem.dataset.fxObservado = "1";
+    if (typeof MutationObserver !== "function") return;
+    var observador = new MutationObserver(pintarSino);
+    observador.observe(origem, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+
+  function aoClicarNoPainel(evento) {
+    if (popAberto !== "sino") return;
+    tituloAlertas();
+    var item = evento.target.closest("li.msgalert");
+    if (!item || item.isConnected) return;
+    popAberto = null;
+    fecharPainelAlertas();
+    redesenharAcesso();
+  }
+
+  function alternarSino() {
+    if (popAberto === "sino") {
+      fecharPops();
+      return;
+    }
+    if (!document.getElementById("messageAlert")) return;
+    if (paletaAberta) fecharPaleta();
+    if (popAberto) {
+      popAberto = null;
+      soltarPop();
+    }
+    popAberto = "sino";
+    abrirPainelAlertas();
+    redesenharAcesso();
   }
 
   function fecharPops() {
     if (!popAberto) return;
+    var sino = popAberto === "sino";
     popAberto = null;
+    if (sino) fecharPainelAlertas();
     redesenharAcesso();
   }
 
   function alternarPop(nome) {
     if (paletaAberta) fecharPaleta();
+    if (popAberto === "sino") fecharPainelAlertas();
     popAberto = popAberto === nome ? null : nome;
     redesenharAcesso();
   }
@@ -921,15 +1115,24 @@
       '<button type="button" data-fx-pesquisar class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Pesquisar o menu">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
       "</button>" +
-      '<button type="button" class="tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Alertas">' +
+      '<button type="button" data-fx-sino class="tw:relative tw:grid tw:size-9 tw:place-items-center tw:rounded-lg tw:text-ink tw:hover:bg-black/5" aria-label="Alertas" aria-haspopup="dialog" aria-expanded="false">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+      '<span data-fx-sino-contagem hidden aria-hidden="true" class="tw:pointer-events-none tw:absolute tw:top-0.5 tw:right-0.5 tw:min-w-3.5 tw:rounded-full tw:bg-accent tw:px-0.5 tw:text-center tw:text-[10px] tw:font-semibold tw:leading-3.5 tw:text-white"></span>' +
       "</button>" +
       '<div id="fx-avatar" class="tw:relative"></div></div></header>' +
       '<div id="fx-faixa" class="tw:flex tw:min-w-0 tw:items-end tw:gap-0.5 tw:overflow-x-auto tw:bg-canvas tw:px-2"></div>' +
       '<div id="fx-area" class="tw:min-h-0 tw:min-w-0"></div></div>';
     document.body.appendChild(shell);
+    observarContagem();
+    var alerta = document.getElementById("messageAlert");
+    if (alerta) alerta.addEventListener("click", aoClicarNoPainel);
     redesenharAcesso();
     shell.addEventListener("click", function (evento) {
+      if (evento.target.closest("[data-fx-sino]")) {
+        evento.preventDefault();
+        alternarSino();
+        return;
+      }
       if (evento.target.closest("[data-fx-empresa]")) {
         evento.preventDefault();
         alternarPop("empresa");
@@ -969,7 +1172,7 @@
       if (!popAberto) return;
       if (
         evento.target.closest(
-          "[data-fx-pop], [data-fx-empresa], [data-fx-avatar]",
+          "[data-fx-pop], [data-fx-empresa], [data-fx-avatar], [data-fx-sino], #messageAlert, .ui-datepicker",
         )
       ) {
         return;

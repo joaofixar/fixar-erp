@@ -47,7 +47,18 @@
 }
 
 #topo,
-#footer,
+#footer {
+  display: none;
+}
+
 #messageAlert {
   display: none;
+}
+
+#messageAlert.fx-aberto {
+  display: block;
+}
+
+#messageAlert .click {
+  display: none !important;
 }
