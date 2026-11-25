@@ -4,9 +4,22 @@ namespace hardness;
 // A faixa vazia mostra os avisos no filtro de hoje e as notas publicadas.
 // A nota mora em notas.json até existir a tela de publicar. Vídeo não entra.
 
+function fxBancoTemAvisoLocal(string $banco): bool
+{
+    return $banco !== 'e001';
+}
+
+function fxUrlImagemAviso(string $raiz, string $web, string $banco, string $arquivo): string
+{
+    if ($arquivo === '') {
+        return '';
+    }
+    return $raiz . $web . 'dados_usuarios/' . $banco . '/imagens/avisos/' . $arquivo;
+}
+
 function fxSqlAvisos(int $perfil, int $empresa, int $usuario): string
 {
-    return "SELECT C032_Id, C032_Aviso, C007_Nome
+    return "SELECT C032_Id, C032_Aviso, C032_Imagem, C007_Nome
         FROM C032
         LEFT JOIN C036 ON C036_C032_Id = C032_Id
         LEFT JOIN C007 ON C007_Id = {$usuario}
@@ -65,10 +78,12 @@ function fxHtmlArea(array $avisos, array $notas): string
     $html = '';
     foreach ($avisos as $aviso) {
         $texto = isset($aviso['texto']) ? (string) $aviso['texto'] : '';
-        if ($texto === '') {
+        $imagem = isset($aviso['imagem']) ? (string) $aviso['imagem'] : '';
+        if ($texto === '' && $imagem === '') {
             continue;
         }
-        $html .= '<div data-fx-aviso>' . $texto . '</div>';
+        $fundo = $imagem === '' ? '' : ' style="background-image:url(' . fxEscapar($imagem) . ')"';
+        $html .= '<div data-fx-aviso' . $fundo . '>' . $texto . '</div>';
     }
     foreach ($notas as $nota) {
         $html .= '<article data-fx-nota>'
@@ -82,11 +97,13 @@ function fxHtmlArea(array $avisos, array $notas): string
 
 function fxAreaTrabalho($g): string
 {
+    global $confUsuario;
     if (empty($g['usuarioAtual'])) {
         return '';
     }
     $avisos = array();
-    if (function_exists('mysql_query')) {
+    $banco = isset($confUsuario['dbDatabase']) ? (string) $confUsuario['dbDatabase'] : '';
+    if (fxBancoTemAvisoLocal($banco) && function_exists('mysql_query')) {
         $sql = fxSqlAvisos(
             (int) $g['perfilUsuario'],
             (int) $g['empresaAtual'],
@@ -94,10 +111,16 @@ function fxAreaTrabalho($g): string
         );
         $res = mysql_query($sql);
         if ($res) {
+            $raiz = isset($confUsuario['urlRaiz']) ? (string) $confUsuario['urlRaiz'] : '';
+            $web = isset($g['pathWeb']) ? (string) $g['pathWeb'] : '';
             while ($row = mysql_fetch_assoc($res)) {
                 $nome = isset($row['C007_Nome']) ? (string) $row['C007_Nome'] : '';
                 $bruto = isset($row['C032_Aviso']) ? (string) $row['C032_Aviso'] : '';
-                $avisos[] = array('texto' => fxTextoAviso($bruto, $nome));
+                $arquivo = isset($row['C032_Imagem']) ? (string) $row['C032_Imagem'] : '';
+                $avisos[] = array(
+                    'texto' => fxTextoAviso($bruto, $nome),
+                    'imagem' => fxUrlImagemAviso($raiz, $web, $banco, $arquivo),
+                );
             }
         }
     }

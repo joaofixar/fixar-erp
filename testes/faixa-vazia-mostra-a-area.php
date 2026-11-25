@@ -62,6 +62,22 @@ exigir(strpos($sql, "C036_C007_Id = 9") !== false, 'o aviso filtra o usuário');
 exigir(strpos($sql, "C032_Flag_Ativo = 'S'") !== false, 'só aviso ativo');
 exigir(strpos($sql, 'C036_Data_Inicial') !== false && strpos($sql, 'C036_Data_Final') !== false, 'o aviso respeita o prazo de hoje');
 exigir(strpos($sql, 'BOL001') === false && strpos($sql, 'notificacao') === false, 'a consulta não traz cobrança nem vídeo');
+exigir(strpos($sql, 'C032_Imagem') !== false, 'o aviso traz a imagem de hoje');
+exigir(hardness\fxBancoTemAvisoLocal('e001') === false, 'e001 não lista aviso local');
+exigir(hardness\fxBancoTemAvisoLocal('fixar') === true, 'a base local lista aviso');
+exigir(
+    hardness\fxUrlImagemAviso('http://local', '/hardness3/', 'fixar', 'a.png')
+        === 'http://local/hardness3/dados_usuarios/fixar/imagens/avisos/a.png',
+    'a imagem usa o caminho de hoje'
+);
+$soImagem = hardness\fxHtmlArea(
+    array(array('texto' => '', 'imagem' => 'http://local/hardness3/dados_usuarios/fixar/imagens/avisos/a.png')),
+    array()
+);
+exigir(
+    $soImagem === '<div data-fx-aviso style="background-image:url(http://local/hardness3/dados_usuarios/fixar/imagens/avisos/a.png)"></div>',
+    'aviso só com imagem aparece'
+);
 
 exigir(hardness\fxAreaTrabalho(array('usuarioAtual' => '')) === '', 'sem sessão não há área');
 exigir(
