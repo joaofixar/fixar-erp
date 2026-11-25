@@ -17,11 +17,15 @@ O passo, vindo da spec:
 
 **Status:** ready-for-agent
 
-- [ ] Quem ainda não escolheu densidade abre no passo 12, Pequeno
-- [ ] Quem já gravou 13 ou 14 continua nesse passo
-- [ ] Pequeno, Médio e Grande ficam no menu do avatar, entre o perfil e Sair, com o passo atual marcado
-- [ ] Dá para subir e voltar de passo
-- [ ] A escolha fica gravada e o próximo login abre no passo deixado
-- [ ] O passo muda tipo e espaçamento do miolo: grade, campo e aba
-- [ ] A tela de configuração da interface grava o mesmo passo
-- [ ] O padrão da coluna, para quem não escolheu, é 12
+- [x] Quem ainda não escolheu densidade abre no passo 12, Pequeno
+- [x] Quem já gravou 13 ou 14 continua nesse passo
+- [x] Pequeno, Médio e Grande ficam no menu do avatar, entre o perfil e Sair, com o passo atual marcado
+- [x] Dá para subir e voltar de passo
+- [x] A escolha fica gravada e o próximo login abre no passo deixado
+- [x] O passo muda tipo e espaçamento do miolo: grade, campo e aba
+- [x] A tela de configuração da interface grava o mesmo passo
+- [x] O padrão da coluna, para quem não escolheu, é 12
+
+## Comments
+
+Implementado em `d64186cd` e `395886b0`. O gancho marca no body o passo de `C007_Tamanho_Fonte_Sistema`: 13 e 14 ficam, o restante abre em 12. O avatar oferece Pequeno, Médio e Grande depois da troca de usuário e antes de Sair. A escolha grava o mesmo campo que a tela de configuração. A folha do tema repinta tipo e espaçamento do miolo. O padrão da coluna passa a 12; numa base que já tem a coluna, o desktop ajusta só o default.
