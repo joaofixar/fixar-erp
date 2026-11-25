@@ -16,6 +16,13 @@
   --color-muted: #5c6570;
   --color-line: #d5d9e0;
   --color-accent-soft: #e6eef8;
+  --color-hover: #FFE98C;
+  --color-header: #f4f6f8;
+  --color-selected-cell: #d3e2f5;
+  --color-readonly: #f3f4f6;
+  --color-error: #ffaaaa;
+  --color-shadow: #141c2833;
+  --color-scroll-handle: #b7c0cb;
 }
 
 /* A base fica no layer das utilities e perde para o CSS sem layer do miolo.
@@ -77,8 +84,8 @@
 
 #fx-trabalho [data-fx-aviso],
 #fx-trabalho [data-fx-nota] {
-  background: #fff;
-  border: 1px solid #d5d9e0;
+  background: var(--tw-color-paper);
+  border: 1px solid var(--tw-color-line);
   border-radius: 8px;
   margin: 0 0 12px;
   padding: 12px 16px;
@@ -90,6 +97,6 @@
 }
 
 #fx-trabalho [data-fx-nota] time {
-  color: #5c6570;
+  color: var(--tw-color-muted);
   font-size: 12px;
 }

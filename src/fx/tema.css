@@ -1,1 +1,1095 @@
-/* Folha do tema do desktop. Entra depois do cache do miolo e não usa layer. */
+/* Folha do tema do desktop. Entra depois do cache do miolo e não usa layer,
+   então ganha das folhas da publicação na mesma especificidade.
+   Os tokens nascem no @theme do shell. Célula e aviso ficam no hex de hoje.
+   As chaves do menu antigo ficam de fora. */
+
+:root {
+  --celula-verde: #B6F9B1;
+  --celula-amarelo: #FCF6A4;
+  --celula-amarelo-claro: #F9F7BD;
+  --celula-vermelho: #FCDAC2;
+  --celula-azul: #B3D8F9;
+  --BGAzul: #063fdb;
+  --BGVermelho: #E82728;
+  --BGVerde: #6fc293;
+  --BGAmarelo: #F1D126;
+
+  --fundo: var(--tw-color-canvas);
+  --fundo-body: var(--tw-color-canvas);
+  --gray: var(--tw-color-canvas);
+  --fundo-grid: var(--tw-color-paper);
+  --fundo-grid-linha-color1: var(--tw-color-paper);
+  --fundo-grid-totais: var(--tw-color-paper);
+  --fundo-grid-totais-gradient: var(--tw-color-paper);
+  --fundo-campo-form: var(--tw-color-paper);
+  --fundo-campo-form-gradient: var(--tw-color-paper);
+  --fundo-dropdown-menu: var(--tw-color-paper);
+  --fundo-tab-active: var(--tw-color-paper);
+  --fundo-tab-active-gradient: var(--tw-color-paper);
+  --letra1: var(--tw-color-ink);
+  --letra2: var(--tw-color-ink);
+  --letra-form: var(--tw-color-ink);
+  --letra-form-focus: var(--tw-color-ink);
+  --letra-form-readonly: var(--tw-color-ink);
+  --letra-tab-hover: var(--tw-color-ink);
+  --letra-tab-active: var(--tw-color-ink);
+  --letra-dropdown-menu: var(--tw-color-ink);
+  --letra-grid-linhaPreta: var(--tw-color-ink);
+  --bi-label-indicador-padrao: var(--tw-color-ink);
+  --bi-valor-indicador-padrao: var(--tw-color-ink);
+  --letra-grid-linhaCinza: var(--tw-color-muted);
+  --letra-zoomButton: var(--tw-color-muted);
+  --letra-log: var(--tw-color-muted);
+  --border-td-bottom: var(--tw-color-line);
+  --borda-campo-form: var(--tw-color-line);
+  --borda-grid-totais: var(--tw-color-line);
+  --borda-tab-default: var(--tw-color-line);
+  --borda-tab-active: var(--tw-color-line);
+  --borda-tab-hover: var(--tw-color-line);
+  --borda-tab-bottom: var(--tw-color-line);
+  --border-grid-thead-bottom: var(--tw-color-line);
+  --border-grid-thead-top: var(--tw-color-line);
+  --border-topo-top: var(--tw-color-line);
+  --border-divnoBorder: var(--tw-color-line);
+  --border-observacoes: var(--tw-color-line);
+  --border-observacoes-totais: var(--tw-color-line);
+  --border-bottom-observacoes-totais: var(--tw-color-line);
+  --borda-notificacao: var(--tw-color-line);
+  --borda-content-cabecalho: var(--tw-color-line);
+  --filtro-borda-campo: var(--tw-color-line);
+  --bi-borda: var(--tw-color-line);
+  --borda-janela: var(--tw-color-line);
+  --Gradient: var(--tw-color-accent);
+  --border-grid-linha-selecionada-marcada: var(--tw-color-accent);
+  --blue: var(--tw-color-accent-soft);
+  --dark-blue: var(--tw-color-accent-soft);
+  --fundo-dropdown-menu-focus: var(--tw-color-accent-soft);
+  --fundo-observacoes: var(--tw-color-accent-soft);
+  --fundo-observacoes-totais: var(--tw-color-accent-soft);
+  --fundo-notificacao: var(--tw-color-accent-soft);
+  --filtro-fundo-campo-focus: var(--tw-color-accent-soft);
+  --filtro-fundo-campo-focus-gradient: var(--tw-color-accent-soft);
+  --fundo-tab-hover: var(--tw-color-accent-soft);
+  --fundo-grid-linha-selecionada: var(--tw-color-accent-soft);
+  --fundo-grid-linha-color2: var(--tw-color-header);
+  --fundo-grid-thead: var(--tw-color-header);
+  --fundo-grid-thead-gradient: var(--tw-color-header);
+  --fundo-filtro: var(--tw-color-header);
+  --filtro-fundo-campo: var(--tw-color-header);
+  --fundo-tab-default: var(--tw-color-header);
+  --fundo-tab-default-gradient: var(--tw-color-header);
+  --fundo-tab-fundo: var(--tw-color-header);
+  --fundo-content-cabecalho: var(--tw-color-header);
+  --fundo-topo: var(--tw-color-header);
+  --fundo-topo-gradient: var(--tw-color-header);
+  --bi-fundo-indicador-padrao: var(--tw-color-header);
+  --bi-fundo-indicador-padrao-gradient: var(--tw-color-header);
+  --fundo-grid-linha-selecionada-celula: var(--tw-color-selected-cell);
+  --fundo-grid-linha-selecionada-marcada: var(--tw-color-selected-cell);
+  --fundo-campo-form-readonly: var(--tw-color-readonly);
+  --fundo-campo-form-readonly-gradient: var(--tw-color-readonly);
+  --fundo-dialog-titlebar: var(--tw-color-side);
+  --fundo-dialog-titlebar-gradient: var(--tw-color-side);
+  --dark-gray: var(--tw-color-side);
+  --scroll-track: var(--tw-color-canvas);
+  --scroll-handle: var(--tw-color-scroll-handle);
+  --sombra: var(--tw-color-shadow);
+  --sombra-leve: var(--tw-color-shadow);
+}
+
+html,
+body,
+#desktop {
+  background: var(--tw-color-canvas);
+  background-image: none;
+}
+
+body,
+input,
+select,
+textarea,
+button,
+.ui-widget,
+.ui-widget input,
+.ui-widget select,
+.ui-widget textarea,
+.ui-widget button,
+.grid thead th,
+.gridFixo thead th,
+.gridTheadTh,
+#tema {
+  font-family: var(--tw-font-sans);
+}
+
+body,
+input,
+select,
+textarea {
+  color: var(--tw-color-ink);
+}
+
+#desktop #desktopText {
+  color: var(--tw-color-muted);
+}
+
+.ui-widget-content {
+  background: var(--tw-color-paper);
+  color: var(--tw-color-ink);
+  border-color: var(--tw-color-line);
+}
+
+.ui-widget-header,
+.ui-dialog .ui-dialog-titlebar {
+  background: var(--tw-color-side);
+  color: var(--tw-color-side-ink);
+  border-color: var(--tw-color-side);
+}
+
+.ui-widget-header a,
+.ui-dialog .ui-dialog-titlebar a {
+  color: var(--tw-color-side-ink);
+}
+
+.ui-datepicker .ui-datepicker-header,
+.ui-datepicker .ui-datepicker-header a {
+  background: var(--tw-color-header);
+  color: var(--tw-color-ink);
+}
+
+.ui-datepicker-today .ui-state-highlight {
+  background: var(--tw-color-accent-soft) !important;
+  color: var(--tw-color-accent);
+  border-color: var(--tw-color-line);
+}
+
+.ui-state-default,
+.ui-widget-content .ui-state-default,
+.ui-widget-header .ui-state-default {
+  background: var(--tw-color-header);
+  color: var(--tw-color-ink);
+  border-color: var(--tw-color-line);
+}
+
+.ui-state-hover,
+.ui-widget-content .ui-state-hover,
+.ui-widget-header .ui-state-hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus,
+.ui-widget-header .ui-state-focus {
+  background: var(--tw-color-accent-soft);
+  color: var(--tw-color-ink);
+  border-color: var(--tw-color-accent);
+}
+
+.ui-state-active,
+.ui-widget-content .ui-state-active,
+.ui-widget-header .ui-state-active {
+  background: var(--tw-color-accent);
+  color: var(--tw-color-paper);
+  border-color: var(--tw-color-accent);
+}
+
+.ui-state-active a,
+.ui-state-active a:link,
+.ui-state-active a:visited {
+  color: var(--tw-color-paper);
+}
+
+.ui-tabs .ui-tabs-nav li.ui-state-default {
+  background: var(--tw-color-header);
+  color: var(--tw-color-ink);
+}
+
+.ui-tabs .ui-tabs-nav li.ui-state-hover,
+.ui-tabs .ui-tabs-nav li.ui-state-focus {
+  background: var(--tw-color-accent-soft);
+  color: var(--tw-color-ink);
+}
+
+.ui-tabs .ui-tabs-nav li.ui-state-active,
+.ui-tabs .ui-tabs-nav li.ui-state-active a {
+  background: var(--tw-color-paper);
+  color: var(--tw-color-ink);
+}
+
+.ui-state-highlight,
+.ui-widget-content .ui-state-highlight,
+.ui-widget-header .ui-state-highlight {
+  background: var(--tw-color-accent-soft);
+  color: var(--tw-color-accent);
+  border-color: var(--tw-color-line);
+}
+
+.ui-state-highlight a,
+.ui-widget-content .ui-state-highlight a,
+.ui-widget-header .ui-state-highlight a {
+  color: var(--tw-color-accent);
+}
+
+.ui-state-error,
+.ui-widget-content .ui-state-error,
+.ui-widget-header .ui-state-error,
+.form-input-error {
+  background: var(--tw-color-error);
+  color: var(--tw-color-ink);
+}
+
+.grid thead th,
+.gridFixo thead th,
+.gridTheadTh,
+.ui-widget-header.gridTheadTh {
+  background: var(--tw-color-header);
+  color: var(--tw-color-muted);
+  background-image: none;
+}
+
+.grid tbody tr.hover,
+.gridFixo tbody tr.hover,
+.grid tbody.big tr.hover {
+  background: var(--tw-color-hover);
+}
+
+.form-titulo td {
+  color: var(--tw-color-accent);
+  border-bottom-color: var(--tw-color-line);
+}
+
+.divToScroll .grid tbody td.colunaSelecionada:not(.grid-group-divisor-name) {
+  outline-color: var(--tw-color-accent);
+}
+
+input.formInput,
+textarea.formInput,
+select.formInput,
+.ui-widget-content input.formInput,
+.ui-widget-header input.formInput,
+.ui-widget-content textarea.formInput,
+.ui-widget-header textarea.formInput,
+.ui-widget-content select.formInput,
+.ui-widget-header select.formInput {
+  color: var(--tw-color-ink);
+}
+
+.formFormulario input.ui-state-hover,
+.ui-widget-content .formFormulario input.ui-state-hover,
+.ui-widget-header .formFormulario input.ui-state-hover,
+.formFormulario input.ui-state-focus,
+.ui-widget-content .formFormulario input.ui-state-focus,
+.ui-widget-header .formFormulario input.ui-state-focus,
+.formFormulario textarea.ui-state-hover,
+.ui-widget-content .formFormulario textarea.ui-state-hover,
+.ui-widget-header .formFormulario textarea.ui-state-hover,
+.formFormulario textarea.ui-state-focus,
+.ui-widget-content .formFormulario textarea.ui-state-focus,
+.ui-widget-header .formFormulario textarea.ui-state-focus,
+.formFormulario select.ui-state-hover,
+.ui-widget-content .formFormulario select.ui-state-hover,
+.ui-widget-header .formFormulario select.ui-state-hover,
+.formFormulario select.ui-state-focus,
+.ui-widget-content .formFormulario select.ui-state-focus,
+.ui-widget-header .formFormulario select.ui-state-focus {
+  background: var(--tw-color-paper);
+  color: var(--tw-color-ink);
+  border-color: var(--tw-color-line);
+}
+
+/* O campo em repouso pinta o fundo com !important. O erro precisa do mesmo peso. */
+.formFormulario input.ui-state-error,
+.ui-widget-content .formFormulario input.ui-state-error,
+.ui-widget-header .formFormulario input.ui-state-error,
+.formFormulario textarea.ui-state-error,
+.ui-widget-content .formFormulario textarea.ui-state-error,
+.ui-widget-header .formFormulario textarea.ui-state-error,
+.formFormulario select.ui-state-error,
+.ui-widget-content .formFormulario select.ui-state-error,
+.ui-widget-header .formFormulario select.ui-state-error {
+  background: var(--tw-color-error) !important;
+  color: var(--tw-color-ink) !important;
+}
+
+.ui-datepicker-current-day .ui-state-active {
+  background-color: var(--tw-color-accent);
+  color: var(--tw-color-paper);
+}
+
+button .ui-button {
+  background-color: var(--tw-color-header);
+  color: var(--tw-color-ink);
+}
+
+.theadagrupamento {
+  background-color: var(--tw-color-paper);
+  border-top-color: var(--tw-color-paper);
+}
+
+.buttonsBottomTop.frameworkBotoes,
+.ui-tabs .ui-tabs-nav,
+.frameworkBotoes.buttonsBottom,
+.buttonsBottomTop.gridTotais {
+  scrollbar-color: var(--tw-color-scroll-handle) var(--tw-color-canvas);
+}
+
+.ui-icon,
+.ui-widget-content .ui-icon,
+.ui-widget-header .ui-icon,
+.ui-state-default .ui-icon,
+.ui-state-hover .ui-icon,
+.ui-state-focus .ui-icon,
+.ui-state-active .ui-icon,
+.ui-state-highlight .ui-icon,
+.ui-state-error .ui-icon,
+.ui-state-error-text .ui-icon,
+.dropdown-menu .ui-icon,
+.gridTheadTh .dropdown-menu .ui-icon,
+.dialog-mais ul .ui-icon,
+.gridTheadTh .ui-icon-pencil,
+.gridTheadTh .ui-icon-circle-triangle-s,
+.gridTheadTh .ui-icon-circle-triangle-n {
+  background-image: none;
+  -webkit-mask-image: url(/hardness3/static/css/temas/padrao/images/ui-icons_222222_256x240.png);
+  mask-image: url(/hardness3/static/css/temas/padrao/images/ui-icons_222222_256x240.png);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background-color: var(--tw-color-ink);
+}
+
+.ui-widget-header .ui-icon {
+  background-color: var(--tw-color-side-ink);
+}
+
+.ui-state-hover .ui-icon,
+.ui-state-focus .ui-icon,
+.ui-state-highlight .ui-icon {
+  background-color: var(--tw-color-accent);
+}
+
+.ui-state-active .ui-icon {
+  background-color: var(--tw-color-paper);
+}
+
+.ui-state-error .ui-icon,
+.ui-state-error-text .ui-icon {
+  background-color: var(--BGVermelho);
+}
+
+.grid thead th .ui-icon,
+.gridFixo thead th .ui-icon,
+.gridTheadTh .ui-icon,
+.gridTheadTh .ui-icon-pencil,
+.gridTheadTh .ui-icon-circle-triangle-s,
+.gridTheadTh .ui-icon-circle-triangle-n,
+.dropdown-menu .ui-icon,
+.ui-datepicker .ui-datepicker-header .ui-icon {
+  background-color: var(--tw-color-ink);
+}
+
+/* O desenho continua o sprite. A máscara usa a mesma posição. */
+.ui-icon-carat-1-n {
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+}
+.ui-icon-carat-1-ne {
+  -webkit-mask-position: -16px 0;
+  mask-position: -16px 0;
+}
+.ui-icon-carat-1-e {
+  -webkit-mask-position: -32px 0;
+  mask-position: -32px 0;
+}
+.ui-icon-carat-1-se {
+  -webkit-mask-position: -48px 0;
+  mask-position: -48px 0;
+}
+.ui-icon-carat-1-s {
+  -webkit-mask-position: -64px 0;
+  mask-position: -64px 0;
+}
+.ui-icon-carat-1-sw {
+  -webkit-mask-position: -80px 0;
+  mask-position: -80px 0;
+}
+.ui-icon-carat-1-w {
+  -webkit-mask-position: -96px 0;
+  mask-position: -96px 0;
+}
+.ui-icon-carat-1-nw {
+  -webkit-mask-position: -112px 0;
+  mask-position: -112px 0;
+}
+.ui-icon-carat-2-n-s {
+  -webkit-mask-position: -128px 0;
+  mask-position: -128px 0;
+}
+.ui-icon-carat-2-e-w {
+  -webkit-mask-position: -144px 0;
+  mask-position: -144px 0;
+}
+.ui-icon-triangle-1-n {
+  -webkit-mask-position: 0 -16px;
+  mask-position: 0 -16px;
+}
+.ui-icon-triangle-1-ne {
+  -webkit-mask-position: -16px -16px;
+  mask-position: -16px -16px;
+}
+.ui-icon-triangle-1-e {
+  -webkit-mask-position: -32px -16px;
+  mask-position: -32px -16px;
+}
+.ui-icon-triangle-1-se {
+  -webkit-mask-position: -48px -16px;
+  mask-position: -48px -16px;
+}
+.ui-icon-triangle-1-s {
+  -webkit-mask-position: -64px -16px;
+  mask-position: -64px -16px;
+}
+.ui-icon-triangle-1-sw {
+  -webkit-mask-position: -80px -16px;
+  mask-position: -80px -16px;
+}
+.ui-icon-triangle-1-w {
+  -webkit-mask-position: -96px -16px;
+  mask-position: -96px -16px;
+}
+.ui-icon-triangle-1-nw {
+  -webkit-mask-position: -112px -16px;
+  mask-position: -112px -16px;
+}
+.ui-icon-triangle-2-n-s {
+  -webkit-mask-position: -128px -16px;
+  mask-position: -128px -16px;
+}
+.ui-icon-triangle-2-e-w {
+  -webkit-mask-position: -144px -16px;
+  mask-position: -144px -16px;
+}
+.ui-icon-arrow-1-n {
+  -webkit-mask-position: 0 -32px;
+  mask-position: 0 -32px;
+}
+.ui-icon-arrow-1-ne {
+  -webkit-mask-position: -16px -32px;
+  mask-position: -16px -32px;
+}
+.ui-icon-arrow-1-e {
+  -webkit-mask-position: -32px -32px;
+  mask-position: -32px -32px;
+}
+.ui-icon-arrow-1-se {
+  -webkit-mask-position: -48px -32px;
+  mask-position: -48px -32px;
+}
+.ui-icon-arrow-1-s {
+  -webkit-mask-position: -64px -32px;
+  mask-position: -64px -32px;
+}
+.ui-icon-arrow-1-sw {
+  -webkit-mask-position: -80px -32px;
+  mask-position: -80px -32px;
+}
+.ui-icon-arrow-1-w {
+  -webkit-mask-position: -96px -32px;
+  mask-position: -96px -32px;
+}
+.ui-icon-arrow-1-nw {
+  -webkit-mask-position: -112px -32px;
+  mask-position: -112px -32px;
+}
+.ui-icon-arrow-2-n-s {
+  -webkit-mask-position: -128px -32px;
+  mask-position: -128px -32px;
+}
+.ui-icon-arrow-2-ne-sw {
+  -webkit-mask-position: -144px -32px;
+  mask-position: -144px -32px;
+}
+.ui-icon-arrow-2-e-w {
+  -webkit-mask-position: -160px -32px;
+  mask-position: -160px -32px;
+}
+.ui-icon-arrow-2-se-nw {
+  -webkit-mask-position: -176px -32px;
+  mask-position: -176px -32px;
+}
+.ui-icon-arrowstop-1-n {
+  -webkit-mask-position: -192px -32px;
+  mask-position: -192px -32px;
+}
+.ui-icon-arrowstop-1-e {
+  -webkit-mask-position: -208px -32px;
+  mask-position: -208px -32px;
+}
+.ui-icon-arrowstop-1-s {
+  -webkit-mask-position: -224px -32px;
+  mask-position: -224px -32px;
+}
+.ui-icon-arrowstop-1-w {
+  -webkit-mask-position: -240px -32px;
+  mask-position: -240px -32px;
+}
+.ui-icon-arrowthick-1-n {
+  -webkit-mask-position: 0 -48px;
+  mask-position: 0 -48px;
+}
+.ui-icon-arrowthick-1-ne {
+  -webkit-mask-position: -16px -48px;
+  mask-position: -16px -48px;
+}
+.ui-icon-arrowthick-1-e {
+  -webkit-mask-position: -32px -48px;
+  mask-position: -32px -48px;
+}
+.ui-icon-arrowthick-1-se {
+  -webkit-mask-position: -48px -48px;
+  mask-position: -48px -48px;
+}
+.ui-icon-arrowthick-1-s {
+  -webkit-mask-position: -64px -48px;
+  mask-position: -64px -48px;
+}
+.ui-icon-arrowthick-1-sw {
+  -webkit-mask-position: -80px -48px;
+  mask-position: -80px -48px;
+}
+.ui-icon-arrowthick-1-w {
+  -webkit-mask-position: -96px -48px;
+  mask-position: -96px -48px;
+}
+.ui-icon-arrowthick-1-nw {
+  -webkit-mask-position: -112px -48px;
+  mask-position: -112px -48px;
+}
+.ui-icon-arrowthick-2-n-s {
+  -webkit-mask-position: -128px -48px;
+  mask-position: -128px -48px;
+}
+.ui-icon-arrowthick-2-ne-sw {
+  -webkit-mask-position: -144px -48px;
+  mask-position: -144px -48px;
+}
+.ui-icon-arrowthick-2-e-w {
+  -webkit-mask-position: -160px -48px;
+  mask-position: -160px -48px;
+}
+.ui-icon-arrowthick-2-se-nw {
+  -webkit-mask-position: -176px -48px;
+  mask-position: -176px -48px;
+}
+.ui-icon-arrowthickstop-1-n {
+  -webkit-mask-position: -192px -48px;
+  mask-position: -192px -48px;
+}
+.ui-icon-arrowthickstop-1-e {
+  -webkit-mask-position: -208px -48px;
+  mask-position: -208px -48px;
+}
+.ui-icon-arrowthickstop-1-s {
+  -webkit-mask-position: -224px -48px;
+  mask-position: -224px -48px;
+}
+.ui-icon-arrowthickstop-1-w {
+  -webkit-mask-position: -240px -48px;
+  mask-position: -240px -48px;
+}
+.ui-icon-arrowreturnthick-1-w {
+  -webkit-mask-position: 0 -64px;
+  mask-position: 0 -64px;
+}
+.ui-icon-arrowreturnthick-1-n {
+  -webkit-mask-position: -16px -64px;
+  mask-position: -16px -64px;
+}
+.ui-icon-arrowreturnthick-1-e {
+  -webkit-mask-position: -32px -64px;
+  mask-position: -32px -64px;
+}
+.ui-icon-arrowreturnthick-1-s {
+  -webkit-mask-position: -48px -64px;
+  mask-position: -48px -64px;
+}
+.ui-icon-arrowreturn-1-w {
+  -webkit-mask-position: -64px -64px;
+  mask-position: -64px -64px;
+}
+.ui-icon-arrowreturn-1-n {
+  -webkit-mask-position: -80px -64px;
+  mask-position: -80px -64px;
+}
+.ui-icon-arrowreturn-1-e {
+  -webkit-mask-position: -96px -64px;
+  mask-position: -96px -64px;
+}
+.ui-icon-arrowreturn-1-s {
+  -webkit-mask-position: -112px -64px;
+  mask-position: -112px -64px;
+}
+.ui-icon-arrowrefresh-1-w {
+  -webkit-mask-position: -128px -64px;
+  mask-position: -128px -64px;
+}
+.ui-icon-arrowrefresh-1-n {
+  -webkit-mask-position: -144px -64px;
+  mask-position: -144px -64px;
+}
+.ui-icon-arrowrefresh-1-e {
+  -webkit-mask-position: -160px -64px;
+  mask-position: -160px -64px;
+}
+.ui-icon-arrowrefresh-1-s {
+  -webkit-mask-position: -176px -64px;
+  mask-position: -176px -64px;
+}
+.ui-icon-arrow-4 {
+  -webkit-mask-position: 0 -80px;
+  mask-position: 0 -80px;
+}
+.ui-icon-arrow-4-diag {
+  -webkit-mask-position: -16px -80px;
+  mask-position: -16px -80px;
+}
+.ui-icon-extlink {
+  -webkit-mask-position: -32px -80px;
+  mask-position: -32px -80px;
+}
+.ui-icon-newwin {
+  -webkit-mask-position: -48px -80px;
+  mask-position: -48px -80px;
+}
+.ui-icon-refresh {
+  -webkit-mask-position: -64px -80px;
+  mask-position: -64px -80px;
+}
+.ui-icon-shuffle {
+  -webkit-mask-position: -80px -80px;
+  mask-position: -80px -80px;
+}
+.ui-icon-transfer-e-w {
+  -webkit-mask-position: -96px -80px;
+  mask-position: -96px -80px;
+}
+.ui-icon-transferthick-e-w {
+  -webkit-mask-position: -112px -80px;
+  mask-position: -112px -80px;
+}
+.ui-icon-folder-collapsed {
+  -webkit-mask-position: 0 -96px;
+  mask-position: 0 -96px;
+}
+.ui-icon-folder-open {
+  -webkit-mask-position: -16px -96px;
+  mask-position: -16px -96px;
+}
+.ui-icon-document {
+  -webkit-mask-position: -32px -96px;
+  mask-position: -32px -96px;
+}
+.ui-icon-document-b {
+  -webkit-mask-position: -48px -96px;
+  mask-position: -48px -96px;
+}
+.ui-icon-note {
+  -webkit-mask-position: -64px -96px;
+  mask-position: -64px -96px;
+}
+.ui-icon-mail-closed {
+  -webkit-mask-position: -80px -96px;
+  mask-position: -80px -96px;
+}
+.ui-icon-mail-open {
+  -webkit-mask-position: -96px -96px;
+  mask-position: -96px -96px;
+}
+.ui-icon-suitcase {
+  -webkit-mask-position: -112px -96px;
+  mask-position: -112px -96px;
+}
+.ui-icon-comment {
+  -webkit-mask-position: -128px -96px;
+  mask-position: -128px -96px;
+}
+.ui-icon-person {
+  -webkit-mask-position: -144px -96px;
+  mask-position: -144px -96px;
+}
+.ui-icon-print {
+  -webkit-mask-position: -160px -96px;
+  mask-position: -160px -96px;
+}
+.ui-icon-trash {
+  -webkit-mask-position: -176px -96px;
+  mask-position: -176px -96px;
+}
+.ui-icon-locked {
+  -webkit-mask-position: -192px -96px;
+  mask-position: -192px -96px;
+}
+.ui-icon-unlocked {
+  -webkit-mask-position: -208px -96px;
+  mask-position: -208px -96px;
+}
+.ui-icon-bookmark {
+  -webkit-mask-position: -224px -96px;
+  mask-position: -224px -96px;
+}
+.ui-icon-tag {
+  -webkit-mask-position: -240px -96px;
+  mask-position: -240px -96px;
+}
+.ui-icon-home {
+  -webkit-mask-position: 0 -112px;
+  mask-position: 0 -112px;
+}
+.ui-icon-flag {
+  -webkit-mask-position: -16px -112px;
+  mask-position: -16px -112px;
+}
+.ui-icon-calendar {
+  -webkit-mask-position: -32px -112px;
+  mask-position: -32px -112px;
+}
+.ui-icon-cart {
+  -webkit-mask-position: -48px -112px;
+  mask-position: -48px -112px;
+}
+.ui-icon-pencil {
+  -webkit-mask-position: -64px -112px;
+  mask-position: -64px -112px;
+}
+.ui-icon-clock {
+  -webkit-mask-position: -80px -112px;
+  mask-position: -80px -112px;
+}
+.ui-icon-disk {
+  -webkit-mask-position: -96px -112px;
+  mask-position: -96px -112px;
+}
+.ui-icon-calculator {
+  -webkit-mask-position: -112px -112px;
+  mask-position: -112px -112px;
+}
+.ui-icon-zoomin {
+  -webkit-mask-position: -128px -112px;
+  mask-position: -128px -112px;
+}
+.ui-icon-zoomout {
+  -webkit-mask-position: -144px -112px;
+  mask-position: -144px -112px;
+}
+.ui-icon-search {
+  -webkit-mask-position: -160px -112px;
+  mask-position: -160px -112px;
+}
+.ui-icon-wrench {
+  -webkit-mask-position: -176px -112px;
+  mask-position: -176px -112px;
+}
+.ui-icon-gear {
+  -webkit-mask-position: -192px -112px;
+  mask-position: -192px -112px;
+}
+.ui-icon-heart {
+  -webkit-mask-position: -208px -112px;
+  mask-position: -208px -112px;
+}
+.ui-icon-star {
+  -webkit-mask-position: -224px -112px;
+  mask-position: -224px -112px;
+}
+.ui-icon-link {
+  -webkit-mask-position: -240px -112px;
+  mask-position: -240px -112px;
+}
+.ui-icon-cancel {
+  -webkit-mask-position: 0 -128px;
+  mask-position: 0 -128px;
+}
+.ui-icon-plus {
+  -webkit-mask-position: -16px -128px;
+  mask-position: -16px -128px;
+}
+.ui-icon-plusthick {
+  -webkit-mask-position: -32px -128px;
+  mask-position: -32px -128px;
+}
+.ui-icon-minus {
+  -webkit-mask-position: -48px -128px;
+  mask-position: -48px -128px;
+}
+.ui-icon-minusthick {
+  -webkit-mask-position: -64px -128px;
+  mask-position: -64px -128px;
+}
+.ui-icon-close {
+  -webkit-mask-position: -80px -128px;
+  mask-position: -80px -128px;
+}
+.ui-icon-closethick {
+  -webkit-mask-position: -96px -128px;
+  mask-position: -96px -128px;
+}
+.ui-icon-key {
+  -webkit-mask-position: -112px -128px;
+  mask-position: -112px -128px;
+}
+.ui-icon-lightbulb {
+  -webkit-mask-position: -128px -128px;
+  mask-position: -128px -128px;
+}
+.ui-icon-scissors {
+  -webkit-mask-position: -144px -128px;
+  mask-position: -144px -128px;
+}
+.ui-icon-clipboard {
+  -webkit-mask-position: -160px -128px;
+  mask-position: -160px -128px;
+}
+.ui-icon-copy {
+  -webkit-mask-position: -176px -128px;
+  mask-position: -176px -128px;
+}
+.ui-icon-contact {
+  -webkit-mask-position: -192px -128px;
+  mask-position: -192px -128px;
+}
+.ui-icon-image {
+  -webkit-mask-position: -208px -128px;
+  mask-position: -208px -128px;
+}
+.ui-icon-video {
+  -webkit-mask-position: -224px -128px;
+  mask-position: -224px -128px;
+}
+.ui-icon-script {
+  -webkit-mask-position: -240px -128px;
+  mask-position: -240px -128px;
+}
+.ui-icon-alert {
+  -webkit-mask-position: 0 -144px;
+  mask-position: 0 -144px;
+}
+.ui-icon-info {
+  -webkit-mask-position: -16px -144px;
+  mask-position: -16px -144px;
+}
+.ui-icon-notice {
+  -webkit-mask-position: -32px -144px;
+  mask-position: -32px -144px;
+}
+.ui-icon-help {
+  -webkit-mask-position: -48px -144px;
+  mask-position: -48px -144px;
+}
+.ui-icon-check {
+  -webkit-mask-position: -64px -144px;
+  mask-position: -64px -144px;
+}
+.ui-icon-bullet {
+  -webkit-mask-position: -80px -144px;
+  mask-position: -80px -144px;
+}
+.ui-icon-radio-off {
+  -webkit-mask-position: -96px -144px;
+  mask-position: -96px -144px;
+}
+.ui-icon-radio-on {
+  -webkit-mask-position: -112px -144px;
+  mask-position: -112px -144px;
+}
+.ui-icon-pin-w {
+  -webkit-mask-position: -128px -144px;
+  mask-position: -128px -144px;
+}
+.ui-icon-pin-s {
+  -webkit-mask-position: -144px -144px;
+  mask-position: -144px -144px;
+}
+.ui-icon-play {
+  -webkit-mask-position: 0 -160px;
+  mask-position: 0 -160px;
+}
+.ui-icon-pause {
+  -webkit-mask-position: -16px -160px;
+  mask-position: -16px -160px;
+}
+.ui-icon-seek-next {
+  -webkit-mask-position: -32px -160px;
+  mask-position: -32px -160px;
+}
+.ui-icon-seek-prev {
+  -webkit-mask-position: -48px -160px;
+  mask-position: -48px -160px;
+}
+.ui-icon-seek-end {
+  -webkit-mask-position: -64px -160px;
+  mask-position: -64px -160px;
+}
+.ui-icon-seek-start,
+.ui-icon-seek-first {
+  -webkit-mask-position: -80px -160px;
+  mask-position: -80px -160px;
+}
+.ui-icon-stop {
+  -webkit-mask-position: -96px -160px;
+  mask-position: -96px -160px;
+}
+.ui-icon-eject {
+  -webkit-mask-position: -112px -160px;
+  mask-position: -112px -160px;
+}
+.ui-icon-volume-off {
+  -webkit-mask-position: -128px -160px;
+  mask-position: -128px -160px;
+}
+.ui-icon-volume-on {
+  -webkit-mask-position: -144px -160px;
+  mask-position: -144px -160px;
+}
+.ui-icon-power {
+  -webkit-mask-position: 0 -176px;
+  mask-position: 0 -176px;
+}
+.ui-icon-signal-diag {
+  -webkit-mask-position: -16px -176px;
+  mask-position: -16px -176px;
+}
+.ui-icon-signal {
+  -webkit-mask-position: -32px -176px;
+  mask-position: -32px -176px;
+}
+.ui-icon-battery-0 {
+  -webkit-mask-position: -48px -176px;
+  mask-position: -48px -176px;
+}
+.ui-icon-battery-1 {
+  -webkit-mask-position: -64px -176px;
+  mask-position: -64px -176px;
+}
+.ui-icon-battery-2 {
+  -webkit-mask-position: -80px -176px;
+  mask-position: -80px -176px;
+}
+.ui-icon-battery-3 {
+  -webkit-mask-position: -96px -176px;
+  mask-position: -96px -176px;
+}
+.ui-icon-circle-plus {
+  -webkit-mask-position: 0 -192px;
+  mask-position: 0 -192px;
+}
+.ui-icon-circle-minus {
+  -webkit-mask-position: -16px -192px;
+  mask-position: -16px -192px;
+}
+.ui-icon-circle-close {
+  -webkit-mask-position: -32px -192px;
+  mask-position: -32px -192px;
+}
+.ui-icon-circle-triangle-e {
+  -webkit-mask-position: -48px -192px;
+  mask-position: -48px -192px;
+}
+.ui-icon-circle-triangle-s {
+  -webkit-mask-position: -64px -192px;
+  mask-position: -64px -192px;
+}
+.ui-icon-circle-triangle-w {
+  -webkit-mask-position: -80px -192px;
+  mask-position: -80px -192px;
+}
+.ui-icon-circle-triangle-n {
+  -webkit-mask-position: -96px -192px;
+  mask-position: -96px -192px;
+}
+.ui-icon-circle-arrow-e {
+  -webkit-mask-position: -112px -192px;
+  mask-position: -112px -192px;
+}
+.ui-icon-circle-arrow-s {
+  -webkit-mask-position: -128px -192px;
+  mask-position: -128px -192px;
+}
+.ui-icon-circle-arrow-w {
+  -webkit-mask-position: -144px -192px;
+  mask-position: -144px -192px;
+}
+.ui-icon-circle-arrow-n {
+  -webkit-mask-position: -160px -192px;
+  mask-position: -160px -192px;
+}
+.ui-icon-circle-zoomin {
+  -webkit-mask-position: -176px -192px;
+  mask-position: -176px -192px;
+}
+.ui-icon-circle-zoomout {
+  -webkit-mask-position: -192px -192px;
+  mask-position: -192px -192px;
+}
+.ui-icon-circle-check {
+  -webkit-mask-position: -208px -192px;
+  mask-position: -208px -192px;
+}
+.ui-icon-circlesmall-plus {
+  -webkit-mask-position: 0 -208px;
+  mask-position: 0 -208px;
+}
+.ui-icon-circlesmall-minus {
+  -webkit-mask-position: -16px -208px;
+  mask-position: -16px -208px;
+}
+.ui-icon-circlesmall-close {
+  -webkit-mask-position: -32px -208px;
+  mask-position: -32px -208px;
+}
+.ui-icon-squaresmall-plus {
+  -webkit-mask-position: -48px -208px;
+  mask-position: -48px -208px;
+}
+.ui-icon-squaresmall-minus {
+  -webkit-mask-position: -64px -208px;
+  mask-position: -64px -208px;
+}
+.ui-icon-squaresmall-close {
+  -webkit-mask-position: -80px -208px;
+  mask-position: -80px -208px;
+}
+.ui-icon-grip-dotted-vertical {
+  -webkit-mask-position: 0 -224px;
+  mask-position: 0 -224px;
+}
+.ui-icon-grip-dotted-horizontal {
+  -webkit-mask-position: -16px -224px;
+  mask-position: -16px -224px;
+}
+.ui-icon-grip-solid-vertical {
+  -webkit-mask-position: -32px -224px;
+  mask-position: -32px -224px;
+}
+.ui-icon-grip-solid-horizontal {
+  -webkit-mask-position: -48px -224px;
+  mask-position: -48px -224px;
+}
+.ui-icon-gripsmall-diagonal-se {
+  -webkit-mask-position: -64px -224px;
+  mask-position: -64px -224px;
+}
+.ui-icon-grip-diagonal-se {
+  -webkit-mask-position: -80px -224px;
+  mask-position: -80px -224px;
+}
+.ui-icon-paper-clip {
+  -webkit-mask-position: -96px -224px;
+  mask-position: -96px -224px;
+}
+.ui-icon-written-document {
+  -webkit-mask-position: -112px -224px;
+  mask-position: -112px -224px;
+}
+.ui-icon-view-horizontal {
+  -webkit-mask-position: -128px -224px;
+  mask-position: -128px -224px;
+}
+.ui-icon-view-vertical {
+  -webkit-mask-position: -144px -224px;
+  mask-position: -144px -224px;
+}

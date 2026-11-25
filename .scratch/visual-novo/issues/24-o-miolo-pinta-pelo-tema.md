@@ -9,14 +9,14 @@ Orbit: ERPFX-53
 
 **Status:** ready-for-agent
 
-- [ ] O desktop tem um tema só, sem troca entre tema claro, tema escuro e tema 2021
-- [ ] A sidebar, o fundo da área e a grade compartilham o mesmo tema
-- [ ] O cromado fica quieto; a cor aparece no status, no erro, na seleção e no acento
-- [ ] A linha da grade sob o mouse continua no amarelo de hoje
-- [ ] O fundo da área é chapado, sem gradiente cinza e sem imagem de fundo
-- [ ] O tipo do shell e do miolo é Segoe UI
-- [ ] A sidebar e o título da janela usam a mesma cor escura, com texto claro
-- [ ] O erro do formulário e o erro do miolo usam a mesma cor
-- [ ] A célula de status e o Aviso continuam nas cores de hoje
-- [ ] O desenho do ícone continua o sprite de hoje e a cor do ícone acompanha o tema
-- [ ] A grade e o formulário mudam pelo tema, sem cada tela ser reescrita
+- [x] O desktop tem um tema só, sem troca entre tema claro, tema escuro e tema 2021
+- [x] A sidebar, o fundo da área e a grade compartilham o mesmo tema
+- [x] O cromado fica quieto; a cor aparece no status, no erro, na seleção e no acento
+- [x] A linha da grade sob o mouse continua no amarelo de hoje
+- [x] O fundo da área é chapado, sem gradiente cinza e sem imagem de fundo
+- [x] O tipo do shell e do miolo é Segoe UI
+- [x] A sidebar e o título da janela usam a mesma cor escura, com texto claro
+- [x] O erro do formulário e o erro do miolo usam a mesma cor
+- [x] A célula de status e o Aviso continuam nas cores de hoje
+- [x] O desenho do ícone continua o sprite de hoje e a cor do ícone acompanha o tema
+- [x] A grade e o formulário mudam pelo tema, sem cada tela ser reescrita
