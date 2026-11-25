@@ -1,6 +1,8 @@
 Status: ready-for-agent
 Orbit: ERPFX-18
 
+O que este esforço entregou está no master, em bb35ff6d: as rotinas ausentes e o aviso sem empresa. O parâmetro que seguiria para a aba seguinte saiu daqui (ticket 03, wontfix). O restante do arquivo registra a decisão original.
+
 # Base local no comportamento do Hardness
 
 ## Problem Statement
@@ -91,8 +93,13 @@ A base local passa a se comportar como o Hardness que as telas já chamam. O avi
 - Trazer personalização de orçamento, pedido, boleto, histórico de produto ou totalização para a execução.
 - Reescrever outras funções da biblioteca legível que ainda tenham ramo vazio, entre elas relacionamento de tabela, junção de códigos, troca de empresa e visibilidade de aba personalizada.
 - Importar dados de produção.
+- O parâmetro que já está na requisição seguir para a aba seguinte. O ticket 03 saiu deste esforço: o repasse não entrou no master e o visual novo não depende dele.
 
 ## Further Notes
 
 - O ADR das rotinas ausentes corrige o trecho do ADR da fotografia que dizia que ela traz as rotinas que as telas chamam. A fotografia segue como estrutura e dados de validação.
-- Parte do comportamento já está na árvore de trabalho: o aviso sem empresa, o repasse da requisição e o passo das rotinas, com o gancho para o volume novo. O volume que já está no ar ainda não recebeu as rotinas, porque o motor de contêiner não respondeu na hora de executá-lo. A prova em script de percurso ainda não existe. O próximo trabalho fecha essa prova e executa o passo no volume atual, sem reabrir as decisões desta spec.
+- As rotinas ausentes e o aviso sem empresa estão no master desde bb35ff6d. A prova é `testes/rotinas-ausentes-no-percurso-da-base.sh`. O repasse para a aba seguinte não foi feito.
+
+## Comments
+
+Concluído em bb35ff6d, no que este esforço entregou: as rotinas ausentes (e95842d4, 1623788e) e o aviso sem empresa (eae5ae8d). O parâmetro que seguiria para a aba seguinte foi cancelado no ticket 03.

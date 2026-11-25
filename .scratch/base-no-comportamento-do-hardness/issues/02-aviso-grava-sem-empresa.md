@@ -9,10 +9,12 @@ Orbit: ERPFX-20
 
 **Status:** ready-for-agent
 
-- [ ] Gravar um aviso a partir da lista de empresas cria a linha
-- [ ] A empresa do aviso fica vazia
-- [ ] A empresa da sessão não é gravada
-- [ ] Editar sem identificador não apaga uma empresa já gravada
-- [ ] O texto digitado é o texto gravado
+- [x] Gravar um aviso a partir da lista de empresas cria a linha
+- [x] A empresa do aviso fica vazia
+- [x] A empresa da sessão não é gravada
+- [x] Editar sem identificador não apaga uma empresa já gravada
+- [x] O texto digitado é o texto gravado
 
 ## Comments
+
+Concluído em eae5ae8d. O aviso grava a empresa só quando a requisição indica. Está no master desde bb35ff6d.

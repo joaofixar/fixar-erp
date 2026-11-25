@@ -9,11 +9,13 @@ Orbit: ERPFX-19
 
 **Status:** ready-for-agent
 
-- [ ] O percurso sobe uma base descartável e roda o passo das rotinas
-- [ ] O status pendente do orçamento volta como pendente
-- [ ] As rotinas que a fotografia já trouxe continuam com a mesma definição
-- [ ] Um arquivo que falha fica nomeado e as outras rotinas ainda são criadas
-- [ ] Um volume novo roda o mesmo passo depois da fotografia
-- [ ] Rodar o passo de novo não recria rotina que já existe
+- [x] O percurso sobe uma base descartável e roda o passo das rotinas
+- [x] O status pendente do orçamento volta como pendente
+- [x] As rotinas que a fotografia já trouxe continuam com a mesma definição
+- [x] Um arquivo que falha fica nomeado e as outras rotinas ainda são criadas
+- [x] Um volume novo roda o mesmo passo depois da fotografia
+- [x] Rodar o passo de novo não recria rotina que já existe
 
 ## Comments
+
+Concluído em e95842d4. O passo no volume que já tem dados entra em 1623788e. Os dois estão no master desde bb35ff6d.

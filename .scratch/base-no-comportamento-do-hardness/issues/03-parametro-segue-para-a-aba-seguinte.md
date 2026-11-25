@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: wontfix
 Orbit: ERPFX-21
 
 # 03: Parâmetro segue para a aba seguinte
@@ -7,7 +7,7 @@ Orbit: ERPFX-21
 
 **Blocked by:** 01 — Rotinas ausentes no percurso da base
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 - [ ] Um parâmetro da requisição que não é ação, tabela nem aba aparece na aba seguinte
 - [ ] Ação não aparece no repasse normal
@@ -15,3 +15,5 @@ Orbit: ERPFX-21
 - [ ] O ajudante que monta a string de parâmetros continua preservando a ação e ignorando o corpo do formulário
 
 ## Comments
+
+Cancelado. O repasse para a aba seguinte não entrou no master. A branch `ticket/03-parametro-aba-seguinte` não tem commit além do merge das rotinas. O visual novo não depende deste comportamento.
