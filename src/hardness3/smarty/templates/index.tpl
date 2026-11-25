@@ -22,7 +22,7 @@
 		<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 	</head>
 
-	<body style="overflow: hidden;{if $oneWindow} background: url('/hardness3/static/css/temas/padrao/images/ui-bg_dots-small_100_ede7de_2x2.png') repeat scroll 50% 50% #EDE7DE;{/if}">
+	<body data-fx-passo="{$fxPasso}" style="overflow: hidden;{if $oneWindow} background: url('/hardness3/static/css/temas/padrao/images/ui-bg_dots-small_100_ede7de_2x2.png') repeat scroll 50% 50% #EDE7DE;{/if}">
 		{if !$oneWindow}
 			<div id="messageAlert">
 				<div class="click">

@@ -18,9 +18,12 @@
    A empresa sob a marca é rótulo quando há uma só. Com mais de uma, o
    controle abre a lista pelo nome completo. Trocar chama a troca do
    Hardness e, no retorno, esvazia a faixa e as janelas, repinta o menu e
-   a área. O avatar mostra o login e, abaixo, o perfil. A lista de usuários
-   só entra se o rodapé já oferece a troca, e faz o mesmo que a empresa.
-   Sair vai para /logout. O nome da pessoa fica de fora. Os dois menus
+   a área. O avatar mostra o login e, abaixo, o perfil. Entre o perfil e
+   Sair ficam Pequeno, Médio e Grande, com o passo atual marcado. Escolher
+   grava o mesmo campo da tela de configuração e a página abre de novo
+   nesse passo. A lista de usuários só entra se o rodapé já oferece a
+   troca, e faz o mesmo que a empresa. Sair vai para /logout. O nome da
+   pessoa fica de fora. Os dois menus
    nascem no body, como a paleta: o #desktop é uma camada por cima da
    área, e um menu dentro do shell ficaria atrás da janela aberta.
    O sino abre o pop Alertas pendurado no ícone. A lista, a contagem do
@@ -209,6 +212,36 @@
       "</button>";
   }
 
+  function passoAtual() {
+    var marca = document.body.getAttribute("data-fx-passo");
+    if (marca === "13" || marca === "14") return marca;
+    return "12";
+  }
+
+  function htmlDensidade() {
+    var atual = passoAtual();
+    return [
+      { passo: "12", nome: "Pequeno" },
+      { passo: "13", nome: "Médio" },
+      { passo: "14", nome: "Grande" },
+    ]
+      .map(function (item) {
+        var marcada = item.passo === atual;
+        return (
+          '<button type="button" role="menuitemradio" data-fx-passo="' +
+          item.passo +
+          '" aria-checked="' +
+          (marcada ? "true" : "false") +
+          '" class="tw:block tw:w-full tw:rounded-md tw:px-2 tw:py-1.5 tw:text-left tw:text-ink' +
+          (marcada ? " tw:font-semibold" : "") +
+          ' tw:hover:bg-black/5">' +
+          item.nome +
+          "</button>"
+        );
+      })
+      .join("");
+  }
+
   function htmlPopAvatar() {
     var login = loginDoAcesso();
     var perfil = perfilDoAcesso();
@@ -237,6 +270,7 @@
       '<p class="tw:m-0 tw:px-2 tw:pb-1.5 tw:text-xs tw:text-muted">' +
       escapar(perfil) +
       "</p>" +
+      htmlDensidade() +
       lista +
       '<button type="button" data-fx-sair role="menuitem" class="tw:mt-1 tw:block tw:w-full tw:rounded-md tw:border-t tw:border-solid tw:border-line tw:px-2 tw:py-1.5 tw:text-left tw:text-ink tw:hover:bg-black/5">Sair</button>' +
       "</div>"
@@ -1245,6 +1279,20 @@
       if (evento.target.closest("[data-fx-sair]")) {
         evento.preventDefault();
         window.location = "/logout";
+        return;
+      }
+      var densidade = evento.target.closest("[data-fx-pop] [data-fx-passo]");
+      if (densidade) {
+        evento.preventDefault();
+        var escolhido = densidade.getAttribute("data-fx-passo");
+        if (
+          (escolhido === "12" || escolhido === "13" || escolhido === "14") &&
+          escolhido !== passoAtual() &&
+          typeof window.alterarTamanhoFonte === "function"
+        ) {
+          window.alterarTamanhoFonte(escolhido);
+        }
+        fecharPops();
         return;
       }
       if (!popAberto) return;

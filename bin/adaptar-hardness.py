@@ -225,7 +225,10 @@ AREA = (
         b"$g['smarty']->assign('certificado', $alertaCertificado);",
         b"$g['smarty']->assign('certificado', $alertaCertificado);"
         b" require_once __DIR__ . '/../../fx/area.php';"
-        b" $g['smarty']->assign('avisos', fxAreaTrabalho($g));",
+        b" $g['smarty']->assign('avisos', fxAreaTrabalho($g));"
+        b" require_once __DIR__ . '/../../fx/passo.php';"
+        b" fxGarantirPadraoDoPasso();"
+        b" $g['smarty']->assign('fxPasso', fxPassoDoAcesso($g));",
     ),
     (
         "prog/etc/etc011/tab.php",
@@ -357,12 +360,26 @@ GANCHO = (
 )
 
 
-def adaptar_gancho(texto):
-    if GANCHO in texto:
+CORPO = b'<body style="overflow: hidden;'
+CORPO_PASSO = b'<body data-fx-passo="{$fxPasso}" style="overflow: hidden;'
+
+
+def adaptar_passo(texto):
+    if CORPO_PASSO in texto:
         return texto
-    if ANCORA_GANCHO in texto:
-        return texto.replace(ANCORA_GANCHO, GANCHO, 1)
-    return None
+    if b"<body" not in texto:
+        return texto
+    if CORPO not in texto:
+        return None
+    return texto.replace(CORPO, CORPO_PASSO, 1)
+
+
+def adaptar_gancho(texto):
+    if GANCHO not in texto:
+        if ANCORA_GANCHO not in texto:
+            return None
+        texto = texto.replace(ANCORA_GANCHO, GANCHO, 1)
+    return adaptar_passo(texto)
 
 
 def adaptar_pontuais(relativo, texto):

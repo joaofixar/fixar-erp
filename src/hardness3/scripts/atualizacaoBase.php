@@ -15004,7 +15004,7 @@ Criar_Campo("T245_Tipo_Log","int(10) unsigned");
 Criar_Campo("T085_T007_Id","int(10) unsigned");
 Criar_Campo("T007_Flag_Gerar_Conhecimento","char(1) DEFAULT 'N'");
 Criar_Campo("T234_Teste", "text");
-Criar_Campo("C007_Tamanho_Fonte_Sistema", "int(10) DEFAULT '13'");
+Criar_Campo("C007_Tamanho_Fonte_Sistema", "int(10) DEFAULT '12'");
 Criar_Campo("D013_C007_Id_Cliente","int(10) unsigned");
 Criar_Campo("T234_D013_Id","int(10) unsigned");
 Criar_Campo("T234_T234_Id","int(10) unsigned");

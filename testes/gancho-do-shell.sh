@@ -35,7 +35,7 @@ ancora=$'\t\t{$cssJs}\n\t\t<style type="text/css">\n\t\t{$cssExtra}\n\t\t</style
 modelo() {
   local destino="$1"
   local marca="$2"
-  printf '%s<!-- %s -->\n' "$ancora" "$marca" >"$destino"
+  printf '%s<!-- %s -->\n\t<body style="overflow: hidden;">\n' "$ancora" "$marca" >"$destino"
 }
 
 # --- sobrescrever devolve o gancho e fica com o texto da publicação ---
@@ -68,6 +68,9 @@ else
   fi
   if ! grep -q '/fx/tema.css' <<<"$resultado"; then
     reclamar "a sobrescrita não religou a folha do tema"
+  fi
+  if ! grep -q 'data-fx-passo="{$fxPasso}"' <<<"$resultado"; then
+    reclamar "a sobrescrita não marcou o passo no body"
   fi
   if ! grep -q '<!-- deles -->' <<<"$resultado"; then
     reclamar "a sobrescrita não ficou com o texto da publicação"
@@ -143,6 +146,7 @@ identificar "$erp"
   printf '\t\t<meta name="fx-empresa-nome" content="{$empresaAtualNome|escape:'\''html'\''}">\n'
   printf '\t\t<script src="/fx/shell.js" defer></script>\n'
   printf '<!-- fixar -->\n'
+  printf '\t<body style="overflow: hidden;">\n'
 } >"$erp/src/hardness3/smarty/templates/index.tpl"
 printf '%s\n' "$sha_base" >"$erp/bin/ponto"
 commitar "$erp" "template com gancho" >/dev/null
@@ -160,6 +164,9 @@ else
   if ! grep -q '<!-- fixar -->' <<<"$resultado"; then
     reclamar "o trazer de outro arquivo tirou o gancho da Fixar"
   fi
+  if [ "$(grep -c 'data-fx-passo="{$fxPasso}"' <<<"$resultado")" -ne 1 ]; then
+    reclamar "o passo no body entrou mais de uma vez ou sumiu"
+  fi
 fi
 
 # --- o checkout serve o gancho, e a cara mora fora da publicação ---
@@ -173,6 +180,9 @@ if ! grep -q 'href="/fx/tema.css"' "$template"; then
 fi
 if ! grep -q 'src="/fx/shell.js"' "$template"; then
   reclamar "o desktop servido não liga o script do shell"
+fi
+if ! grep -q 'data-fx-passo="{$fxPasso}"' "$template"; then
+  reclamar "o desktop servido não marca o passo no body"
 fi
 for folha in shell.css tema.css shell.js; do
   caminho="$raiz_repo/src/fx/$folha"

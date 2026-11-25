@@ -1093,3 +1093,113 @@ button .ui-button {
   -webkit-mask-position: -144px -224px;
   mask-position: -144px -224px;
 }
+
+/* O passo entra no body. O pixel que o cache grava nestas propriedades perde. */
+body[data-fx-passo="12"] {
+  --fx-fonte: 12px;
+  --fx-entrelinha: 1.3;
+  --fx-cabeca: 4px 8px;
+  --fx-celula: 2px 8px;
+  --fx-aba: 22px;
+  --fx-campo: 24px;
+  --fx-titulo: 4px 8px;
+}
+
+body[data-fx-passo="13"] {
+  --fx-fonte: 13px;
+  --fx-entrelinha: 1.3;
+  --fx-cabeca: 5px 8px;
+  --fx-celula: 4px 8px;
+  --fx-aba: 24px;
+  --fx-campo: 26px;
+  --fx-titulo: 5px 8px;
+}
+
+body[data-fx-passo="14"] {
+  --fx-fonte: 14px;
+  --fx-entrelinha: 1.35;
+  --fx-cabeca: 6px 10px;
+  --fx-celula: 5px 10px;
+  --fx-aba: 28px;
+  --fx-campo: 30px;
+  --fx-titulo: 6px 10px;
+}
+
+body[data-fx-passo] {
+  font-size: var(--fx-fonte);
+  line-height: var(--fx-entrelinha);
+}
+
+body[data-fx-passo] .ui-widget,
+body[data-fx-passo] .grid,
+body[data-fx-passo] .gridFixo,
+body[data-fx-passo] .grid thead th,
+body[data-fx-passo] .gridFixo thead th,
+body[data-fx-passo] .gridTheadTh,
+body[data-fx-passo] .grid tbody td,
+body[data-fx-passo] .gridFixo tbody td,
+body[data-fx-passo] .ui-dialog .ui-dialog-title,
+body[data-fx-passo] .ui-tabs .ui-tabs-nav li a,
+body[data-fx-passo] .ui-tabs.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-selected a,
+body[data-fx-passo] .total-padrao .valor,
+body[data-fx-passo] .ui-widget-content .total-padrao .valor,
+body[data-fx-passo] input.formInput,
+body[data-fx-passo] textarea.formInput,
+body[data-fx-passo] select.formInput,
+body[data-fx-passo] .ui-widget-content input.formInput,
+body[data-fx-passo] .ui-widget-header input.formInput,
+body[data-fx-passo] .ui-widget-content textarea.formInput,
+body[data-fx-passo] .ui-widget-header textarea.formInput,
+body[data-fx-passo] .ui-widget-content select.formInput,
+body[data-fx-passo] .ui-widget-header select.formInput,
+body[data-fx-passo] input.whiteBg,
+body[data-fx-passo] .ui-widget-content input.whiteBg,
+body[data-fx-passo] .ui-widget-header input.whiteBg {
+  font-size: var(--fx-fonte);
+}
+
+body[data-fx-passo] .ui-button-text-only .ui-button-text,
+body[data-fx-passo] .dropdown-menu {
+  font-size: var(--fx-fonte) !important;
+}
+
+body[data-fx-passo] .dropdown-menu > li > a {
+  line-height: var(--fx-entrelinha) !important;
+}
+
+body[data-fx-passo] .grid thead th,
+body[data-fx-passo] .gridFixo thead th,
+body[data-fx-passo] .gridTheadTh {
+  padding: var(--fx-cabeca);
+}
+
+body[data-fx-passo] .grid tbody td,
+body[data-fx-passo] .gridFixo tbody td {
+  padding: var(--fx-celula);
+}
+
+body[data-fx-passo] .ui-tabs .ui-tabs-nav li {
+  height: var(--fx-aba);
+  box-sizing: border-box;
+}
+
+body[data-fx-passo] .ui-tabs .ui-tabs-nav li a {
+  box-sizing: border-box;
+  height: var(--fx-aba);
+  padding: 0 8px;
+  line-height: var(--fx-aba);
+}
+
+body[data-fx-passo] .ui-dialog .ui-dialog-titlebar {
+  padding: var(--fx-titulo);
+}
+
+body[data-fx-passo] .formFormulario input.formInput,
+body[data-fx-passo] .ui-widget-content .formFormulario input.formInput,
+body[data-fx-passo] .ui-widget-header .formFormulario input.formInput,
+body[data-fx-passo] .formFormulario select.formInput,
+body[data-fx-passo] .ui-widget-content .formFormulario select.formInput,
+body[data-fx-passo] .ui-widget-header .formFormulario select.formInput {
+  box-sizing: border-box;
+  height: var(--fx-campo);
+}
