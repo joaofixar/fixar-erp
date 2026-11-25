@@ -42,6 +42,11 @@ O PHP do núcleo em `src/hardness3` está ofuscado. A leitura fica em `referenci
 - [O desktop logado usa o visual novo](spec.md): a spec de construção, pronta para um agente. A branch `visual-novo` nasce do master. O percurso de prova é o desktop no navegador, na base dessa branch. O merge espera essa validação. Orbit ERPFX-44.
 
 - [A sidebar recolhe e a aba ganha desenho](.scratch/visual-novo/issues/28-a-sidebar-recolhe-e-a-aba-ganha-desenho.md): seções e grupos em sanfona com ícone, a sidebar recolhida só com ícones, a marca com a troca de empresa, o caminho no topo e a aba em pílula. Revisa a história 18 da spec e traz o trilho como modo da mesma sidebar. Orbit ERPFX-57.
+- [O cadastro do menu abre como aba](.scratch/visual-novo/issues/29-o-cadastro-do-menu-abre-como-aba.md): o item do menu que abria sobre a aba visível vira aba própria; a caixa pequena e a inclusão continuam janela. Revisa as histórias 51 a 53 e o ticket 09. Orbit ERPFX-58.
+- [A sidebar troca sem tranco](.scratch/visual-novo/issues/30-a-sidebar-troca-sem-tranco.md): recolher não anima a coluna, e o miolo acompanha no mesmo quadro. Orbit ERPFX-59.
+- [O filtro, o botão e a grade vazia ganham desenho](.scratch/visual-novo/issues/31-o-filtro-o-botao-e-a-grade-vazia-ganham-desenho.md): filtro em colunas no tipo do passo, botões do miolo redesenhados, estado vazio na grade, ícones de ação no Lucide pelo [ADR 0011](../../docs/adr/0011-icone-de-acao-sai-do-sprite.md). Orbit ERPFX-60.
+- [O filtro abre nos campos principais e ganha rodapé](.scratch/visual-novo/issues/32-o-filtro-abre-nos-campos-principais-e-ganha-rodape.md): campos principais e "Mais filtros (N)", rodapé com Limpar e Filtrar, rótulo medido, datas alinhadas, ajuda do filtro removida. Orbit ERPFX-61.
+- [As ações do filtro ficam juntas e a tela de grade ganha superfícies](.scratch/visual-novo/issues/33-as-acoes-do-filtro-ficam-juntas-e-a-tela-ganha-superficies.md): ações do filtro na última célula, seta em Mais filtros, faixa cinza e área branca, grade sem o bege. Orbit ERPFX-62.
 
 ## Not yet specified
 
