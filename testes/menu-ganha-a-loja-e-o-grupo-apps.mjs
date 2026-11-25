@@ -87,10 +87,10 @@ function pagina() {
 }
 
 function grupos(window) {
-  return [...window.document.querySelectorAll("#fx-menu > div")].map(function (grupo) {
+  return [...window.document.querySelectorAll("#fx-menu [data-fx-grupo]")].map(function (grupo) {
     return {
-      nome: grupo.querySelector("p").textContent,
-      itens: [...grupo.querySelectorAll("button")].map(function (botao) {
+      nome: grupo.querySelector("[data-fx-grupo-titulo]").textContent,
+      itens: [...grupo.querySelectorAll("[data-fx-item]")].map(function (botao) {
         return botao.textContent;
       }),
     };
@@ -137,7 +137,7 @@ function acionar(window, botao) {
 test("o item do grupo Apps abre o endereço de hoje e não vira aba", () => {
   const window = pagina();
   const doc = window.document;
-  const botao = [...doc.querySelectorAll("#fx-menu button")].find(function (item) {
+  const botao = [...doc.querySelectorAll("#fx-menu [data-fx-item]")].find(function (item) {
     return item.textContent === "Reforma Tributária";
   });
   acionar(window, botao);
@@ -151,7 +151,7 @@ test("o item do grupo Apps abre o endereço de hoje e não vira aba", () => {
 test("a Loja de apps abre o catálogo", () => {
   const window = pagina();
   const doc = window.document;
-  const botao = [...doc.querySelectorAll("#fx-menu button")].find(function (item) {
+  const botao = [...doc.querySelectorAll("#fx-menu [data-fx-item]")].find(function (item) {
     return item.textContent === "Loja de apps";
   });
   acionar(window, botao);

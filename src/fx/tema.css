@@ -1208,3 +1208,109 @@ body[data-fx-passo] .ui-widget-header .formFormulario select.formInput {
   box-sizing: border-box;
   height: var(--fx-campo);
 }
+
+/* Abas do miolo. O primeiro nível é sublinhado; os níveis de dentro são
+   pílulas. O jQuery UI zera a borda de baixo do li com !important, então o
+   sublinhado da aba ativa é sombra interna. A altura continua a do passo. */
+.ui-dialog .ui-tabs,
+div.noBorder .ui-dialog-content .ui-widget .ui-tabs {
+  border-color: var(--tw-color-line);
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav,
+div.noBorder .ui-dialog-content .ui-widget .ui-tabs .ui-tabs-nav {
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px 8px 0;
+  background: var(--tw-color-paper);
+  border: 0;
+  border-bottom: 1px solid var(--tw-color-line);
+  border-radius: 0;
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-default,
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-hover,
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-focus,
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-active {
+  top: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-weight: 400;
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-default a {
+  color: var(--tw-color-muted);
+  background: transparent;
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-hover a,
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-focus a {
+  color: var(--tw-color-ink);
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-active {
+  box-shadow: inset 0 -2px 0 var(--tw-color-accent);
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-active a {
+  color: var(--tw-color-ink);
+  font-weight: 600;
+  background: transparent;
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav .ui-icon {
+  background-color: var(--tw-color-muted);
+}
+
+/* O "+" do C.R.M., do S.R.M. e do ERP (tabCRM.tpl, tabSRM.tpl) abre outra
+   instância. Ele vem como aba desabilitada e com margem inline. */
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-disabled:has(.ui-icon-plusthick) {
+  opacity: 1;
+  border-radius: 6px;
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-disabled:has(.ui-icon-plusthick) a {
+  display: flex;
+  align-items: center;
+  margin: 0 !important;
+  padding: 0 6px;
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-disabled:has(.ui-icon-plusthick):hover {
+  background: var(--tw-color-header);
+}
+
+.ui-dialog .ui-tabs .ui-tabs-nav li.ui-state-disabled:has(.ui-icon-plusthick):hover .ui-icon {
+  background-color: var(--tw-color-ink);
+}
+
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav,
+div.noBorder .ui-dialog-content .ui-widget .ui-tabs .ui-tabs .ui-tabs-nav {
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-default,
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-hover,
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-focus,
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-active {
+  border-radius: 6px;
+}
+
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-hover {
+  background: var(--tw-color-header);
+}
+
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-active {
+  background: var(--tw-color-accent-soft);
+  box-shadow: none;
+}
+
+.ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-active a {
+  color: var(--tw-color-accent);
+}

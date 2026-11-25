@@ -140,22 +140,44 @@ async function textoDoModulo() {
   return (await dialogo.innerText()).replace(/\s+/g, " ").trim().slice(0, 160);
 }
 
+// O item fica dentro do grupo fechado; abrir o grupo é o caminho da pessoa.
 async function item(nome) {
-  const botao = pagina.locator("#fx-menu button", { hasText: nome }).filter({
-    hasText: new RegExp("^\\s*" + nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*$"),
-  });
-  await botao.first().waitFor();
-  return botao.first();
+  const botao = pagina
+    .locator("#fx-menu [data-fx-item]")
+    .filter({
+      hasText: new RegExp("^\\s*" + nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*$"),
+    })
+    .first();
+  await botao.waitFor({ state: "attached" });
+  if (!(await botao.isVisible())) {
+    await botao
+      .locator("xpath=ancestor::*[@data-fx-grupo][1]")
+      .locator("[data-fx-grupo-titulo]")
+      .click();
+  }
+  await botao.waitFor();
+  return botao;
 }
 
 async function grupos() {
-  return pagina.locator("#fx-menu > div").evaluateAll((lista) =>
+  return pagina.locator("#fx-menu [data-fx-grupo]").evaluateAll((lista) =>
     lista.map((grupo) => ({
-      nome: (grupo.querySelector("p")?.textContent || "").replace(/\s+/g, " ").trim(),
-      itens: [...grupo.querySelectorAll("button")].map((botao) =>
+      nome: (grupo.querySelector("[data-fx-grupo-titulo]")?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim(),
+      itens: [...grupo.querySelectorAll("[data-fx-item]")].map((botao) =>
         botao.textContent.replace(/\s+/g, " ").trim(),
       ),
     })),
+  );
+}
+
+async function modulosVisiveis() {
+  return pagina.evaluate(
+    () =>
+      [...document.querySelectorAll(".ui-dialog.noBorder")].filter(
+        (el) => getComputedStyle(el).display !== "none" && el.getBoundingClientRect().height > 40,
+      ).length,
   );
 }
 
@@ -273,7 +295,13 @@ try {
   const relatorios = await textoDoModulo();
 
   dizer("A faixa abre, troca, reordena, fecha e recarrega vazia");
-  const segundos = await pagina.locator("#fx-menu button").evaluateAll((botoes) =>
+  const caminho = (await pagina.locator("#fx-caminho").innerText()).replace(/\s+/g, " ").trim();
+  assert.ok(
+    caminho.includes("Gerencial") && caminho.includes("Relatórios"),
+    "o caminho não mostra o grupo e o item da aba visível: " + caminho,
+  );
+
+  const segundos = await pagina.locator("#fx-menu [data-fx-item]").evaluateAll((botoes) =>
     botoes
       .map((botao) => {
         const acao = botao.getAttribute("onclick") || "";
@@ -333,6 +361,40 @@ try {
     [segundo.titulo, "Relatórios"],
     "arrastar a aba não mudou a ordem: " + faixa.join(", "),
   );
+
+  dizer("A sidebar recolhe, o grupo abre ao lado e a aba escondida continua escondida");
+  const lateral = pagina.locator("#fx-shell aside");
+  const larguraAberta = await lateral.evaluate((el) => el.getBoundingClientRect().width);
+  await pagina.locator("[data-fx-recolher]").click();
+  await pagina.waitForFunction(
+    () => document.querySelector("#fx-shell aside").getBoundingClientRect().width < 80,
+  );
+  await pagina.waitForTimeout(400);
+  assert.equal(await modulosVisiveis(), 1, "recolher a sidebar mostrou a aba escondida");
+  await pagina.locator('[data-fx-grupo-titulo="cadastros"]').click();
+  const flutuante = pagina.getByRole("menu", { name: "Cadastros" });
+  await flutuante.waitFor();
+  assert.ok(
+    (await flutuante.getByRole("menuitem").count()) > 0,
+    "o grupo da sidebar recolhida não listou os itens",
+  );
+  await pagina.keyboard.press("Escape");
+  await flutuante.waitFor({ state: "detached" });
+  await pagina.locator("[data-fx-recolher]").click();
+  await pagina.waitForFunction(
+    (largura) => document.querySelector("#fx-shell aside").getBoundingClientRect().width >= largura - 1,
+    larguraAberta,
+  );
+  await pagina.waitForTimeout(400);
+  assert.equal(await modulosVisiveis(), 1, "expandir a sidebar mostrou a aba escondida");
+
+  const cadastros = pagina.locator('[data-fx-grupo-titulo="cadastros"]');
+  const itensCadastros = pagina.locator('[data-fx-grupo="cadastros"] [data-fx-itens]');
+  const cadastrosAberto = await itensCadastros.isVisible();
+  await cadastros.click();
+  assert.equal(await itensCadastros.isVisible(), !cadastrosAberto, "o grupo não abriu nem fechou");
+  await cadastros.click();
+  assert.equal(await itensCadastros.isVisible(), cadastrosAberto);
 
   await pagina.locator("#fx-faixa [aria-label='Fechar Relatórios']").click();
   await pagina.locator("#fx-faixa [role=tab]", { hasText: "Relatórios" }).waitFor({ state: "detached" });

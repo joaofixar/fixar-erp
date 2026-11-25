@@ -4,7 +4,8 @@
 
 @source "./shell.js";
 
-@theme {
+/* static: o tema.css lê tokens que o shell.js não usa. */
+@theme static {
   --font-sans: "Segoe UI", system-ui, sans-serif;
   --color-side: #1b2430;
   --color-side-ink: #e8edf2;
@@ -56,6 +57,103 @@
 #topo,
 #footer {
   display: none;
+}
+
+#fx-shell {
+  grid-template-columns: 240px minmax(0, 1fr);
+  transition: grid-template-columns 0.18s ease;
+}
+
+#fx-shell[data-fx-recolhida] {
+  grid-template-columns: 60px minmax(0, 1fr);
+}
+
+#fx-shell [hidden] {
+  display: none;
+}
+
+/* O ::before do controle da empresa cobre o bloco da marca. */
+#fx-shell [data-fx-empresa]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+#fx-shell [data-fx-marca]:has([data-fx-empresa]:hover) {
+  background: rgb(255 255 255 / 0.05);
+}
+
+#fx-shell [data-fx-seta] svg {
+  transition: transform 0.15s ease;
+}
+
+#fx-shell [aria-expanded="true"] [data-fx-seta] svg {
+  transform: rotate(90deg);
+}
+
+#fx-shell[data-fx-recolhida] [data-fx-marca] {
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+}
+
+/* Recolhida, a marca fica só com o logo. O rótulo encolhe em vez de sumir
+   para o ::before da empresa continuar cobrindo o logo. */
+#fx-shell[data-fx-recolhida] [data-fx-marca] > [data-fx-rotulo] {
+  flex: none;
+  width: 0;
+  overflow: hidden;
+}
+
+#fx-shell[data-fx-recolhida] [data-fx-marca] > [data-fx-troca],
+#fx-shell[data-fx-recolhida] [data-fx-grupo-titulo] [data-fx-rotulo],
+#fx-shell[data-fx-recolhida] [data-fx-itens] {
+  display: none;
+}
+
+#fx-shell[data-fx-recolhida] [data-fx-secao-titulo] {
+  height: 1px;
+  margin: 4px 16px 8px;
+  padding: 0;
+  font-size: 0;
+  background: rgb(255 255 255 / 0.1);
+}
+
+#fx-shell[data-fx-recolhida] [data-fx-grupo-titulo] {
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  margin-inline: auto;
+  padding: 0;
+}
+
+#fx-shell[data-fx-recolhida] [data-fx-grupo-titulo][data-fx-ativo] {
+  background: rgb(255 255 255 / 0.1);
+}
+
+#fx-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+}
+
+#fx-faixa {
+  scrollbar-width: none;
+}
+
+#fx-shell [data-fx-pesquisar] [data-fx-tecla] {
+  background: var(--tw-color-paper);
+}
+
+[data-fx-tecla] {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 5px;
+  border: 1px solid var(--tw-color-line);
+  border-radius: 4px;
+  font: 500 10.5px/1.4 var(--tw-font-sans);
+  color: var(--tw-color-muted);
+  text-align: center;
 }
 
 #messageAlert {
