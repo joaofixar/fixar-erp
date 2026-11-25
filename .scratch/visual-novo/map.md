@@ -41,6 +41,8 @@ O PHP do núcleo em `src/hardness3` está ofuscado. A leitura fica em `referenci
 - [A área de trabalho no login](.scratch/visual-novo/issues/15-a-area-de-trabalho-no-login.md): com a faixa vazia, a área mostra o certificado quando existe, o Aviso e as Notas. Uma aba visível tira os três. A cobrança da Hardness e as últimas atualizações saem. As oito portas novas ficam no menu Apps.
 - [O desktop logado usa o visual novo](spec.md): a spec de construção, pronta para um agente. A branch `visual-novo` nasce do master. O percurso de prova é o desktop no navegador, na base dessa branch. O merge espera essa validação. Orbit ERPFX-44.
 
+- [A sidebar recolhe e a aba ganha desenho](.scratch/visual-novo/issues/28-a-sidebar-recolhe-e-a-aba-ganha-desenho.md): seções e grupos em sanfona com ícone, a sidebar recolhida só com ícones, a marca com a troca de empresa, o caminho no topo e a aba em pílula. Revisa a história 18 da spec e traz o trilho como modo da mesma sidebar. Orbit ERPFX-57.
+
 ## Not yet specified
 
 ## Out of scope
