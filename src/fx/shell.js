@@ -97,6 +97,10 @@
       '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
     fora:
       '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    funil:
+      '<path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z"/>',
+    buscaVazia:
+      '<path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   };
 
   var ICONE_DO_GRUPO = {
@@ -790,9 +794,53 @@
     return "";
   }
 
+  // O cadastro do menu abre sobre a aba visível (divIdRootAberto). No shell a
+  // raiz dele é o código do menuId, para virar aba própria.
+  var TELA_DO_MENU =
+    /(abrirJanela\(\s*event\s*,\s*)divIdRootAberto\(\)(\s*,\s*'[^']*'\s*,\s*menuId\('([^']*)'\))/;
+
   function raizDaAcao(acao) {
-    var achado = String(acao).match(/abrirJanela\(\s*event\s*,\s*'([^']*)'/);
-    return achado ? achado[1] : "";
+    var texto = String(acao);
+    var achado = texto.match(/abrirJanela\(\s*event\s*,\s*'([^']*)'/);
+    if (achado) return achado[1];
+    achado = texto.match(TELA_DO_MENU);
+    return achado ? achado[3] : "";
+  }
+
+  function acaoNoShell(acao) {
+    return String(acao).replace(TELA_DO_MENU, "$1'$3'$2");
+  }
+
+  // A inclusão que a tela abre herda a mesma raiz; só a chamada do menu
+  // chega sem pai e com o id do menuId.
+  function ehTelaDoMenu(raiz, pai, id) {
+    var ids = window.menuUniques;
+    if (raiz == null || pai || !ids || id !== ids[String(raiz)]) return false;
+    var grupos = gruposDoMenu();
+    for (var i = 0; i < grupos.length; i++) {
+      for (var j = 0; j < grupos[i].entradas.length; j++) {
+        var achado = String(grupos[i].entradas[j].acao).match(TELA_DO_MENU);
+        if (achado && achado[3] === String(raiz)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Exportação e SPED abrem em caixa pequena e continuam janela.
+  function tamanhoDeTela(tamanho) {
+    if (
+      tamanho == null ||
+      tamanho === false ||
+      tamanho === "auto" ||
+      tamanho === "forcarAuto" ||
+      tamanho === "full"
+    ) {
+      return true;
+    }
+    var largura = Array.isArray(tamanho)
+      ? Number(tamanho[0])
+      : Number((String(tamanho).match(/^\[\s*(\d+)/) || [])[1]);
+    return largura >= 900;
   }
 
   function entradaDaRaiz(raiz) {
@@ -832,7 +880,7 @@
       ' class="' +
       classe +
       '" onclick="' +
-      escapar(entrada.acao) +
+      escapar(acaoNoShell(entrada.acao)) +
       '"><span class="tw:min-w-0 tw:flex-1 tw:truncate">' +
       escapar(entrada.nome) +
       "</span>" +
@@ -1005,16 +1053,14 @@
   }
 
   // As janelas de módulo se reposicionam pelo resize do Hardness (sistema.js),
-  // que lê desktopLeft depois de fixDesktopSize.
+  // que lê desktopLeft depois de fixDesktopSize. Sem animação na coluna: o
+  // miolo não acompanha uma transição e pularia no fim dela.
   function alternarRecolhida() {
     recolhida = !recolhida;
     gravarPreferencia("fx-sidebar", recolhida ? "recolhida" : "");
     fecharPops();
     aplicarRecolhida();
-    window.setTimeout(function () {
-      medirArea();
-      window.dispatchEvent(new Event("resize"));
-    }, 200);
+    window.dispatchEvent(new Event("resize"));
   }
 
   function dobrar(texto) {
@@ -1026,7 +1072,7 @@
   }
 
   function acaoDoMenu(acao) {
-    return String(acao).replace(/\s*return false;\s*$/i, "");
+    return acaoNoShell(acao).replace(/\s*return false;\s*$/i, "");
   }
 
   function itensDaPaleta() {
@@ -1598,17 +1644,225 @@
     }
     if (ehCockpitInicial(raiz, titulo, arguments[6])) return;
     medirArea();
+    if (ehTelaDoMenu(raiz, arguments[2], arguments[3])) {
+      if (tamanhoDeTela(tamanho)) {
+        arguments[8] = "full";
+        arguments[9] = false;
+        arguments[10] = "topleft";
+        arguments[11] = false;
+        if (arguments.length < 12) arguments.length = 12;
+        posicao = "topleft";
+        if (!titulo) {
+          var entrada = entradaDaRaiz(raiz);
+          titulo = entrada ? entrada.nome : "";
+        }
+      } else {
+        arguments[1] = window.divIdRootAberto();
+        raiz = arguments[1];
+      }
+    }
     if (deveOcuparAArea(tamanho, posicao)) {
       arguments[8] = "full";
       if (arguments.length < 9) arguments.length = 9;
     }
     if (posicao === "topleft" && raiz) {
       fecharJanelasSoltas();
-      var resultado = abrirOriginal.apply(this, arguments);
+      var resultado = abrirSemTamanhoGuardado(this, arguments);
       lembrarAba(String(raiz), titulo ? String(titulo) : String(raiz));
       return resultado;
     }
     return abrirOriginal.apply(this, arguments);
+  }
+
+  // O abrirJanela troca o tamanho pedido pelo que a pessoa guardou para a URL.
+  // A aba ocupa a área inteira.
+  function abrirSemTamanhoGuardado(contexto, args) {
+    var guardados = window.g && window.g.tamanhosJanelas;
+    var url = args[6];
+    if (!guardados || !Object.prototype.hasOwnProperty.call(guardados, url)) {
+      return abrirOriginal.apply(contexto, args);
+    }
+    var guardado = guardados[url];
+    delete guardados[url];
+    try {
+      return abrirOriginal.apply(contexto, args);
+    } finally {
+      guardados[url] = guardado;
+    }
+  }
+
+  var AVISO_DO_FILTRO = "Por favor, utilize o filtro.";
+
+  function htmlVazio(nomeIcone, titulo, texto, limpar) {
+    return (
+      '<div data-fx-vazio role="status">' +
+      "<span data-fx-vazio-icone>" +
+      icone(nomeIcone, 22) +
+      "</span>" +
+      "<p data-fx-vazio-titulo>" +
+      escapar(titulo) +
+      "</p>" +
+      (texto ? "<p data-fx-vazio-texto>" + escapar(texto) + "</p>" : "") +
+      (limpar
+        ? '<button type="button" data-fx-vazio-limpar>' +
+          icone("fechar", 14) +
+          "Limpar filtro</button>"
+        : "") +
+      "</div>"
+    );
+  }
+
+  // O Hardness escreve o aviso do filtro obrigatório e a grade sem linha
+  // (interfaceUsuario.php). O shell troca os dois pelo mesmo estado vazio.
+  function pintarVazios() {
+    var avisos = document.querySelectorAll(
+      ".ui-dialog .gridMsgFiltre:not([data-fx-vazio-pronto])",
+    );
+    for (var i = 0; i < avisos.length; i++) {
+      var aviso = avisos[i];
+      var texto = aviso.textContent.replace(/\s+/g, " ").trim();
+      aviso.setAttribute("data-fx-vazio-pronto", "");
+      aviso.innerHTML =
+        texto === AVISO_DO_FILTRO
+          ? htmlVazio(
+              "funil",
+              "Utilize o filtro",
+              "Preencha um campo do filtro e clique em Filtrar para ver os registros.",
+              false,
+            )
+          : htmlVazio("funil", texto, "", false);
+    }
+    var tabelas = document.querySelectorAll(".ui-dialog .divToScroll > table.grid");
+    for (var j = 0; j < tabelas.length; j++) {
+      var tabela = tabelas[j];
+      var vazia =
+        !!tabela.tHead && tabela.tBodies.length > 0 && !tabela.querySelector("tbody tr");
+      var proximo = tabela.nextElementSibling;
+      var temVazio = !!proximo && proximo.hasAttribute("data-fx-vazio");
+      if (vazia && !temVazio) {
+        var painel = tabela.closest(".ui-tabs-panel, .ui-dialog-content");
+        var comFiltro = !!(painel && painel.querySelector(".gridFiltro .limparFiltro"));
+        tabela.insertAdjacentHTML(
+          "afterend",
+          htmlVazio(
+            "buscaVazia",
+            "Nenhum registro encontrado",
+            comFiltro
+              ? "Nenhum registro atende ao filtro. Ajuste os campos ou limpe o filtro."
+              : "Ainda não há registro para mostrar.",
+            comFiltro,
+          ),
+        );
+      } else if (!vazia && temVazio) {
+        proximo.remove();
+      }
+    }
+  }
+
+  var regua = null;
+
+  function larguraDoTexto(texto, fonte) {
+    if (!regua) {
+      var canvas = document.createElement("canvas");
+      regua = canvas.getContext ? canvas.getContext("2d") : null;
+      if (!regua) return 0;
+    }
+    regua.font = fonte;
+    return regua.measureText(texto).width;
+  }
+
+  // O rótulo do campo escondido também conta, para abrir "Mais filtros" não
+  // cortar o nome. Acima de 11em o rótulo corta e o nome vai para o title.
+  function medirRotulos(filtro) {
+    var titulos = filtro.querySelectorAll(".campoFiltro > .tituloFiltro");
+    if (!titulos.length) return;
+    filtro.setAttribute("data-fx-rotulo", "");
+    var estilo = window.getComputedStyle(titulos[0]);
+    var fonte = estilo.fontWeight + " " + estilo.fontSize + " " + estilo.fontFamily;
+    var teto = parseFloat(estilo.fontSize) * 11;
+    var maior = 0;
+    for (var i = 0; i < titulos.length; i++) {
+      var texto = titulos[i].textContent.replace(/\s+/g, " ").trim();
+      var largura = larguraDoTexto(texto, fonte);
+      if (!largura) return;
+      if (largura > teto && !titulos[i].title) titulos[i].title = texto;
+      if (largura > maior) maior = largura;
+    }
+    filtro.style.setProperty("--fx-rotulo", Math.ceil(Math.min(maior, teto)) + 2 + "px");
+  }
+
+  var CAMPOS_PRINCIPAIS = 6;
+
+  function campoPreenchido(campo) {
+    var entradas = campo.querySelectorAll(".formInput");
+    for (var i = 0; i < entradas.length; i++) {
+      if (entradas[i].classList.contains("amarela")) return true;
+    }
+    return false;
+  }
+
+  // Com filtro obrigatório e nada filtrado o servidor marca todo campo como
+  // filtrado, e nenhum vem com filtroOculto (interfaceUsuario.php). O shell
+  // devolve a classe aos que passam dos principais, e o botão do Hardness
+  // (button:eq(2)) volta a abrir e fechar esses campos.
+  function recolherObrigatorio(filtro, botao) {
+    if (filtro.hasAttribute("data-fx-principais")) return;
+    filtro.setAttribute("data-fx-principais", "");
+    if (!botao.classList.contains("botaoOculto")) return;
+    if (!botao.classList.contains("ui-icon-plusthick")) return;
+    var campos = filtro.querySelectorAll(".campoFiltro");
+    if (filtro.querySelector(".campoFiltro.filtroOculto")) return;
+    for (var i = CAMPOS_PRINCIPAIS; i < campos.length; i++) {
+      if (campoPreenchido(campos[i])) continue;
+      campos[i].classList.add("filtroOculto");
+      campos[i].style.display = "none";
+    }
+  }
+
+  // O mesmo filtro obrigatório abre com display inline os campos que já
+  // vinham escondidos e deixa o botão no "+". O shell fecha de novo.
+  function arrumarFiltros() {
+    var filtros = document.querySelectorAll(".ui-dialog .gridFiltro");
+    for (var i = 0; i < filtros.length; i++) {
+      var filtro = filtros[i];
+      if (!filtro.hasAttribute("data-fx-rotulo")) medirRotulos(filtro);
+      var botao = filtro.querySelector(".ocultarExibirFiltros");
+      if (!botao) continue;
+      recolherObrigatorio(filtro, botao);
+      var ocultos = filtro.querySelectorAll(".campoFiltro.filtroOculto");
+      if (botao.getAttribute("data-fx-ocultos") !== String(ocultos.length)) {
+        botao.setAttribute("data-fx-ocultos", String(ocultos.length));
+      }
+      if (!botao.classList.contains("ui-icon-plusthick")) continue;
+      for (var j = 0; j < ocultos.length; j++) {
+        if (ocultos[j].style.display && ocultos[j].style.display !== "none") {
+          ocultos[j].style.display = "none";
+        }
+      }
+    }
+  }
+
+  function observarMiolo() {
+    if (typeof MutationObserver !== "function") return;
+    var agendado = false;
+    var adiar = window.requestAnimationFrame || window.setTimeout;
+    new MutationObserver(function () {
+      if (agendado) return;
+      agendado = true;
+      adiar.call(window, function () {
+        agendado = false;
+        arrumarFiltros();
+        pintarVazios();
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+    arrumarFiltros();
+    pintarVazios();
+  }
+
+  function limparFiltroDoVazio(botao) {
+    var painel = botao.closest(".ui-tabs-panel, .ui-dialog-content");
+    var limpar = painel && painel.querySelector(".gridFiltro .limparFiltro");
+    if (limpar) limpar.click();
   }
 
   function tirarNuvemESelos() {
@@ -1710,6 +1964,12 @@
       }
     });
     document.addEventListener("click", function (evento) {
+      var limparVazio = evento.target.closest("[data-fx-vazio-limpar]");
+      if (limparVazio) {
+        evento.preventDefault();
+        limparFiltroDoVazio(limparVazio);
+        return;
+      }
       var empresa = evento.target.closest("[data-fx-empresa-item]");
       if (empresa) {
         evento.preventDefault();
@@ -1844,6 +2104,7 @@
 
     montarTrabalho();
     atualizarTrabalho();
+    observarMiolo();
     abrirOriginal = window.abrirJanela;
     window.abrirJanela = aoAbrirJanela;
   }

@@ -369,6 +369,14 @@ try {
   await pagina.waitForFunction(
     () => document.querySelector("#fx-shell aside").getBoundingClientRect().width < 80,
   );
+  const folga = await pagina.evaluate(() => {
+    const modulo = [...document.querySelectorAll(".ui-dialog.noBorder")].find(
+      (el) => getComputedStyle(el).display !== "none",
+    );
+    const lateral = document.querySelector("#fx-shell aside").getBoundingClientRect();
+    return Math.round(modulo.getBoundingClientRect().left - lateral.right);
+  });
+  assert.equal(folga, 0, "o miolo não acompanhou a sidebar no mesmo quadro");
   await pagina.waitForTimeout(400);
   assert.equal(await modulosVisiveis(), 1, "recolher a sidebar mostrou a aba escondida");
   await pagina.locator('[data-fx-grupo-titulo="cadastros"]').click();
@@ -400,18 +408,31 @@ try {
   await pagina.locator("#fx-faixa [role=tab]", { hasText: "Relatórios" }).waitFor({ state: "detached" });
   assert.deepEqual(await titulos(), [segundo.titulo]);
 
-  dizer("A janela de inclusão sobre a aba");
+  dizer("O cadastro do menu vira aba e a inclusão é janela sobre ela");
   await (await item("Cliente/Fornecedor")).click();
-  await pagina.locator(".ui-dialog:visible .ui-dialog-titlebar", { hasText: "Clientes e Fornecedores" }).waitFor();
-  assert.deepEqual(await titulos(), [segundo.titulo], "Cliente/Fornecedor virou aba");
+  await pagina.locator("#fx-faixa [role=tab]", { hasText: "Clientes e Fornecedores" }).waitFor();
+  assert.deepEqual(await titulos(), [segundo.titulo, "Clientes e Fornecedores"]);
+  const caminhoCliente = (await pagina.locator("#fx-caminho").innerText()).replace(/\s+/g, " ").trim();
+  assert.ok(
+    caminhoCliente.includes("Cadastros") && caminhoCliente.includes("Cliente/Fornecedor"),
+    "o caminho não mostra o cadastro: " + caminhoCliente,
+  );
   const incluir = pagina.locator("#cad001Incluir, button[botaoid='cad001Incluir']");
   await incluir.first().waitFor();
+  assert.equal(await modulosVisiveis(), 1, "a aba do cadastro não é a única visível");
   assert.equal(await incluir.first().isEnabled(), true, "o incluir de Cliente/Fornecedor está desligado");
   await incluir.first().click();
   await pagina.locator(".ui-dialog:visible .ui-dialog-titlebar", { hasText: "Clientes/Fornecedores" }).waitFor();
-  assert.deepEqual(await titulos(), [segundo.titulo], "a inclusão virou aba");
+  assert.deepEqual(
+    await titulos(),
+    [segundo.titulo, "Clientes e Fornecedores"],
+    "a inclusão virou aba",
+  );
   await fecharDialogo("Clientes/Fornecedores");
-  await fecharDialogo("Clientes e Fornecedores");
+  await pagina.locator("#fx-faixa [aria-label='Fechar Clientes e Fornecedores']").click();
+  await pagina
+    .locator("#fx-faixa [role=tab]", { hasText: "Clientes e Fornecedores" })
+    .waitFor({ state: "detached" });
   assert.deepEqual(await titulos(), [segundo.titulo]);
 
   await pagina.reload({ waitUntil: "domcontentloaded" });
@@ -429,12 +450,10 @@ try {
   );
 
   await (await item("Cliente/Fornecedor")).click();
-  const lista = pagina.locator(".ui-dialog:visible").filter({
-    has: pagina.locator(".ui-dialog-titlebar", { hasText: "Clientes e Fornecedores" }),
-  });
-  await lista.waitFor();
-  assert.deepEqual(await titulos(), [], "com a faixa vazia Cliente/Fornecedor virou aba");
-  await lista.getByText("Por favor, utilize o filtro.").waitFor();
+  await pagina.locator("#fx-faixa [role=tab]", { hasText: "Clientes e Fornecedores" }).waitFor();
+  assert.deepEqual(await titulos(), ["Clientes e Fornecedores"]);
+  const lista = pagina.locator(".ui-dialog.noBorder:visible").first();
+  await lista.locator("[data-fx-vazio-titulo]", { hasText: "Utilize o filtro" }).waitFor();
   const textoGrade = await lista.innerText();
   assert.equal(/Fatal error|Parse error|Uncaught/.test(textoGrade), false, "a grade abriu com erro");
   assert.equal(
@@ -442,8 +461,82 @@ try {
     0,
     "a grade de Cliente/Fornecedor não está vazia",
   );
-  await fecharDialogo("Clientes e Fornecedores");
-  assert.equal(await pagina.locator(".ui-dialog:visible").count(), 0, "fechar a janela não valeu");
+
+  dizer("O filtro sem resultado mostra o estado vazio e limpa");
+  const campoFiltro = lista.locator(".gridFiltro input.formInput[type=text]").first();
+  const selecao = await lista.locator(".gridFiltro select.formInput").first().evaluate((el) => ({
+    peso: getComputedStyle(el).fontWeight,
+    tamanho: getComputedStyle(el).fontSize,
+    passo: getComputedStyle(document.body).fontSize,
+  }));
+  assert.equal(selecao.peso, "400", "a seleção do filtro continua em negrito");
+  assert.equal(selecao.tamanho, selecao.passo, "a seleção do filtro não segue o passo");
+  await campoFiltro.fill("zzzz-sem-registro");
+  await campoFiltro.press("Enter");
+  const semRegistro = lista.locator(".divToScroll > [data-fx-vazio]");
+  await semRegistro.locator("[data-fx-vazio-titulo]", { hasText: "Nenhum registro encontrado" }).waitFor();
+  await semRegistro.locator("[data-fx-vazio-limpar]").click();
+  await pagina.waitForFunction(
+    () => {
+      const campo = [...document.querySelectorAll(".ui-dialog.noBorder .gridFiltro input.formInput[type=text]")]
+        .find((el) => el.offsetParent);
+      return campo && campo.value === "";
+    },
+    null,
+    { timeout: 30000 },
+  );
+
+  dizer("As ações do filtro ficam juntas e abrem os campos escondidos");
+  const botoesFiltro = lista.locator(".gridFiltro .gridFiltroBotoes");
+  assert.equal(
+    await botoesFiltro.locator("button[title='Ajuda do Filtro']").isVisible(),
+    false,
+    "a ajuda do filtro continua no rodapé",
+  );
+  const maisFiltros = botoesFiltro.locator(".ocultarExibirFiltros");
+  const rodape = () =>
+    maisFiltros.evaluate((botao) => {
+      const desenho = getComputedStyle(botao, "::before");
+      return {
+        texto: getComputedStyle(botao, "::after").content,
+        fundo: getComputedStyle(botao).backgroundColor,
+        mascara: desenho.maskImage || desenho.webkitMaskImage,
+        escondidos: [...botao.closest(".gridFiltro").querySelectorAll(".campoFiltro.filtroOculto")]
+          .filter((campo) => campo.offsetParent).length,
+      };
+    });
+  const fechado = await rodape();
+  assert.match(fechado.texto, /^"Mais filtros \(\d+\)"$/, "o botão não conta os campos escondidos");
+  const grupo = await botoesFiltro.evaluate((span) => {
+    const caixa = (seletor) => span.querySelector(seletor).getBoundingClientRect();
+    const mais = caixa(".ocultarExibirFiltros");
+    const limpar = caixa(".limparFiltro");
+    const filtrar = caixa("button[title='Filtrar']");
+    const painel = span.closest(".ui-tabs-panel");
+    return {
+      mesmaLinha: mais.top === limpar.top && limpar.top === filtrar.top,
+      emOrdem: mais.right <= limpar.left && limpar.right <= filtrar.left,
+      colados: filtrar.left - mais.right < 200,
+      faixa: getComputedStyle(painel).backgroundColor,
+      dados: getComputedStyle(painel.querySelector(":scope > .divToScroll")).backgroundColor,
+    };
+  });
+  assert.ok(grupo.mesmaLinha && grupo.emOrdem && grupo.colados, "mais filtros saiu de perto de limpar e filtrar");
+  assert.notEqual(grupo.faixa, grupo.dados, "a faixa do filtro e a área dos dados têm o mesmo fundo");
+  assert.equal(grupo.dados, "rgb(255, 255, 255)", "a área dos dados não ficou branca");
+  assert.equal(fechado.escondidos, 0, "o filtro abriu com os campos escondidos à mostra");
+  await maisFiltros.click();
+  const aberto = await rodape();
+  assert.equal(aberto.texto, '"Menos filtros"');
+  assert.ok(aberto.escondidos > 0, "mais filtros não abriu os campos");
+  assert.notEqual(aberto.fundo, "rgb(20, 28, 40)", "o botão de menos filtros ficou preto");
+  assert.match(aberto.mascara, /^url\(/, "o traço de menos filtros ficou sem desenho");
+  await maisFiltros.click();
+  assert.equal((await rodape()).escondidos, 0, "menos filtros não fechou os campos");
+
+  await pagina.locator("#fx-faixa [aria-label='Fechar Clientes e Fornecedores']").click();
+  await pagina.locator("#fx-faixa [role=tab]").first().waitFor({ state: "detached" });
+  assert.equal(await pagina.locator(".ui-dialog:visible").count(), 0, "fechar a aba não valeu");
   assert.deepEqual(await titulos(), []);
 
   dizer("A linha sob o mouse e o passo");
@@ -472,9 +565,8 @@ try {
   );
 
   await (await item("Empresas")).click();
-  const empresas = pagina.locator(".ui-dialog:visible").filter({
-    has: pagina.locator(".ui-dialog-titlebar", { hasText: "Empresas" }),
-  });
+  await pagina.locator("#fx-faixa [role=tab]", { hasText: "Empresas" }).waitFor();
+  const empresas = pagina.locator(".ui-dialog.noBorder:visible").first();
   await empresas.waitFor();
   const linha = empresas.locator(".grid:visible tbody tr").first();
   await linha.waitFor();
@@ -495,7 +587,8 @@ try {
   );
   const tipo = await empresas.locator(".grid:visible").first().evaluate((el) => getComputedStyle(el).fontSize);
   assert.equal(tipo, pixels, "o passo " + outro + " não mudou o tipo da grade");
-  await fecharDialogo("Empresas");
+  await pagina.locator("#fx-faixa [aria-label='Fechar Empresas']").click();
+  await pagina.locator("#fx-faixa [role=tab]", { hasText: "Empresas" }).waitFor({ state: "detached" });
 
   const passoOriginal = marcado === "Médio" ? "13" : marcado === "Grande" ? "14" : "12";
   await pagina.locator("[data-fx-avatar]").click();

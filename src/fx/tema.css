@@ -1314,3 +1314,499 @@ div.noBorder .ui-dialog-content .ui-widget .ui-tabs .ui-tabs .ui-tabs-nav {
 .ui-dialog .ui-tabs .ui-tabs .ui-tabs-nav li.ui-state-active a {
   color: var(--tw-color-accent);
 }
+
+/* Ícone de ação. O desenho sai do sprite para o traço do Lucide (ISC), o
+   mesmo da sidebar; a cor continua a do ícone. Ver o ADR 0011. */
+.ui-icon-search {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+}
+.ui-icon-close,
+.ui-icon-closethick {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E");
+}
+.ui-icon-cancel {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m5.7 5.7 12.6 12.6'/%3E%3C/svg%3E");
+}
+.ui-icon-plusthick,
+.ui-icon-plus {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M12 5v14'/%3E%3C/svg%3E");
+}
+.ui-icon-minusthick,
+.ui-icon-minus {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
+.ui-icon-help {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+}
+.ui-icon-refresh {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8'/%3E%3Cpath d='M21 3v5h-5'/%3E%3C/svg%3E");
+}
+.ui-icon-arrowreturnthick-1-w {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14 4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E");
+}
+.ui-icon-arrowreturnthick-1-e {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 14 5-5-5-5'/%3E%3Cpath d='M20 9H9.5a5.5 5.5 0 0 0 0 11H13'/%3E%3C/svg%3E");
+}
+
+.ui-icon.ui-icon-search,
+.ui-icon.ui-icon-close,
+.ui-icon.ui-icon-closethick,
+.ui-icon.ui-icon-cancel,
+.ui-icon.ui-icon-plusthick,
+.ui-icon.ui-icon-plus,
+.ui-icon.ui-icon-minusthick,
+.ui-icon.ui-icon-minus,
+.ui-icon.ui-icon-help,
+.ui-icon.ui-icon-refresh,
+.ui-icon.ui-icon-arrowreturnthick-1-w,
+.ui-icon.ui-icon-arrowreturnthick-1-e {
+  -webkit-mask-image: var(--fx-glifo) !important;
+  mask-image: var(--fx-glifo) !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-size: 14px 14px !important;
+  mask-size: 14px 14px !important;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Botões do miolo. O sistema.js faz botão jQuery UI de todo <button> da tela;
+   barra, formulário e grade ganham o mesmo desenho. O que inclui ou grava é
+   o principal; o envio do formulário do Hardness não tem botaoid e leva o
+   id Form…_btn. */
+.ui-dialog .ui-button.ui-state-default {
+  border: 1px solid var(--tw-color-line);
+  border-radius: 6px;
+  background: var(--tw-color-paper);
+  color: var(--tw-color-ink);
+  box-shadow: 0 1px 2px #141c280d;
+  font-weight: 500;
+}
+
+.ui-dialog .ui-button.ui-state-hover,
+.ui-dialog .ui-button.ui-state-focus {
+  background: var(--tw-color-header);
+  border-color: var(--tw-color-scroll-handle);
+  color: var(--tw-color-ink);
+}
+
+.ui-dialog .ui-button.ui-state-focus {
+  box-shadow: 0 0 0 3px var(--tw-color-accent-soft);
+}
+
+.ui-dialog .ui-button.ui-state-active {
+  background: var(--tw-color-accent-soft);
+  border-color: var(--tw-color-accent);
+  color: var(--tw-color-accent);
+}
+
+.ui-dialog .ui-button.ui-state-disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+body[data-fx-passo] .ui-dialog .ui-button-text-only .ui-button-text {
+  padding: 0 12px;
+  line-height: calc(var(--fx-campo) - 2px);
+}
+
+.ui-dialog .ui-button[botaoid$="Incluir"].ui-state-default,
+.ui-dialog .ui-button[botaoid$="Salvar"].ui-state-default,
+.ui-dialog .ui-button[botaoid$="Gravar"].ui-state-default,
+.ui-dialog .ui-button[id*="Form"][id$="_btn"].ui-state-default {
+  background: var(--tw-color-accent);
+  border-color: var(--tw-color-accent);
+  color: var(--tw-color-paper);
+}
+
+.ui-dialog .ui-button[botaoid$="Incluir"].ui-state-hover,
+.ui-dialog .ui-button[botaoid$="Salvar"].ui-state-hover,
+.ui-dialog .ui-button[botaoid$="Gravar"].ui-state-hover,
+.ui-dialog .ui-button[botaoid$="Incluir"].ui-state-focus,
+.ui-dialog .ui-button[botaoid$="Salvar"].ui-state-focus,
+.ui-dialog .ui-button[botaoid$="Gravar"].ui-state-focus,
+.ui-dialog .ui-button[id*="Form"][id$="_btn"].ui-state-hover,
+.ui-dialog .ui-button[id*="Form"][id$="_btn"].ui-state-focus {
+  background: #173f6e;
+  border-color: #173f6e;
+  color: var(--tw-color-paper);
+}
+
+.ui-dialog .buttonsBottomTop.frameworkBotoes {
+  padding: 8px 8px 2px;
+}
+
+.ui-dialog .frameworkBotoes .buttonsLeft,
+.ui-dialog .frameworkBotoes .buttonsRight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-dialog .frameworkBotoes .buttonsLeft > .ui-button,
+.ui-dialog .frameworkBotoes .buttonsRight > .ui-button {
+  margin: 0;
+}
+
+/* Opções da grade (Bootstrap): atualizar e o menu de imprimir e exportar. */
+.ui-dialog .gridOptTop .btn.ui-button {
+  min-width: 24px;
+  height: 22px !important;
+  padding: 0 4px;
+  box-shadow: none;
+}
+
+.ui-dialog .gridOptTop .btn-group > .btn:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.ui-dialog .gridOptTop .btn-group > .dropdown-toggle {
+  top: 0 !important;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 0;
+}
+
+.ui-dialog .gridOptTop .ui-button .ui-button-text {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  line-height: 20px;
+}
+
+.ui-dialog .gridOptTop .ui-icon-refresh {
+  width: 16px !important;
+  margin: 0 !important;
+}
+
+/* Filtro da grade (interfaceUsuario.php). Cada campo vem em float, com
+   largura, altura, negrito e 1.1em inline, e o JS do Hardness estica o
+   rótulo até 265px. O tema reparte em colunas; a largura do rótulo é a do
+   maior do filtro, medida pelo shell em --fx-rotulo. */
+.ui-dialog .gridFiltro {
+  margin: 8px 8px 4px;
+  padding: 8px 10px;
+  background: var(--tw-color-paper);
+  border: 1px solid var(--tw-color-line);
+  border-radius: 8px;
+}
+
+.ui-dialog .gridFiltro .gridFiltroAvancado {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(calc(var(--fx-rotulo, 7.5em) + 210px), 1fr)
+  );
+  align-items: center;
+  gap: 8px 24px;
+}
+
+.ui-dialog .gridFiltro .gridFiltroAvancado > label:has(> input[type="hidden"]) {
+  display: none;
+}
+
+.ui-dialog .gridFiltro .campoFiltro:not(.filtroOculto),
+.ui-dialog .gridFiltro .campoFiltro.filtroOculto[style*="display: inline"] {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  float: none !important;
+  min-width: 0 !important;
+  height: auto !important;
+}
+
+.ui-dialog .gridFiltro .campoFiltro > .tituloFiltro {
+  float: none !important;
+  display: block !important;
+  flex: none;
+  width: var(--fx-rotulo, 7.5em) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tw-color-muted);
+}
+
+.ui-dialog .gridFiltro .campoFiltro > .tituloFiltro:hover {
+  color: var(--tw-color-ink);
+}
+
+.ui-dialog .gridFiltro .campoFiltro > div:last-child {
+  position: relative;
+  float: none !important;
+  display: flex !important;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: auto !important;
+  white-space: nowrap;
+  color: var(--tw-color-muted);
+}
+
+/* No intervalo de datas cada data fica com metade do campo, e o par termina
+   na mesma linha dos outros. */
+.ui-dialog .gridFiltro .campoFiltro > div:last-child > label:has(> .formInput) {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-dialog .gridFiltro .campoFiltro label > .formInput {
+  flex: 1;
+  width: auto !important;
+  min-width: 0;
+}
+
+body[data-fx-passo] .ui-dialog .gridFiltro input.formInput,
+body[data-fx-passo] .ui-dialog .gridFiltro select.formInput {
+  box-sizing: border-box;
+  height: var(--fx-campo);
+  padding: 0 8px !important;
+  border: 1px solid var(--tw-color-line);
+  border-radius: 6px;
+  background: var(--tw-color-paper);
+  font-size: var(--fx-fonte) !important;
+  font-weight: 400 !important;
+  text-transform: none;
+  color: var(--tw-color-ink);
+}
+
+/* Limpar e busca por vazio ficam dentro do campo, à direita. A data é
+   estreita demais para reservar o espaço; neles o ícone cobre o fim. */
+body[data-fx-passo] .ui-dialog .gridFiltro input.formInput:not(.campo_input_data) {
+  padding-right: 48px !important;
+}
+
+body[data-fx-passo] .ui-dialog .gridFiltro select.formInput {
+  padding-right: 64px !important;
+}
+
+body[data-fx-passo] .ui-dialog .gridFiltro .formInput.ui-state-focus {
+  border-color: var(--tw-color-accent);
+  background: var(--tw-color-paper);
+  box-shadow: 0 0 0 3px var(--tw-color-accent-soft);
+  outline: 0;
+}
+
+/* O amarelo é o campo preenchido. */
+body[data-fx-passo] .ui-dialog .gridFiltro .formInput.amarela {
+  background: var(--tw-color-accent-soft) !important;
+  border-color: var(--tw-color-accent);
+  color: var(--tw-color-ink) !important;
+  font-weight: 500 !important;
+}
+
+.ui-dialog .gridFiltro .campoFiltro .icone {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  float: none !important;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 !important;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: var(--tw-color-muted);
+  opacity: 0;
+}
+
+.ui-dialog .gridFiltro .campoFiltro:hover .icone,
+.ui-dialog .gridFiltro .campoFiltro:focus-within .icone {
+  opacity: 1;
+}
+
+.ui-dialog .gridFiltro .campoFiltro .icone.ui-icon-close {
+  right: 25px;
+}
+
+.ui-dialog .gridFiltro .campoFiltro > div:last-child:has(select) .icone {
+  right: 22px;
+}
+
+.ui-dialog .gridFiltro .campoFiltro > div:last-child:has(select) .icone.ui-icon-close {
+  right: 42px;
+}
+
+.ui-dialog .gridFiltro .campoFiltro .icone:hover {
+  background-color: var(--tw-color-ink);
+}
+
+/* Ações do filtro na última célula da última linha de campos, alinhadas à
+   direita: histórico, mais filtros, limpar e filtrar. Sem campo à mostra o
+   filtro vira uma linha só. A ajuda sai. Os botões continuam os do Hardness,
+   que os liga pela posição (button:eq); só a ordem visual muda. */
+.ui-dialog .gridFiltro .gridFiltroAvancado > div:has(> .gridFiltroBotoes) {
+  grid-column: -2 / -1;
+  justify-self: stretch;
+  min-width: 0;
+  float: none !important;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  float: none !important;
+  margin: 0 !important;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button[title="Ajuda do Filtro"] {
+  display: none !important;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.historicoAnterior,
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.historicoProximo {
+  order: -2;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros {
+  order: -1;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.limparFiltro {
+  order: 1;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button[title="Filtrar"] {
+  order: 2;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ui-button {
+  float: none !important;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--fx-campo) !important;
+  height: var(--fx-campo) !important;
+  margin: 0 !important;
+  padding: 0;
+  box-shadow: none;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ui-button .ui-button-text {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  line-height: 0;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes .ui-icon {
+  margin: 0 !important;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button[title="Filtrar"].ui-state-default {
+  background: var(--tw-color-accent);
+  border-color: var(--tw-color-accent);
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button[title="Filtrar"] .ui-icon {
+  background-color: var(--tw-color-paper);
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.limparFiltro,
+.ui-dialog .gridFiltro .gridFiltroBotoes > button[title="Filtrar"] {
+  display: inline-flex;
+  gap: 6px;
+  width: auto !important;
+  padding: 0 12px 0 8px;
+  font-weight: 500;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.limparFiltro::after {
+  content: "Limpar";
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button[title="Filtrar"]::after {
+  content: "Filtrar";
+  color: var(--tw-color-paper);
+}
+
+/* "Exibir filtros" é o próprio ícone: o botão leva a classe do sprite, o
+   text-indent dela e o amarelo inline. A seta vai para um ::before e o
+   rótulo para o ::after; a contagem vem do shell em data-fx-ocultos. A seta
+   troca o + e o − do sprite, que leem como incluir e excluir. */
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: auto !important;
+  padding: 0 28px 0 10px;
+  overflow: visible;
+  text-indent: 0;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  background: transparent !important;
+  border-color: transparent;
+  color: var(--tw-color-accent);
+  font-weight: 500;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros.ui-icon-minusthick {
+  --fx-glifo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E");
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros:hover {
+  background: var(--tw-color-accent-soft) !important;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros[data-fx-ocultos="0"] {
+  display: none !important;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 9px;
+  width: 14px;
+  -webkit-mask: var(--fx-glifo) center / 14px 14px no-repeat;
+  mask: var(--fx-glifo) center / 14px 14px no-repeat;
+  background: currentColor;
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros::after {
+  content: "Mais filtros";
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros[data-fx-ocultos]::after {
+  content: "Mais filtros (" attr(data-fx-ocultos) ")";
+}
+
+.ui-dialog .gridFiltro .gridFiltroBotoes > button.ocultarExibirFiltros.ui-icon-minusthick::after {
+  content: "Menos filtros";
+}
+
+/* Superfícies da tela de grade. Barra, filtro e totais ficam numa faixa
+   cinza; os dados ficam na área branca abaixo. A divToScroll tem largura e
+   altura que o sistema.js recalcula, por isso a área branca não ganha margem,
+   e com filtro obrigatório ela vem com fundo transparente inline. */
+.ui-dialog .ui-tabs-panel:has(> .divToScroll) {
+  background: var(--tw-color-header);
+}
+
+.ui-dialog .ui-tabs-panel:has(> .divToScroll) > .divToScroll {
+  background: var(--tw-color-paper) !important;
+  border-top: 1px solid var(--tw-color-line);
+}
+
+/* O bgcolor bege da tabela é a linha entre as células (cellspacing=1). */
+.ui-dialog table.grid {
+  background-color: var(--tw-color-grid-line);
+}
+
+.ui-dialog .grid thead th,
+.ui-dialog .gridFixo thead th,
+.ui-dialog .gridTheadTh {
+  background: var(--tw-color-paper);
+  font-weight: 500;
+}
+
+.ui-dialog .grid tr.color2:not(:hover, .hover),
+.ui-dialog .gridFixo tr.color2:not(:hover, .hover) {
+  background: var(--tw-color-zebra);
+}
