@@ -1,0 +1,108 @@
+# .graphifyignore: escopo do grafo do Graphify no fixar-erp.
+#
+# Mesma sintaxe do .gitignore. O Graphify lê o .gitignore primeiro e este
+# arquivo por último, então aqui só se exclui mais, nunca se reinclui o que o
+# .gitignore já tira (segredo, cache, /base, sistema-legado/, outro cliente).
+#
+# Estratégia: lista de permissão. Tudo na raiz fica de fora e só o miolo útil
+# volta com "!". Entram:
+#   src/hardness3/prog                 telas do Hardness
+#   src/hardness3/bibliotecas/classes  classes com regra de negócio
+#   src/hardness3/smarty/templates     templates (.tpl; o Graphify ainda não lê)
+#   src/hardness3/configuracoes        definição das tabelas e colunas
+#   referencia/static/js/sistema.js    JS legível (o ofuscado fica de fora)
+#   banco/fotografia.sql               estrutura do banco
+#   GLOSSARY.md e docs/adr             vocabulário e decisões (só com LLM)
+#
+# Ficam de fora: base/html (cópia duplicada), composer/vendor, static/js
+# (libs e sistema.js ofuscado), node_modules, graphify-out, .git, tmp,
+# uploads e dados, segredo, Personalização e arquivo de outro cliente.
+
+# 1. Tudo na raiz fica de fora...
+/*
+
+# 2. ...menos o miolo útil.
+!/GLOSSARY.md
+!/docs/
+/docs/*
+!/docs/adr/
+
+!/banco/
+/banco/*
+!/banco/fotografia.sql
+
+!/referencia/
+/referencia/*
+!/referencia/static/
+/referencia/static/*
+!/referencia/static/js/
+/referencia/static/js/*
+!/referencia/static/js/sistema.js
+
+!/src/
+/src/*
+!/src/hardness3/
+/src/hardness3/*
+!/src/hardness3/prog/
+!/src/hardness3/configuracoes/
+!/src/hardness3/bibliotecas/
+/src/hardness3/bibliotecas/*
+!/src/hardness3/bibliotecas/classes/
+!/src/hardness3/smarty/
+/src/hardness3/smarty/*
+!/src/hardness3/smarty/templates/
+
+# 3. Dentro do escopo, reforço explícito do que nunca entra.
+# Dependências, saída do próprio Graphify, temporários e dados.
+node_modules/
+vendor/
+graphify-out/
+tmp/
+uploads/
+dados_usuarios/
+templates_c/
+cache/
+*.serialized
+*.csv
+*.txt
+*.log
+*.bak
+*.php2*
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
+*.zip
+*.rar
+*.exe
+
+# Segredo e configuração por banco ou por máquina.
+.env
+.env.*
+*configuracoesPorBanco*
+confUsuario*
+sysConfig.php
+conf.php
+*.local.php
+*.key
+*.p12
+*.pem
+*.crt
+*.keystore
+/src/hardness3/configuracoes/documentos/
+/src/hardness3/configuracoes/*.json
+
+# Material de outro cliente.
+*[Cc]eigon*
+*[Gg]uimepa*
+*[Ee]urosul*
+*[Ss]igmacar*
+*[Bb]oticario*
+*[Bb]oticário*
+*[Dd]erosso*
+*[Ee]mprefix*
+*[Nn]acomaq*
+*[Pp]anceri*
+*[Vv]edapar*
+*[Ii]necel*

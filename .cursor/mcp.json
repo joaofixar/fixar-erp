@@ -2,6 +2,18 @@
   "mcpServers": {
     "orbit-mcp": {
       "url": "https://workspace.fixarindustrial.com.br/mcp"
+    },
+    "graphify": {
+      "command": "python",
+      "args": [
+        "-m",
+        "graphify.serve",
+        "${workspaceFolder}/graphify-out/graph.json"
+      ],
+      "env": {
+        "GRAPHIFY_BACKEND": "none",
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }

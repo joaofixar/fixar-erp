@@ -77,5 +77,8 @@ src/hardness3/**/*[Vv]edapar*
 
 # Grafo do sistema
 
-graphify-out/cache/
-graphify-out/.graphify_*
+# Grafo do Graphify: versiona só o grafo, os nomes das comunidades e o relatório
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/.graphify_labels.json
