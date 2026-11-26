@@ -1,6 +1,6 @@
 # Estudo de viabilidade: um FX ERP escrito do zero
 
-Estudo feito em 25/11/2026, só com leitura do repositório no commit `ab2a37a0`. Nenhum código foi alterado, nada foi executado contra o banco, nenhum contêiner subiu e `atualizacaoBase.php` não rodou. O modelo de dados vem de `banco/fotografia.sql` e do código.
+Estudo feito em 25/11/2026, só com leitura do repositório. A primeira versão leu o commit `ab2a37a0`. Esta revisão, no commit `64eac937`, juntou o grafo do Graphify (`graphify-out/`, servido por MCP), uma extração de SQL por tela e as fichas em [`telas/`](telas/), e manteve o resto do texto. Em 25/11/2026, o João respondeu às perguntas em aberto. As respostas estão na seção 10.1 e mudaram o veredito, as fases, os riscos e o catálogo de regras (seção 4.4). Nenhum código foi alterado, nada foi executado contra o banco, nenhum contêiner subiu e `atualizacaoBase.php` não rodou. O modelo de dados vem de `banco/fotografia.sql` e do código.
 
 Como ler as citações:
 
@@ -15,7 +15,14 @@ A Personalização, os segredos e os arquivos de outros clientes ficaram fora de
 
 ## 1. Resumo executivo
 
-**Veredito.** Reescrever o ERP inteiro e trocar tudo de uma vez não vale a pena para uma equipe de duas pessoas. Vale a pena, sob condições, fazer o FX ERP novo crescer ao lado do Hardness, começando pela frente comercial (televendas, depois orçamento, depois pedido e crédito), lendo a mesma Base. A parte fiscal, a NF e o financeiro ficam no Hardness por tempo indeterminado.
+**Veredito.** Reescrever o ERP inteiro e trocar tudo de uma vez não vale a pena para uma equipe de duas pessoas. Vale a pena, sob condições, fazer o FX ERP novo crescer ao lado do Hardness, lendo a mesma Base e começando pela mesa do televendas no C.R.M. A ordem é Atividades redesenhadas, consulta de orçamento, pedido e NF, depois orçamento e por fim pedido e crédito. A emissão de NF, a parte fiscal e o financeiro ficam no Hardness por tempo indeterminado. A NF entra cedo só como consulta.
+
+**O que mudou com as respostas de 25/11/2026.**
+
+- O contrato permite usar o Hardness literalmente. O catálogo de regras (seção 4) deixa de ser referência e passa a ser a especificação do FX ERP novo, e o risco jurídico sai do caminho.
+- O sino sai do escopo do ERP novo e fica só como dívida registrada (seção 6.11). A fundação fica menor.
+- Os valores de cinco chaves C031 na produção fixam o caminho de regra da Fixar e tiram ramos inteiros do porte (seção 4.4).
+- O televendas confirmou que trabalha no C.R.M., nas abas Atividades, Orçamentos, Pedidos e Notas Fiscais. A fase do televendas foi refeita em cima disso (seção 8.2).
 
 **Por quê.**
 
@@ -28,11 +35,13 @@ A Personalização, os segredos e os arquivos de outros clientes ficaram fora de
 
 1. Entregar antes o cronograma em curso, que termina em 13/03/2027 e exclui por escrito "reescrever o sistema do zero" (`cronograma-erp-fixar.html:179`, `:257`).
 2. Registrar um ADR novo, porque esta proposta contradiz o ADR 0001 (seção 2).
-3. Levantar com a operação quais telas são usadas de fato e inventariar a Personalização. O repositório não responde nenhuma das duas coisas.
+3. Levantar com a operação as telas fora do televendas que são usadas de fato e inventariar a Personalização. O uso do televendas foi respondido em 25/11/2026: C.R.M., abas Atividades, Orçamentos, Pedidos e Notas Fiscais. Na Personalização da produção não há código próprio de alçada, e `outros/personalizacoes/fixar/FIXAR-VEN001.php` é só backup e não roda (respondido em 25/11/2026).
 4. Aprovar um protótipo de convivência antes de escrever módulo: sessão única, tela nova dentro de uma Aba do Shell e gravação na mesma Base sem pular as regras do Hardness (seção 8.3).
 5. Dar a cada fase um critério de parada.
 
-**Stack recomendada.** PHP atual com Laravel, telas em React com Inertia e Tailwind, o mesmo MariaDB 11, fila e agendador do próprio framework, WebSocket para os Alertas e a biblioteca de NF-e que o Hardness já declara. Tudo em `docker compose` sobre o Kiri. O motivo central é que as regras a reaproveitar estão em PHP e SQL de MariaDB, e duas pessoas não sustentam duas linguagens de servidor (seção 7).
+**Stack recomendada.** PHP atual com Laravel, telas em React com Inertia e Tailwind, o mesmo MariaDB 11, fila e agendador do próprio framework e a biblioteca de NF-e que o Hardness já declara. Os Alertas em tempo real ficaram fora do caminho crítico (decisão de 25/11/2026). Tudo em `docker compose` sobre o Kiri. O motivo central é que as regras a reaproveitar estão em PHP e SQL de MariaDB, e duas pessoas não sustentam duas linguagens de servidor (seção 7).
+
+**Inventário (desta revisão).** `prog/` tem 24 módulos e 218 pastas de tela, mais 3 grupos de arquivos soltos: 1.315 arquivos e cerca de 557 mil linhas. As telas tocam 469 das 775 tabelas da fotografia em SQL próprio e gravam em 361. Contando os métodos de classe que elas chamam, chega a 498 tabelas. Só 60 telas têm item ativo no Menu; outras 47 têm o item comentado. Há uma ficha por tela em [`telas/`](telas/), com arquivos, classes e métodos, tabelas lidas e gravadas, mensagens, Alertas e permissão. Vendas, C.R.M. e Análise de Crédito foram lidos em profundidade (seção 3.4).
 
 **O que este estudo não consegue afirmar.** Que o sistema novo será mais rápido: não há medição de desempenho no repositório. Que o mapa funcional é o uso real: não há dado de produção nem registro de uso. E qual é o comportamento exato da Fixar hoje: ele é Hardness mais Personalização, e a Personalização ficou fora por regra do pedido e, na maior parte, fora do git.
 
@@ -49,7 +58,7 @@ A Personalização, os segredos e os arquivos de outros clientes ficaram fora de
    - C031 não é permissão. É configuração chave e valor por Empresa (`fotografia:1590–1600`), carregada em `$g['C031']` (`sistema/index-framework.php:26`).
 3. **N001 está morta como armazenamento, e isso se confirma.** Os Alertas vivem em arquivos serializados (seção 5.4).
 4. **`sistema-legado/` não existe nesta máquina.** A leitura usou `src/hardness3` e `referencia/`.
-5. **"Televendas" não é nome de tela no Hardness.** O termo só aparece como rótulo de um grupo de campos no cadastro de produto (`prog/cad/cad002/form.php:5038`). **Hipótese:** o televendas trabalha na tela C.R.M. (`prog/crm/crm001`), que reúne Cliente, orçamento, pedido, NF e agenda.
+5. **"Televendas" não é nome de tela no Hardness.** *(Respondida em 25/11/2026: o televendas trabalha no C.R.M., ver seção 10.1.)* O termo só aparece como rótulo de um grupo de campos no cadastro de produto (`prog/cad/cad002/form.php:5038`). **Hipótese:** o televendas trabalha na tela C.R.M. (`prog/crm/crm001`), que reúne Cliente, orçamento, pedido, NF e agenda.
 6. **O ADR 0004 fala em 195 rotinas; a lista hoje tem 252** (`scripts/atualizacaoBase-rotinas-lista.php`: 153 funções, 43 procedures, 56 triggers). O número do ADR ficou atrás.
 
 ---
@@ -94,8 +103,66 @@ Notas sobre a tabela:
 - Cliente e Fornecedor são a mesma tabela, D024, separados por `D024_Flag_Cliente` e `D024_Flag_Fornecedor` (`fotografia:4637–4638`).
 - **Hipótese:** D001 é o produto, D049 é o produto por marca ou fornecedor e D009 é o item de estoque por Empresa. A base da hipótese é a estrutura: D049 aponta para D001 e D024, e D009 aponta para D001, D049 e C004 e guarda as quantidades (`fotografia:3608–3621`, `:5460–5470`).
 - **Hipótese:** T218 e T219 são cotação de compra e itens, T224 e T225 são ordem de compra e itens. A base é o rótulo do Menu para `est015` e `est016` (`bibliotecas/menu.php:200–202`) e a coluna `T224_T218_Id` (`fotografia:25157`).
-- Há dois fluxos de compra no código, o antigo (`est006`, `est008`, tabelas T010 a T012) e o novo (`est015`, `est016`). Só a operação diz qual está em uso.
+- Há dois fluxos de compra no código, o antigo (`est006`, `est008`, `est012`, tabelas T010 a T012) e o novo (`est015`, `est016`, `est019`, tabelas T218, T219, T224 e T225). **Respondido em 25/11/2026: a Fixar usa o fluxo novo.** O antigo sai do porte; ver `telas/est.md`. Cuidado: a T010 ainda é lida por telas do fluxo novo (`est015`, `est016`) e por `ven001`, então a tabela não pode ser descartada sem conferir essas leituras.
 - A fila de NF lê e apaga a tabela Q001 (`scripts/queueNF/queueNF.php:49–53`). Q001 não está na fotografia; a definição está em `src/hardness3/global.sql:26`.
+
+### 3.4 Inventário de telas pelo grafo e pelos SQL
+
+Fontes: o grafo do Graphify no commit `64eac937` (7.972 nós, 8.960 arestas, 1.775 comunidades; 1.298 delas rotuladas `prog/<módulo>/<tela>`, porque o grafo agrupa por arquivo) e uma extração por expressão regular sobre o PHP de cada pasta de tela. O grafo dá funções, chamadas e classes, mas não liga tela a tabela: SQL dentro de string não vira aresta, `.tpl` e `.md` não entraram, 1.123 arquivos de tela sem função viraram um nó só e 16 arquivos ficaram parciais por erro de sintaxe. Por isso as tabelas vêm da extração, e o método e os limites estão no topo de cada ficha. Os nós mais ligados do grafo são as classes `VEN001`, `CAD002`, `VEN002`, `NOTIFICACOES`, `FIN001`, `EST015` e `gravarTotalizacaoT008`, as mesmas que o catálogo de regras já apontava.
+
+| Módulo | Telas | Linhas | Tabelas gravadas | Tabelas tocadas | Profundidade | Fichas |
+|---|---|---|---|---|---|---|
+| `cad` | 67 | 109.159 | 143 | 226 | Inventário com tabelas | [`telas/cad.md`](telas/cad.md) |
+| `est` | 20 | 108.557 | 90 | 193 | Inventário com tabelas | [`telas/est.md`](telas/est.md) |
+| `ven` | 15 | 67.939 | 56 | 161 | Profunda (leitura manual) | [`telas/ven.md`](telas/ven.md) |
+| `etc` | 18 | 66.685 | 63 | 130 | Inventário com tabelas | [`telas/etc.md`](telas/etc.md) |
+| `outros` | 16 | 32.916 | 27 | 67 | Só inventário (integrações e suporte não detalhados) | [`telas/outros.md`](telas/outros.md) |
+| `fin` | 8 | 29.360 | 24 | 49 | Inventário com tabelas; `fin007` em profundidade | [`telas/fin.md`](telas/fin.md) |
+| `sistema` | 20 | 25.452 | 32 | 74 | Inventário com tabelas | [`telas/sistema.md`](telas/sistema.md) |
+| `crm` | 5 | 24.512 | 17 | 97 | Profunda (leitura manual) | [`telas/crm.md`](telas/crm.md) |
+| `imp` | 4 | 23.167 | 16 | 62 | Inventário com tabelas | [`telas/imp.md`](telas/imp.md) |
+| `fis` | 13 | 18.195 | 31 | 52 | Inventário com tabelas | [`telas/fis.md`](telas/fis.md) |
+| `rel` | 6 | 12.353 | 0 | 44 | Inventário com tabelas | [`telas/rel.md`](telas/rel.md) |
+| `erp` | 4 | 10.367 | 8 | 67 | Inventário com tabelas | [`telas/erp.md`](telas/erp.md) |
+| `srv` | 4 | 7.599 | 8 | 31 | Inventário com tabelas | [`telas/srv.md`](telas/srv.md) |
+| `api` | 7 | 5.976 | 7 | 67 | Inventário com tabelas | [`telas/api.md`](telas/api.md) |
+| `srm` | 2 | 5.847 | 6 | 55 | Inventário com tabelas | [`telas/srm.md`](telas/srm.md) |
+| `b2b` | 1 | 2.892 | 2 | 16 | Inventário com tabelas | [`telas/b2b.md`](telas/b2b.md) |
+| `v2b2b` | 1 | 1.935 | 2 | 21 | Inventário com tabelas | [`telas/v2b2b.md`](telas/v2b2b.md) |
+| `cont` | 3 | 1.765 | 5 | 5 | Inventário com tabelas | [`telas/cont.md`](telas/cont.md) |
+| `externo` | 1 | 892 | 0 | 6 | Inventário com tabelas | [`telas/externo.md`](telas/externo.md) |
+| `bi` | 1 | 777 | 2 | 5 | Inventário com tabelas | [`telas/bi.md`](telas/bi.md) |
+| `mnu` | 1 | 279 | 0 | 1 | Inventário com tabelas | [`telas/mnu.md`](telas/mnu.md) |
+| `callback` | 1 | 236 | 1 | 1 | Inventário com tabelas | [`telas/callback.md`](telas/callback.md) |
+| `gerencial` | 2 | 118 | 0 | 0 | Inventário com tabelas | [`telas/gerencial.md`](telas/gerencial.md) |
+| `testes` | 1 | 16 | 0 | 0 | Inventário com tabelas | [`telas/testes.md`](telas/testes.md) |
+
+Números gerais:
+
+- Contagem: 218 pastas de tela e 3 grupos de arquivos soltos (`callback`, `mnu`, `outros`); 1.315 arquivos, 556.994 linhas, contando todos os tipos de arquivo. A conta da seção 4.1 (1.306 arquivos, 512 mil linhas) foi feita no commit anterior e com outro critério.
+- Roteamento: 6.270 ações `case` nos roteadores das telas e 2.376 funções definidas nelas, segundo o grafo.
+- Tabelas mais gravadas, em número de telas: `T006` (17), `T005` (14), `T002` (14), `D024` (13), `D009` (13), `T007` (13), `T008` (12), `T004` (10), `T189` (10), `C007` (9), `D085` (7), `T001` (7).
+- Tabelas mais tocadas: `D024` (96), `C007` (87), `D001` (70), `D018` (65), `D020` (64), `D049` (64), `D009` (64), `T007` (64), `C004` (61), `T005` (55), `D037` (55), `D082` (52). O Cliente (D024) e o Usuário (C007) aparecem em quase metade das telas.
+- Tabelas fora das telas: 279 tabelas da fotografia não aparecem em SQL de nenhuma tela nem dos métodos que elas chamam (77 T, 51 D, 42 P, 19 MCP e outras). **Hipótese:** parte é morta e parte só é usada por `configuracoes/`, `scripts/` ou classes não chamadas por tela. São candidatas a ficar fora do FX ERP novo, depois de conferidas.
+- Permissões: 103 acessos C029 distintos são testados dentro das telas. Os itens Orçamentos (14) e Pedidos (15) do Menu estão comentados e não existem na C029 da fotografia; orçamento e pedido só abrem pelo C.R.M. ou por outra tela.
+- Alertas: 94 métodos em `NOTIFICACOES.php`, dos quais 51 abrem alguma tela no clique. Cada ficha lista os Alertas que levam até ela.
+
+O que ficou raso: fora de `ven`, `crm` e `fin/fin007`, as fichas são automáticas (inventário, tabelas, classes, mensagens e permissão), sem leitura de regra. `cad` (67 telas), `est` (20) e `etc` (18) são os maiores módulos nessa situação. `outros/integracaoSMT`, `outros/pedidoMercadoLivre`, `outros/contratosClientes`, `outros/registroSuporte*` e `testes/` foram listados sem detalhe. A extração não vê nome de tabela montado por variável, então uma tela pode tocar mais tabelas do que a ficha mostra, nunca menos das listadas, salvo linha comentada no meio de bloco `/* */`.
+
+### 3.5 O fluxo do televendas no código
+
+Detalhado em [`telas/ven.md`](telas/ven.md) e [`telas/crm.md`](telas/crm.md):
+
+C.R.M. (`crm/crm001`) → orçamento (`ven/ven001`, T003) → alçada (`VEN001::verificaAlcadaNovo`, `bibliotecas/classes/VEN001.php:11531`) → Análise de Orçamento (`ven/ven005`, liberação 1, 2 ou 3) → gerar pedido (`VEN001::gerarPedido`, `:1896`) → Análise de Pedido (`ven/ven013`, situação 13, 14 ou 15) → crédito (`fin/fin007`, situação 6 para 9 ou para a C031 `statusInicialPedido`, que na Fixar é 1, Imprimir) → faturamento (`VEN012::gerarNotaFiscalPedidos`) → NF (`ven/ven003`).
+
+O que a leitura achou nesse caminho, além do catálogo:
+
+- Os dois pontos de análise gravam o Alerta pela coluna `_Flag_Notificacao_Liberacao`, e a chamada que atualizaria o sino na hora está comentada nas duas classes (`VEN005.php:48`, `:128`; `VEN013.php:48`, `:112`). O Alerta só aparece no ciclo seguinte do gerador.
+- O pedido herda código do orçamento com erro. Em `VEN002::verificaAlcada`, a alçada por produto usa variáveis do orçamento que não existem no pedido (`VEN002.php:4835`, `:4844`), e na aprovação do pedido o saldo futuro é gravado com uma coluna de T004 que a consulta não junta (`VEN013.php:123`).
+- `gerarPedido` desliga o autocommit e retorna nas seis primeiras validações antes de qualquer `ROLLBACK` (`VEN001.php:1905–2010`, primeiro `ROLLBACK` em `:2127`).
+- Na Análise de Orçamento, o total confirmado lê uma coluna que o `SELECT` não traz (`VEN005.php:72`).
+
+Esses pontos reforçam a seção 8.3: portar a regra exige teste de caracterização, porque o comportamento real nem sempre é o que o código parece querer.
 
 ---
 
@@ -126,7 +193,7 @@ Como o núcleo aplica as regras por tabela: carrega `configuracoes/<TABELA>.php`
 |---|---|---|---|
 | 1 | Orçamento nasce com forma de pagamento "28 DIAS", frete "A COMBINAR" e validade "5 DIAS" | `configuracoes/T003.php:25–28` | Baixo |
 | 2 | Orçamento exige Cliente com tipo e lista de preço | `configuracoes/T003.php:59–77` | Baixo |
-| 3 | Campo de expedição é obrigatório quando a C031 `modeloExpedicao` vale 2 | `configuracoes/T003.php:83–87` | Médio |
+| 3 | Campo de expedição é obrigatório quando a C031 `modeloExpedicao` vale 2. **Não se aplica à Fixar** (modelo 1, seção 4.4) | `configuracoes/T003.php:83–87` | Médio |
 | 4 | Situação do orçamento (N, A, L, P, C, F) decidida por perda e por existência de pedido | `configuracoes/T003.php:118–141`. Rótulos em `scripts/sql/T003_Status_Orcamento.sql:6–26` | Médio |
 | 5 | Orçamento que já gerou pedido não cancelado fica travado | `configuracoes/T003.php:202–214` | Baixo |
 | 6 | Totalização do orçamento e dos itens ao gravar | `configuracoes/T003.php:113–169`, `scripts/sql/T003_Gravar_Totalizacao_4.sql` (404 linhas), `scripts/sql/T004_Gravar_Totalizacao_4.sql` (415 linhas) | Médio |
@@ -148,12 +215,40 @@ Como o núcleo aplica as regras por tabela: carrega `configuracoes/<TABELA>.php`
 | 22 | Validação de CNPJ, CPF, duplicidade e chave estrangeira no cadastro | `bibliotecas/restricoes.php:74–244`, `configuracoes/D024.php:61–126` | Baixo |
 | 23 | Menu mostra só o item cujo acesso está no Perfil | `sistema/index-framework.php:172`, `bibliotecas/menu.php` | Médio |
 | 24 | Troca de Empresa de um orçamento ou pedido leva os itens junto | `configuracoes/T003.php:218–264`, `configuracoes/T005.php:235–253` | Médio |
+| 25 | **Vale para a Fixar, na versão do Hardness, com parcelas obrigatórias e sem venda sem estoque (seção 4.4).** Gerar pedido exige ao menos um item, serviço ou troca confirmado; parcelas iguais ao total (C031 `obrigatorioGerarParcelaOrcamento`); portador com conta ativa; CFOP, NCM e origem nos itens; estoque suficiente quando a C031 `permitirVendaSemEstoque` ≠ S e a natureza movimenta estoque; produto em pré-cadastro sem custo bloqueia | `bibliotecas/classes/VEN001.php:1929–2010` | Alto |
+| 26 | Perder orçamento exige observação de pelo menos 20 caracteres e motivo (D047); itens marcados como cancelados | `bibliotecas/classes/VEN001.php:4872–4917` | Baixo |
+| 27 | Análise de Orçamento: aprovar grava liberação 2, situação A, desconto, prazo, parcelas e portador liberados e o saldo futuro dos itens; negar grava liberação 3 e situação N, com motivo obrigatório | `bibliotecas/classes/VEN005.php:12–132` | Médio |
+| 28 | Pedido entra na análise comercial com situação 13; aprovar grava 14, negar grava 15; tudo vai para o histórico T178 | `bibliotecas/classes/VEN002.php:4902–4924`, `bibliotecas/classes/VEN013.php:12–146` | Médio |
+| 29 | Faturamento automático após aprovação comercial, se a C031 `FaturarPedidoAposAnalisePedido` = S. **Não se aplica à Fixar** (N, seção 4.4) | `bibliotecas/classes/VEN013.php:125–139` | Médio |
+| 30 | Alçada do pedido: diretor passa; vendedor e supervisor com teto de desconto, de desconto por produto (`usarAlcadaPorProduto`), de prazo médio e de saldo mínimo; mensagem com código de 1 a 5 | `bibliotecas/classes/VEN002.php:4756–4893` | Alto |
+| 31 | Crédito: só libera pedido na situação 6 e sem Cliente em pré-cadastro; próxima situação pela C031 `statusInicialPedido`, que **na Fixar é 1, Imprimir** (seção 4.4); negar grava situação 9, trava o pedido e grava o motivo com data | `bibliotecas/classes/FIN007.php:198–330` | Médio |
+| 32 | Abas do C.R.M. por acesso da C029 e por C031 (`modeloExpedicao` = 2 mostra Faturar comercial e balcão; **na Fixar, modelo 1, essas abas não aparecem**) | `prog/crm/crm001/tab.php:39–127` | Baixo |
 
-Três observações que valem para o catálogo inteiro:
+Três observações que valem para o catálogo inteiro. Desde 25/11/2026, o catálogo é a especificação do FX ERP novo, porque o contrato permite usar as regras do Hardness literalmente (seção 8.6). Os ramos que valem para a Fixar estão na seção 4.4.
 
 - Estas são regras do Hardness. O glossário diz que a Personalização "cobre orçamento, pedido, boleto, histórico de produto e a totalização que os acompanha" (`GLOSSARY.md:51–52`). Logo, nas linhas 6 a 11 o comportamento da Fixar hoje pode ser outro. O cronograma confirma que "a totalização é o ponto central" do ajuste à Fixar (`cronograma-erp-fixar.html:234`).
 - Parâmetros de regra estão espalhados em 634 chaves distintas da C031 lidas pelo código, mais cerca de 100 marcas por Empresa na C020 (`fotografia:838–945`). Uma regra só vira especificação junto com o valor dessas chaves na produção.
 - A rotina da linha 13 fixa a Empresa em 1, com o cálculo por documento comentado (`scripts/sql/D024_Ativar_Cliente.sql:10–33`). Regra reaproveitada precisa de revisão, não de cópia.
+
+### 4.4 Caminho de regra da Fixar: C031 na produção (respondido em 25/11/2026)
+
+Os valores foram informados pelo João, sem consulta ao banco. O valor literal de cada um foi conferido no código pela tela de configuração (`prog/cad/cad058/form.php`) e pela lista de padrões (`scripts/atualizacaoBase-globais-lista.php`).
+
+| Chave C031 | Informado | Valor literal | Onde o significado está | Ramo que vale para a Fixar | Ramos que saem do porte |
+|---|---|---|---|---|---|
+| `FaturarPedidoAposAnalisePedido` | NÃO | `N` (padrão também `N`) | `cad058/form.php:1176–1180`; `atualizacaoBase-globais-lista.php:293` | Pedido aprovado na análise comercial fica na situação 14 e grava histórico. Ninguém fatura automaticamente (`VEN013.php:141–145`) | Faturamento automático após a análise (`VEN013.php:127–139`; trecho já comentado em `EST016.php:5167–5169`). Regra 29 fora |
+| `statusInicialPedido` | IMPRESSÃO | `1` (padrão também `1`) | `cad058/form.php:1136–1143` (1 Impressão, 2 Separação, 10 Conferência, 21 Aguardando Peças, 3 Emitir NFe); `atualizacaoBase-globais-lista.php:280`; `configuracoes/_GLOBAL.php:149` | Crédito liberado manda o pedido para a situação 1, "Imprimir", com o texto "Autorizou crédito. Enviado para impressão" (`FIN007.php:305–307`). Também é a situação de partida conferida em `FIN007.php:384`, `VEN012.php:9844` e `configuracoes/T005.php:182` | Ramos dos valores 10, 3 e 21 (`FIN007.php:308–316`) e o preenchimento automático da separação quando o valor é 3 (`VEN012.php:898`, `:4280`, `:7331`, `:9803`, `:11328`; `prog/ven/ven012/form.php:525`). Com `desabilitarSeparacao` = N (linha abaixo), esse preenchimento não roda na Fixar |
+| `permitirVendaSemEstoque` | NÃO | `N` | `cad058/form.php:1006–1010`; padrão `N` em `atualizacaoBase-globais-lista.php:287` (`configuracoes/_GLOBAL.php:191` diz `S`, mas vale o que está na C031) | Gerar pedido bloqueia item sem estoque quando a natureza movimenta estoque (`VEN001.php:1979–1998`; também `EST016.php:1858`) | Venda sem estoque. A regra 25 vale integral nesse ponto |
+| `obrigatorioGerarParcelaOrcamento` | SIM | `S` (padrão `N`) | `cad058/form.php:1042–1046`, rótulo "Obrigatório forma de pagamento para gerar pedido"; `atualizacaoBase-globais-lista.php:331` | Para gerar pedido, a soma das parcelas tem que bater com o total, salvo documento tipo 4 (`VEN001.php:1954–1957`). A alçada também confere pagamento no orçamento (`VEN001.php:11718–11731`) | Gerar pedido sem forma de pagamento (por exemplo `mobile/phone/phone_func-ajax.php:163`) |
+| `modeloExpedicao` | MODELO 1 | `1` (padrão também `1`) | `cad058/form.php:1955–1959` (1 Modelo 1, 2 Modelo 2); `atualizacaoBase-globais-lista.php:417` | Orçamento grava a marca de expedição pelo modelo 1 (`VEN001.php:86–87`; `prog/ven/ven001/form.php:169`, `:370`, `:482`, `:640`). A expedição usa as abas do modelo 1 (`prog/est/est002/tab.php:19`) | Todo ramo `modeloExpedicao == 2`: campo de expedição obrigatório no orçamento e no pedido (`configuracoes/T003.php:84`, `configuracoes/T005.php:58`; regra 3 fora); abas Faturar comercial e Faturar balcão do C.R.M. (`prog/crm/crm001/tab.php:105–108`); situação 22 e separação antiga no faturamento (`VEN002.php:2584`, `:2715`; `VEN012.php:9853`, `:18397`, `:18653`, `:18731–18796`; `prog/ven/ven012/grid.php:1595`, `:2912`, `:3260`); `FIN007.php:350`; `prog/est/est002/tab.php:32` e `report.php:666` |
+| `desabilitarSeparacao` | NÃO (25/11/2026) | `N` (padrão também `N`) | `cad058/form.php:1961–1965` (Não `N`, Sim `S`); `atualizacaoBase-globais-lista.php:652` | Com `statusInicialPedido` = 1, o faturamento **não preenche a separação sozinho**: a condição `statusInicialPedido=='3' \|\| desabilitarSeparacao=='S'` é falsa (`VEN012.php:898`, `:4280`, `:7331`, `:11328`). A separação é etapa própria da expedição, com aba em `prog/est/est002/tab.php:22` e passo em `prog/ven/ven012/form_func-ajax.php:1559`. Ao retornar o pedido, a separação (T238) não é apagada (`VEN012.php:9803–9805`), e o diálogo "Refazer separação" do faturamento não aparece (`prog/ven/ven012/form.php:525`) | Preenchimento automático da separação no faturamento (os mesmos blocos do `VEN012`); expedição sem separação (`EST002.php:180–183`); saída do PDV sem separação (`VEN015.php:231`, `:268`) |
+
+Duas observações:
+
+- **Alçada (confirmada em 25/11/2026: original do Hardness).** O João confirmou que a Personalização da produção não tem código próprio de alçada. O código já apontava nessa direção. O gancho `ven001TriggerPersonalizadaPularVerificacaoAlcada` devolve `false` no Hardness (`VEN001.php:12368–12376`), e nenhum dos 6 arquivos versionados em `outros/personalizacoes/fixar/` redefine `verificaAlcadaNovo` nem esse gancho. A regra 8, a regra 30 e `verificaAlcadaNovo` valem como estão no Hardness.
+- **`FIXAR-VEN001.php` é backup (respondido em 25/11/2026).** O arquivo versionado `outros/personalizacoes/fixar/FIXAR-VEN001.php` não roda na produção. Fica registrado como backup fora do escopo, e o conteúdo continua sem ser lido. A regra 25 vale pela versão do Hardness (`VEN001.php:1896`).
+
+Como o contrato permite usar o código literalmente (seção 8.6), cada linha do catálogo, já restrita a esses ramos, é especificação do FX ERP novo. O teste de caracterização confere que o código novo reproduz o Hardness no ramo da Fixar. Os ramos marcados como fora do porte não são reimplementados; se um dia a Fixar mudar a chave, voltam como demanda nova.
 
 ---
 
@@ -168,6 +263,7 @@ Três observações que valem para o catálogo inteiro:
 - 1.343 colunas `_Flag_`, 262 colunas `enum('S','N')` e 204 colunas com data padrão `0000-00-00`.
 - Tabelas largas: T007 com 306 colunas, T005 com 272, D024 com 232, T006 com 222, T003 com 211.
 - Há uma `T006_CRASH` com 219 colunas ao lado da T006.
+- As telas tocam 469 tabelas em SQL próprio e 498 contando os métodos que chamam. 279 não aparecem nesse caminho (seção 3.4).
 
 ### 5.2 Nomenclatura
 
@@ -298,7 +394,7 @@ O fluxo funciona e é cuidadoso. O custo dele cresce com cada linha que a Fixar 
 
 ### 6.9 Arquivos com credencial
 
-Só o nome, sem valor: `bibliotecas/confUsuario.php`, `configuracoes/sysConfig.php`, `src/hardness3/ide/sysConfig.php`, `sistema/index-framework.php` (chave fixa de cifra de cookie), `outros/login/index.php` (comparação com senhas de suporte), `.env`, `bin/preparar-base.py`, `docker-compose.yml`, `docker/php/gravar-conf.php`.
+Só o nome, sem valor: `prog/sistema/funcoes/mensagens.php` e `prog/sistema/funcoes/chat.php` (senha de banco remoto, seção 6.11), `bibliotecas/confUsuario.php`, `configuracoes/sysConfig.php`, `src/hardness3/ide/sysConfig.php`, `sistema/index-framework.php` (chave fixa de cifra de cookie), `outros/login/index.php` (comparação com senhas de suporte), `.env`, `bin/preparar-base.py`, `docker-compose.yml`, `docker/php/gravar-conf.php`.
 
 ### 6.10 Visual novo: o que está decidido e como encaixa
 
@@ -318,6 +414,42 @@ Como encaixa num sistema novo:
 - Reaproveita com ajuste: o prefixo `tw:` e a ausência de Preflight existem para conviver com o CSS do Hardness. Numa tela nova em documento próprio, deixam de ser necessários. Enquanto a tela nova abrir dentro do Shell atual, continuam valendo.
 - Não reaproveita: `src/fx/shell.js` (81 KB) é feito para dirigir as Janelas do Hardness. Num sistema novo, o Shell é reescrito como componente, com o mesmo desenho.
 - O episódio do formulário de Cliente é a evidência mais direta de que o Miolo do Hardness não se moderniza por tema. Tela nova de verdade exige tela escrita de novo.
+
+### 6.11 Alertas do sino: por que o televendas desiste
+
+**Decisão de 25/11/2026:** o sino fica fora do escopo do FX ERP novo e sai do caminho crítico das fases. A análise abaixo fica registrada como dívida do Hardness, para quando houver tempo de tratar.
+
+Esta seção resume uma análise anterior, só de leitura, conferida de novo neste commit. O problema principal é de lógica, não de tela.
+
+Como funciona:
+
+- **Geração:** `scripts/notifications/notificacoes-modelo.sh` roda `notificacoes.php` a cada 20 s, só em horário comercial (`notificacoes.php:16–26`), como Usuário 63 na Empresa 1 (`:34–35`). Para cada Empresa, cerca de 35 geradores SQL de `NOTIFICACOES.php` gravam os Alertas em arquivo serializado (`NOTIFICACOES.php:3088–3122`, `:3183–3215`). Não é no banco (seção 5.4).
+- **Leitura:** o navegador chama `mensagens/montarNotificacoes` duas vezes por ciclo, uma com e outra sem suporte (`referencia/static/js/sistema.js:996`, `:1009`). O PHP percorre a pasta (`prog/sistema/funcoes/mensagens.php:184–235`), filtra por Usuário, alçada, Perfil e Empresa (`:252–293`) e devolve JavaScript para o cliente executar (`:301–310`).
+- **Lido:** cada tipo marca o lido no registro de origem do seu jeito (`prog/sistema/funcoes/removerNotificacao.php:11–110`) e no arquivo (`:133–190`).
+
+Por que fica "bugado":
+
+1. **O lido não persiste.** A cada gravação, o gerador lê o `lido` guardado (`NOTIFICACOES.php:3198`) e regrava o item com `lido = "N"` (`:3206`).
+2. **O lido do comercial está desligado.** O `UPDATE` que marcaria o lido está comentado para orçamento liberado ou não liberado (`removerNotificacao.php:60`), pedido liberado ou não liberado (`:91`) e retorno do almoxarifado (`:98`). Esses Alertas voltam no ciclo seguinte e ficam até 30 dias (`NOTIFICACOES.php:1450`, `:1490`, `:1528`).
+3. **A agenda de retorno compara data e hora separadas** (`NOTIFICACOES.php:1252–1253`). Um retorno de ontem às 17h só aparece hoje depois das 17h. O gerador também escreve um log em `/tmp` a cada ciclo (`:1261–1265`).
+4. **"Orçamento com agenda pendente" nunca chega ao vendedor.** O filtro é pelo Usuário corrente (`NOTIFICACOES.php:1649`), e o gerador roda como 63. O `UPDATE` ao lado tem uma aspa que não fecha (`:1659`).
+5. **O contador não bate com a lista.** O suporte entra por outra chamada (`mensagens.php:196–202`), e o que já foi resolvido só sai ao recarregar a página.
+6. **A carga só cresce.** Ao trocar de Empresa ou de Usuário, começa mais um ciclo de consulta sem que o anterior pare (laços em `sistema.js:994–1054`).
+7. **O pedido de atualizar roda tudo dentro da requisição**, inclusive a rotina diária (`mensagens.php:5–13`). Em dia útil, essa rotina chama o envio automático de boleto, de lembrete de pagamento e de cobrança (`NOTIFICACOES.php:296–301`). Esses envios só seguem quando o Usuário corrente é o 63 (`:426`, `:487`, `:578`), então um clique dele pode disparar boletos e e-mails.
+8. **Escrita sem trava.** O arquivo é regravado com `fwrite` sem `flock` (`NOTIFICACOES.php:3213`, `:3264`, `:3288`, `:3312`), e duas escritas ao mesmo tempo se perdem.
+
+As análises de orçamento, pedido e crédito não atualizam o sino na hora, porque a chamada está comentada (`VEN005.php:48`, `:128`; `VEN013.php:48`, `:112`; `FIN007.php:248–254`).
+
+O que isso pede no FX ERP novo:
+
+- Alerta em tabela, por destinatário, com tipo, referência, ação como rota (sem JavaScript), lido, oculto e expiração.
+- Endpoint JSON com a contagem calculada no servidor.
+- O evento grava o Alerta: liberar um orçamento já cria o Alerta do vendedor. O processo de fundo fica só para o que depende de tempo, como agenda e vencimento.
+- Entrega por WebSocket (seção 7.3).
+
+Como alívio no Hardness até lá, sem tabela nova: manter o lido ao regravar, religar os `UPDATE` comentados, comparar data e hora juntas na agenda, um ciclo só de consulta e contador no servidor.
+
+Há uma senha de banco remoto escrita direto em `prog/sistema/funcoes/mensagens.php` e `prog/sistema/funcoes/chat.php`. O valor não está neste documento. A senha precisa ser trocada e sair do código.
 
 ---
 
@@ -356,7 +488,7 @@ Uma terceira opção, .NET, tem as bibliotecas fiscais mais maduras do mercado b
 | Autenticação | Durante a convivência, o FX ERP confia na sessão do Hardness por um ponto de ponte em `src/fx/` e lê Perfil e acessos de C019, C021 e C030. Depois, inverte: login no FX ERP, com senha só em formato atual, e segundo fator | Um login para a operação. Sem duplicar cadastro de Usuário |
 | Permissão | Acesso com nome (`orcamento.liberar`) mapeado para o número da C029 enquanto conviver | Tira os 121 números mágicos do código novo sem quebrar o cadastro de Perfil |
 | Filas e jobs | Fila do framework em tabela do banco no início; Redis quando o volume pedir. Agendador do framework no lugar de crontab com `lynx` | Zero infraestrutura nova no começo. Tentativa, repetição e registro de falha vêm prontos |
-| Tempo real para Alertas | Alerta em tabela; entrega por WebSocket em serviço próprio; consulta periódica só como reserva | Tira 3 requisições por minuto por usuário do servidor web. Serviço próprio não ocupa os processos do Apache |
+| Tempo real para Alertas | **Fora do escopo por ora (25/11/2026).** Se voltar: Alerta em tabela, entrega por WebSocket em serviço próprio, consulta periódica só como reserva | Tira 3 requisições por minuto por usuário do servidor web. Serviço próprio não ocupa os processos do Apache |
 | Relatórios | Consulta sobre o mesmo banco, com exportação para planilha e PDF em job. Tabelas de relatório pré-calculadas só onde medir lento | Relatório é onde mais se gasta e menos se sabe do uso. Entra por demanda |
 | NF-e | Fica no Hardness. Quando e se migrar, `sped-nfe` em job de fila, com as etapas de hoje como estados | Não assumir legislação antes da hora |
 | Testes | Teste de caracterização: a mesma entrada passa pelo Hardness na Base e pelo código novo, e os valores gravados são comparados. Teste de contrato contra a fotografia | É o que transforma o Hardness em especificação executável. `testes/orcamento-pedido-nota.sh` já percorre a Base |
@@ -372,7 +504,7 @@ web         Hardness, como hoje (PHP 8.3 + Apache)
 fx          FX ERP novo (PHP + servidor de aplicação)
 fx-fila     mesmo código do fx, executando a fila
 fx-agenda   mesmo código do fx, executando o agendador
-fx-tempo    servidor WebSocket dos Alertas
+fx-tempo    (opcional, só se o sino voltar ao escopo) servidor WebSocket
 db          MariaDB 11, o mesmo banco
 ```
 
@@ -414,15 +546,17 @@ A escolha real é entre seguir o ADR 0001 e crescer ao lado. Crescer ao lado só
 
 Ordem proposta, do menor risco para o maior:
 
-1. **Fundação.** Login por ponte, Perfil lido da Base, tela nova dentro de uma Aba, Alertas em tabela com tempo real.
-2. **Televendas, só leitura.** Ficha do Cliente, carteira, histórico de orçamento, pedido e NF, agenda, consulta de produto e estoque. Nenhuma gravação nas tabelas do Hardness.
-3. **Atividades e agenda.** Primeira gravação, em D085, T259 e T260, que têm poucas regras (regra 19).
-4. **Orçamento.** O FX ERP vira dono de T003 e T004.
-5. **Pedido e crédito.**
-6. Estoque e almoxarifado, compras e financeiro, cada um decidido quando chegar a vez.
-7. NF e fiscal por último, ou nunca.
+Ordem revista em 25/11/2026, com o uso do televendas confirmado (C.R.M., abas Atividades, Orçamentos, Pedidos e Notas Fiscais) e o sino fora do escopo:
 
-A ordem começa pela leitura porque ela não tem o problema da seção seguinte.
+1. **Fundação.** Login por ponte, Perfil lido da Base, tela nova dentro de uma Aba do Shell e implantação. Sem Alertas.
+2. **Mesa do televendas em leitura.** Ficha do Cliente e carteira, as abas Orçamentos, Pedidos e Notas Fiscais como consulta (T003/T004, T005/T006, T007/T008 e retorno da SEFAZ em T127), e consulta de produto e estoque. A leitura de NF entra aqui, cedo e só como consulta. Ela não grava, não depende de regra fiscal e cobre uma das quatro abas principais. Emissão, cancelamento, carta de correção e devolução continuam no Hardness, abertos por link para a tela `ven/ven003`.
+3. **Atividades redesenhadas.** Primeira gravação, em D085, T259 e T260, que têm poucas regras (regra 19). O João apontou essa aba como mal feita no Hardness, então ela é a melhor vitrine do FX ERP novo: o fluxo é desenhado de novo, com as tabelas e as regras do Hardness como especificação mínima. A agenda de retorno herda o conserto de data e hora juntas (seção 6.11, item 3), mas sem sino.
+4. **Orçamento.** O FX ERP vira dono de T003 e T004, só nos ramos da Fixar (seção 4.4).
+5. **Pedido, análise e crédito.** Só nos ramos da Fixar: sem faturamento automático e com o crédito liberado indo para Imprimir. Vale `gerarPedido` do Hardness e a alçada original, as duas confirmadas.
+6. Estoque e almoxarifado (expedição modelo 1, com a etapa de separação), compras (fluxo novo) e financeiro, cada um decidido quando chegar a vez.
+7. Emissão de NF e fiscal por último, ou nunca.
+
+A ordem começa pela leitura porque ela não tem o problema da seção seguinte. Atividades vem antes do orçamento porque grava em tabelas com poucas regras e é onde a operação mais ganha com uma tela nova.
 
 ### 8.3 O ponto técnico que decide: quem grava
 
@@ -460,7 +594,7 @@ O protótipo de convivência precisa provar três coisas, nesta ordem: (a) o FX 
 O repositório não traz o contrato. O que ele diz: a Fixar comprou o código (`docs/adr/0001-sistema-novo-nasce-do-legado.md:7`), recebe a Publicação (ADR 0005) e desliga, por adaptação, as duas verificações de boleto do fornecedor (`bin/adaptar-hardness.py:212`).
 
 - Enquanto fiscal, NF ou financeiro rodarem no Hardness, o acesso à Publicação deve continuar.
-- Saber se a licença permite escrever um sistema novo a partir das regras do código comprado é pergunta jurídica, para a diretoria, antes da fase 4.
+- **Respondido em 25/11/2026:** o João informou que a Fixar pode usar tudo literalmente, principalmente as regras de negócio, como base do sistema novo. A pergunta jurídica sai das condições. Fica só a recomendação de guardar essa autorização por escrito, junto ao ADR novo.
 - O fim do contrato só entra em pauta se e quando a NF sair do Hardness. Este estudo recomenda não planejar isso agora.
 
 ---
@@ -474,17 +608,17 @@ Ordem de grandeza, para duas pessoas, com parte do tempo na produção. A base �
 | Fase | Conteúdo | Ordem de grandeza | O que mais muda a conta |
 |---|---|---|---|
 | 0 | Levantamento de uso com a operação, inventário da Personalização, medição de desempenho, protótipo de convivência | 4 a 8 semanas | Acesso a dados da produção |
-| 1 | Fundação: esqueleto, login por ponte, Perfil, Shell, fila, Alertas em tabela e tempo real, implantação | 2 a 3 meses | Resultado do protótipo de Aba |
-| 2 | Televendas em leitura | 2 a 4 meses | Quantas abas do C.R.M. são usadas |
-| 3 | Atividades e agenda | 1 a 2 meses | Uso real de e-mail integrado |
-| 4 | Orçamento | 4 a 8 meses | Tamanho da Personalização de totalização; impostos no orçamento |
-| 5 | Pedido e crédito | 3 a 6 meses | Número de situações de pedido em uso; alçada |
-| 6 | Estoque, almoxarifado e expedição | 4 a 8 meses | Coletor e telas de tablet; mais de uma Empresa com estoque |
-| 7 | Compras | 4 a 6 meses | Fluxo antigo ou novo |
+| 1 | Fundação: esqueleto, login por ponte, Perfil, Shell, fila, implantação (sem Alertas desde 25/11/2026) | 1,5 a 2,5 meses | Resultado do protótipo de Aba |
+| 2 | Mesa do televendas em leitura: Cliente, Orçamentos, Pedidos e NF como consulta | 2 a 3 meses | Quatro abas confirmadas; profundidade da consulta de NF |
+| 3 | Atividades redesenhadas e agenda | 1,5 a 3 meses | Quanto do fluxo de Atividades muda em relação ao Hardness; e-mail integrado |
+| 4 | Orçamento | 4 a 7 meses | Tamanho da Personalização de totalização; impostos no orçamento. Os ramos do modelo 2 de expedição saem |
+| 5 | Pedido, análise e crédito | 3 a 5 meses | Número de situações em uso. `gerarPedido` e alçada do Hardness confirmados. Faturamento automático, os ramos 10, 3 e 21 de situação inicial e a separação automática saem |
+| 6 | Estoque, almoxarifado e expedição | 4 a 8 meses | Coletor e telas de tablet; mais de uma Empresa com estoque. Separação é etapa própria (`desabilitarSeparacao` = N); os ramos sem separação saem |
+| 7 | Compras (fluxo novo: `est015`, `est016`, `est019`) | 3 a 5 meses | O fluxo antigo (`est006`, `est008`, `est012`) sai do porte; resta conferir as leituras da T010 |
 | 8 | Financeiro, boleto e remessa | 6 a 10 meses | Bancos e carteiras; conciliação |
 | 9 | NF de saída e de entrada | 9 a 15 meses, mais manutenção fiscal permanente | Reforma tributária; modelos de documento emitidos |
 
-Somas: fases 0 a 5, que cobrem a frente comercial, ficam entre 1 e 2 anos. Tudo, entre 3 e 5 anos ou mais. É a mesma conclusão do ADR 0001.
+Somas: fases 0 a 5, que cobrem a frente comercial, ficam entre 1 e 2 anos. A ponta de cima cai um pouco com os ramos fora do porte e com a fundação sem Alertas, mas a ordem de grandeza não muda. Fases 0 a 3, a mesa do televendas com Atividades nova, ficam entre 6 e 10 meses. Tudo, entre 3 e 5 anos ou mais. É a mesma conclusão do ADR 0001.
 
 O que muda a estimativa como um todo:
 
@@ -508,7 +642,8 @@ O que muda a estimativa como um todo:
 | Uso real diferente do mapa | Esforço em tela que ninguém abre | Fase 0 com a operação e com dado de uso |
 | Desempenho não melhora | A promessa principal não se cumpre | Medir antes; corrigir no Hardness o que for barato |
 | Legislação fiscal | Reforma tributária durante a migração | Fiscal fica no Hardness |
-| Licença do código | Impedimento jurídico tardio | Pergunta à diretoria antes da fase 4 |
+| Licença do código | Rebaixado em 25/11/2026: o João informou que o uso literal é permitido | Guardar a autorização por escrito junto ao ADR novo |
+| Chave C031 mudar depois do porte | Um ramo deixado fora volta a valer | Teste de contrato que confere os seis valores da seção 4.4; mudança vira demanda |
 | Sessão compartilhada | Falha de segurança na ponte de login | Ponte só no servidor, sem dado de sessão no navegador; revisão de segurança no protótipo |
 | Dependência de pessoa | Conhecimento do legado em uma cabeça | Regras em teste e em documento, não em memória |
 | Cronograma atual | A reescrita disputa tempo com a entrega de março de 2027 | Não começar a fase 1 antes da validação em produção |
@@ -516,7 +651,7 @@ O que muda a estimativa como um todo:
 ### 9.3 Veredito, com as condições
 
 - **Não vale** reescrever tudo e trocar de uma vez.
-- **Vale** crescer ao lado, restrito à frente comercial, se as cinco condições do resumo forem atendidas.
+- **Vale** crescer ao lado, restrito à frente comercial e começando pela mesa do televendas no C.R.M. (Atividades nova; Orçamentos, Pedidos e NF em consulta), se as cinco condições do resumo forem atendidas. O uso literal das regras, permitido em 25/11/2026, deixa o caminho mais barato: o catálogo é especificação, sem risco jurídico.
 - **Continua válido** seguir o ADR 0001 e melhorar o Hardness no lugar. Se a fase 0 mostrar que a dor da operação é lentidão e não fluxo, esse caminho é o mais barato e este estudo recomenda ficar nele.
 
 ---
@@ -526,10 +661,8 @@ O que muda a estimativa como um todo:
 Uso:
 
 1. Quais telas cada setor abre num dia normal, por Perfil?
-2. O televendas trabalha dentro do C.R.M.? Quais abas usa e quais nunca abriu?
 3. CRM e e-mail integrado estão em uso? A spec da Base os deixou fora do ciclo e este pedido os incluiu.
 4. O chat é usado? Por quem?
-5. Quais Alertas do sino alguém espera receber, e quais são ruído?
 
 Regras:
 
@@ -537,7 +670,6 @@ Regras:
 7. Quais níveis de alçada existem e quais são os tetos de desconto e de prazo?
 8. O que bloqueia um pedido no crédito hoje? Quais portadores passam sem análise?
 9. Quais situações de pedido aparecem no dia a dia, das 26 que o Hardness tem?
-10. Compras usa cotação e ordem pelo fluxo antigo ou pelo novo?
 
 Estoque e fiscal:
 
@@ -555,14 +687,32 @@ Operação e desempenho:
 
 Para a diretoria:
 
-19. O que o contrato com o fornecedor do Hardness permite e por quanto tempo a Publicação continua?
+19. Por quanto tempo a Publicação continua? A parte do contrato que trata do uso do código foi respondida em 25/11/2026.
 20. Qual dor justifica o investimento: lentidão, tela, fluxo que não cabe, ou dependência do fornecedor?
 
 Para a T.I.:
 
+
 21. A auditoria T162 está ligada na produção? Ela responderia as perguntas 1 e 16 com dado.
 22. Quantas chaves da C031 têm valor diferente do padrão na produção?
 23. Qual é o tamanho da Personalização: quantas telas, quantas rotinas?
+
+### 10.1 Respondidas em 25/11/2026
+
+| Pergunta | Resposta do João | Efeito no estudo |
+|---|---|---|
+| (antiga 2) O televendas trabalha dentro do C.R.M.? Quais abas usa? | Sim. As principais são Atividades, que não é bem feita no Hardness, Orçamentos, Pedidos e Notas Fiscais | Fase do televendas refeita: mesa em leitura com NF como consulta, Atividades redesenhadas como primeira gravação (seção 8.2) |
+| (antiga 5 e 24) Quais Alertas do sino importam e do que o televendas reclama? | Pode ignorar o sino | Sino fora do escopo e do caminho crítico; fica como dívida (seção 6.11). Fundação menor (seção 9.1) |
+| (antiga 25) A alçada da Fixar usa código próprio em `verificaAlcadaNovo`? | Acredita que não: é o original do sistema | Primeiro registrado como provável. **Confirmado** pela resposta à antiga 29 (seção 4.4) |
+| (antiga 26) Valores na produção das cinco chaves C031 | `FaturarPedidoAposAnalisePedido` NÃO; `statusInicialPedido` IMPRESSÃO; `permitirVendaSemEstoque` NÃO; `obrigatorioGerarParcelaOrcamento` SIM; `modeloExpedicao` MODELO 1 | Literais conferidos no código: `N`, `1`, `N`, `S`, `1`. Ramos da Fixar fixados e ramos fora do porte marcados (seção 4.4; regras 3, 25, 29, 31 e 32) |
+| (antiga 19, parte do contrato) O que o contrato permite? | Podem usar tudo literalmente, principalmente as regras de negócio, como base do novo | Risco de licença rebaixado (seção 9.2); o catálogo vira especificação (seções 4 e 8.6) |
+
+| (antiga 10) Compras usa o fluxo antigo ou o novo? | Novo | Fluxo antigo (`est006`, `est008`, `est012`; T010 a T012) fora do porte. Fase 7 só com `est015`, `est016` e `est019` (seções 3.3 e 9.1; `telas/est.md`) |
+| (antiga 27) Valor da C031 `desabilitarSeparacao`? | NÃO | Literal `N`. Com situação inicial 1, o faturamento não preenche a separação; ela é etapa da expedição. O ramo de separação automática sai do porte (seção 4.4) |
+| (antiga 28) `FIXAR-VEN001.php` roda na produção? | Não, é só backup | Arquivo fora do escopo, sem leitura. A regra 25 vale pelo Hardness. O risco de Personalização em `gerarPedido` foi removido |
+| (antiga 29) Há código próprio de alçada na Personalização da produção? | Não | Alçada **confirmada: original do Hardness** (regras 8 e 30) |
+
+Das perguntas que o João recebeu, nenhuma está mais em aberto. As perguntas de uso, regras, estoque, operação e diretoria que ainda estão na lista acima são para o percurso com a operação.
 
 ---
 
@@ -571,9 +721,13 @@ Para a T.I.:
 1. Levar as perguntas da seção 10 ao percurso com a operação, que o cronograma já prevê até 12/12.
 2. Decidir, com este estudo em mãos, se o ADR 0001 é reaberto. Se for, registrar um ADR novo dizendo o que muda e o que continua.
 3. Medir o desempenho da produção antes de prometer melhora: tempo por tela, consultas mais lentas, carga da consulta periódica.
-4. Fazer o inventário da Personalização em documento separado, fora deste.
+4. Fazer o inventário da Personalização em documento separado, fora deste. A alçada está confirmada como original e `FIXAR-VEN001.php` é só backup (25/11/2026). O inventário cobre o que roda de fato na pasta de Personalização da produção.
 5. Depois da validação em produção de março de 2027, fazer o protótipo de convivência da seção 8.3, com prazo fechado de 4 a 8 semanas e as três provas como critério.
 6. Montar o primeiro teste de caracterização sobre o orçamento, usando a Base e `testes/orcamento-pedido-nota.sh` como ponto de partida. Ele serve aos dois caminhos: ao FX ERP novo e ao ajuste do Hardness.
 7. Só então abrir a spec da fase 1 em `.scratch/`.
+8. Usar as fichas de [`telas/`](telas/) no percurso com a operação: marcar em cada módulo as telas que ninguém abre. O que sobrar é o escopo real e corta a estimativa da seção 9.1.
+9. Escrever a spec da tela de Atividades nova a partir de D085, T259 e T260 e da aba atual (`etc/etc017`, aberta pelo C.R.M. em `prog/crm/crm001/tab.php:45–47`), ouvindo o televendas sobre o que falta nela.
+10. Aprofundar as fichas de `est` (expedição modelo 1, `est002`) e `fin` (contas a receber, `fin001`) na ordem das fases, quando chegar a vez de cada uma.
+11. Regerar o grafo com `graphify update .` depois de cada `bin/publicacao trazer` e rodar de novo a extração de SQL por tela, para que as fichas acompanhem a Publicação.
 
-O que este estudo não fez: não leu a Personalização, não consultou banco, não mediu nada em execução, não abriu `graphify-out/` nem os protótipos HTML do visual novo, e não espelhou tarefa no Orbit, porque não publica ticket.
+O que este estudo não fez: não leu a Personalização, não consultou banco, não mediu nada em execução, não abriu os protótipos HTML do visual novo e não espelhou tarefa no Orbit, porque não publica ticket. Nesta revisão, o grafo do Graphify foi usado para inventário e ligações de código. Os scripts de extração rodaram fora do repositório, em `%TEMP%`, e não ficaram nele.
